@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="MainWindow - Copy.xaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Logos\audi.png" />
+    <None Remove="Assets\Logos\bmw.png" />
+    <None Remove="Assets\Logos\honda.png" />
+    <None Remove="Assets\Logos\hyundai.png" />
+    <None Remove="Assets\Logos\kia.png" />
+    <None Remove="Assets\Logos\lexus.png" />
+    <None Remove="Assets\Logos\mazda.png" />
+    <None Remove="Assets\Logos\mercedes.png" />
+    <None Remove="Assets\Logos\mitsubishi.png" />
+    <None Remove="Assets\Logos\nissan.png" />
+    <None Remove="Assets\Logos\opel.png" />
+    <None Remove="Assets\Logos\porsche.png" />
+    <None Remove="Assets\Logos\subaru.png" />
+    <None Remove="Assets\Logos\suzuki.png" />
+    <None Remove="Assets\Logos\toyota.png" />
+    <None Remove="Assets\Logos\volkswagen.png" />
+    <None Remove="Assets\MaaloufLogo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="MainWindow - Copy.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Logos\audi.png" />
+    <Resource Include="Assets\Logos\bmw.png" />
+    <Resource Include="Assets\Logos\honda.png" />
+    <Resource Include="Assets\Logos\hyundai.png" />
+    <Resource Include="Assets\Logos\kia.png" />
+    <Resource Include="Assets\Logos\lexus.png" />
+    <Resource Include="Assets\Logos\mazda.png" />
+    <Resource Include="Assets\Logos\mercedes.png" />
+    <Resource Include="Assets\Logos\mitsubishi.png" />
+    <Resource Include="Assets\Logos\nissan.png" />
+    <Resource Include="Assets\Logos\opel.png" />
+    <Resource Include="Assets\Logos\porsche.png" />
+    <Resource Include="Assets\Logos\subaru.png" />
+    <Resource Include="Assets\Logos\suzuki.png" />
+    <Resource Include="Assets\Logos\toyota.png" />
+    <Resource Include="Assets\Logos\volkswagen.png" />
+    <Resource Include="Assets\MaaloufLogo.png" />
+  </ItemGroup>
+
+</Project>
