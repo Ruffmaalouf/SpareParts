@@ -76,7 +76,7 @@ namespace SpareParts.Desktop.Wpf {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SpareParts.Desktop.Wpf;component/custommessagebox.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SpareParts.Desktop.Wpf;V1.0.0.0;component/custommessagebox.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\CustomMessageBox.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
