@@ -524,6 +524,9 @@
 
                                     <!-- Customer search + Warehouse -->
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0 0 40 0">
+                                        <local:CustomerSearchControl
+                                            Margin="0 0 15 0"
+                                            SelectedCustomerId="{Binding CustomerId, Mode=TwoWay}"/>
                                         <StackPanel>
                                             <TextBlock Text="Warehouse" FontSize="11"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
