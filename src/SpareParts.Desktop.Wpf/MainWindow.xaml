@@ -265,14 +265,113 @@
                             Margin="0 0 0 16"/>
 
                     <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                    <ComboBox ItemsSource="{Binding Themes}"
-                              Style="{StaticResource ThemeComboBoxStyle}"
-                              SelectedItem="{Binding SelectedTheme}"
-                              DisplayMemberPath="Name"
-                              HorizontalAlignment="Stretch"
-                              MinWidth="220"
-                              Margin="0 0 0 6"/>
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 8"/>
+
+                    <!-- ═══ Theme card picker — compact + scrollable ═══ -->
+                    <ScrollViewer MaxHeight="192"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Margin="0 0 0 4">
+                        <ItemsControl ItemsSource="{Binding Themes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Margin="0 0 0 4"
+                                            Cursor="Hand"
+                                            ToolTip="{Binding SubTitle}"
+                                            Command="{Binding DataContext.SelectThemeCommand, ElementName=RootWindow}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Grid>
+                                                    <!-- Accent glow ring (selected only) -->
+                                                    <Border x:Name="GlowRing"
+                                                            CornerRadius="8"
+                                                            BorderThickness="1"
+                                                            BorderBrush="{Binding AccentBrush}"
+                                                            Opacity="0"
+                                                            Margin="-1"/>
+
+                                                    <!-- Card -->
+                                                    <Border x:Name="Card"
+                                                            Background="#10FFFFFF"
+                                                            BorderBrush="#14FFFFFF"
+                                                            BorderThickness="1"
+                                                            CornerRadius="7"
+                                                            Height="36"
+                                                            Padding="10 0">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- Color swatch dot -->
+                                                            <Ellipse Grid.Column="0"
+                                                                     Width="10" Height="10"
+                                                                     Margin="0 0 10 0"
+                                                                     VerticalAlignment="Center">
+                                                                <Ellipse.Fill>
+                                                                    <SolidColorBrush Color="{Binding AccentColor}"/>
+                                                                </Ellipse.Fill>
+                                                                <Ellipse.Effect>
+                                                                    <DropShadowEffect Color="{Binding AccentColor}"
+                                                                                      BlurRadius="8"
+                                                                                      ShadowDepth="0"
+                                                                                      Opacity="0.8"/>
+                                                                </Ellipse.Effect>
+                                                            </Ellipse>
+
+                                                            <!-- Name -->
+                                                            <TextBlock Grid.Column="1"
+                                                                       Text="{Binding Name}"
+                                                                       FontSize="12"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#DDFFFFFF"
+                                                                       VerticalAlignment="Center"/>
+
+                                                            <!-- Check dot (selected) -->
+                                                            <Ellipse x:Name="CheckDot"
+                                                                     Grid.Column="2"
+                                                                     Width="6" Height="6"
+                                                                     VerticalAlignment="Center"
+                                                                     Visibility="Collapsed">
+                                                                <Ellipse.Fill>
+                                                                    <SolidColorBrush Color="{Binding AccentColor}"/>
+                                                                </Ellipse.Fill>
+                                                                <Ellipse.Effect>
+                                                                    <DropShadowEffect Color="{Binding AccentColor}"
+                                                                                      BlurRadius="6"
+                                                                                      ShadowDepth="0"
+                                                                                      Opacity="1.0"/>
+                                                                </Ellipse.Effect>
+                                                            </Ellipse>
+                                                        </Grid>
+                                                    </Border>
+                                                </Grid>
+
+                                                <ControlTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter TargetName="Card"     Property="Background"  Value="#20FFFFFF"/>
+                                                        <Setter TargetName="Card"     Property="BorderBrush" Value="{Binding AccentBrush}"/>
+                                                        <Setter TargetName="GlowRing" Property="Opacity"     Value="0.6"/>
+                                                        <Setter TargetName="CheckDot" Property="Visibility"  Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Card" Property="Background"  Value="#18FFFFFF"/>
+                                                        <Setter TargetName="Card" Property="BorderBrush" Value="#30FFFFFF"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="Card" Property="Background" Value="#08FFFFFF"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                     <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{}{0:D}'}"
                                FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>

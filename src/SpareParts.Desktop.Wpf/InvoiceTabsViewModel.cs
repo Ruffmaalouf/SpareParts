@@ -167,6 +167,7 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Themes ────────────────────────────────────────────────────────────
         public ObservableCollection<ThemeOption> Themes { get; } = new();
+        public ICommand SelectThemeCommand { get; private set; } = null!;
 
         private ThemeOption? _selectedTheme;
         public ThemeOption? SelectedTheme
@@ -208,13 +209,23 @@ namespace SpareParts.Desktop.Wpf
         // ── Constructor ───────────────────────────────────────────────────────
         public InvoiceTabsViewModel()
         {
-            Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default" });
-            Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power" });
-            Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow,      Name = "Neon Glow" });
-            Themes.Add(new ThemeOption { Key = AppTheme.AMG,           Name = "AMG" });
-            Themes.Add(new ThemeOption { Key = AppTheme.PorscheRS,     Name = "Porsche RS" });
-            Themes.Add(new ThemeOption { Key = AppTheme.LamborghiniSC, Name = "Lamborghini Squadra Corse" });
-            SelectedTheme = Themes[0];
+            Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",                    SubTitle = "Sport Orange · Dark",      AccentHex = "#FF5722" });
+            Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",                    SubTitle = "BMW · Midnight Blue",       AccentHex = "#1C69D4" });
+            Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow,      Name = "Neon Glow",                  SubTitle = "Cyberpunk · Electric Cyan", AccentHex = "#00E5FF" });
+            Themes.Add(new ThemeOption { Key = AppTheme.AMG,           Name = "AMG",                        SubTitle = "Mercedes · Titanium Grey",  AccentHex = "#C0C0C0" });
+            Themes.Add(new ThemeOption { Key = AppTheme.PorscheRS,     Name = "Porsche RS",                 SubTitle = "Racing · Guards Red",       AccentHex = "#E30613" });
+            Themes.Add(new ThemeOption { Key = AppTheme.LamborghiniSC, Name = "Squadra Corse",              SubTitle = "Lamborghini · Giallo Orion", AccentHex = "#FFD600" });
+
+            SelectThemeCommand = new RelayCommand(o =>
+            {
+                if (o is not ThemeOption picked) return;
+                foreach (var t in Themes) t.IsSelected = false;
+                picked.IsSelected = true;
+                ThemeManager.ApplyTheme(picked.Key);
+            });
+
+            Themes[0].IsSelected = true;
+            ThemeManager.ApplyTheme(AppTheme.Default);
 
             SelectBrandCommand      = new RelayCommand(SelectBrand);
             SelectCarCommand        = new RelayCommand(SelectCar);

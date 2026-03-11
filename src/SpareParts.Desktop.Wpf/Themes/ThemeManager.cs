@@ -1,67 +1,81 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
     public static class ThemeManager
     {
-        // Map each theme to its ResourceDictionary URI (relative to project)
         private static readonly Dictionary<AppTheme, Uri> ThemeUris = new()
         {
-            { AppTheme.MPower,        new Uri("Themes/BMWMTheme.xaml", UriKind.Relative) },
-            { AppTheme.NeonGlow,      new Uri("Themes/NeonGlowTheme.xaml", UriKind.Relative) },
-            { AppTheme.AMG,           new Uri("Themes/AMGTheme.xaml", UriKind.Relative) },
+            { AppTheme.MPower,        new Uri("Themes/BMWMTheme.xaml",      UriKind.Relative) },
+            { AppTheme.NeonGlow,      new Uri("Themes/NeonGlowTheme.xaml",  UriKind.Relative) },
+            { AppTheme.AMG,           new Uri("Themes/AMGTheme.xaml",       UriKind.Relative) },
             { AppTheme.PorscheRS,     new Uri("Themes/PorscheRSTheme.xaml", UriKind.Relative) },
-            { AppTheme.LamborghiniSC, new Uri("Themes/LamboTheme.xaml", UriKind.Relative) }
+            { AppTheme.LamborghiniSC, new Uri("Themes/LamboTheme.xaml",     UriKind.Relative) },
         };
 
         public static AppTheme CurrentTheme { get; private set; } = AppTheme.Default;
+
+        private const string ThemeTag = "AppThemeOverride";
 
         public static void ApplyTheme(AppTheme theme)
         {
             var app = Application.Current;
             if (app == null) return;
-
-            var dictionaries = app.Resources.MergedDictionaries;
-
-            // Remove any previous theme dictionaries (non-default)
-            var existingThemeDictionaries = dictionaries
-                .Where(d => d.Source != null && ThemeUris.Values.Contains(d.Source))
-                .ToList();
-
-            foreach (var dict in existingThemeDictionaries)
-                dictionaries.Remove(dict);
-
-            // Default = just base theme stays (DefaultTheme.xaml)
-            if (theme == AppTheme.Default)
+            var dicts = app.Resources.MergedDictionaries;
+            // Remove by tag, not by URI — WPF resolves URIs to absolute pack:// so relative comparison fails
+            foreach (var d in dicts.Where(d => d.Contains(ThemeTag)).ToList())
+                dicts.Remove(d);
+            if (theme != AppTheme.Default && ThemeUris.TryGetValue(theme, out var uri))
             {
-                CurrentTheme = AppTheme.Default;
-                return;
+                var nd = new ResourceDictionary { Source = uri };
+                nd[ThemeTag] = true;
+                dicts.Add(nd);
             }
-
-            // Add new theme dictionary
-            if (ThemeUris.TryGetValue(theme, out var uri))
-            {
-                var newDict = new ResourceDictionary { Source = uri };
-                dictionaries.Add(newDict);
-                CurrentTheme = theme;
-            }
+            CurrentTheme = theme;
         }
     }
-    public enum AppTheme
+
+    public enum AppTheme { Default, MPower, NeonGlow, AMG, PorscheRS, LamborghiniSC }
+
+    public class ThemeOption : INotifyPropertyChanged
     {
-        Default,
-        MPower,
-        NeonGlow,
-        AMG,
-        PorscheRS,
-        LamborghiniSC
-    }
-    public class ThemeOption
-    {
-        public AppTheme Key { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public AppTheme Key      { get; set; }
+        public string   Name     { get; set; } = string.Empty;
+        public string   SubTitle { get; set; } = string.Empty;
+
+        private string _accentHex = "#FF5722";
+        public string AccentHex
+        {
+            get => _accentHex;
+            set
+            {
+                _accentHex = value;
+                try
+                {
+                    AccentColor = (Color)ColorConverter.ConvertFromString(value);
+                    AccentBrush = new SolidColorBrush(AccentColor);
+                }
+                catch { }
+                Notify(nameof(AccentHex)); Notify(nameof(AccentColor)); Notify(nameof(AccentBrush));
+            }
+        }
+
+        public Color           AccentColor { get; private set; } = Color.FromRgb(0xFF, 0x57, 0x22);
+        public SolidColorBrush AccentBrush { get; private set; } = new SolidColorBrush(Color.FromRgb(0xFF, 0x57, 0x22));
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set { if (_isSelected == value) return; _isSelected = value; Notify(nameof(IsSelected)); }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void Notify(string n) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 }
