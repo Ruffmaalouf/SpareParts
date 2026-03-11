@@ -8,7 +8,7 @@
         Width="1300" Height="850"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
-        Background="{StaticResource AppBackgroundBrush}">
+        Background="{DynamicResource AppBackgroundBrush}">
 
     <Window.Resources>
         <local:ScreenToVisibilityConverter x:Key="ScreenToVisibilityConverter" />
@@ -16,7 +16,7 @@
         <!-- ── Tab Item Style ── -->
         <Style x:Key="InvoiceTabItemStyle" TargetType="TabItem">
             <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="Foreground"      Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground"      Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding"         Value="0"/>
             <Setter Property="Margin"          Value="0 0 4 0"/>
@@ -24,7 +24,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
                         <Border x:Name="TabBorder"
-                                Background="{StaticResource CardBackgroundBrush}"
+                                Background="{DynamicResource CardBackgroundBrush}"
                                 BorderBrush="Transparent"
                                 BorderThickness="1"
                                 CornerRadius="6 6 0 0"
@@ -33,12 +33,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="TabBorder" Property="Background"    Value="{StaticResource CardHighlightBrush}"/>
-                                <Setter TargetName="TabBorder" Property="BorderBrush"   Value="{StaticResource AccentBrush}"/>
-                                <Setter Property="Foreground"                            Value="{StaticResource TextPrimaryBrush}"/>
+                                <Setter TargetName="TabBorder" Property="Background"    Value="{DynamicResource CardHighlightBrush}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush"   Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground"                            Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="TabBorder" Property="BorderBrush"   Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush"   Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -62,8 +62,8 @@
 
                             <!-- Tab strip row -->
                             <Border Grid.Row="0"
-                                    Background="{StaticResource AppBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderBrush}"
+                                    Background="{DynamicResource AppBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="0 0 0 1"
                                     Padding="8 6 8 0">
                                 <DockPanel>
@@ -83,7 +83,7 @@
                             </Border>
 
                             <!-- Active tab content -->
-                            <Border Grid.Row="1" Background="{StaticResource CardBackgroundBrush}">
+                            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}">
                                 <ContentPresenter x:Name="PART_SelectedContentHost"
                                                   ContentSource="SelectedContent"/>
                             </Border>
@@ -108,7 +108,7 @@
              directly on InvoiceTabsViewModel.
         ══════════════════════════════════════════════════════════════════════ -->
         <Border Grid.Column="0"
-                Background="{StaticResource CardBackgroundBrush}"
+                Background="{DynamicResource CardBackgroundBrush}"
                 BorderBrush="#0DFFFFFF"
                 BorderThickness="0 0 1 0"
                 Margin="0,-10,0,10"
@@ -128,19 +128,19 @@
                     </StackPanel.InputBindings>
                     <Image Source="/Assets/MaaloufLogo.png" Width="232" Height="231" Panel.ZIndex="-10"/>
                     <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="White" Text="Maalouf Auto Parts"/>
-                    <TextBlock Text="Parts Management" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="Parts Management" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
 
                 <!-- Selected brand card -->
                 <Border Grid.Row="1"
-                        Background="{StaticResource AppBackgroundBrush}"
+                        Background="{DynamicResource AppBackgroundBrush}"
                         CornerRadius="12"
                         Padding="16"
                         Margin="0 0 0 30">
                     <StackPanel>
                         <TextBlock Text="SELECTED MANUFACTURE"
                                    FontSize="10" FontWeight="Bold"
-                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Margin="0 10 0 0" VerticalAlignment="Center">
                             <Image Source="{Binding SelectedBrand.LogoPath}"
                                    Width="40" Height="40" Margin="0 0 12 0"
@@ -150,7 +150,7 @@
                                 <TextBlock Text="{Binding SelectedBrand.Name, TargetNullValue='None Selected'}"
                                            FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding SelectedBrand.Country, StringFormat=' ({0})'}"
-                                           FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                                            VerticalAlignment="Center" Margin="4 0 0 0"/>
                             </StackPanel>
                         </StackPanel>
@@ -264,8 +264,8 @@
                             Height="38"
                             Margin="0 0 0 16"/>
 
-                    <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 8"/>
+                    <TextBlock Text="THEME" FontSize="10" FontWeight="Bold" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
 
                     <!-- ═══ Theme card picker — compact + scrollable ═══ -->
                     <ScrollViewer MaxHeight="192"
@@ -373,7 +373,7 @@
                         </ItemsControl>
                     </ScrollViewer>
                     <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{}{0:D}'}"
-                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 
@@ -394,7 +394,7 @@
 
             <!-- ── HomePage ─────────────────────────────────────────────── -->
             <Grid Margin="5,0,40,10"
-                  Background="{StaticResource CardBackgroundBrush}"
+                  Background="{DynamicResource CardBackgroundBrush}"
                   Visibility="{Binding ActiveScreen,
                                        Converter={StaticResource ScreenToVisibilityConverter},
                                        ConverterParameter=HomePage}">
@@ -446,7 +446,7 @@
                             <TextBlock Text="{Binding SelectedBrand.Name, TargetNullValue=Select a Brand}"
                                        FontSize="24" FontWeight="Bold"/>
                             <TextBlock Text="Available Cars" FontSize="14"
-                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -466,15 +466,15 @@
                                         CommandParameter="{Binding}"
                                         Margin="8" Padding="0"
                                         Background="Transparent" BorderThickness="0">
-                                    <Border Background="{StaticResource CardBackgroundBrush}"
+                                    <Border Background="{DynamicResource CardBackgroundBrush}"
                                             CornerRadius="8" Padding="10" Width="220">
                                         <StackPanel>
                                             <Image Source="{Binding ImagePath}" Height="100"
                                                    Stretch="UniformToFill"
                                                    RenderOptions.BitmapScalingMode="HighQuality"/>
                                             <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Margin="0 8 0 0"/>
-                                            <TextBlock Text="{Binding Year}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding EngineType}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding Year}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding EngineType}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBlock Text="{Binding BasePrice, StringFormat=Price: {0:N0}}"
                                                        FontSize="14" FontWeight="Bold" Margin="0 4 0 0"/>
                                         </StackPanel>
@@ -506,7 +506,7 @@
                         <TextBlock Text="{Binding SelectedCar.Name, TargetNullValue=Select a car}"
                                    FontSize="22" FontWeight="Bold"/>
                         <TextBlock Text="{Binding SelectedCar.Year}" FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -525,7 +525,7 @@
                                         CommandParameter="{Binding}"
                                         Background="Transparent" BorderThickness="0"
                                         Margin="8" Padding="0">
-                                    <Border Background="{StaticResource CardBackgroundBrush}"
+                                    <Border Background="{DynamicResource CardBackgroundBrush}"
                                             CornerRadius="8" Padding="10" Width="260">
                                         <StackPanel>
                                             <TextBlock Text="{Binding Code}" FontSize="14" FontWeight="Bold"/>
@@ -561,7 +561,7 @@
                                     Command="{Binding DataContext.CloseTabCommand, ElementName=RootWindow}"
                                     CommandParameter="{Binding}"
                                     Background="Transparent" BorderThickness="0"
-                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"
                                     FontSize="11" Padding="8 0 0 0"
                                     VerticalAlignment="Center" Cursor="Hand">
                                 <Button.Style>
@@ -575,7 +575,7 @@
                                                     </Border>
                                                     <ControlTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                                                         </Trigger>
                                                     </ControlTemplate.Triggers>
                                                 </ControlTemplate>
@@ -604,12 +604,12 @@
                             <StackPanel Grid.Row="0" Margin="20,20,20,10">
                                 <TextBlock Text="New Sale" FontSize="26" FontWeight="Bold"/>
                                 <TextBlock Text="Enter invoice details below" FontSize="14"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
                             </StackPanel>
 
                             <!-- Form card -->
                             <Border Grid.Row="1"
-                                    Background="{StaticResource CardBackgroundBrush}"
+                                    Background="{DynamicResource CardBackgroundBrush}"
                                     CornerRadius="8" Padding="20" Margin="20,0,20,15">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="20" ShadowDepth="5"/>
@@ -628,7 +628,7 @@
                                             SelectedCustomerId="{Binding CustomerId, Mode=TwoWay}"/>
                                         <StackPanel>
                                             <TextBlock Text="Warehouse" FontSize="11"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBox Width="80" Text="{Binding WarehouseId}"
                                                      HorizontalContentAlignment="Center"/>
                                         </StackPanel>
@@ -645,7 +645,7 @@
 
                             <!-- Items DataGrid -->
                             <Border Grid.Row="2" CornerRadius="8"
-                                    Background="{StaticResource CardBackgroundBrush}"
+                                    Background="{DynamicResource CardBackgroundBrush}"
                                     Margin="20,0,20,0">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.10" BlurRadius="15" ShadowDepth="3"/>
@@ -684,18 +684,18 @@
 
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Total:" FontSize="14"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 10 0"/>
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                         <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
                                                    FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
 
                                         <TextBlock Text="Total Paid:" FontSize="14"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 10 0"/>
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                         <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
                                                  Width="150" FontSize="14" FontWeight="SemiBold"
                                                  Background="Transparent" BorderThickness="0 0 0 1" Margin="0 0 30 0"/>
 
                                         <TextBlock Text="Remaining:" FontSize="14"
-                                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 10 0"/>
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                         <TextBlock Text="{Binding RemainingAmount, StringFormat={}{0:N0}}"
                                                    FontSize="14" FontWeight="SemiBold"/>
                                     </StackPanel>

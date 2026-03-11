@@ -6,15 +6,9 @@
         Width="1150" Height="780"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
-        Background="{StaticResource AppBackgroundBrush}">
+        Background="{DynamicResource AppBackgroundBrush}">
 
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Themes/DefaultTheme.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
+    <!-- Resources inherited from App.xaml — no local merge needed so themes apply correctly -->
 
     <Grid>
         <Grid.RowDefinitions>
@@ -38,29 +32,29 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Form -->
-                    <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}"
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                             CornerRadius="10" Padding="24" Margin="0 0 12 0">
                         <StackPanel>
                             <TextBlock Text="New Customer" FontSize="18" FontWeight="Bold" Margin="0 0 0 4"/>
                             <TextBlock Text="Fill in the details and save."
-                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 20"/>
+                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 20"/>
 
-                            <TextBlock Text="NAME *" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="NAME *" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="PHONE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="PHONE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCustomerPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="EMAIL" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="EMAIL" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCustomerEmail, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="ADDRESS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="ADDRESS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCustomerAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="TAX NUMBER" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="TAX NUMBER" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCustomerTax, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="OPENING BALANCE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="OPENING BALANCE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCustomerBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 24"/>
 
                             <Button Content="＋  Save Customer"
@@ -72,7 +66,7 @@
                     </Border>
 
                     <!-- List -->
-                    <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -92,7 +86,7 @@
                                       HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <DataGrid.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
+                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{DynamicResource NeonScrollBar}"/>
                                 </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="55"/>
@@ -118,29 +112,29 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Form -->
-                    <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}"
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                             CornerRadius="10" Padding="24" Margin="0 0 12 0">
                         <StackPanel>
                             <TextBlock Text="New Supplier" FontSize="18" FontWeight="Bold" Margin="0 0 0 4"/>
                             <TextBlock Text="Fill in the details and save."
-                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 20"/>
+                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 20"/>
 
-                            <TextBlock Text="NAME *" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="NAME *" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewSupplierName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="PHONE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="PHONE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewSupplierPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="EMAIL" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="EMAIL" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewSupplierEmail, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="ADDRESS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="ADDRESS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewSupplierAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="TAX NUMBER" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="TAX NUMBER" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewSupplierTax, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="OPENING BALANCE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="OPENING BALANCE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewSupplierBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 24"/>
 
                             <Button Content="＋  Save Supplier"
@@ -152,7 +146,7 @@
                     </Border>
 
                     <!-- List -->
-                    <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -198,18 +192,18 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Form -->
-                    <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}"
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                             CornerRadius="10" Padding="24" Margin="0 0 12 0">
                         <StackPanel>
                             <TextBlock Text="New Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 4"/>
                             <TextBlock Text="Add a new car manufacturer brand."
-                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 20"/>
+                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 20"/>
 
-                            <TextBlock Text="BRAND NAME *" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="BRAND NAME *" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewBrandName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 16"/>
 
                             <CheckBox Content="Active" IsChecked="{Binding NewBrandIsActive}"
-                                      Foreground="{StaticResource TextPrimaryBrush}" Margin="0 0 0 24"/>
+                                      Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 0 24"/>
 
                             <Button Content="＋  Save Brand"
                                     Command="{Binding SaveBrandCommand}"
@@ -220,7 +214,7 @@
                     </Border>
 
                     <!-- List -->
-                    <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -264,21 +258,21 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Form -->
-                    <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}"
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                             CornerRadius="10" Padding="24" Margin="0 0 12 0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <TextBlock Text="New Part" FontSize="18" FontWeight="Bold" Margin="0 0 0 4"/>
                                 <TextBlock Text="Register a new spare part."
-                                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 20"/>
+                                           FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 20"/>
 
-                                <TextBlock Text="INTERNAL CODE *" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBlock Text="INTERNAL CODE *" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewPartCode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                                <TextBlock Text="PART NAME *" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBlock Text="PART NAME *" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewPartName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                                <TextBlock Text="OEM NUMBER" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBlock Text="OEM NUMBER" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewPartOEM, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
                                 <Grid Margin="0 0 0 14">
@@ -288,11 +282,11 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="COST PRICE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                        <TextBlock Text="COST PRICE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                         <TextBox Text="{Binding NewPartCostPrice, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="SALE PRICE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                        <TextBlock Text="SALE PRICE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                         <TextBox Text="{Binding NewPartSalePrice, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>
                                 </Grid>
@@ -304,11 +298,11 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="CATEGORY ID" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                        <TextBlock Text="CATEGORY ID" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                         <TextBox Text="{Binding NewPartCategoryId, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="BRAND ID" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                        <TextBlock Text="BRAND ID" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                         <TextBox Text="{Binding NewPartBrandId, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>
                                 </Grid>
@@ -320,16 +314,16 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="CURRENCY" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                        <TextBlock Text="CURRENCY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                         <TextBox Text="{Binding NewPartCurrency, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="MIN STOCK" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                        <TextBlock Text="MIN STOCK" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                         <TextBox Text="{Binding NewPartMinStock, UpdateSourceTrigger=PropertyChanged}"/>
                                     </StackPanel>
                                 </Grid>
 
-                                <TextBlock Text="NOTES" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBlock Text="NOTES" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewPartNotes, UpdateSourceTrigger=PropertyChanged}"
                                          Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0 0 0 24"/>
 
@@ -343,7 +337,7 @@
                     </Border>
 
                     <!-- List -->
-                    <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -391,14 +385,14 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Form -->
-                    <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}"
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                             CornerRadius="10" Padding="24" Margin="0 0 12 0">
                         <StackPanel>
                             <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 4"/>
                             <TextBlock Text="Add a model to a brand."
-                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 20"/>
+                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 20"/>
 
-                            <TextBlock Text="MODEL NAME *" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="MODEL NAME *" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
                             <Grid Margin="0 0 0 14">
@@ -408,19 +402,19 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="YEAR" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBlock Text="YEAR" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewCarModelYear, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="BRAND ID" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBlock Text="BRAND ID" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewCarModelBrandId, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock Text="ENGINE TYPE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="ENGINE TYPE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCarModelEngine, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
 
-                            <TextBlock Text="BASE PRICE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBlock Text="BASE PRICE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                             <TextBox Text="{Binding NewCarModelBasePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 24"/>
 
                             <Button Content="＋  Save Car Model"
@@ -432,7 +426,7 @@
                     </Border>
 
                     <!-- List -->
-                    <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -471,14 +465,14 @@
 
         <!-- ══ STATUS BAR ══ -->
         <Border Grid.Row="1"
-                Background="{StaticResource CardBackgroundBrush}"
+                Background="{DynamicResource CardBackgroundBrush}"
                 Padding="20 10" Margin="16 6 16 16"
                 CornerRadius="8">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="●" FontSize="10" VerticalAlignment="Center"
-                           Foreground="{StaticResource AccentBrush}" Margin="0 0 8 0"/>
+                           Foreground="{DynamicResource AccentBrush}" Margin="0 0 8 0"/>
                 <TextBlock Text="{Binding Status}" FontSize="13"
-                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
     </Grid>
