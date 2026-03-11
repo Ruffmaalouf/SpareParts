@@ -6,3 +6,9 @@ src/SpareParts.Api/obj/
 src/SpareParts.Domain/bin/
 
 src/SpareParts.Domain/obj/
+
+.vs/SpareParts/DesignTimeBuild/
+
+.vs/SpareParts/FileContentIndex/
+
+.vs/SpareParts/v17/
