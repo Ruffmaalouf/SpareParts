@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Dapper;
 using SpareParts.Domain.MasterData;
@@ -18,13 +19,13 @@ namespace SpareParts.Infrastructure.Data
             _session = session;
         }
 
-        // Brand
+        // ── Brand ─────────────────────────────────────────────────────────────
+
         public int InsertBrand(Brand brand)
         {
             const string sql = @"INSERT INTO Brands (Name, IsActive, CreatedAt, CreatedByUserId)
                                  VALUES (@Name, @IsActive, @CreatedAt, @CreatedByUserId);
                                  SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, brand, _session.Transaction);
         }
 
@@ -34,13 +35,19 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.QueryFirstOrDefault<Brand>(sql, new { Id = id }, _session.Transaction);
         }
 
-        // Category
+        public IEnumerable<Brand> GetAllBrands()
+        {
+            const string sql = "SELECT * FROM Brands ORDER BY Name";
+            return _session.Connection.Query<Brand>(sql, transaction: _session.Transaction);
+        }
+
+        // ── Category ──────────────────────────────────────────────────────────
+
         public int InsertCategory(Category category)
         {
             const string sql = @"INSERT INTO Categories (Name, ParentId, CreatedAt, CreatedByUserId)
                                  VALUES (@Name, @ParentId, @CreatedAt, @CreatedByUserId);
                                  SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, category, _session.Transaction);
         }
 
@@ -50,7 +57,8 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.QueryFirstOrDefault<Category>(sql, new { Id = id }, _session.Transaction);
         }
 
-        // Part
+        // ── Part ──────────────────────────────────────────────────────────────
+
         public int InsertPart(Part part)
         {
             const string sql = @"INSERT INTO Parts
@@ -60,7 +68,6 @@ namespace SpareParts.Infrastructure.Data
                 (@InternalCode, @Barcode, @Name, @OEMNumber, @Condition, @CategoryId, @BrandId,
                  @CostPrice, @SalePrice, @Currency, @MinStock, @Notes, @IsActive, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, part, _session.Transaction);
         }
 
@@ -74,6 +81,12 @@ namespace SpareParts.Infrastructure.Data
         {
             const string sql = "SELECT * FROM Parts WHERE Id IN @Ids";
             return _session.Connection.Query<Part>(sql, new { Ids = ids }, _session.Transaction).AsList();
+        }
+
+        public IEnumerable<Part> GetAllParts()
+        {
+            const string sql = "SELECT * FROM Parts WHERE IsActive = 1 ORDER BY Name";
+            return _session.Connection.Query<Part>(sql, transaction: _session.Transaction);
         }
 
         public void UpdatePart(Part part)
@@ -95,11 +108,29 @@ namespace SpareParts.Infrastructure.Data
                     ModifiedAt = @ModifiedAt,
                     ModifiedByUserId = @ModifiedByUserId
                 WHERE Id = @Id";
-
             _session.Connection.Execute(sql, part, _session.Transaction);
         }
 
-        // Stock
+        // ── CarModel ──────────────────────────────────────────────────────────
+
+        public int InsertCarModel(CarModelEntity model)
+        {
+            const string sql = @"INSERT INTO CarModels
+                (Name, Year, EngineType, BasePrice, ImagePath, BrandId, CreatedAt, CreatedByUserId)
+                VALUES
+                (@Name, @Year, @EngineType, @BasePrice, @ImagePath, @BrandId, @CreatedAt, @CreatedByUserId);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);";
+            return _session.Connection.ExecuteScalar<int>(sql, model, _session.Transaction);
+        }
+
+        public IEnumerable<CarModelEntity> GetAllCarModels()
+        {
+            const string sql = "SELECT * FROM CarModels ORDER BY Name";
+            return _session.Connection.Query<CarModelEntity>(sql, transaction: _session.Transaction);
+        }
+
+        // ── Stock ─────────────────────────────────────────────────────────────
+
         public Stock? GetStock(int partId, int warehouseId)
         {
             const string sql = "SELECT TOP 1 * FROM Stock WHERE PartId = @PartId AND WarehouseId = @WarehouseId";
@@ -113,7 +144,6 @@ namespace SpareParts.Infrastructure.Data
                 VALUES
                 (@PartId, @WarehouseId, @LocationId, @Quantity, @ReservedQuantity, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, stock, _session.Transaction);
         }
 
@@ -124,18 +154,11 @@ namespace SpareParts.Infrastructure.Data
                                      ModifiedAt = @ModifiedAt,
                                      ModifiedByUserId = @ModifiedByUserId
                                  WHERE Id = @Id";
-
-            _session.Connection.Execute(sql,
-                new
-                {
-                    Id = stockId,
-                    Delta = delta,
-                    ModifiedAt = DateTime.UtcNow,
-                    ModifiedByUserId = userId
-                }, _session.Transaction);
+            _session.Connection.Execute(sql, new { Id = stockId, Delta = delta, ModifiedAt = DateTime.UtcNow, ModifiedByUserId = userId }, _session.Transaction);
         }
 
-        // StockMovement
+        // ── StockMovement ─────────────────────────────────────────────────────
+
         public int InsertStockMovement(StockMovement movement)
         {
             const string sql = @"INSERT INTO StockMovements
@@ -145,11 +168,11 @@ namespace SpareParts.Infrastructure.Data
                 (@PartId, @WarehouseId, @Quantity, @MovementType, @ReferenceType, @ReferenceId,
                  @UnitCost, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, movement, _session.Transaction);
         }
 
-        // Customer
+        // ── Customer ──────────────────────────────────────────────────────────
+
         public int InsertCustomer(Customer customer)
         {
             const string sql = @"INSERT INTO Customers
@@ -157,7 +180,6 @@ namespace SpareParts.Infrastructure.Data
                 VALUES
                 (@Name, @Phone, @Email, @Address, @TaxNumber, @OpeningBalance, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, customer, _session.Transaction);
         }
 
@@ -167,7 +189,14 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.QueryFirstOrDefault<Customer>(sql, new { Id = id }, _session.Transaction);
         }
 
-        // Supplier
+        public IEnumerable<Customer> GetAllCustomers()
+        {
+            const string sql = "SELECT * FROM Customers ORDER BY Name";
+            return _session.Connection.Query<Customer>(sql, transaction: _session.Transaction);
+        }
+
+        // ── Supplier ──────────────────────────────────────────────────────────
+
         public int InsertSupplier(Supplier supplier)
         {
             const string sql = @"INSERT INTO Suppliers
@@ -175,7 +204,6 @@ namespace SpareParts.Infrastructure.Data
                 VALUES
                 (@Name, @Phone, @Email, @Address, @TaxNumber, @OpeningBalance, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, supplier, _session.Transaction);
         }
 
@@ -185,7 +213,14 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.QueryFirstOrDefault<Supplier>(sql, new { Id = id }, _session.Transaction);
         }
 
-        // SalesInvoice & Items
+        public IEnumerable<Supplier> GetAllSuppliers()
+        {
+            const string sql = "SELECT * FROM Suppliers ORDER BY Name";
+            return _session.Connection.Query<Supplier>(sql, transaction: _session.Transaction);
+        }
+
+        // ── SalesInvoice & Items ──────────────────────────────────────────────
+
         public int InsertSalesInvoice(SalesInvoice invoice)
         {
             const string sql = @"INSERT INTO SalesInvoices
@@ -197,7 +232,6 @@ namespace SpareParts.Infrastructure.Data
                  @TaxAmount, @TotalAmount, @PaidAmount, @PaymentStatus, @PaymentMethod, @Notes,
                  @IsReturn, @ParentInvoiceId, @TotalCost, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, invoice, _session.Transaction);
         }
 
@@ -207,7 +241,6 @@ namespace SpareParts.Infrastructure.Data
                 (InvoiceId, PartId, Quantity, UnitPrice, DiscountAmount, TaxRate, LineTotal, CreatedAt, CreatedByUserId)
                 VALUES
                 (@InvoiceId, @PartId, @Quantity, @UnitPrice, @DiscountAmount, @TaxRate, @LineTotal, @CreatedAt, @CreatedByUserId);";
-
             foreach (var item in items)
             {
                 item.InvoiceId = invoiceId;
@@ -215,7 +248,8 @@ namespace SpareParts.Infrastructure.Data
             }
         }
 
-        // PurchaseInvoice & Items
+        // ── PurchaseInvoice & Items ───────────────────────────────────────────
+
         public int InsertPurchaseInvoice(PurchaseInvoice invoice)
         {
             const string sql = @"INSERT INTO PurchaseInvoices
@@ -225,7 +259,6 @@ namespace SpareParts.Infrastructure.Data
                 (@PurchaseNumber, @PurchaseDate, @SupplierId, @WarehouseId, @Subtotal, @DiscountAmount,
                  @TaxAmount, @TotalAmount, @PaidAmount, @PaymentStatus, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, invoice, _session.Transaction);
         }
 
@@ -235,7 +268,6 @@ namespace SpareParts.Infrastructure.Data
                 (PurchaseId, PartId, Quantity, UnitCost, TaxRate, LineTotal, CreatedAt, CreatedByUserId)
                 VALUES
                 (@PurchaseId, @PartId, @Quantity, @UnitCost, @TaxRate, @LineTotal, @CreatedAt, @CreatedByUserId);";
-
             foreach (var item in items)
             {
                 item.PurchaseId = purchaseId;
@@ -243,7 +275,8 @@ namespace SpareParts.Infrastructure.Data
             }
         }
 
-        // Accounting
+        // ── Accounting ────────────────────────────────────────────────────────
+
         public int InsertAccount(Account account)
         {
             const string sql = @"INSERT INTO Accounts
@@ -251,7 +284,6 @@ namespace SpareParts.Infrastructure.Data
                 VALUES
                 (@Code, @Name, @AccountType, @ParentId, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, account, _session.Transaction);
         }
 
@@ -268,7 +300,6 @@ namespace SpareParts.Infrastructure.Data
                 VALUES
                 (@EntryDate, @ReferenceType, @ReferenceId, @Description, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
             return _session.Connection.ExecuteScalar<int>(sql, entry, _session.Transaction);
         }
 
@@ -278,7 +309,6 @@ namespace SpareParts.Infrastructure.Data
                 (JournalEntryId, AccountId, Debit, Credit, CreatedAt, CreatedByUserId)
                 VALUES
                 (@JournalEntryId, @AccountId, @Debit, @Credit, @CreatedAt, @CreatedByUserId);";
-
             foreach (var line in lines)
             {
                 line.JournalEntryId = entryId;

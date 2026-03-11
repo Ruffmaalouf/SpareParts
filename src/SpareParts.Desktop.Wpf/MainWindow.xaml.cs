@@ -9,7 +9,8 @@ namespace SpareParts.Desktop.Wpf
         public MainWindow()
         {
             InitializeComponent();         // ✅ make sure this is here
-            DataContext = new PosViewModel();
+           // DataContext = new PosViewModel();
+           DataContext = new InvoiceTabsViewModel();
         }
         private void BrandExpander_Expanded(object sender, RoutedEventArgs e)
         {
