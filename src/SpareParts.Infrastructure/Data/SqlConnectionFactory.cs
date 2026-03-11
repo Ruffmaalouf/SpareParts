@@ -1,5 +1,4 @@
 using System.Data;
-using System.Data.SqlClient;
 
 namespace SpareParts.Infrastructure.Data
 {
@@ -19,7 +18,7 @@ namespace SpareParts.Infrastructure.Data
 
         public IDbConnection CreateConnection()
         {
-            var conn = new SqlConnection(_connectionString);
+            var conn = new System.Data.SqlClient.SqlConnection(_connectionString);
             conn.Open();
             return conn;
         }

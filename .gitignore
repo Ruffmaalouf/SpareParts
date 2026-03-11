@@ -14,3 +14,11 @@ src/SpareParts.Domain/obj/
 .vs/SpareParts/v17/
 
 src/SpareParts.Desktop.Wpf/bin/
+
+.vs/
+
+src/SpareParts.Api/bin/
+
+src/SpareParts.Infrastructure/bin/
+
+src/SpareParts.Infrastructure/obj/

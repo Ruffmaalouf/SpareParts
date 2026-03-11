@@ -1,10 +1,13 @@
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf
@@ -158,7 +161,7 @@ namespace SpareParts.Desktop.Wpf
         // ── Load all lists ────────────────────────────────────────────────────
         private void LoadAll()
         {
-            LoadList("api/customers",  Customers);
+            LoadList("http://localhost:5000/api/customers",  Customers);
             LoadList("api/suppliers",  Suppliers);
             LoadList("api/brands",     Brands);
             LoadList("api/parts",      Parts);
@@ -169,12 +172,25 @@ namespace SpareParts.Desktop.Wpf
         {
             try
             {
-                var json  = _http.GetStringAsync(url).Result;
-                var items = JsonSerializer.Deserialize<List<T>>(json, _json) ?? new();
+                var client = new RestClient(url);
+                var request = new RestRequest("", Method.Get);
+
+                var response =  client.Execute(request);
+
+                if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
+                    return;
+
+                var items = JsonSerializer.Deserialize<List<T>>(response.Content, _json) ?? new List<T>();
+
                 collection.Clear();
-                foreach (var item in items) collection.Add(item);
+
+                foreach (var item in items)
+                    collection.Add(item);
             }
-            catch { /* API not running — silently skip */ }
+            catch
+            {
+                // API not running — silently skip
+            }
         }
 
         // ── Save helpers ──────────────────────────────────────────────────────
