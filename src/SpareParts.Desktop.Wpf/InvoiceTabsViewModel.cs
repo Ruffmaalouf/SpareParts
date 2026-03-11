@@ -270,8 +270,12 @@ namespace SpareParts.Desktop.Wpf
             if (SelectedTab == null) return;
             SelectedTab.Items.Add(new PosItemViewModel
             {
-                PartId = part.PartId, Quantity = 1, UnitPrice = part.UnitPrice
+                PartId      = part.PartId,
+                Description = part.Description,
+                Quantity    = 1,
+                UnitPrice   = part.UnitPrice
             });
+
             ActiveScreen = PosViewModel.AppScreen.Pos;
         }
 

@@ -522,14 +522,8 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Customer / Warehouse -->
+                                    <!-- Customer search + Warehouse -->
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0 0 40 0">
-                                        <StackPanel Margin="0 0 15 0">
-                                            <TextBlock Text="Customer ID" FontSize="11"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
-                                            <TextBox Width="100" Text="{Binding CustomerId}"
-                                                     HorizontalContentAlignment="Center"/>
-                                        </StackPanel>
                                         <StackPanel>
                                             <TextBlock Text="Warehouse" FontSize="11"
                                                        Foreground="{StaticResource TextSecondaryBrush}"/>
@@ -566,10 +560,11 @@
                                         <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
                                     </DataGrid.Resources>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Part #"     Binding="{Binding PartId}"                         Width="100"/>
-                                        <DataGridTextColumn Header="Qty"        Binding="{Binding Quantity}"                       Width="80"/>
-                                        <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice, StringFormat=C}"      Width="130"/>
-                                        <DataGridTextColumn Header="Total"      Binding="{Binding LineTotal,  StringFormat=C}"     Width="*" FontWeight="Bold"/>
+                                        <DataGridTextColumn Header="Part #"      Binding="{Binding PartId}"                         Width="80"/>
+                                        <DataGridTextColumn Header="Description" Binding="{Binding Description}"                    Width="*"/>
+                                        <DataGridTextColumn Header="Qty"         Binding="{Binding Quantity}"                       Width="60"/>
+                                        <DataGridTextColumn Header="Unit Price"  Binding="{Binding UnitPrice, StringFormat=C}"      Width="120"/>
+                                        <DataGridTextColumn Header="Total"       Binding="{Binding LineTotal,  StringFormat=C}"     Width="110" FontWeight="Bold"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Border>
