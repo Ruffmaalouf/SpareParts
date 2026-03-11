@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {}
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {}
   },
   "projects": {
-    "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Domain\\SpareParts.Domain.csproj",
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj",
         "projectName": "SpareParts.Domain",
-        "projectPath": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Domain\\SpareParts.Domain.csproj",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj",
         "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Domain\\obj\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
@@ -73,14 +73,14 @@
         }
       }
     },
-    "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj",
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj",
         "projectName": "SpareParts.Infrastructure",
-        "projectPath": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Infrastructure\\obj\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
@@ -105,8 +105,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
-                "projectPath": "C:\\Users\\r.maalouf\\Downloads\\SparePartsSolution_MBlue_ModernUI\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
               }
             }
           }

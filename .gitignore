@@ -12,3 +12,5 @@ src/SpareParts.Domain/obj/
 .vs/SpareParts/FileContentIndex/
 
 .vs/SpareParts/v17/
+
+src/SpareParts.Desktop.Wpf/bin/
