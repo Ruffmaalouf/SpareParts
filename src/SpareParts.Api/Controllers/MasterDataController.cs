@@ -224,7 +224,10 @@ namespace SpareParts.Api.Controllers
     public class CarModelsController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
-        public CarModelsController(ISqlConnectionFactory factory) => _factory = factory;
+        public CarModelsController(ISqlConnectionFactory factory)
+        {
+            _factory = factory;
+        }
 
         [HttpGet]
         public ActionResult<IEnumerable<CarModelEntity>> GetAll()

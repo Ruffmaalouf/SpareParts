@@ -29,10 +29,10 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.ExecuteScalar<int>(sql, brand, _session.Transaction);
         }
 
-        public Brand? GetBrand(int id)
+        public CarBrand? GetBrand(int id)
         {
             const string sql = "SELECT * FROM Brands WHERE Id = @Id";
-            return _session.Connection.QueryFirstOrDefault<Brand>(sql, new { Id = id }, _session.Transaction);
+            return _session.Connection.QueryFirstOrDefault<CarBrand>(sql, new { Id = id }, _session.Transaction);
         }
 
         public IEnumerable<Brand> GetAllBrands()

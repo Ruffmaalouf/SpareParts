@@ -14,17 +14,7 @@ namespace SpareParts.Desktop.Wpf
 {
     // ── Lightweight display models (returned from API GET lists) ─────────────
 
-    public class CustomerDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string? Phone { get; set; }
-        public string? Email { get; set; }
-        public string? Address { get; set; }
-        public string? TaxNumber { get; set; }
-        public decimal OpeningBalance { get; set; }
-    }
-
+   
     public class SupplierDto
     {
         public int Id { get; set; }
@@ -43,27 +33,8 @@ namespace SpareParts.Desktop.Wpf
         public bool IsActive { get; set; }
     }
 
-    public class PartDto
-    {
-        public int Id { get; set; }
-        public string InternalCode { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string? OEMNumber { get; set; }
-        public decimal CostPrice { get; set; }
-        public decimal SalePrice { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int MinStock { get; set; }
-        public bool IsActive { get; set; }
-    }
-
-    public class CarModelDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Year { get; set; } = string.Empty;
-        public string EngineType { get; set; } = string.Empty;
-        public decimal BasePrice { get; set; }
-    }
+   
+   
 
     // ══════════════════════════════════════════════════════════════════════════
     // ManagementViewModel
