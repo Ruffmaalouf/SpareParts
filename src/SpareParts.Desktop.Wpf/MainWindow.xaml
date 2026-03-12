@@ -264,7 +264,7 @@
                             Height="38"
                             Margin="0 0 0 16"/>
 
-                    <TextBlock Text="THEME" FontSize="10" FontWeight="Bold" 
+                    <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
 
                     <!-- ═══ Theme card picker — compact + scrollable ═══ -->
@@ -453,9 +453,6 @@
 
                 <!-- Cars list -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ScrollViewer.Resources>
-                        <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                    </ScrollViewer.Resources>
                     <ItemsControl ItemsSource="{Binding AvailableCars}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><WrapPanel Margin="10"/></ItemsPanelTemplate>
@@ -512,9 +509,6 @@
 
                 <!-- Parts list -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ScrollViewer.Resources>
-                        <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                    </ScrollViewer.Resources>
                     <ItemsControl ItemsSource="{Binding AvailableParts}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
@@ -658,9 +652,6 @@
                                           GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                                           ScrollViewer.CanContentScroll="True">
-                                    <DataGrid.Resources>
-                                        <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                                    </DataGrid.Resources>
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Part #"      Binding="{Binding PartId}"                         Width="80"/>
                                         <DataGridTextColumn Header="Description" Binding="{Binding Description}"                    Width="*"/>

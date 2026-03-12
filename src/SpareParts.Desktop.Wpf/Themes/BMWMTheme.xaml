@@ -200,6 +200,21 @@
         </Setter>
     </Style>
 
+    <Style TargetType="DataGrid">
+        <Setter Property="Background"               Value="#14141C"/>
+        <Setter Property="Foreground"               Value="#E8EAED"/>
+        <Setter Property="BorderThickness"          Value="0"/>
+        <Setter Property="RowBackground"            Value="Transparent"/>
+        <Setter Property="AlternatingRowBackground" Value="Transparent"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="Transparent"/>
+        <Setter Property="VerticalGridLinesBrush"   Value="Transparent"/>
+        <Setter Property="GridLinesVisibility"      Value="None"/>
+        <Setter Property="ColumnHeaderHeight"       Value="36"/>
+        <Setter Property="RowHeight"                Value="38"/>
+        <Setter Property="FontSize"                 Value="13"/>
+        <Setter Property="SelectionMode"            Value="Single"/>
+    </Style>
+
     <Style TargetType="DataGridRow">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="#E8EAED"/>
@@ -433,5 +448,8 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- Implicit ScrollBar — picked up by all DataGrids/ScrollViewers -->
+    <Style TargetType="ScrollBar" BasedOn="{StaticResource NeonScrollBar}"/>
 
 </ResourceDictionary>

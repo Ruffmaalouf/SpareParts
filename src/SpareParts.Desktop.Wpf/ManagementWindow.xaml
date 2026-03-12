@@ -85,9 +85,6 @@
                                       AutoGenerateColumns="False" CanUserAddRows="False"
                                       HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <DataGrid.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{DynamicResource NeonScrollBar}"/>
-                                </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="55"/>
                                     <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
@@ -165,9 +162,6 @@
                                       AutoGenerateColumns="False" CanUserAddRows="False"
                                       HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <DataGrid.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                                </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="55"/>
                                     <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
@@ -233,9 +227,6 @@
                                       AutoGenerateColumns="False" CanUserAddRows="False"
                                       HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <DataGrid.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                                </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"     Binding="{Binding Id}"       Width="60"/>
                                     <DataGridTextColumn Header="Name"   Binding="{Binding Name}"     Width="*"/>
@@ -356,9 +347,6 @@
                                       AutoGenerateColumns="False" CanUserAddRows="False"
                                       HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <DataGrid.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                                </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"        Binding="{Binding Id}"                               Width="50"/>
                                     <DataGridTextColumn Header="Code"      Binding="{Binding InternalCode}"                     Width="100"/>
@@ -445,9 +433,6 @@
                                       AutoGenerateColumns="False" CanUserAddRows="False"
                                       HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <DataGrid.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource NeonScrollBar}"/>
-                                </DataGrid.Resources>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"         Binding="{Binding Id}"         Width="50"/>
                                     <DataGridTextColumn Header="Name"       Binding="{Binding Name}"       Width="*"/>

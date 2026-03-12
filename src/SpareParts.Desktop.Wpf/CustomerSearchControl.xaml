@@ -11,7 +11,7 @@
         <Style x:Key="SearchInputStyle" TargetType="TextBox">
             <Setter Property="Background"              Value="Transparent"/>
             <Setter Property="Foreground"              Value="White"/>
-            <Setter Property="CaretBrush"              Value="{StaticResource AccentBrush}"/>
+            <Setter Property="CaretBrush"              Value="{DynamicResource AccentBrush}"/>
             <Setter Property="BorderThickness"         Value="0"/>
             <Setter Property="FontSize"                Value="14"/>
             <Setter Property="FontFamily"              Value="Segoe UI"/>
@@ -31,7 +31,7 @@
         <!-- Result row hover style -->
         <Style x:Key="ResultRowStyle" TargetType="ListBoxItem">
             <Setter Property="Padding"     Value="14 10"/>
-            <Setter Property="Foreground"  Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground"  Value="{DynamicResource TextPrimaryBrush}"/>
             <Setter Property="Background"  Value="Transparent"/>
             <Setter Property="Cursor"      Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -54,11 +54,11 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Row"       Property="Background" Value="#0DFFFFFF"/>
-                                <Setter TargetName="AccentBar" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="AccentBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Row"       Property="Background" Value="#18FF5722"/>
-                                <Setter TargetName="AccentBar" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter TargetName="AccentBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -75,13 +75,13 @@
                    FontSize="10"
                    FontWeight="Bold"
                    FontFamily="Segoe UI"
-                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
                    Margin="0 0 0 6"/>
 
         <!-- ═══ INPUT PILL ═══════════════════════════════════════════════ -->
         <Border x:Name="InputPill"
                 Background="#FF1A1A22"
-                BorderBrush="{StaticResource BorderBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Height="40">
@@ -97,7 +97,7 @@
                            Text="&#xE721;"
                            FontFamily="Segoe MDL2 Assets"
                            FontSize="14"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"
                            Margin="0 0 8 0"
                            Visibility="{Binding HasSelectedCustomer, ElementName=Root,
@@ -114,7 +114,7 @@
                             x:Name="SelectedIndicator"
                             Visibility="Collapsed">
                     <Ellipse Width="8" Height="8"
-                             Fill="{StaticResource AccentBrush}"
+                             Fill="{DynamicResource AccentBrush}"
                              VerticalAlignment="Center"
                              Margin="0 0 8 0"/>
                     <TextBlock x:Name="SelectedNameInline"
@@ -158,7 +158,7 @@
                     <TextBlock Text="&#xE711;"
                                FontFamily="Segoe MDL2 Assets"
                                FontSize="11"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
                                VerticalAlignment="Center"/>
                 </Button>
 
@@ -173,7 +173,7 @@
                         Click="SearchButton_Click"
                         ToolTip="Search customers">
                     <Border CornerRadius="6"
-                            Background="{StaticResource AccentBrush}"
+                            Background="{DynamicResource AccentBrush}"
                             Width="26" Height="26">
                         <TextBlock Text="&#xE721;"
                                    FontFamily="Segoe MDL2 Assets"
@@ -189,7 +189,7 @@
         <!-- ═══ PHONE SUB-LABEL when customer selected ═══════════════════ -->
         <TextBlock x:Name="PhoneLabel"
                    FontSize="11"
-                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
                    Margin="4 4 0 0"
                    Visibility="Collapsed"/>
 
@@ -231,12 +231,12 @@
                         <DockPanel>
                             <TextBlock Text="CUSTOMERS"
                                        FontSize="10" FontWeight="Bold"
-                                       Foreground="{StaticResource AccentBrush}"
+                                       Foreground="{DynamicResource AccentBrush}"
                                        VerticalAlignment="Center"
                                        DockPanel.Dock="Left"/>
                             <TextBlock x:Name="CountLabel"
                                        FontSize="10"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                        HorizontalAlignment="Right"
                                        VerticalAlignment="Center"/>
                         </DockPanel>
@@ -266,7 +266,7 @@
                                                    FontWeight="SemiBold"
                                                    Foreground="White"/>
                                         <TextBlock FontSize="11"
-                                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                                    Margin="0 2 0 0">
                                             <Run Text="{Binding Phone}"/>
                                             <Run Text=" · "/><Run Text="{Binding Email}"/>
@@ -282,7 +282,7 @@
                                             VerticalAlignment="Center"
                                             Margin="8 0 0 0">
                                         <TextBlock FontSize="10"
-                                                   Foreground="{StaticResource AccentBrush}"
+                                                   Foreground="{DynamicResource AccentBrush}"
                                                    FontWeight="Bold">
                                             <Run Text="#"/><Run Text="{Binding Id}"/>
                                         </TextBlock>
@@ -306,7 +306,7 @@
                                    HorizontalAlignment="Center"/>
                         <TextBlock Text="No customers found"
                                    FontSize="12"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                    HorizontalAlignment="Center"
                                    Margin="0 8 0 0"/>
                     </StackPanel>
@@ -319,13 +319,13 @@
                             CornerRadius="0 0 10 10">
                         <StackPanel Orientation="Horizontal">
                             <Border Background="#1AFFFFFF" CornerRadius="3" Padding="4 1" Margin="0 0 4 0">
-                                <TextBlock Text="↵" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="↵" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                             </Border>
-                            <TextBlock Text="select  " FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="select  " FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                             <Border Background="#1AFFFFFF" CornerRadius="3" Padding="4 1" Margin="0 0 4 0">
-                                <TextBlock Text="Esc" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="Esc" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                             </Border>
-                            <TextBlock Text="close" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="close" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 

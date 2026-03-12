@@ -194,6 +194,21 @@
         </Setter>
     </Style>
 
+    <Style TargetType="DataGrid">
+        <Setter Property="Background"               Value="{DynamicResource CardBackgroundBrush}"/>
+        <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderThickness"          Value="0"/>
+        <Setter Property="RowBackground"            Value="Transparent"/>
+        <Setter Property="AlternatingRowBackground" Value="Transparent"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="Transparent"/>
+        <Setter Property="VerticalGridLinesBrush"   Value="Transparent"/>
+        <Setter Property="GridLinesVisibility"      Value="None"/>
+        <Setter Property="ColumnHeaderHeight"       Value="36"/>
+        <Setter Property="RowHeight"                Value="38"/>
+        <Setter Property="FontSize"                 Value="13"/>
+        <Setter Property="SelectionMode"            Value="Single"/>
+    </Style>
+
     <Style TargetType="DataGridRow">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
@@ -283,6 +298,10 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- Implicit ScrollBar style — all ScrollBars in the app use NeonScrollBar look -->
+    <Style TargetType="ScrollBar" BasedOn="{StaticResource NeonScrollBar}"/>
+
 
     <Style x:Key="SectionExpanderStyle" TargetType="Expander">
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
