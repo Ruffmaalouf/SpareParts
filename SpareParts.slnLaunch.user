@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "src\\SpareParts.Api\\SpareParts.Api.csproj",
+        "Path": "src\\SpareParts.Desktop.Wpf\\SpareParts.Desktop.Wpf.csproj",
         "Action": "Start"
       },
       {
-        "Path": "src\\SpareParts.Desktop.Wpf\\SpareParts.Desktop.Wpf.csproj",
+        "Path": "src\\SpareParts.Api\\SpareParts.Api.csproj",
         "Action": "Start"
       }
     ]

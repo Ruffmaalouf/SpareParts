@@ -11,7 +11,7 @@
         Background="{DynamicResource AppBackgroundBrush}">
 
     <Window.Resources>
-        <local:ScreenToVisibilityConverter x:Key="ScreenToVisibilityConverter" />
+        <local:ScreenToVisibilityConverter x:Key="ScreenToVisibilityConverter"/>
 
         <!-- ── Tab Item Style ── -->
         <Style x:Key="InvoiceTabItemStyle" TargetType="TabItem">
@@ -33,12 +33,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="TabBorder" Property="Background"    Value="{DynamicResource CardHighlightBrush}"/>
-                                <Setter TargetName="TabBorder" Property="BorderBrush"   Value="{DynamicResource AccentBrush}"/>
-                                <Setter Property="Foreground"                            Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Setter TargetName="TabBorder" Property="Background"  Value="{DynamicResource CardHighlightBrush}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground"                          Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="TabBorder" Property="BorderBrush"   Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -59,8 +59,6 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-
-                            <!-- Tab strip row -->
                             <Border Grid.Row="0"
                                     Background="{DynamicResource AppBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
@@ -75,14 +73,11 @@
                                             Content="＋  New Invoice"
                                             Command="{Binding AddTabCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
-                                            Height="30"
-                                            Padding="12 4"
+                                            Height="30" Padding="12 4"
                                             Margin="8 0 0 4"
                                             VerticalAlignment="Bottom"/>
                                 </DockPanel>
                             </Border>
-
-                            <!-- Active tab content -->
                             <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}">
                                 <ContentPresenter x:Name="PART_SelectedContentHost"
                                                   ContentSource="SelectedContent"/>
@@ -92,7 +87,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
     </Window.Resources>
 
     <Grid>
@@ -102,10 +96,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- ══════════════════════════════════════════════════════════════════
-             SIDEBAR  (Grid.Column=0)
-             DataContext = root InvoiceTabsViewModel — no change needed here.
-             All bindings (GermanBrands, SelectBrandCommand, Themes…) resolve
-             directly on InvoiceTabsViewModel.
+             SIDEBAR
         ══════════════════════════════════════════════════════════════════════ -->
         <Border Grid.Column="0"
                 Background="{DynamicResource CardBackgroundBrush}"
@@ -121,7 +112,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Logo / home click -->
+                <!-- Logo / home -->
                 <StackPanel Grid.Row="0" Margin="0 0 0 30">
                     <StackPanel.InputBindings>
                         <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
@@ -134,21 +125,21 @@
                 <!-- Selected brand card -->
                 <Border Grid.Row="1"
                         Background="{DynamicResource AppBackgroundBrush}"
-                        CornerRadius="12"
-                        Padding="16"
-                        Margin="0 0 0 30">
+                        CornerRadius="12" Padding="16" Margin="0 0 0 30">
                     <StackPanel>
                         <TextBlock Text="SELECTED MANUFACTURE"
                                    FontSize="10" FontWeight="Bold"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <StackPanel Orientation="Horizontal" Margin="0 10 0 0" VerticalAlignment="Center">
-                            <Image Source="{Binding SelectedBrand.LogoPath}"
+                            <!-- Logo: BitmapImage loaded from API bytes -->
+                            <Image Source="{Binding SelectedBrand.Logo}"
                                    Width="40" Height="40" Margin="0 0 12 0"
                                    Stretch="Uniform"
                                    RenderOptions.BitmapScalingMode="HighQuality"/>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding SelectedBrand.Name, TargetNullValue='None Selected'}"
-                                           FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                           FontSize="18" FontWeight="SemiBold"
+                                           Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding SelectedBrand.Country, StringFormat=' ({0})'}"
                                            FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                                            VerticalAlignment="Center" Margin="4 0 0 0"/>
@@ -157,148 +148,82 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Brand expanders -->
+                <!-- ── Dynamic brand expanders ──
+                     BrandGroups is built at runtime from the API.
+                     One Expander per RegionGroup — add a new brand group
+                     in the DB and it appears here automatically.
+                ── -->
                 <Grid Grid.Row="2">
                     <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                        <StackPanel>
-
-                            <!-- GERMAN -->
-                            <Expander Style="{StaticResource SectionExpanderStyle}"
-                                      Expanded="BrandExpander_Expanded"
-                                      Header="GERMAN"
-                                      IsExpanded="False">
-                                <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="220">
-                                    <ItemsControl ItemsSource="{Binding GermanBrands}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{StaticResource BrandTileStyle}"
-                                                        Command="{Binding DataContext.SelectBrandCommand, ElementName=RootWindow}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTip="{Binding Name}">
-                                                    <StackPanel VerticalAlignment="Center">
-                                                        <Image Source="{Binding LogoPath}" Height="50"
-                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                        <TextBlock Text="{Binding Name}" Margin="8" FontSize="11"
-                                                                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Expander>
-
-                            <!-- JAPANESE -->
-                            <Expander Style="{StaticResource SectionExpanderStyle}"
-                                      Expanded="BrandExpander_Expanded"
-                                      Header="JAPANESE"
-                                      IsExpanded="False">
-                                <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="220">
-                                    <ItemsControl ItemsSource="{Binding JapaneseBrands}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{StaticResource BrandTileStyle}"
-                                                        Command="{Binding DataContext.SelectBrandCommand, ElementName=RootWindow}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTip="{Binding Name}">
-                                                    <StackPanel VerticalAlignment="Center">
-                                                        <Image Source="{Binding LogoPath}" Height="50"
-                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                        <TextBlock Text="{Binding Name}" Margin="8" FontSize="11"
-                                                                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Expander>
-
-                            <!-- KOREAN -->
-                            <Expander Style="{StaticResource SectionExpanderStyle}"
-                                      Expanded="BrandExpander_Expanded"
-                                      Header="KOREAN"
-                                      IsExpanded="False">
-                                <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="220">
-                                    <ItemsControl ItemsSource="{Binding KoreanBrands}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{StaticResource BrandTileStyle}"
-                                                        Command="{Binding DataContext.SelectBrandCommand, ElementName=RootWindow}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTip="{Binding Name}">
-                                                    <StackPanel VerticalAlignment="Center">
-                                                        <Image Source="{Binding LogoPath}" Height="50"
-                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                        <TextBlock Text="{Binding Name}" Margin="8" FontSize="11"
-                                                                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Expander>
-
-                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding BrandGroups}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Expander Style="{StaticResource SectionExpanderStyle}"
+                                              Header="{Binding RegionGroup}"
+                                              IsExpanded="False">
+                                        <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="220">
+                                            <ItemsControl ItemsSource="{Binding Brands}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Style="{StaticResource BrandTileStyle}"
+                                                                Command="{Binding DataContext.SelectBrandCommand,
+                                                                    RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                ToolTip="{Binding Name}">
+                                                            <StackPanel VerticalAlignment="Center">
+                                                                <Image Source="{Binding Logo}"
+                                                                       Height="50"
+                                                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           Margin="8" FontSize="11"
+                                                                           HorizontalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </ScrollViewer>
                 </Grid>
 
                 <!-- Theme picker + date -->
                 <StackPanel Grid.Row="3" Margin="0 0 0 10" VerticalAlignment="Bottom">
 
-                    <!-- Management window launcher -->
                     <Button Content="⚙  Management"
                             Command="{Binding OpenManagementCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
-                            Height="38"
-                            Margin="0 0 0 16"/>
+                            Height="38" Margin="0 0 0 16"/>
 
                     <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 0 0 8"/>
 
-                    <!-- ═══ Theme card picker — compact + scrollable ═══ -->
-                    <ScrollViewer MaxHeight="192"
-                                  VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  Margin="0 0 0 4">
+                    <ScrollViewer MaxHeight="192" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Themes}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Margin="0 0 0 4"
-                                            Cursor="Hand"
-                                            ToolTip="{Binding SubTitle}"
-                                            Command="{Binding DataContext.SelectThemeCommand, ElementName=RootWindow}"
+                                            Command="{Binding DataContext.SelectThemeCommand,
+                                                ElementName=RootWindow}"
                                             CommandParameter="{Binding}">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Grid>
-                                                    <!-- Accent glow ring (selected only) -->
-                                                    <Border x:Name="GlowRing"
-                                                            CornerRadius="8"
-                                                            BorderThickness="1"
-                                                            BorderBrush="{Binding AccentBrush}"
-                                                            Opacity="0"
-                                                            Margin="-1"/>
-
-                                                    <!-- Card -->
                                                     <Border x:Name="Card"
-                                                            Background="#10FFFFFF"
-                                                            BorderBrush="#14FFFFFF"
+                                                            CornerRadius="6"
+                                                            Background="Transparent"
+                                                            BorderBrush="#15FFFFFF"
                                                             BorderThickness="1"
-                                                            CornerRadius="7"
-                                                            Height="36"
-                                                            Padding="10 0">
+                                                            Padding="8 6">
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
@@ -306,19 +231,19 @@
                                                                 <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
 
-                                                            <!-- Color swatch dot -->
-                                                            <Ellipse Grid.Column="0"
+                                                            <!-- Accent glow ring -->
+                                                            <Ellipse x:Name="GlowRing"
+                                                                     Grid.Column="0"
                                                                      Width="10" Height="10"
-                                                                     Margin="0 0 10 0"
-                                                                     VerticalAlignment="Center">
+                                                                     Margin="0 0 8 0"
+                                                                     VerticalAlignment="Center"
+                                                                     Opacity="0.3">
                                                                 <Ellipse.Fill>
                                                                     <SolidColorBrush Color="{Binding AccentColor}"/>
                                                                 </Ellipse.Fill>
                                                                 <Ellipse.Effect>
                                                                     <DropShadowEffect Color="{Binding AccentColor}"
-                                                                                      BlurRadius="8"
-                                                                                      ShadowDepth="0"
-                                                                                      Opacity="0.8"/>
+                                                                                      BlurRadius="8" ShadowDepth="0" Opacity="1"/>
                                                                 </Ellipse.Effect>
                                                             </Ellipse>
 
@@ -330,7 +255,7 @@
                                                                        Foreground="#DDFFFFFF"
                                                                        VerticalAlignment="Center"/>
 
-                                                            <!-- Check dot (selected) -->
+                                                            <!-- Selected dot -->
                                                             <Ellipse x:Name="CheckDot"
                                                                      Grid.Column="2"
                                                                      Width="6" Height="6"
@@ -341,15 +266,12 @@
                                                                 </Ellipse.Fill>
                                                                 <Ellipse.Effect>
                                                                     <DropShadowEffect Color="{Binding AccentColor}"
-                                                                                      BlurRadius="6"
-                                                                                      ShadowDepth="0"
-                                                                                      Opacity="1.0"/>
+                                                                                      BlurRadius="6" ShadowDepth="0" Opacity="1"/>
                                                                 </Ellipse.Effect>
                                                             </Ellipse>
                                                         </Grid>
                                                     </Border>
                                                 </Grid>
-
                                                 <ControlTemplate.Triggers>
                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                         <Setter TargetName="Card"     Property="Background"  Value="#20FFFFFF"/>
@@ -372,6 +294,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+
                     <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{}{0:D}'}"
                                FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                HorizontalAlignment="Center"/>
@@ -381,18 +304,11 @@
         </Border>
 
         <!-- ══════════════════════════════════════════════════════════════════
-             MAIN CONTENT AREA  (Grid.Column=1)
-             Contains:
-               • HomePage     (shown when ActiveScreen=HomePage)
-               • CarSelection (shown when ActiveScreen=CarSelection)
-               • PartSelection(shown when ActiveScreen=PartSelection)
-               • Tab strip    (shown when ActiveScreen=Pos)
-             All ActiveScreen / navigation bindings are on the ROOT DataContext.
-             Tab-specific data (Items, CustomerId, PaidAmount) binds via SelectedTab.
+             MAIN CONTENT AREA
         ══════════════════════════════════════════════════════════════════════ -->
         <Grid Grid.Column="1">
 
-            <!-- ── HomePage ─────────────────────────────────────────────── -->
+            <!-- ── HomePage ───────────────────────────────────────────────── -->
             <Grid Margin="5,0,40,10"
                   Background="{DynamicResource CardBackgroundBrush}"
                   Visibility="{Binding ActiveScreen,
@@ -413,7 +329,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ── CarSelection ──────────────────────────────────────────── -->
+            <!-- ── CarSelection ───────────────────────────────────────────── -->
             <Grid Visibility="{Binding ActiveScreen,
                                         Converter={StaticResource ScreenToVisibilityConverter},
                                         ConverterParameter=CarSelection}">
@@ -421,10 +337,12 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+
+                <!-- Watermark background: brand logo as faded VisualBrush -->
                 <Grid.Background>
-                    <VisualBrush Stretch="Uniform" AlignmentX="Center" AlignmentY="Center" Opacity="0.56">
+                    <VisualBrush Stretch="Uniform" AlignmentX="Center" AlignmentY="Center" Opacity="0.06">
                         <VisualBrush.Visual>
-                            <Image Source="{Binding SelectedBrand.LogoPath}"
+                            <Image Source="{Binding SelectedBrand.Logo}"
                                    Width="280" Height="600"
                                    RenderOptions.BitmapScalingMode="HighQuality"/>
                         </VisualBrush.Visual>
@@ -439,11 +357,12 @@
                             Style="{StaticResource PrimaryButtonStyle}"
                             Width="100" Margin="0 0 20 0"/>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="{Binding SelectedBrand.LogoPath}"
+                        <Image Source="{Binding SelectedBrand.Logo}"
                                Width="40" Height="40" Margin="0 0 15 0"
-                               Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                               Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
                         <StackPanel>
-                            <TextBlock Text="{Binding SelectedBrand.Name, TargetNullValue=Select a Brand}"
+                            <TextBlock Text="{Binding SelectedBrand.Name, TargetNullValue='Select a Brand'}"
                                        FontSize="24" FontWeight="Bold"/>
                             <TextBlock Text="Available Cars" FontSize="14"
                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -451,7 +370,7 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Cars list -->
+                <!-- Cars grid — each car card shows Image (BitmapImage from API) -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding AvailableCars}">
                         <ItemsControl.ItemsPanel>
@@ -466,14 +385,22 @@
                                     <Border Background="{DynamicResource CardBackgroundBrush}"
                                             CornerRadius="8" Padding="10" Width="220">
                                         <StackPanel>
-                                            <Image Source="{Binding ImagePath}" Height="100"
+                                            <!-- Image: BitmapImage from API, null until loaded -->
+                                            <Image Source="{Binding Image}" Height="100"
                                                    Stretch="UniformToFill"
                                                    RenderOptions.BitmapScalingMode="HighQuality"/>
-                                            <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Margin="0 8 0 0"/>
-                                            <TextBlock Text="{Binding Year}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding EngineType}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding BasePrice, StringFormat=Price: {0:N0}}"
-                                                       FontSize="14" FontWeight="Bold" Margin="0 4 0 0"/>
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontSize="16" FontWeight="SemiBold"
+                                                       Margin="0 8 0 0"/>
+                                            <TextBlock Text="{Binding Year}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding EngineType}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding BasePrice, StringFormat='Price: {0:N0}'}"
+                                                       FontSize="14" FontWeight="Bold"
+                                                       Margin="0 4 0 0"/>
                                         </StackPanel>
                                     </Border>
                                 </Button>
@@ -483,7 +410,7 @@
                 </ScrollViewer>
             </Grid>
 
-            <!-- ── PartSelection ─────────────────────────────────────────── -->
+            <!-- ── PartSelection ──────────────────────────────────────────── -->
             <Grid Margin="20,20,20,20"
                   Visibility="{Binding ActiveScreen,
                                         Converter={StaticResource ScreenToVisibilityConverter},
@@ -493,21 +420,20 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 20">
                     <Button Content="⟵ Back to Cars"
                             Command="{Binding GoToCarSelectionCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Width="150" Margin="0 0 20 0"/>
                     <StackPanel>
-                        <TextBlock Text="{Binding SelectedCar.Name, TargetNullValue=Select a car}"
+                        <TextBlock Text="{Binding SelectedCar.Name, TargetNullValue='Select a car'}"
                                    FontSize="22" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding SelectedCar.Year}" FontSize="12"
+                        <TextBlock Text="{Binding SelectedCar.Year}"
+                                   FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Parts list -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding AvailableParts}">
                         <ItemsControl.ItemsPanel>
@@ -522,11 +448,14 @@
                                     <Border Background="{DynamicResource CardBackgroundBrush}"
                                             CornerRadius="8" Padding="10" Width="260">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Code}" FontSize="14" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="12"
-                                                       TextWrapping="Wrap" Margin="0 4 0 0"/>
+                                            <TextBlock Text="{Binding Code}"
+                                                       FontSize="14" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding Description}"
+                                                       FontSize="12" TextWrapping="Wrap"
+                                                       Margin="0 4 0 0"/>
                                             <TextBlock Text="{Binding UnitPrice, StringFormat={}{0:N0} USD}"
-                                                       FontSize="14" FontWeight="SemiBold" Margin="0 8 0 0"/>
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       Margin="0 8 0 0"/>
                                         </StackPanel>
                                     </Border>
                                 </Button>
@@ -536,8 +465,8 @@
                 </ScrollViewer>
             </Grid>
 
-            <!-- ── POS — Tab strip (shown when ActiveScreen = Pos) ───────── -->
-            <TabControl Margin="10,10,10,10"
+            <!-- ── POS Tab strip ──────────────────────────────────────────── -->
+            <TabControl Margin="10"
                         Style="{StaticResource InvoiceTabControlStyle}"
                         ItemsSource="{Binding Tabs}"
                         SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
@@ -546,11 +475,11 @@
                                              Converter={StaticResource ScreenToVisibilityConverter},
                                              ConverterParameter=Pos}">
 
-                <!-- Tab header: "Invoice #N  ✕" -->
                 <TabControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Header}" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Header}"
+                                       FontSize="13" VerticalAlignment="Center"/>
                             <Button Content="✕"
                                     Command="{Binding DataContext.CloseTabCommand, ElementName=RootWindow}"
                                     CommandParameter="{Binding}"
@@ -564,12 +493,14 @@
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            Padding="{TemplateBinding Padding}">
                                                         <ContentPresenter/>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                            <Setter Property="Foreground"
+                                                                    Value="{DynamicResource AccentBrush}"/>
                                                         </Trigger>
                                                     </ControlTemplate.Triggers>
                                                 </ControlTemplate>
@@ -582,8 +513,6 @@
                     </DataTemplate>
                 </TabControl.ItemTemplate>
 
-                <!-- Tab content: DataContext is InvoiceTabViewModel -->
-                <!-- Items, CustomerId, WarehouseId, PaidAmount, SubmitSaleCommand all bind here -->
                 <TabControl.ContentTemplate>
                     <DataTemplate>
                         <Grid>
@@ -597,8 +526,10 @@
                             <!-- Header -->
                             <StackPanel Grid.Row="0" Margin="20,20,20,10">
                                 <TextBlock Text="New Sale" FontSize="26" FontWeight="Bold"/>
-                                <TextBlock Text="Enter invoice details below" FontSize="14"
-                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                <TextBlock Text="Enter invoice details below"
+                                           FontSize="14"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="0 4 0 0"/>
                             </StackPanel>
 
                             <!-- Form card -->
@@ -606,7 +537,8 @@
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     CornerRadius="8" Padding="20" Margin="20,0,20,15">
                                 <Border.Effect>
-                                    <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="20" ShadowDepth="5"/>
+                                    <DropShadowEffect Color="Black" Opacity="0.15"
+                                                      BlurRadius="20" ShadowDepth="5"/>
                                 </Border.Effect>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -615,7 +547,6 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Customer search + Warehouse -->
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0 0 40 0">
                                         <local:CustomerSearchControl
                                             Margin="0 0 15 0"
@@ -628,7 +559,6 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- Submit button -->
                                     <Button Grid.Column="2"
                                             Content="Submit Invoice"
                                             Command="{Binding SubmitSaleCommand}"
@@ -642,7 +572,8 @@
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     Margin="20,0,20,0">
                                 <Border.Effect>
-                                    <DropShadowEffect Color="Black" Opacity="0.10" BlurRadius="15" ShadowDepth="3"/>
+                                    <DropShadowEffect Color="Black" Opacity="0.10"
+                                                      BlurRadius="15" ShadowDepth="3"/>
                                 </Border.Effect>
                                 <DataGrid ItemsSource="{Binding Items}"
                                           AutoGenerateColumns="False"
@@ -653,44 +584,46 @@
                                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                                           ScrollViewer.CanContentScroll="True">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Part #"      Binding="{Binding PartId}"                         Width="80"/>
-                                        <DataGridTextColumn Header="Description" Binding="{Binding Description}"                    Width="*"/>
-                                        <DataGridTextColumn Header="Qty"         Binding="{Binding Quantity}"                       Width="60"/>
-                                        <DataGridTextColumn Header="Unit Price"  Binding="{Binding UnitPrice, StringFormat=C}"      Width="120"/>
-                                        <DataGridTextColumn Header="Total"       Binding="{Binding LineTotal,  StringFormat=C}"     Width="110" FontWeight="Bold"/>
+                                        <DataGridTextColumn Header="Part #"
+                                                            Binding="{Binding PartId}" Width="80"/>
+                                        <DataGridTextColumn Header="Description"
+                                                            Binding="{Binding Description}" Width="*"/>
+                                        <DataGridTextColumn Header="Qty"
+                                                            Binding="{Binding Quantity}" Width="60"/>
+                                        <DataGridTextColumn Header="Unit Price"
+                                                            Binding="{Binding UnitPrice, StringFormat=C}" Width="120"/>
+                                        <DataGridTextColumn Header="Total"
+                                                            Binding="{Binding LineTotal, StringFormat=C}"
+                                                            Width="110" FontWeight="Bold"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Border>
 
-                            <!-- Footer: totals + submit -->
-                            <Border Grid.Row="3"
-                                    Margin="20,10,20,20"
-                                    Padding="16 12"
-                                    Background="Transparent">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                            <!-- Footer totals -->
+                            <Border Grid.Row="3" Margin="20,10,20,20"
+                                    Padding="16 12" Background="Transparent">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Total:" FontSize="14"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 10 0"/>
+                                    <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
+                                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
 
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="Total:" FontSize="14"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                        <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
-                                                   FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
+                                    <TextBlock Text="Paid:" FontSize="14"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 10 0"/>
+                                    <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged,
+                                                             StringFormat={}{0:N0}}"
+                                             Width="150" FontSize="14" FontWeight="SemiBold"
+                                             Background="Transparent"
+                                             BorderThickness="0 0 0 1" Margin="0 0 30 0"/>
 
-                                        <TextBlock Text="Total Paid:" FontSize="14"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                        <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
-                                                 Width="150" FontSize="14" FontWeight="SemiBold"
-                                                 Background="Transparent" BorderThickness="0 0 0 1" Margin="0 0 30 0"/>
-
-                                        <TextBlock Text="Remaining:" FontSize="14"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                        <TextBlock Text="{Binding RemainingAmount, StringFormat={}{0:N0}}"
-                                                   FontSize="14" FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Grid>
+                                    <TextBlock Text="Remaining:" FontSize="14"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 10 0"/>
+                                    <TextBlock Text="{Binding RemainingAmount, StringFormat={}{0:N0}}"
+                                               FontSize="14" FontWeight="SemiBold"/>
+                                </StackPanel>
                             </Border>
 
                         </Grid>
@@ -700,7 +633,5 @@
             </TabControl>
 
         </Grid>
-        <!-- END main content -->
-
     </Grid>
 </Window>

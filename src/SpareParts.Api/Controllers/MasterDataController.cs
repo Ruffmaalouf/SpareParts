@@ -56,15 +56,7 @@ namespace SpareParts.Api.Controllers
         public string? Notes { get; set; }
     }
 
-    public class CreateCarModelRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Year { get; set; } = string.Empty;
-        public string EngineType { get; set; } = string.Empty;
-        public decimal BasePrice { get; set; }
-        public string? ImagePath { get; set; }
-        public int? BrandId { get; set; }
-    }
+ 
 
     // ── Controllers ───────────────────────────────────────────────────────────
 
@@ -219,43 +211,5 @@ namespace SpareParts.Api.Controllers
         }
     }
 
-    [ApiController]
-    [Route("api/carmodels")]
-    public class CarModelsController : ControllerBase
-    {
-        private readonly ISqlConnectionFactory _factory;
-        public CarModelsController(ISqlConnectionFactory factory)
-        {
-            _factory = factory;
-        }
-
-        [HttpGet]
-        public ActionResult<IEnumerable<CarModelEntity>> GetAll()
-        {
-            using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            return Ok(ctx.GetAllCarModels());
-        }
-
-        [HttpPost]
-        public ActionResult<int> Create([FromBody] CreateCarModelRequest req)
-        {
-            using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            var model = new CarModelEntity
-            {
-                Name            = req.Name,
-                Year            = req.Year,
-                EngineType      = req.EngineType,
-                BasePrice       = req.BasePrice,
-                ImagePath       = req.ImagePath,
-                BrandId         = req.BrandId,
-                CreatedAt       = DateTime.UtcNow,
-                CreatedByUserId = 1
-            };
-            var id = ctx.InsertCarModel(model);
-            session.Commit();
-            return Ok(id);
-        }
-    }
+   
 }

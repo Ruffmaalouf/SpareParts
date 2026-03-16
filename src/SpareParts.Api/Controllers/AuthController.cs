@@ -2,13 +2,27 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Api.Controllers
 {
-    // ── DTOs ─────────────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    //  HEALTH — always anonymous, used by WPF login ping
+    // ══════════════════════════════════════════════════════════════════════════
+    [ApiController]
+    [AllowAnonymous]
+    public class HealthController : ControllerBase
+    {
+        [HttpGet("api/health")]
+        public ActionResult Get() => Ok(new { status = "ok", utc = DateTime.UtcNow });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  DTOs
+    // ══════════════════════════════════════════════════════════════════════════
     public class LoginRequest
     {
         public string Username { get; set; } = string.Empty;
@@ -17,20 +31,33 @@ namespace SpareParts.Api.Controllers
 
     public class LoginResponse
     {
-        public string Token    { get; set; } = string.Empty;
-        public string FullName { get; set; } = string.Empty;
-        public string Role     { get; set; } = string.Empty;
-        public int    UserId   { get; set; }
+        public string   Token     { get; set; } = string.Empty;
+        public string   FullName  { get; set; } = string.Empty;
+        public string   Role      { get; set; } = string.Empty;
+        public int      UserId    { get; set; }
         public DateTime ExpiresAt { get; set; }
     }
 
-    // ── Controller ────────────────────────────────────────────────────────────
+    // Typed row avoids dynamic cast issues with Dapper
+    internal class UserRow
+    {
+        public int    Id           { get; set; }
+        public string Username     { get; set; } = string.Empty;
+        public string FullName     { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public string Role         { get; set; } = string.Empty;
+        public bool   IsActive     { get; set; }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  AUTH CONTROLLER
+    // ══════════════════════════════════════════════════════════════════════════
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
-        private readonly JwtSettings _jwt;
+        private readonly JwtSettings           _jwt;
 
         public AuthController(ISqlConnectionFactory factory, JwtSettings jwt)
         {
@@ -38,24 +65,19 @@ namespace SpareParts.Api.Controllers
             _jwt     = jwt;
         }
 
-        /// <summary>
-        /// POST /api/auth/login
-        /// Body: { "username": "admin", "password": "Admin@123" }
-        /// Returns a signed JWT on success.
-        /// </summary>
+        /// <summary>POST /api/auth/login</summary>
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest req)
+        [AllowAnonymous]
+        public ActionResult<LoginResponse> Login([FromBody] LoginRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.Username) ||
                 string.IsNullOrWhiteSpace(req.Password))
                 return BadRequest("Username and password are required.");
 
-            // 1. Fetch user from DB
-            await using var conn = _factory.CreateConnection() as System.Data.SqlClient.SqlConnection
-                ?? throw new InvalidOperationException("Cannot cast connection.");
+            using var conn = _factory.CreateConnection();
 
-            var user = await conn.QueryFirstOrDefaultAsync(
-                @"SELECT Id, Username, FullName, Email, PasswordHash, Role, IsActive
+            var user = conn.QueryFirstOrDefault<UserRow>(
+                @"SELECT Id, Username, FullName, PasswordHash, Role, IsActive
                   FROM   Users
                   WHERE  Username = @Username AND IsActive = 1",
                 new { Username = req.Username.Trim() });
@@ -63,27 +85,40 @@ namespace SpareParts.Api.Controllers
             if (user == null)
                 return Unauthorized("Invalid username or password.");
 
-            // 2. Verify BCrypt password
-            bool valid = BCrypt.Net.BCrypt.Verify(req.Password, (string)user.PasswordHash);
+            // Trim whitespace SQL Server may pad into NVARCHAR
+            var storedHash = user.PasswordHash.Trim();
+
+            bool valid;
+            try
+            {
+                valid = BCrypt.Net.BCrypt.Verify(req.Password, storedHash);
+            }
+            catch (Exception ex)
+            {
+                // Hash in DB is malformed (placeholder) — guide the developer
+                return StatusCode(500,
+                    $"Password hash error: {ex.Message}. " +
+                    "Use GET /api/auth/hashpassword?plain=YourPassword to generate a valid hash, " +
+                    "then UPDATE Users SET PasswordHash = '<result>' WHERE Username = '<user>'.");
+            }
+
             if (!valid)
                 return Unauthorized("Invalid username or password.");
 
-            // 3. Update LastLoginAt
-            await conn.ExecuteAsync(
+            conn.Execute(
                 "UPDATE Users SET LastLoginAt = @Now WHERE Id = @Id",
-                new { Now = DateTime.UtcNow, Id = (int)user.Id });
+                new { Now = DateTime.UtcNow, user.Id });
 
-            // 4. Build JWT
-            var expiry  = DateTime.UtcNow.AddHours(_jwt.ExpiryHours);
-            var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
-            var creds   = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expiry = DateTime.UtcNow.AddHours(_jwt.ExpiryHours);
+            var key    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
+            var creds  = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub,  ((int)user.Id).ToString()),
-                new Claim(JwtRegisteredClaimNames.Name, (string)user.FullName),
-                new Claim(ClaimTypes.Role,              (string)user.Role),
-                new Claim("username",                   (string)user.Username),
+                new Claim(JwtRegisteredClaimNames.Sub,  user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Name, user.FullName),
+                new Claim(ClaimTypes.Role,              user.Role),
+                new Claim("username",                   user.Username),
                 new Claim(JwtRegisteredClaimNames.Jti,  Guid.NewGuid().ToString())
             };
 
@@ -97,26 +132,149 @@ namespace SpareParts.Api.Controllers
             return Ok(new LoginResponse
             {
                 Token     = new JwtSecurityTokenHandler().WriteToken(token),
-                FullName  = (string)user.FullName,
-                Role      = (string)user.Role,
-                UserId    = (int)user.Id,
+                FullName  = user.FullName,
+                Role      = user.Role,
+                UserId    = user.Id,
                 ExpiresAt = expiry
             });
         }
 
-        /// <summary>
-        /// GET /api/auth/me  — returns current user info from the JWT claims.
-        /// </summary>
+        /// <summary>GET /api/auth/me — current user from JWT</summary>
         [HttpGet("me")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        public ActionResult GetMe()
+        [Authorize]
+        public ActionResult GetMe() => Ok(new
         {
+            UserId   = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+            FullName = User.FindFirst(ClaimTypes.Name)?.Value,
+            Role     = User.FindFirst(ClaimTypes.Role)?.Value
+        });
+
+        /// <summary>
+        /// GET /api/auth/hashpassword?plain=Admin@123
+        /// Generates a real BCrypt hash to paste into the DB.
+        /// REMOVE [AllowAnonymous] after initial setup.
+        /// </summary>
+        [HttpGet("hashpassword")]
+        [AllowAnonymous]
+        public ActionResult HashPassword([FromQuery] string plain)
+        {
+            if (string.IsNullOrWhiteSpace(plain))
+                return BadRequest("?plain= is required");
+
+            var hash = BCrypt.Net.BCrypt.HashPassword(plain.Trim(), workFactor: 12);
             return Ok(new
             {
-                UserId   = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
-                FullName = User.FindFirst(ClaimTypes.Name)?.Value,
-                Role     = User.FindFirst(ClaimTypes.Role)?.Value
+                plain,
+                hash,
+                sqlUpdate = $"UPDATE Users SET PasswordHash = '{hash}' WHERE Username = 'yourusername';"
             });
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  USERS CONTROLLER — full CRUD (Admin only)
+    // ══════════════════════════════════════════════════════════════════════════
+    [ApiController]
+    [Route("api/users")]
+    [Authorize(Roles = "Admin")]
+    public class UsersController : ControllerBase
+    {
+        private readonly ISqlConnectionFactory _factory;
+        public UsersController(ISqlConnectionFactory factory) => _factory = factory;
+
+        public class UserDto
+        {
+            public int      Id          { get; set; }
+            public string   Username    { get; set; } = string.Empty;
+            public string   FullName    { get; set; } = string.Empty;
+            public string?  Email       { get; set; }
+            public string   Role        { get; set; } = string.Empty;
+            public bool     IsActive    { get; set; }
+            public DateTime? LastLoginAt { get; set; }
+            public DateTime  CreatedAt   { get; set; }
+        }
+
+        public class CreateUserRequest
+        {
+            public string  Username { get; set; } = string.Empty;
+            public string  FullName { get; set; } = string.Empty;
+            public string? Email    { get; set; }
+            public string  Password { get; set; } = string.Empty;
+            public string  Role     { get; set; } = "Cashier";
+        }
+
+        public class UpdateUserRequest
+        {
+            public string  FullName    { get; set; } = string.Empty;
+            public string? Email       { get; set; }
+            public string  Role        { get; set; } = "Cashier";
+            public bool    IsActive    { get; set; } = true;
+            /// <summary>Leave empty/null to keep existing password.</summary>
+            public string? NewPassword { get; set; }
+        }
+
+        [HttpGet]
+        public ActionResult<IEnumerable<UserDto>> GetAll()
+        {
+            using var conn = _factory.CreateConnection();
+            return Ok(conn.Query<UserDto>(
+                "SELECT Id, Username, FullName, Email, Role, IsActive, LastLoginAt, CreatedAt " +
+                "FROM Users ORDER BY FullName"));
+        }
+
+        [HttpPost]
+        public ActionResult<int> Create([FromBody] CreateUserRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.Password))
+                return BadRequest("Password is required.");
+
+            var hash = BCrypt.Net.BCrypt.HashPassword(req.Password.Trim(), workFactor: 12);
+
+            using var conn = _factory.CreateConnection();
+            var id = conn.ExecuteScalar<int>(
+                @"INSERT INTO Users (Username, FullName, Email, PasswordHash, Role, IsActive, CreatedAt)
+                  VALUES (@Username, @FullName, @Email, @Hash, @Role, 1, @Now);
+                  SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                new { req.Username, req.FullName, req.Email, Hash = hash, req.Role,
+                      Now = DateTime.UtcNow });
+            return Ok(id);
+        }
+
+        [HttpPut("{id:int}")]
+        public ActionResult Update(int id, [FromBody] UpdateUserRequest req)
+        {
+            using var conn = _factory.CreateConnection();
+
+            if (!string.IsNullOrWhiteSpace(req.NewPassword))
+            {
+                var hash = BCrypt.Net.BCrypt.HashPassword(req.NewPassword.Trim(), workFactor: 12);
+                conn.Execute(
+                    @"UPDATE Users
+                      SET FullName=@FullName, Email=@Email, Role=@Role,
+                          IsActive=@IsActive, PasswordHash=@Hash, ModifiedAt=@Now
+                      WHERE Id=@Id",
+                    new { req.FullName, req.Email, req.Role, req.IsActive,
+                          Hash = hash, Now = DateTime.UtcNow, Id = id });
+            }
+            else
+            {
+                conn.Execute(
+                    @"UPDATE Users
+                      SET FullName=@FullName, Email=@Email, Role=@Role,
+                          IsActive=@IsActive, ModifiedAt=@Now
+                      WHERE Id=@Id",
+                    new { req.FullName, req.Email, req.Role, req.IsActive,
+                          Now = DateTime.UtcNow, Id = id });
+            }
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public ActionResult Delete(int id)
+        {
+            using var conn = _factory.CreateConnection();
+            conn.Execute("UPDATE Users SET IsActive=0 WHERE Id=@Id", new { Id = id });
+            return NoContent();
         }
     }
 }

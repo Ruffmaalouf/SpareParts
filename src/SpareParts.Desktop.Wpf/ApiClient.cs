@@ -116,15 +116,26 @@ namespace SpareParts.Desktop.Wpf
                    ?? throw new InvalidOperationException("Empty login response.");
         }
 
-        /// <summary>Checks if the API is reachable (no auth needed).</summary>
+        /// <summary>
+        /// Checks if the API is reachable.
+        /// Hits GET /api/health (no auth) — returns true for any HTTP response,
+        /// false only when the server is completely unreachable.
+        /// </summary>
         public async Task<bool> PingAsync()
         {
             try
             {
-                var resp = await _http.GetAsync("api/auth/ping");
-                return resp.IsSuccessStatusCode || resp.StatusCode == System.Net.HttpStatusCode.Unauthorized;
+                // Use a short timeout so the login screen doesn't hang
+                using var cts  = new System.Threading.CancellationTokenSource(
+                                      TimeSpan.FromSeconds(4));
+                var resp = await _http.GetAsync("api/health", cts.Token);
+                // Any HTTP response (200, 401, 404…) means the server is up
+                return true;
             }
-            catch { return false; }
+            catch
+            {
+                return false;
+            }
         }
 
         // ═════════════════════════════════════════════════════════════════════
@@ -221,6 +232,44 @@ namespace SpareParts.Desktop.Wpf
             return await _http.GetFromJsonAsync<List<CustomerDto>>(
                        $"api/customers?search={Uri.EscapeDataString(query)}")
                    ?? new List<CustomerDto>();
+        }
+
+        // ═════════════════════════════════════════════════════════════════════
+        //  USERS  (Admin only)
+        // ═════════════════════════════════════════════════════════════════════
+
+        public async Task<List<UserManagementDto>> GetUsersAsync()
+        {
+            return await _http.GetFromJsonAsync<List<UserManagementDto>>("api/users")
+                   ?? new List<UserManagementDto>();
+        }
+
+        public async Task<int> CreateUserAsync(CreateUserRequest req)
+        {
+            var resp = await _http.PostAsJsonAsync("api/users", req);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var msg = await resp.Content.ReadAsStringAsync();
+                throw new Exception(msg.Trim('"'));
+            }
+            return await resp.Content.ReadFromJsonAsync<int>();
+        }
+
+        public async Task UpdateUserAsync(int id, UpdateUserRequest req)
+        {
+            var resp = await _http.PutAsJsonAsync($"api/users/{id}", req);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var msg = await resp.Content.ReadAsStringAsync();
+                throw new Exception(msg.Trim('"'));
+            }
+        }
+
+        public async Task DeleteUserAsync(int id)
+        {
+            var resp = await _http.DeleteAsync($"api/users/{id}");
+            if (!resp.IsSuccessStatusCode)
+                throw new Exception($"Deactivate failed: {resp.StatusCode}");
         }
 
         // ═════════════════════════════════════════════════════════════════════

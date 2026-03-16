@@ -17,25 +17,36 @@ namespace SpareParts.Api.Controllers
         public string RegionGroup { get; set; } = string.Empty;
         public bool   IsActive    { get; set; }
         public int    SortOrder   { get; set; }
-        public bool   HasLogo     { get; set; }   // true if LogoData != NULL
-        // ImageUrl built by controller: /api/carbrands/{id}/logo
+        public bool   HasLogo     { get; set; }
     }
 
     public class CarModelDto
     {
-        public int     Id          { get; set; }
+        public int     Id         { get; set; }
+        public int     CarBrandId { get; set; }
+        public string  Name       { get; set; } = string.Empty;
+        public string? Year       { get; set; }
+        public string? EngineType { get; set; }
+        public decimal BasePrice  { get; set; }
+        public bool    IsActive   { get; set; }
+        public bool    HasImage   { get; set; }
+    }
+
+    public class CreateCarBrandRequest
+    {
+        public string Name        { get; set; } = string.Empty;
+        public string Country     { get; set; } = string.Empty;
+        public string RegionGroup { get; set; } = string.Empty;
+        public int    SortOrder   { get; set; }
+    }
+
+    public class CreateCarModelRequest
+    {
         public int     CarBrandId  { get; set; }
         public string  Name        { get; set; } = string.Empty;
         public string? Year        { get; set; }
         public string? EngineType  { get; set; }
         public decimal BasePrice   { get; set; }
-        public bool    IsActive    { get; set; }
-        public bool    HasImage    { get; set; }
-    }
-
-    public class UploadLogoRequest
-    {
-        public IFormFile Image { get; set; } = null!;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -50,38 +61,27 @@ namespace SpareParts.Api.Controllers
         private readonly ISqlConnectionFactory _factory;
         public CarBrandsController(ISqlConnectionFactory factory) => _factory = factory;
 
-        // ── GET /api/carbrands  ───────────────────────────────────────────────
+        /// <summary>GET /api/carbrands — all active brands with group info</summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CarBrandDto>>> GetAll()
+        public ActionResult<IEnumerable<CarBrandDto>> GetAll()
         {
-            await using var conn = GetConn();
-            var rows = await conn.QueryAsync(
+            using var conn = _factory.CreateConnection();
+            var rows = conn.Query<CarBrandDto>(
                 @"SELECT Id, Name, Country, RegionGroup, IsActive, SortOrder,
-                         CASE WHEN LogoData IS NOT NULL THEN 1 ELSE 0 END AS HasLogo
+                         CAST(CASE WHEN LogoData IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS HasLogo
                   FROM   CarBrands
                   WHERE  IsActive = 1
                   ORDER  BY SortOrder, Name");
-
-            var result = rows.Select(r => new CarBrandDto
-            {
-                Id          = (int)r.Id,
-                Name        = (string)r.Name,
-                Country     = (string)r.Country,
-                RegionGroup = (string)r.RegionGroup,
-                IsActive    = (bool)r.IsActive,
-                SortOrder   = (int)r.SortOrder,
-                HasLogo     = (int)r.HasLogo == 1
-            });
-            return Ok(result);
+            return Ok(rows);
         }
 
-        // ── GET /api/carbrands/{id}/logo  — returns raw image bytes ──────────
+        /// <summary>GET /api/carbrands/{id}/logo — raw logo bytes (AllowAnonymous for WPF img cache)</summary>
         [HttpGet("{id:int}/logo")]
-        [AllowAnonymous]   // let the WPF client fetch images without re-auth
-        public async Task<IActionResult> GetLogo(int id)
+        [AllowAnonymous]
+        public ActionResult GetLogo(int id)
         {
-            await using var conn = GetConn();
-            var row = await conn.QueryFirstOrDefaultAsync(
+            using var conn = _factory.CreateConnection();
+            var row = conn.QueryFirstOrDefault(
                 "SELECT LogoData, LogoMimeType FROM CarBrands WHERE Id = @Id",
                 new { Id = id });
 
@@ -91,7 +91,7 @@ namespace SpareParts.Api.Controllers
             return File((byte[])row.LogoData, (string)row.LogoMimeType);
         }
 
-        // ── POST /api/carbrands/{id}/logo  — upload image (multipart) ────────
+        /// <summary>POST /api/carbrands/{id}/logo — upload logo (multipart)</summary>
         [HttpPost("{id:int}/logo")]
         [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> UploadLogo(int id, IFormFile image)
@@ -101,173 +101,150 @@ namespace SpareParts.Api.Controllers
             if (image.Length > 2 * 1024 * 1024)
                 return BadRequest("Image must be ≤ 2 MB.");
 
-            await using var ms = new MemoryStream();
+            using var ms = new MemoryStream();
             await image.CopyToAsync(ms);
-            var bytes    = ms.ToArray();
-            var mimeType = image.ContentType;
 
-            await using var conn = GetConn();
-            int updated = await conn.ExecuteAsync(
+            using var conn = _factory.CreateConnection();
+            int updated = conn.Execute(
                 @"UPDATE CarBrands
                   SET    LogoData = @Data, LogoMimeType = @Mime, ModifiedAt = @Now
                   WHERE  Id = @Id",
-                new { Data = bytes, Mime = mimeType, Now = DateTime.UtcNow, Id = id });
+                new { Data = ms.ToArray(), Mime = image.ContentType,
+                      Now = DateTime.UtcNow, Id = id });
 
             if (updated == 0) return NotFound();
             return NoContent();
         }
 
-        // ── POST /api/carbrands  — create new brand ───────────────────────────
+        /// <summary>POST /api/carbrands — create new brand</summary>
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
-        public async Task<ActionResult<int>> Create([FromBody] CreateCarBrandRequest req)
+        public ActionResult<int> Create([FromBody] CreateCarBrandRequest req)
         {
-            await using var conn = GetConn();
-            var id = await conn.ExecuteScalarAsync<int>(
-                @"INSERT INTO CarBrands (Name,Country,RegionGroup,SortOrder,CreatedByUserId)
-                  VALUES (@Name,@Country,@RegionGroup,@SortOrder,@UserId);
+            using var conn = _factory.CreateConnection();
+            var id = conn.ExecuteScalar<int>(
+                @"INSERT INTO CarBrands (Name, Country, RegionGroup, SortOrder, CreatedByUserId)
+                  VALUES (@Name, @Country, @RegionGroup, @SortOrder, @UserId);
                   SELECT CAST(SCOPE_IDENTITY() AS INT);",
-                new
-                {
-                    req.Name, req.Country, req.RegionGroup,
-                    req.SortOrder,
-                    UserId = GetUserId()
-                });
+                new { req.Name, req.Country, req.RegionGroup, req.SortOrder,
+                      UserId = GetUserId() });
             return Ok(id);
         }
 
-        private System.Data.SqlClient.SqlConnection GetConn()
-            => (System.Data.SqlClient.SqlConnection)_factory.CreateConnection();
-
         private int GetUserId()
         {
-            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return claim != null ? int.Parse(claim.Value) : 1;
+            var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return c != null ? int.Parse(c.Value) : 1;
         }
-    }
-
-    public class CreateCarBrandRequest
-    {
-        public string Name        { get; set; } = string.Empty;
-        public string Country     { get; set; } = string.Empty;
-        public string RegionGroup { get; set; } = string.Empty;
-        public int    SortOrder   { get; set; }
     }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  CAR MODELS CONTROLLER
     // ══════════════════════════════════════════════════════════════════════════
 
-    //[ApiController]
-    //[Route("api/carmodels")]
-    //[Authorize]
-    //public class CarModelsController : ControllerBase
-    //{
-    //    private readonly ISqlConnectionFactory _factory;
-    //    public CarModelsController(ISqlConnectionFactory factory) => _factory = factory;
+    [ApiController]
+    [Route("api/carmodels")]
+    [Authorize]
+    public class CarModelsController : ControllerBase
+    {
+        private readonly ISqlConnectionFactory _factory;
+        public CarModelsController(ISqlConnectionFactory factory) => _factory = factory;
 
-    //    // ── GET /api/carmodels?brandId=1  ─────────────────────────────────────
-    //    [HttpGet]
-    //    public async Task<ActionResult<IEnumerable<CarModelDto>>> GetAll([FromQuery] int? brandId)
-    //    {
-    //        await using var conn = GetConn();
-    //        var sql = brandId.HasValue
-    //            ? @"SELECT Id, CarBrandId, Name, Year, EngineType, BasePrice, IsActive,
-    //                       CASE WHEN ImageData IS NOT NULL THEN 1 ELSE 0 END AS HasImage
-    //                FROM   CarModels
-    //                WHERE  CarBrandId = @BrandId AND IsActive = 1
-    //                ORDER  BY Name"
-    //            : @"SELECT Id, CarBrandId, Name, Year, EngineType, BasePrice, IsActive,
-    //                       CASE WHEN ImageData IS NOT NULL THEN 1 ELSE 0 END AS HasImage
-    //                FROM   CarModels WHERE IsActive = 1 ORDER BY Name";
+        /// <summary>
+        /// GET /api/carmodels?brandId=1
+        /// When brandId is supplied, ONLY that brand's cars are returned.
+        /// This is the fix for "all cars showing when clicking Mercedes".
+        /// </summary>
+        [HttpGet]
+        public ActionResult<IEnumerable<CarModelDto>> GetAll([FromQuery] int? brandId)
+        {
+            using var conn = _factory.CreateConnection();
 
-    //        var rows = await conn.QueryAsync(sql, new { BrandId = brandId });
+            // Always filter by brandId when provided — this fixes the Mercedes bug
+            string sql;
+            object param;
 
-    //        var result = rows.Select(r => new CarModelDto
-    //        {
-    //            Id         = (int)r.Id,
-    //            CarBrandId = (int)r.CarBrandId,
-    //            Name       = (string)r.Name,
-    //            Year       = (string?)r.Year,
-    //            EngineType = (string?)r.EngineType,
-    //            BasePrice  = (decimal)r.BasePrice,
-    //            IsActive   = (bool)r.IsActive,
-    //            HasImage   = (int)r.HasImage == 1
-    //        });
-    //        return Ok(result);
-    //    }
+            if (brandId.HasValue)
+            {
+                sql = @"SELECT Id, CarBrandId, Name, Year, EngineType, BasePrice, IsActive,
+                               CAST(CASE WHEN ImageData IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS HasImage
+                        FROM   CarModels
+                        WHERE  CarBrandId = @BrandId AND IsActive = 1
+                        ORDER  BY Name";
+                param = new { BrandId = brandId.Value };
+            }
+            else
+            {
+                sql = @"SELECT Id, CarBrandId, Name, Year, EngineType, BasePrice, IsActive,
+                               CAST(CASE WHEN ImageData IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS HasImage
+                        FROM   CarModels
+                        WHERE  IsActive = 1
+                        ORDER  BY Name";
+                param = new { };
+            }
 
-    //    // ── GET /api/carmodels/{id}/image  ────────────────────────────────────
-    //    [HttpGet("{id:int}/image")]
-    //    [AllowAnonymous]
-    //    public async Task<IActionResult> GetImage(int id)
-    //    {
-    //        await using var conn = GetConn();
-    //        var row = await conn.QueryFirstOrDefaultAsync(
-    //            "SELECT ImageData, ImageMimeType FROM CarModels WHERE Id = @Id",
-    //            new { Id = id });
+            var rows = conn.Query<CarModelDto>(sql, param);
+            return Ok(rows);
+        }
 
-    //        if (row == null || row.ImageData == null)
-    //            return NotFound();
+        /// <summary>GET /api/carmodels/{id}/image — raw image bytes</summary>
+        [HttpGet("{id:int}/image")]
+        [AllowAnonymous]
+        public ActionResult GetImage(int id)
+        {
+            using var conn = _factory.CreateConnection();
+            var row = conn.QueryFirstOrDefault(
+                "SELECT ImageData, ImageMimeType FROM CarModels WHERE Id = @Id",
+                new { Id = id });
 
-    //        return File((byte[])row.ImageData, (string)row.ImageMimeType);
-    //    }
+            if (row == null || row.ImageData == null)
+                return NotFound();
 
-    //    // ── POST /api/carmodels/{id}/image  ───────────────────────────────────
-    //    [HttpPost("{id:int}/image")]
-    //    [Authorize(Roles = "Admin,Manager")]
-    //    public async Task<IActionResult> UploadImage(int id, IFormFile image)
-    //    {
-    //        if (image == null || image.Length == 0) return BadRequest("No image.");
-    //        if (image.Length > 4 * 1024 * 1024)    return BadRequest("Image ≤ 4 MB.");
+            return File((byte[])row.ImageData, (string)row.ImageMimeType);
+        }
 
-    //        await using var ms = new MemoryStream();
-    //        await image.CopyToAsync(ms);
+        /// <summary>POST /api/carmodels/{id}/image — upload car image</summary>
+        [HttpPost("{id:int}/image")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> UploadImage(int id, IFormFile image)
+        {
+            if (image == null || image.Length == 0) return BadRequest("No image.");
+            if (image.Length > 4 * 1024 * 1024)    return BadRequest("Image must be ≤ 4 MB.");
 
-    //        await using var conn = GetConn();
-    //        int updated = await conn.ExecuteAsync(
-    //            @"UPDATE CarModels
-    //              SET    ImageData = @Data, ImageMimeType = @Mime, ModifiedAt = @Now
-    //              WHERE  Id = @Id",
-    //            new { Data = ms.ToArray(), Mime = image.ContentType,
-    //                  Now = DateTime.UtcNow, Id = id });
+            using var ms = new MemoryStream();
+            await image.CopyToAsync(ms);
 
-    //        if (updated == 0) return NotFound();
-    //        return NoContent();
-    //    }
+            using var conn = _factory.CreateConnection();
+            int updated = conn.Execute(
+                @"UPDATE CarModels
+                  SET    ImageData = @Data, ImageMimeType = @Mime, ModifiedAt = @Now
+                  WHERE  Id = @Id",
+                new { Data = ms.ToArray(), Mime = image.ContentType,
+                      Now = DateTime.UtcNow, Id = id });
 
-    //    // ── POST /api/carmodels  — create ─────────────────────────────────────
-    //    [HttpPost]
-    //    [Authorize(Roles = "Admin,Manager")]
-    //    public async Task<ActionResult<int>> Create([FromBody] CreateCarModelRequest req)
-    //    {
-    //        await using var conn = GetConn();
-    //        var id = await conn.ExecuteScalarAsync<int>(
-    //            @"INSERT INTO CarModels (CarBrandId,Name,Year,EngineType,BasePrice,CreatedByUserId)
-    //              VALUES (@CarBrandId,@Name,@Year,@EngineType,@BasePrice,@UserId);
-    //              SELECT CAST(SCOPE_IDENTITY() AS INT);",
-    //            new { req.CarBrandId, req.Name, req.Year,
-    //                  req.EngineType, req.BasePrice, UserId = GetUserId() });
-    //        return Ok(id);
-    //    }
+            if (updated == 0) return NotFound();
+            return NoContent();
+        }
 
-    //    private System.Data.SqlClient.SqlConnection GetConn()
-    //        => (System.Data.SqlClient.SqlConnection)_factory.CreateConnection();
+        /// <summary>POST /api/carmodels — create new model</summary>
+        [HttpPost]
+        [Authorize(Roles = "Admin,Manager")]
+        public ActionResult<int> Create([FromBody] CreateCarModelRequest req)
+        {
+            using var conn = _factory.CreateConnection();
+            var id = conn.ExecuteScalar<int>(
+                @"INSERT INTO CarModels (CarBrandId, Name, Year, EngineType, BasePrice, CreatedByUserId)
+                  VALUES (@CarBrandId, @Name, @Year, @EngineType, @BasePrice, @UserId);
+                  SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                new { req.CarBrandId, req.Name, req.Year, req.EngineType,
+                      req.BasePrice, UserId = GetUserId() });
+            return Ok(id);
+        }
 
-    //    private int GetUserId()
-    //    {
-    //        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-    //        return claim != null ? int.Parse(claim.Value) : 1;
-    //    }
-    //}
-
-    //public class CreateCarModelRequest
-    //{
-    //    public int     CarBrandId  { get; set; }
-    //    public string  Name        { get; set; } = string.Empty;
-    //    public string? Year        { get; set; }
-    //    public string? EngineType  { get; set; }
-    //    public decimal BasePrice   { get; set; }
-    //}
-
+        private int GetUserId()
+        {
+            var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return c != null ? int.Parse(c.Value) : 1;
+        }
+    }
 }

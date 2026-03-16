@@ -19,30 +19,37 @@
 
             <!-- Underline TextBox -->
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
-                <Setter Property="Background"               Value="#1A1A22"/>
-                <Setter Property="Foreground"               Value="#E0E0E0"/>
-                <Setter Property="BorderBrush"              Value="#33FFFFFF"/>
-                <Setter Property="BorderThickness"          Value="0 0 0 1"/>
-                <Setter Property="Padding"                  Value="12 10"/>
+                <Setter Property="Background"               Value="#FF1E1E28"/>
+                <Setter Property="Foreground"               Value="#FFE0E0E0"/>
+                <Setter Property="BorderBrush"              Value="#44FFFFFF"/>
+                <Setter Property="BorderThickness"          Value="0 0 0 2"/>
+                <Setter Property="Padding"                  Value="12 0"/>
                 <Setter Property="FontSize"                 Value="14"/>
-                <Setter Property="CaretBrush"               Value="{DynamicResource AccentBrush}"/>
+                <Setter Property="FontFamily"               Value="Segoe UI"/>
+                <Setter Property="CaretBrush"               Value="#FFFF5722"/>
+                <Setter Property="SelectionBrush"           Value="#44FF5722"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
                             <Border x:Name="Bd"
-                                    Background="{TemplateBinding Background}"
+                                    Background="#FF1E1E28"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="6 6 0 0"
-                                    Padding="{TemplateBinding Padding}">
-                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                    MinHeight="44">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              Foreground="#FFE0E0E0"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush"
-                                            Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="Bd" Property="Background" Value="#22FFFFFF"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush"  Value="#FFFF5722"/>
+                                    <Setter TargetName="Bd" Property="Background"   Value="#FF262630"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush"  Value="#88FF5722"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -52,30 +59,35 @@
 
             <!-- Underline PasswordBox -->
             <Style x:Key="LoginPasswordStyle" TargetType="PasswordBox">
-                <Setter Property="Background"               Value="#1A1A22"/>
-                <Setter Property="Foreground"               Value="#E0E0E0"/>
-                <Setter Property="BorderBrush"              Value="#33FFFFFF"/>
-                <Setter Property="BorderThickness"          Value="0 0 0 1"/>
-                <Setter Property="Padding"                  Value="12 10"/>
-                <Setter Property="FontSize"                 Value="14"/>
+                <Setter Property="Background"               Value="#FF1E1E28"/>
+                <Setter Property="Foreground"               Value="#FFE0E0E0"/>
+                <Setter Property="BorderBrush"              Value="#44FFFFFF"/>
+                <Setter Property="BorderThickness"          Value="0 0 0 2"/>
+                <Setter Property="Padding"                  Value="12 0"/>
+                <Setter Property="FontSize"                 Value="18"/>
+                <Setter Property="FontFamily"               Value="Segoe UI"/>
                 <Setter Property="PasswordChar"             Value="●"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="PasswordBox">
                             <Border x:Name="Bd"
-                                    Background="{TemplateBinding Background}"
+                                    Background="#FF1E1E28"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="6 6 0 0"
-                                    Padding="{TemplateBinding Padding}">
-                                <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                    MinHeight="44">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush"
-                                            Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="Bd" Property="Background" Value="#22FFFFFF"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush"  Value="#FFFF5722"/>
+                                    <Setter TargetName="Bd" Property="Background"   Value="#FF262630"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="BorderBrush"  Value="#88FF5722"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -169,7 +181,6 @@
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="Transparent" Offset="0"/>
-                                    
                                     <GradientStop Color="Transparent" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
@@ -312,13 +323,10 @@
                             CornerRadius="0 0 16 0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding StatusDot}" FontSize="9"
-                                       VerticalAlignment="Center" Margin="0 0 6 0">
-                                <TextBlock.Foreground>
-                                    <SolidColorBrush Color="{Binding StatusColor}"/>
-                                </TextBlock.Foreground>
-                            </TextBlock>
+                                       Foreground="{Binding StatusBrush}"
+                                       VerticalAlignment="Center" Margin="0 0 6 0"/>
                             <TextBlock Text="{Binding StatusText}"
-                                       FontSize="11" Foreground="#FF4A4A5A"
+                                       FontSize="11" Foreground="#FF6A6A7A"
                                        VerticalAlignment="Center" FontFamily="Segoe UI"/>
                         </StackPanel>
                     </Border>

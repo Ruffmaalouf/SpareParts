@@ -31,6 +31,8 @@ namespace SpareParts.Desktop.Wpf
                 _vm.LoginCommand.Execute(PasswordBox.Password);
         }
 
+        // X button: borderless window — Close() alone won't kill the process.
+        // Application.Current.Shutdown() is the correct call.
         private void CloseButton_Click(object sender, RoutedEventArgs e)
             => Application.Current.Shutdown();
 

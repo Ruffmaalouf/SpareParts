@@ -9,7 +9,19 @@ using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf
 {
-    // ── View model for a brand tile — wraps CarBrandDto + loaded BitmapImage ──
+    // ══════════════════════════════════════════════════════════════════════════
+    //  BrandGroupViewModel — one collapsible region group (German / Japanese …)
+    // ══════════════════════════════════════════════════════════════════════════
+    public class BrandGroupViewModel
+    {
+        /// <summary>Header shown on the Expander: "GERMAN", "JAPANESE", etc.</summary>
+        public string RegionGroup { get; set; } = string.Empty;
+        public ObservableCollection<CarBrandViewModel> Brands { get; } = new();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  CarBrandViewModel — one brand tile inside a group
+    // ══════════════════════════════════════════════════════════════════════════
     public class CarBrandViewModel : INotifyPropertyChanged
     {
         public int    Id          { get; set; }
@@ -19,6 +31,7 @@ namespace SpareParts.Desktop.Wpf
         public bool   HasLogo     { get; set; }
 
         private BitmapImage? _logo;
+        /// <summary>Loaded asynchronously from API — null until fetched.</summary>
         public BitmapImage? Logo
         {
             get => _logo;
@@ -26,11 +39,13 @@ namespace SpareParts.Desktop.Wpf
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string n) =>
+        private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 
-    // ── View model for a car model tile ───────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    //  CarModelViewModel — one car tile
+    // ══════════════════════════════════════════════════════════════════════════
     public class CarModelViewModel : INotifyPropertyChanged
     {
         public int     Id         { get; set; }
@@ -49,20 +64,21 @@ namespace SpareParts.Desktop.Wpf
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string n) =>
+        private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  InvoiceTabViewModel  — one POS invoice tab
+    //  InvoiceTabViewModel — one POS invoice tab
     // ══════════════════════════════════════════════════════════════════════════
     public class InvoiceTabViewModel : INotifyPropertyChanged
     {
         private static int _counter;
-        public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
         public int    TabNumber { get; } = ++_counter;
         public string Header    => $"Invoice #{TabNumber}";
+
+        public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
         private int? _customerId;
         public int? CustomerId
@@ -82,7 +98,12 @@ namespace SpareParts.Desktop.Wpf
         public decimal PaidAmount
         {
             get => _paidAmount;
-            set { _paidAmount = value; OnPropertyChanged(nameof(PaidAmount)); OnPropertyChanged(nameof(RemainingAmount)); }
+            set
+            {
+                _paidAmount = value;
+                OnPropertyChanged(nameof(PaidAmount));
+                OnPropertyChanged(nameof(RemainingAmount));
+            }
         }
 
         public decimal TotalAmount     => Items.Sum(i => i.LineTotal);
@@ -91,22 +112,28 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SubmitSaleCommand { get; set; } = new RelayCommand(_ => { });
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string n) =>
+        private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  InvoiceTabsViewModel  — root DataContext of MainWindow
+    //  InvoiceTabsViewModel — root DataContext of MainWindow
     // ══════════════════════════════════════════════════════════════════════════
     public class InvoiceTabsViewModel : INotifyPropertyChanged
     {
-        // ── Brand / car / part lists ──────────────────────────────────────────
-        public ObservableCollection<CarBrandViewModel> GermanBrands   { get; } = new();
-        public ObservableCollection<CarBrandViewModel> JapaneseBrands { get; } = new();
-        public ObservableCollection<CarBrandViewModel> KoreanBrands   { get; } = new();
+        // ── Brand groups — built dynamically from DB via API ──────────────────
+        /// <summary>
+        /// One entry per distinct RegionGroup returned from the API.
+        /// Adding a new brand with RegionGroup="French" to the DB will
+        /// automatically appear as a new Expander on next app launch.
+        /// </summary>
+        public ObservableCollection<BrandGroupViewModel> BrandGroups { get; } = new();
+
+        // ── Cars and parts for selected brand ─────────────────────────────────
         public ObservableCollection<CarModelViewModel> AvailableCars  { get; } = new();
         public ObservableCollection<CarPartModel>      AvailableParts { get; } = new();
 
+        // ── Selected items ────────────────────────────────────────────────────
         private CarBrandViewModel? _selectedBrand;
         public CarBrandViewModel? SelectedBrand
         {
@@ -126,7 +153,14 @@ namespace SpareParts.Desktop.Wpf
         public PosViewModel.AppScreen ActiveScreen
         {
             get => _activeScreen;
-            set { if (_activeScreen != value) { _activeScreen = value; OnPropertyChanged(nameof(ActiveScreen)); } }
+            set
+            {
+                if (_activeScreen != value)
+                {
+                    _activeScreen = value;
+                    OnPropertyChanged(nameof(ActiveScreen));
+                }
+            }
         }
 
         private bool _isLoadingBrands;
@@ -140,14 +174,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<ThemeOption> Themes { get; } = new();
         public ICommand SelectThemeCommand { get; private set; } = null!;
 
-        private ThemeOption? _selectedTheme;
-        public ThemeOption? SelectedTheme
-        {
-            get => _selectedTheme;
-            set { _selectedTheme = value; OnPropertyChanged(nameof(SelectedTheme)); }
-        }
-
-        // ── Tabs ──────────────────────────────────────────────────────────────
+        // ── Invoice tabs ──────────────────────────────────────────────────────
         public ObservableCollection<InvoiceTabViewModel> Tabs { get; } = new();
 
         private InvoiceTabViewModel? _selectedTab;
@@ -157,15 +184,16 @@ namespace SpareParts.Desktop.Wpf
             set { _selectedTab = value; OnPropertyChanged(nameof(SelectedTab)); }
         }
 
-        public ICommand AddTabCommand         { get; }
-        public ICommand CloseTabCommand       { get; }
-        public ICommand SelectBrandCommand    { get; }
-        public ICommand SelectCarCommand      { get; }
-        public ICommand SelectPartCommand     { get; }
-        public ICommand GoToPosCommand        { get; }
+        // ── Commands ──────────────────────────────────────────────────────────
+        public ICommand AddTabCommand           { get; }
+        public ICommand CloseTabCommand         { get; }
+        public ICommand SelectBrandCommand      { get; }
+        public ICommand SelectCarCommand        { get; }
+        public ICommand SelectPartCommand       { get; }
+        public ICommand GoToPosCommand          { get; }
         public ICommand GoToCarSelectionCommand { get; }
-        public ICommand GoToHomeCommand       { get; }
-        public ICommand OpenManagementCommand { get; }
+        public ICommand GoToHomeCommand         { get; }
+        public ICommand OpenManagementCommand   { get; }
 
         // ── Constructor ───────────────────────────────────────────────────────
         public InvoiceTabsViewModel()
@@ -193,18 +221,23 @@ namespace SpareParts.Desktop.Wpf
             SelectPartCommand       = new RelayCommand(SelectPart);
             GoToPosCommand          = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.Pos);
             GoToCarSelectionCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.CarSelection);
-            GoToHomeCommand         = new RelayCommand(_ => { ActiveScreen = PosViewModel.AppScreen.HomePage; SelectedBrand = null; });
-            OpenManagementCommand   = new RelayCommand(_ => new ManagementWindow().Show());
+            GoToHomeCommand         = new RelayCommand(_ =>
+            {
+                ActiveScreen  = PosViewModel.AppScreen.HomePage;
+                SelectedBrand = null;
+                AvailableCars.Clear();
+            });
+            OpenManagementCommand = new RelayCommand(_ => new ManagementWindow().Show());
 
             AddTabCommand   = new RelayCommand(_ => AddTab());
-            CloseTabCommand = new RelayCommand(tab => CloseTab(tab as InvoiceTabViewModel));
+            CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
             AddTab();
             _ = LoadBrandsAsync();
         }
 
         // ═════════════════════════════════════════════════════════════════════
-        //  DATA LOADING  — all via ApiClient (no direct DB access)
+        //  DATA LOADING
         // ═════════════════════════════════════════════════════════════════════
 
         private async Task LoadBrandsAsync()
@@ -216,31 +249,44 @@ namespace SpareParts.Desktop.Wpf
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    GermanBrands.Clear();
-                    JapaneseBrands.Clear();
-                    KoreanBrands.Clear();
+                    BrandGroups.Clear();
 
-                    foreach (var d in dtos)
-                    {
-                        var vm = new CarBrandViewModel
+                    // Known order for the standard groups; new groups go at end
+                    var knownOrder = new[] { "German", "Japanese", "Korean" };
+
+                    var grouped = dtos
+                        .GroupBy(d => d.RegionGroup)
+                        .OrderBy(g =>
                         {
-                            Id          = d.Id,
-                            Name        = d.Name,
-                            Country     = d.Country,
-                            RegionGroup = d.RegionGroup,
-                            HasLogo     = d.HasLogo
+                            int i = Array.IndexOf(knownOrder, g.Key);
+                            return i >= 0 ? i : 999;
+                        });
+
+                    foreach (var group in grouped)
+                    {
+                        var groupVm = new BrandGroupViewModel
+                        {
+                            RegionGroup = group.Key.ToUpperInvariant()
                         };
 
-                        switch (d.RegionGroup)
+                        foreach (var dto in group)
                         {
-                            case "German":   GermanBrands.Add(vm);   break;
-                            case "Japanese": JapaneseBrands.Add(vm); break;
-                            case "Korean":   KoreanBrands.Add(vm);   break;
+                            var brandVm = new CarBrandViewModel
+                            {
+                                Id          = dto.Id,
+                                Name        = dto.Name,
+                                Country     = dto.Country,
+                                RegionGroup = dto.RegionGroup,
+                                HasLogo     = dto.HasLogo
+                            };
+                            groupVm.Brands.Add(brandVm);
+
+                            // Load logo bytes in background — updates Logo property when ready
+                            if (dto.HasLogo)
+                                _ = LoadBrandLogoAsync(brandVm);
                         }
 
-                        // Load logo image in background without blocking UI
-                        if (d.HasLogo)
-                            _ = LoadBrandLogoAsync(vm);
+                        BrandGroups.Add(groupVm);
                     }
                 });
             }
@@ -261,6 +307,7 @@ namespace SpareParts.Desktop.Wpf
             Application.Current.Dispatcher.Invoke(() => vm.Logo = bmp);
         }
 
+        // ── Brand selected → load its cars ────────────────────────────────────
         private void SelectBrand(object? parameter)
         {
             if (parameter is not CarBrandViewModel brand) return;
@@ -274,26 +321,27 @@ namespace SpareParts.Desktop.Wpf
             AvailableCars.Clear();
             try
             {
+                // API filters by brandId — only this brand's cars are returned
                 var dtos = await ApiClient.Instance.GetCarModelsAsync(brandId);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     AvailableCars.Clear();
-                    foreach (var d in dtos)
+                    foreach (var dto in dtos)
                     {
                         var vm = new CarModelViewModel
                         {
-                            Id         = d.Id,
-                            CarBrandId = d.CarBrandId,
-                            Name       = d.Name,
-                            Year       = d.Year,
-                            EngineType = d.EngineType,
-                            BasePrice  = d.BasePrice,
-                            HasImage   = d.HasImage
+                            Id         = dto.Id,
+                            CarBrandId = dto.CarBrandId,
+                            Name       = dto.Name,
+                            Year       = dto.Year,
+                            EngineType = dto.EngineType,
+                            BasePrice  = dto.BasePrice,
+                            HasImage   = dto.HasImage
                         };
                         AvailableCars.Add(vm);
 
-                        if (d.HasImage)
+                        if (dto.HasImage)
                             _ = LoadCarImageAsync(vm);
                     }
                 });
@@ -311,6 +359,7 @@ namespace SpareParts.Desktop.Wpf
             Application.Current.Dispatcher.Invoke(() => vm.Image = bmp);
         }
 
+        // ── Car selected → load parts ─────────────────────────────────────────
         private void SelectCar(object? parameter)
         {
             if (parameter is not CarModelViewModel car) return;
@@ -328,13 +377,13 @@ namespace SpareParts.Desktop.Wpf
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     AvailableParts.Clear();
-                    foreach (var d in dtos)
+                    foreach (var dto in dtos)
                         AvailableParts.Add(new CarPartModel
                         {
-                            PartId      = d.Id,
-                            Code        = d.InternalCode,
-                            Description = d.Name,
-                            UnitPrice   = d.SalePrice
+                            PartId      = dto.Id,
+                            Code        = dto.InternalCode,
+                            Description = dto.Name,
+                            UnitPrice   = dto.SalePrice
                         });
                 });
             }
@@ -344,6 +393,7 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
+        // ── Part selected → add to current invoice tab ────────────────────────
         private void SelectPart(object? parameter)
         {
             if (parameter is not CarPartModel part || SelectedTab == null) return;

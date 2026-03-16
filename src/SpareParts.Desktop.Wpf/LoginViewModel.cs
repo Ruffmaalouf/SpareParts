@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -36,13 +37,26 @@ namespace SpareParts.Desktop.Wpf
         }
         public bool IsIdle => !_isLoading;
 
-        private string _statusDot   = "●";
-        private string _statusText  = "Connecting to API…";
-        private string _statusColor = "#FF9E9EA5";
+        private string _statusDot  = "●";
+        private string _statusText = "Connecting to API…";
+        private Brush  _statusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
 
-        public string StatusDot   { get => _statusDot;   set { _statusDot   = value; OnPropertyChanged(nameof(StatusDot)); } }
-        public string StatusText  { get => _statusText;  set { _statusText  = value; OnPropertyChanged(nameof(StatusText)); } }
-        public string StatusColor { get => _statusColor; set { _statusColor = value; OnPropertyChanged(nameof(StatusColor)); } }
+        public string StatusDot
+        {
+            get => _statusDot;
+            set { _statusDot = value; OnPropertyChanged(nameof(StatusDot)); }
+        }
+        public string StatusText
+        {
+            get => _statusText;
+            set { _statusText = value; OnPropertyChanged(nameof(StatusText)); }
+        }
+        /// <summary>Foreground brush for the status dot — bind directly to Foreground in XAML.</summary>
+        public Brush StatusBrush
+        {
+            get => _statusBrush;
+            set { _statusBrush = value; OnPropertyChanged(nameof(StatusBrush)); }
+        }
 
         // ── Event raised when login succeeds ──────────────────────────────────
         public event Action<LoginResponse>? LoginSucceeded;
@@ -103,20 +117,19 @@ namespace SpareParts.Desktop.Wpf
         private async Task CheckApiAsync()
         {
             StatusText  = "Connecting to API…";
-            StatusColor = "#FF9E9EA5";
-            StatusDot   = "●";
+            StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
 
             bool alive = await ApiClient.Instance.PingAsync();
 
             if (alive)
             {
                 StatusText  = "API online";
-                StatusColor = "#FF4CAF50";
+                StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x4C, 0xAF, 0x50)); // green
             }
             else
             {
                 StatusText  = "API offline — start SpareParts.Api";
-                StatusColor = "#FFE53935";
+                StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xE5, 0x39, 0x35)); // red
             }
         }
 
