@@ -1,3 +1,4 @@
+using SpareParts.Desktop.Wpf.Helpers;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,126 +8,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
-namespace SpareParts.Desktop.Wpf
-{
-    // ══════════════════════════════════════════════════════════════════════════
-    //  BrandGroupViewModel — one collapsible region group (German / Japanese …)
-    // ══════════════════════════════════════════════════════════════════════════
-    public class BrandGroupViewModel
-    {
-        /// <summary>Header shown on the Expander: "GERMAN", "JAPANESE", etc.</summary>
-        public string RegionGroup { get; set; } = string.Empty;
-        public ObservableCollection<CarBrandViewModel> Brands { get; } = new();
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CarBrandViewModel — one brand tile inside a group
-    // ══════════════════════════════════════════════════════════════════════════
-    public class CarBrandViewModel : INotifyPropertyChanged
-    {
-        public int    Id          { get; set; }
-        public string Name        { get; set; } = string.Empty;
-        public string Country     { get; set; } = string.Empty;
-        public string RegionGroup { get; set; } = string.Empty;
-        public bool   HasLogo     { get; set; }
-
-        private BitmapImage? _logo;
-        /// <summary>Loaded asynchronously from API — null until fetched.</summary>
-        public BitmapImage? Logo
-        {
-            get => _logo;
-            set { _logo = value; OnPropertyChanged(nameof(Logo)); }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged(string n) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CarModelViewModel — one car tile
-    // ══════════════════════════════════════════════════════════════════════════
-    public class CarModelViewModel : INotifyPropertyChanged
-    {
-        public int     Id         { get; set; }
-        public int     CarBrandId { get; set; }
-        public string  Name       { get; set; } = string.Empty;
-        public string? Year       { get; set; }
-        public string? EngineType { get; set; }
-        public decimal BasePrice  { get; set; }
-        public bool    HasImage   { get; set; }
-
-        private BitmapImage? _image;
-        public BitmapImage? Image
-        {
-            get => _image;
-            set { _image = value; OnPropertyChanged(nameof(Image)); }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged(string n) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  InvoiceTabViewModel — one POS invoice tab
-    // ══════════════════════════════════════════════════════════════════════════
-    public class InvoiceTabViewModel : INotifyPropertyChanged
-    {
-        private static int _counter;
-
-        public int    TabNumber { get; } = ++_counter;
-        public string Header    => $"Invoice #{TabNumber}";
-
-        public ObservableCollection<PosItemViewModel> Items { get; } = new();
-
-        private int? _customerId;
-        public int? CustomerId
-        {
-            get => _customerId;
-            set { _customerId = value; OnPropertyChanged(nameof(CustomerId)); }
-        }
-
-        private int _warehouseId = 1;
-        public int WarehouseId
-        {
-            get => _warehouseId;
-            set { _warehouseId = value; OnPropertyChanged(nameof(WarehouseId)); }
-        }
-
-        private decimal _paidAmount;
-        public decimal PaidAmount
-        {
-            get => _paidAmount;
-            set
-            {
-                _paidAmount = value;
-                OnPropertyChanged(nameof(PaidAmount));
-                OnPropertyChanged(nameof(RemainingAmount));
-            }
-        }
-
-        public decimal TotalAmount     => Items.Sum(i => i.LineTotal);
-        public decimal RemainingAmount => TotalAmount - PaidAmount;
-
-        public ICommand SubmitSaleCommand { get; set; } = new RelayCommand(_ => { });
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged(string n) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  InvoiceTabsViewModel — root DataContext of MainWindow
-    // ══════════════════════════════════════════════════════════════════════════
+namespace SpareParts.Desktop.Wpf.ViewModels
+{ 
     public class InvoiceTabsViewModel : INotifyPropertyChanged
-    {
-        // ── Brand groups — built dynamically from DB via API ──────────────────
-        /// <summary>
-        /// One entry per distinct RegionGroup returned from the API.
-        /// Adding a new brand with RegionGroup="French" to the DB will
-        /// automatically appear as a new Expander on next app launch.
-        /// </summary>
+    { 
         public ObservableCollection<BrandGroupViewModel> BrandGroups { get; } = new();
 
         // ── Cars and parts for selected brand ─────────────────────────────────

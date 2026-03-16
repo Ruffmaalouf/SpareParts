@@ -1,3 +1,5 @@
+using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Domain.Auth;
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;

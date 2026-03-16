@@ -40,6 +40,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Logos\audi.png" />
     <Resource Include="Assets\Logos\bmw.png" />
     <Resource Include="Assets\Logos\honda.png" />

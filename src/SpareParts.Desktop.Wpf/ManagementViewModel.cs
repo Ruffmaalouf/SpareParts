@@ -1,3 +1,5 @@
+using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Domain.Cars;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -40,18 +42,7 @@ namespace SpareParts.Desktop.Wpf
         public bool IsActive { get; set; }
     }
 
-    public class PartDto
-    {
-        public int Id { get; set; }
-        public string InternalCode { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string? OEMNumber { get; set; }
-        public decimal CostPrice { get; set; }
-        public decimal SalePrice { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int MinStock { get; set; }
-        public bool IsActive { get; set; }
-    }
+   
 
     public class CarModelDto
     {
@@ -64,10 +55,7 @@ namespace SpareParts.Desktop.Wpf
         public decimal BasePrice { get; set; }
         public int CarBrandId { get; internal set; }
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // ManagementViewModel
-    // ══════════════════════════════════════════════════════════════════════════
+     
     public class ManagementViewModel : INotifyPropertyChanged
     {
         private static readonly string Base = "http://localhost:5000/";

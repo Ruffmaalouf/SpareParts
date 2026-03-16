@@ -1,3 +1,4 @@
+using SpareParts.Desktop.Wpf.ViewModels;
 using System.Windows;
 
 namespace SpareParts.Desktop.Wpf

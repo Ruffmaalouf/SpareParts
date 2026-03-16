@@ -1,58 +1,12 @@
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Domain.Cars;
 using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Api.Controllers
 {
-    // ══════════════════════════════════════════════════════════════════════════
-    //  DTOs
-    // ══════════════════════════════════════════════════════════════════════════
-
-    public class CarBrandDto
-    {
-        public int    Id          { get; set; }
-        public string Name        { get; set; } = string.Empty;
-        public string Country     { get; set; } = string.Empty;
-        public string RegionGroup { get; set; } = string.Empty;
-        public bool   IsActive    { get; set; }
-        public int    SortOrder   { get; set; }
-        public bool   HasLogo     { get; set; }
-    }
-
-    public class CarModelDto
-    {
-        public int     Id         { get; set; }
-        public int     CarBrandId { get; set; }
-        public string  Name       { get; set; } = string.Empty;
-        public string? Year       { get; set; }
-        public string? EngineType { get; set; }
-        public decimal BasePrice  { get; set; }
-        public bool    IsActive   { get; set; }
-        public bool    HasImage   { get; set; }
-    }
-
-    public class CreateCarBrandRequest
-    {
-        public string Name        { get; set; } = string.Empty;
-        public string Country     { get; set; } = string.Empty;
-        public string RegionGroup { get; set; } = string.Empty;
-        public int    SortOrder   { get; set; }
-    }
-
-    public class CreateCarModelRequest
-    {
-        public int     CarBrandId  { get; set; }
-        public string  Name        { get; set; } = string.Empty;
-        public string? Year        { get; set; }
-        public string? EngineType  { get; set; }
-        public decimal BasePrice   { get; set; }
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CAR BRANDS CONTROLLER
-    // ══════════════════════════════════════════════════════════════════════════
-
+ 
     [ApiController]
     [Route("api/carbrands")]
     [Authorize]
@@ -138,10 +92,7 @@ namespace SpareParts.Api.Controllers
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CAR MODELS CONTROLLER
-    // ══════════════════════════════════════════════════════════════════════════
-
+  
     [ApiController]
     [Route("api/carmodels")]
     [Authorize]

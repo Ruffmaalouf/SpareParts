@@ -1,3 +1,5 @@
+using SpareParts.Domain.Auth;
+using SpareParts.Domain.Cars;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,45 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf
-{
-    // ── DTOs that mirror the API responses ───────────────────────────────────
+{ 
 
-    public class LoginRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginResponse
-    {
-        public string   Token     { get; set; } = string.Empty;
-        public string   FullName  { get; set; } = string.Empty;
-        public string   Role      { get; set; } = string.Empty;
-        public int      UserId    { get; set; }
-        public DateTime ExpiresAt { get; set; }
-    }
-
-    public class CarBrandDto
-    {
-        public int    Id          { get; set; }
-        public string Name        { get; set; } = string.Empty;
-        public string Country     { get; set; } = string.Empty;
-        public string RegionGroup { get; set; } = string.Empty;
-        public bool   HasLogo     { get; set; }
-    }
-
-   
-
-   
-
-   
-
-    // ── API Client ────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Singleton HTTP client.  All WPF → API calls go through here.
-    /// Call <see cref="SetToken"/> after a successful login.
-    /// </summary>
     public class ApiClient
     {
         // ── Singleton ─────────────────────────────────────────────────────────
@@ -74,11 +39,7 @@ namespace SpareParts.Desktop.Wpf
 
         public void ClearToken()
             => _http.DefaultRequestHeaders.Authorization = null;
-
-        // ═════════════════════════════════════════════════════════════════════
-        //  AUTH
-        // ═════════════════════════════════════════════════════════════════════
-
+ 
         public async Task<LoginResponse> LoginAsync(string username, string password)
         {
             var resp = await _http.PostAsJsonAsync("api/auth/login",
@@ -93,13 +54,7 @@ namespace SpareParts.Desktop.Wpf
 
             return await resp.Content.ReadFromJsonAsync<LoginResponse>()
                    ?? throw new InvalidOperationException("Empty login response.");
-        }
-
-        /// <summary>
-        /// Checks if the API is reachable.
-        /// Hits GET /api/health (no auth) — returns true for any HTTP response,
-        /// false only when the server is completely unreachable.
-        /// </summary>
+        } 
         public async Task<bool> PingAsync()
         {
             try
@@ -116,21 +71,13 @@ namespace SpareParts.Desktop.Wpf
                 return false;
             }
         }
-
-        // ═════════════════════════════════════════════════════════════════════
-        //  CAR BRANDS
-        // ═════════════════════════════════════════════════════════════════════
-
+ 
         public async Task<List<CarBrandDto>> GetCarBrandsAsync()
         {
             return await _http.GetFromJsonAsync<List<CarBrandDto>>("api/carbrands")
                    ?? new List<CarBrandDto>();
         }
-
-        /// <summary>
-        /// Fetches the raw logo bytes and converts to a WPF BitmapImage.
-        /// Returns null if no image is stored.
-        /// </summary>
+ 
         public async Task<BitmapImage?> GetCarBrandLogoAsync(int brandId)
         {
             try
@@ -156,11 +103,7 @@ namespace SpareParts.Desktop.Wpf
             var resp = await _http.PostAsync($"api/carbrands/{brandId}/logo", content);
             resp.EnsureSuccessStatusCode();
         }
-
-        // ═════════════════════════════════════════════════════════════════════
-        //  CAR MODELS
-        // ═════════════════════════════════════════════════════════════════════
-
+ 
         public async Task<List<CarModelDto>> GetCarModelsAsync(int brandId)
         {
             return await _http.GetFromJsonAsync<List<CarModelDto>>(
@@ -192,20 +135,13 @@ namespace SpareParts.Desktop.Wpf
             resp.EnsureSuccessStatusCode();
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  PARTS
-        // ═════════════════════════════════════════════════════════════════════
-
+      
         public async Task<List<PartDto>> GetPartsAsync()
         {
             return await _http.GetFromJsonAsync<List<PartDto>>("api/parts")
                    ?? new List<PartDto>();
         }
-
-        // ═════════════════════════════════════════════════════════════════════
-        //  CUSTOMERS
-        // ═════════════════════════════════════════════════════════════════════
-
+ 
         public async Task<List<CustomerDto>> SearchCustomersAsync(string query)
         {
             return await _http.GetFromJsonAsync<List<CustomerDto>>(
@@ -213,10 +149,7 @@ namespace SpareParts.Desktop.Wpf
                    ?? new List<CustomerDto>();
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  USERS  (Admin only)
-        // ═════════════════════════════════════════════════════════════════════
-
+       
         public async Task<List<UserManagementDto>> GetUsersAsync()
         {
             return await _http.GetFromJsonAsync<List<UserManagementDto>>("api/users")
@@ -250,11 +183,7 @@ namespace SpareParts.Desktop.Wpf
             if (!resp.IsSuccessStatusCode)
                 throw new Exception($"Deactivate failed: {resp.StatusCode}");
         }
-
-        // ═════════════════════════════════════════════════════════════════════
-        //  HELPERS
-        // ═════════════════════════════════════════════════════════════════════
-
+ 
         private static BitmapImage BytesToBitmap(byte[] bytes)
         {
             using var ms = new MemoryStream(bytes);

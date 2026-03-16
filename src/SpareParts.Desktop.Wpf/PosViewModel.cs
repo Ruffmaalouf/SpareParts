@@ -1,3 +1,5 @@
+using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,26 +8,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public class PosItemViewModel : INotifyPropertyChanged
-    {
-        public int     PartId      { get; set; }
-        public string  Description { get; set; } = string.Empty;   // ← ADDED
-        public int     Quantity    { get; set; }
-        public decimal UnitPrice   { get; set; }
-        public decimal LineTotal   => Quantity * UnitPrice;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-    }
-
-    // --- New Model (Add this class) ---
+ 
+     
     public class CarModel
     {
         public int     ModelId    { get; set; }
@@ -545,24 +533,5 @@ namespace SpareParts.Desktop.Wpf
         private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public class RelayCommand : ICommand
-    {
-        private readonly Action<object?> _execute;
-
-        public RelayCommand(Action<object?> execute)
-        {
-            _execute = execute;
-        }
-
-        public bool CanExecute(object? parameter) => true;
-
-        public void Execute(object? parameter) => _execute(parameter);
-
-        public event EventHandler? CanExecuteChanged
-        {
-            add { }
-            remove { }
-        }
-    }
-
+ 
 }
