@@ -173,6 +173,9 @@ namespace SpareParts.Api.Controllers
 
     // ══════════════════════════════════════════════════════════════════════════
     //  USERS CONTROLLER — full CRUD (Admin only)
+    //  DTOs CreateUserRequest / UpdateUserRequest / UserManagementDto
+    //  are defined in UsersViewModel.cs (WPF project shares the type names;
+    //  the API just needs matching JSON property names which Dapper provides).
     // ══════════════════════════════════════════════════════════════════════════
     [ApiController]
     [Route("api/users")]
@@ -182,6 +185,7 @@ namespace SpareParts.Api.Controllers
         private readonly ISqlConnectionFactory _factory;
         public UsersController(ISqlConnectionFactory factory) => _factory = factory;
 
+        // ── API-side DTOs (mirror of WPF DTOs — same JSON shape) ─────────────
         public class UserDto
         {
             public int      Id          { get; set; }
@@ -194,7 +198,7 @@ namespace SpareParts.Api.Controllers
             public DateTime  CreatedAt   { get; set; }
         }
 
-        public class CreateUserRequest
+        public class ApiCreateUserRequest
         {
             public string  Username { get; set; } = string.Empty;
             public string  FullName { get; set; } = string.Empty;
@@ -203,13 +207,12 @@ namespace SpareParts.Api.Controllers
             public string  Role     { get; set; } = "Cashier";
         }
 
-        public class UpdateUserRequest
+        public class ApiUpdateUserRequest
         {
             public string  FullName    { get; set; } = string.Empty;
             public string? Email       { get; set; }
             public string  Role        { get; set; } = "Cashier";
             public bool    IsActive    { get; set; } = true;
-            /// <summary>Leave empty/null to keep existing password.</summary>
             public string? NewPassword { get; set; }
         }
 
@@ -223,7 +226,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpPost]
-        public ActionResult<int> Create([FromBody] CreateUserRequest req)
+        public ActionResult<int> Create([FromBody] ApiCreateUserRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.Password))
                 return BadRequest("Password is required.");
@@ -241,7 +244,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult Update(int id, [FromBody] UpdateUserRequest req)
+        public ActionResult Update(int id, [FromBody] ApiUpdateUserRequest req)
         {
             using var conn = _factory.CreateConnection();
 

@@ -1,20 +1,27 @@
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf
 {
     // ── Lightweight display models (returned from API GET lists) ─────────────
 
-   
+    public class CustomerDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Phone { get; set; }
+        public string? Email { get; set; }
+        public string? Address { get; set; }
+        public string? TaxNumber { get; set; }
+        public decimal OpeningBalance { get; set; }
+    }
+
     public class SupplierDto
     {
         public int Id { get; set; }
@@ -33,8 +40,30 @@ namespace SpareParts.Desktop.Wpf
         public bool IsActive { get; set; }
     }
 
-   
-   
+    public class PartDto
+    {
+        public int Id { get; set; }
+        public string InternalCode { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string? OEMNumber { get; set; }
+        public decimal CostPrice { get; set; }
+        public decimal SalePrice { get; set; }
+        public string Currency { get; set; } = "USD";
+        public int MinStock { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class CarModelDto
+    {
+        internal bool HasImage;
+
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Year { get; set; } = string.Empty;
+        public string EngineType { get; set; } = string.Empty;
+        public decimal BasePrice { get; set; }
+        public int CarBrandId { get; internal set; }
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // ManagementViewModel
@@ -46,6 +75,7 @@ namespace SpareParts.Desktop.Wpf
         private readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true };
 
         // ── Lists ─────────────────────────────────────────────────────────────
+        public UsersViewModel UsersVm { get; } = new();
         public ObservableCollection<CustomerDto>  Customers  { get; } = new();
         public ObservableCollection<SupplierDto>  Suppliers  { get; } = new();
         public ObservableCollection<BrandDto>     Brands     { get; } = new();
@@ -127,12 +157,13 @@ namespace SpareParts.Desktop.Wpf
             SaveCarModelCommand = new RelayCommand(_ => SaveCarModel());
 
             LoadAll();
+            _ = UsersVm.LoadAsync();
         }
 
         // ── Load all lists ────────────────────────────────────────────────────
         private void LoadAll()
         {
-            LoadList("http://localhost:5000/api/customers",  Customers);
+            LoadList("api/customers",  Customers);
             LoadList("api/suppliers",  Suppliers);
             LoadList("api/brands",     Brands);
             LoadList("api/parts",      Parts);
@@ -143,25 +174,12 @@ namespace SpareParts.Desktop.Wpf
         {
             try
             {
-                var client = new RestClient(url);
-                var request = new RestRequest("", Method.Get);
-
-                var response =  client.Execute(request);
-
-                if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
-                    return;
-
-                var items = JsonSerializer.Deserialize<List<T>>(response.Content, _json) ?? new List<T>();
-
+                var json  = _http.GetStringAsync(url).Result;
+                var items = JsonSerializer.Deserialize<List<T>>(json, _json) ?? new();
                 collection.Clear();
-
-                foreach (var item in items)
-                    collection.Add(item);
+                foreach (var item in items) collection.Add(item);
             }
-            catch
-            {
-                // API not running — silently skip
-            }
+            catch { /* API not running — silently skip */ }
         }
 
         // ── Save helpers ──────────────────────────────────────────────────────

@@ -35,32 +35,11 @@ namespace SpareParts.Desktop.Wpf
         public bool   HasLogo     { get; set; }
     }
 
-    public class CarModelDto
-    {
-        public int     Id         { get; set; }
-        public int     CarBrandId { get; set; }
-        public string  Name       { get; set; } = string.Empty;
-        public string? Year       { get; set; }
-        public string? EngineType { get; set; }
-        public decimal BasePrice  { get; set; }
-        public bool    HasImage   { get; set; }
-    }
+   
 
-    public class PartDto
-    {
-        public int     Id           { get; set; }
-        public string  InternalCode { get; set; } = string.Empty;
-        public string  Name         { get; set; } = string.Empty;
-        public decimal SalePrice    { get; set; }
-    }
+   
 
-    public class CustomerDto
-    {
-        public int     Id    { get; set; }
-        public string  Name  { get; set; } = string.Empty;
-        public string? Phone { get; set; }
-        public string? Email { get; set; }
-    }
+   
 
     // ── API Client ────────────────────────────────────────────────────────────
 

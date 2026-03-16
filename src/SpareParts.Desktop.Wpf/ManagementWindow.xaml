@@ -446,6 +446,13 @@
                 </Grid>
             </TabItem>
 
+            <!-- ════════════════════════════════════════════════════
+                 TAB 6 — USERS
+            ════════════════════════════════════════════════════ -->
+            <TabItem Header="👥  Users">
+                <local:UsersTab DataContext="{Binding UsersVm}" Margin="10"/>
+            </TabItem>
+
         </TabControl>
 
         <!-- ══ STATUS BAR ══ -->
