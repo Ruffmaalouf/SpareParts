@@ -5,28 +5,16 @@ using SpareParts.Domain.Inventory;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
-
-// All DTO types used here come from SpareParts.Domain:
-//   CustomerDto, CreateCustomerRequest  → SpareParts.Domain.BusinessPartners
-//   SupplierDto, CreateSupplierRequest  → SpareParts.Domain.BusinessPartners
-//   BrandDto, CreateBrandRequest        → SpareParts.Domain.Inventory
-//   PartDto, CreatePartRequest          → SpareParts.Domain.Inventory
-//   CarBrandDto, CarModelDto            → SpareParts.Domain.Cars
-//   CreateCarBrandRequest               → SpareParts.Domain.Cars
-//   CreateCarModelRequest               → SpareParts.Domain.Cars
 
 namespace SpareParts.Desktop.Wpf
 {
     public class ManagementViewModel : INotifyPropertyChanged
     {
-        private static readonly string Base = "http://localhost:5000/";
-        private readonly HttpClient _http = new HttpClient { BaseAddress = new Uri(Base) };
-        private readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true };
+        // ── Use the shared ApiClient so the Bearer token is always present ────
+        private static ApiClient Api => ApiClient.Instance;
 
         // ── Lists ─────────────────────────────────────────────────────────────
         public UsersViewModel                      UsersVm    { get; } = new();
@@ -84,7 +72,7 @@ namespace SpareParts.Desktop.Wpf
         public int     NewCarModelBrandId   { get; set; }
 
         // ── Commands ──────────────────────────────────────────────────────────
-        public ICommand LoadAllCommand    { get; }
+        public ICommand LoadAllCommand       { get; }
         public ICommand SaveCustomerCommand  { get; }
         public ICommand SaveSupplierCommand  { get; }
         public ICommand SaveBrandCommand     { get; }
@@ -93,133 +81,129 @@ namespace SpareParts.Desktop.Wpf
 
         public ManagementViewModel()
         {
-            LoadAllCommand       = new RelayCommand(_ => LoadAll());
-            SaveCustomerCommand  = new RelayCommand(_ => SaveCustomer());
-            SaveSupplierCommand  = new RelayCommand(_ => SaveSupplier());
-            SaveBrandCommand     = new RelayCommand(_ => SaveBrand());
-            SavePartCommand      = new RelayCommand(_ => SavePart());
-            SaveCarModelCommand  = new RelayCommand(_ => SaveCarModel());
+            LoadAllCommand      = new RelayCommand(_ => _ = LoadAllAsync());
+            SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
+            SaveSupplierCommand = new RelayCommand(_ => _ = SaveSupplierAsync());
+            SaveBrandCommand    = new RelayCommand(_ => _ = SaveBrandAsync());
+            SavePartCommand     = new RelayCommand(_ => _ = SavePartAsync());
+            SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
         }
 
-        // ── Load all ─────────────────────────────────────────────────────────
-        public async void LoadAll()
+        // ── Load all ──────────────────────────────────────────────────────────
+        public async Task LoadAllAsync()
         {
+            Status = "Loading…";
             try
             {
-                var customers = await _http.GetFromJsonAsync<System.Collections.Generic.List<CustomerDto>>("api/customers", _json) ?? new();
-                var suppliers = await _http.GetFromJsonAsync<System.Collections.Generic.List<SupplierDto>>("api/suppliers", _json) ?? new();
-                var brands    = await _http.GetFromJsonAsync<System.Collections.Generic.List<BrandDto>>("api/brands", _json) ?? new();
-                var parts     = await _http.GetFromJsonAsync<System.Collections.Generic.List<PartDto>>("api/parts", _json) ?? new();
-                var carModels = await _http.GetFromJsonAsync<System.Collections.Generic.List<CarModelDto>>("api/carmodels", _json) ?? new();
+                var customers = await Api.GetAllAsync<CustomerDto>("api/customers");
+                var suppliers = await Api.GetAllAsync<SupplierDto>("api/suppliers");
+                var brands    = await Api.GetAllAsync<BrandDto>("api/brands");
+                var parts     = await Api.GetAllAsync<PartDto>("api/parts");
+                var carModels = await Api.GetAllAsync<CarModelDto>("api/carmodels");
 
-                Customers.Clear();  foreach (var x in customers)  Customers.Add(x);
-                Suppliers.Clear();  foreach (var x in suppliers)  Suppliers.Add(x);
-                Brands.Clear();     foreach (var x in brands)     Brands.Add(x);
-                Parts.Clear();      foreach (var x in parts)      Parts.Add(x);
-                CarModels.Clear();  foreach (var x in carModels)  CarModels.Add(x);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Customers.Clear(); foreach (var x in customers)  Customers.Add(x);
+                    Suppliers.Clear(); foreach (var x in suppliers)  Suppliers.Add(x);
+                    Brands.Clear();    foreach (var x in brands)     Brands.Add(x);
+                    Parts.Clear();     foreach (var x in parts)      Parts.Add(x);
+                    CarModels.Clear(); foreach (var x in carModels)  CarModels.Add(x);
+                });
 
                 Status = "✓ Data loaded.";
             }
             catch (Exception ex) { Status = $"✗ Load failed: {ex.Message}"; }
         }
 
-        // ── Save helpers ──────────────────────────────────────────────────────
-        private async void Post(string url, object payload, string entityName)
-        {
-            try
-            {
-                var json     = JsonSerializer.Serialize(payload);
-                var content  = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _http.PostAsync(url, content);
-
-                Status = response.IsSuccessStatusCode
-                    ? $"✓ {entityName} saved."
-                    : $"✗ Error saving {entityName}: {response.StatusCode}";
-
-                if (response.IsSuccessStatusCode) LoadAll();
-            }
-            catch (Exception ex) { Status = $"✗ {ex.Message}"; }
-        }
-
-        private void SaveCustomer()
+        // ── Save: Customer ────────────────────────────────────────────────────
+        private async Task SaveCustomerAsync()
         {
             if (string.IsNullOrWhiteSpace(NewCustomerName)) { Status = "✗ Customer name is required."; return; }
-            Post("api/customers", new CreateCustomerRequest
+            await PostAsync("api/customers", new CreateCustomerRequest
             {
                 Name = NewCustomerName, Phone = NewCustomerPhone, Email = NewCustomerEmail,
                 Address = NewCustomerAddress, TaxNumber = NewCustomerTax, OpeningBalance = NewCustomerBalance
             }, "Customer");
-            NewCustomerName = NewCustomerPhone = NewCustomerEmail = NewCustomerAddress = NewCustomerTax = string.Empty;
+            NewCustomerName = NewCustomerPhone = NewCustomerEmail =
+            NewCustomerAddress = NewCustomerTax = string.Empty;
             NewCustomerBalance = 0;
-            OnPropertyChanged(nameof(NewCustomerName)); OnPropertyChanged(nameof(NewCustomerPhone));
-            OnPropertyChanged(nameof(NewCustomerEmail)); OnPropertyChanged(nameof(NewCustomerAddress));
-            OnPropertyChanged(nameof(NewCustomerTax));  OnPropertyChanged(nameof(NewCustomerBalance));
+            RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail),
+                     nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         }
 
-        private void SaveSupplier()
+        // ── Save: Supplier ────────────────────────────────────────────────────
+        private async Task SaveSupplierAsync()
         {
             if (string.IsNullOrWhiteSpace(NewSupplierName)) { Status = "✗ Supplier name is required."; return; }
-            Post("api/suppliers", new CreateSupplierRequest
+            await PostAsync("api/suppliers", new CreateSupplierRequest
             {
                 Name = NewSupplierName, Phone = NewSupplierPhone, Email = NewSupplierEmail,
                 Address = NewSupplierAddress, TaxNumber = NewSupplierTax, OpeningBalance = NewSupplierBalance
             }, "Supplier");
-            NewSupplierName = NewSupplierPhone = NewSupplierEmail = NewSupplierAddress = NewSupplierTax = string.Empty;
+            NewSupplierName = NewSupplierPhone = NewSupplierEmail =
+            NewSupplierAddress = NewSupplierTax = string.Empty;
             NewSupplierBalance = 0;
-            OnPropertyChanged(nameof(NewSupplierName)); OnPropertyChanged(nameof(NewSupplierPhone));
-            OnPropertyChanged(nameof(NewSupplierEmail)); OnPropertyChanged(nameof(NewSupplierAddress));
-            OnPropertyChanged(nameof(NewSupplierTax));  OnPropertyChanged(nameof(NewSupplierBalance));
+            RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail),
+                     nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         }
 
-        private void SaveBrand()
+        // ── Save: Brand ───────────────────────────────────────────────────────
+        private async Task SaveBrandAsync()
         {
             if (string.IsNullOrWhiteSpace(NewBrandName)) { Status = "✗ Brand name is required."; return; }
-            Post("api/brands", new CreateBrandRequest { Name = NewBrandName, IsActive = NewBrandIsActive }, "Brand");
+            await PostAsync("api/brands", new CreateBrandRequest { Name = NewBrandName, IsActive = NewBrandIsActive }, "Brand");
             NewBrandName = string.Empty;
-            OnPropertyChanged(nameof(NewBrandName));
+            RaiseAll(nameof(NewBrandName));
         }
 
-        private void SavePart()
+        // ── Save: Part ────────────────────────────────────────────────────────
+        private async Task SavePartAsync()
         {
             if (string.IsNullOrWhiteSpace(NewPartCode) || string.IsNullOrWhiteSpace(NewPartName))
             { Status = "✗ Part code and name are required."; return; }
-
-            Post("api/parts", new CreatePartRequest
+            await PostAsync("api/parts", new CreatePartRequest
             {
-                InternalCode = NewPartCode,
-                Name         = NewPartName,
-                OEMNumber    = NewPartOEM,
-                Condition    = SpareParts.Domain.Inventory.PartCondition.New,
-                CategoryId   = NewPartCategoryId,
-                BrandId      = NewPartBrandId,
-                CostPrice    = NewPartCostPrice,
-                SalePrice    = NewPartSalePrice,
-                Currency     = NewPartCurrency,
-                MinStock     = NewPartMinStock,
-                Notes        = NewPartNotes
+                InternalCode = NewPartCode, Name = NewPartName, OEMNumber = NewPartOEM,
+                Condition    = PartCondition.New, CategoryId = NewPartCategoryId, BrandId = NewPartBrandId,
+                CostPrice    = NewPartCostPrice,  SalePrice  = NewPartSalePrice,
+                Currency     = NewPartCurrency,   MinStock   = NewPartMinStock, Notes = NewPartNotes
             }, "Part");
-
             NewPartCode = NewPartName = NewPartOEM = NewPartNotes = string.Empty;
             NewPartCostPrice = NewPartSalePrice = 0;
-            OnPropertyChanged(nameof(NewPartCode)); OnPropertyChanged(nameof(NewPartName));
-            OnPropertyChanged(nameof(NewPartOEM));  OnPropertyChanged(nameof(NewPartNotes));
+            RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM),
+                     nameof(NewPartNotes), nameof(NewPartCostPrice), nameof(NewPartSalePrice));
         }
 
-        private void SaveCarModel()
+        // ── Save: Car Model ───────────────────────────────────────────────────
+        private async Task SaveCarModelAsync()
         {
             if (string.IsNullOrWhiteSpace(NewCarModelName)) { Status = "✗ Car model name is required."; return; }
-            Post("api/carmodels", new CreateCarModelRequest
+            await PostAsync("api/carmodels", new CreateCarModelRequest
             {
-                Name       = NewCarModelName,
-                Year       = NewCarModelYear,
-                EngineType = NewCarModelEngine,
-                BasePrice  = NewCarModelBasePrice,
-                CarBrandId = NewCarModelBrandId
+                Name = NewCarModelName, Year = NewCarModelYear, EngineType = NewCarModelEngine,
+                BasePrice = NewCarModelBasePrice, CarBrandId = NewCarModelBrandId
             }, "Car Model");
             NewCarModelName = NewCarModelYear = NewCarModelEngine = string.Empty;
             NewCarModelBasePrice = 0;
-            OnPropertyChanged(nameof(NewCarModelName)); OnPropertyChanged(nameof(NewCarModelYear));
-            OnPropertyChanged(nameof(NewCarModelEngine));
+            RaiseAll(nameof(NewCarModelName), nameof(NewCarModelYear),
+                     nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
+        }
+
+        // ── Shared POST via ApiClient (has token) ─────────────────────────────
+        private async Task PostAsync(string url, object payload, string entityName)
+        {
+            try
+            {
+                await Api.PostAsync(url, payload);
+                Status = $"✓ {entityName} saved.";
+                await LoadAllAsync();
+            }
+            catch (Exception ex) { Status = $"✗ Error saving {entityName}: {ex.Message}"; }
+        }
+
+        private void RaiseAll(params string[] names)
+        {
+            foreach (var n in names) OnPropertyChanged(n);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

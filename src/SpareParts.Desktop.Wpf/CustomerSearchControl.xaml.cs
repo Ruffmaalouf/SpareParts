@@ -3,8 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,16 +13,6 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class CustomerSearchControl : UserControl
     {
-        // ── HTTP ──────────────────────────────────────────────────────────────
-        private static readonly HttpClient _http = new HttpClient
-        {
-            BaseAddress = new Uri("http://localhost:5000/")
-        };
-        private static readonly JsonSerializerOptions _json = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
         private List<CustomerDto> _allCustomers = new();
 
         // ═════════════════════════════════════════════════════════════════════
@@ -32,9 +21,7 @@ namespace SpareParts.Desktop.Wpf
 
         public static readonly DependencyProperty SelectedCustomerIdProperty =
             DependencyProperty.Register(
-                nameof(SelectedCustomerId),
-                typeof(int?),
-                typeof(CustomerSearchControl),
+                nameof(SelectedCustomerId), typeof(int?), typeof(CustomerSearchControl),
                 new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public int? SelectedCustomerId
@@ -64,6 +51,17 @@ namespace SpareParts.Desktop.Wpf
             set => SetValue(FilteredCustomersProperty, value);
         }
 
+        // HasSelectedCustomer — used by XAML binding for search-icon visibility
+        public static readonly DependencyProperty HasSelectedCustomerProperty =
+            DependencyProperty.Register(nameof(HasSelectedCustomer), typeof(bool),
+                typeof(CustomerSearchControl), new PropertyMetadata(false));
+
+        public bool HasSelectedCustomer
+        {
+            get => (bool)GetValue(HasSelectedCustomerProperty);
+            set => SetValue(HasSelectedCustomerProperty, value);
+        }
+
         // ═════════════════════════════════════════════════════════════════════
         // Constructor
         // ═════════════════════════════════════════════════════════════════════
@@ -72,62 +70,60 @@ namespace SpareParts.Desktop.Wpf
         {
             InitializeComponent();
             FilteredCustomers = new ObservableCollection<CustomerDto>();
+            // Pre-load customer list as soon as the control is ready
+            Loaded += async (_, _) => await EnsureLoadedAsync();
         }
 
         // ═════════════════════════════════════════════════════════════════════
-        // Event Handlers
+        // Event Handlers  (all referenced by the XAML)
         // ═════════════════════════════════════════════════════════════════════
 
         private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadAndFilter();
+            _ = LoadAndFilterAsync();
         }
 
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             HidePlaceholder();
-            // Highlight the input pill border with accent colour
-            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
 
-            // Auto-search if box gets focus with text already in it
             if (!string.IsNullOrEmpty(SearchBox.Text) && _allCustomers.Count > 0)
                 ApplyFilter();
+            else if (_allCustomers.Count > 0)
+            {
+                ApplyFilter();          // show all when focus with empty box
+                ResultsPopup.IsOpen = true;
+            }
         }
 
         private void SearchBox_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            switch (e.Key)
             {
-                if (FilteredCustomers.Count == 1)
-                {
-                    SelectCustomer(FilteredCustomers[0]);
-                    return;
-                }
-                LoadAndFilter();
-            }
-            else if (e.Key == Key.Escape)
-            {
-                ResultsPopup.IsOpen = false;
-                RestorePillBorder();
-            }
-            else if (e.Key == Key.Down && ResultsPopup.IsOpen)
-            {
-                ResultsList.Focus();
-                if (ResultsList.Items.Count > 0)
-                    ResultsList.SelectedIndex = 0;
-            }
-            else
-            {
-                // Show/hide placeholder
-                if (string.IsNullOrEmpty(SearchBox.Text))
-                    ShowPlaceholder();
-                else
-                    HidePlaceholder();
+                case Key.Enter:
+                    if (FilteredCustomers.Count == 1)
+                    { SelectCustomer(FilteredCustomers[0]); return; }
+                    _ = LoadAndFilterAsync();
+                    break;
 
-                // Live filter if already loaded
-                if (_allCustomers.Count > 0)
-                    ApplyFilter();
+                case Key.Escape:
+                    ResultsPopup.IsOpen = false;
+                    RestorePillBorder();
+                    break;
+
+                case Key.Down when ResultsPopup.IsOpen:
+                    ResultsList.Focus();
+                    if (ResultsList.Items.Count > 0)
+                        ResultsList.SelectedIndex = 0;
+                    break;
+
+                default:
+                    HidePlaceholder();
+                    if (string.IsNullOrEmpty(SearchBox.Text)) ShowPlaceholder();
+                    if (_allCustomers.Count > 0) ApplyFilter();
+                    break;
             }
         }
 
@@ -149,27 +145,28 @@ namespace SpareParts.Desktop.Wpf
         }
 
         private void ClearCustomer_Click(object sender, RoutedEventArgs e)
-        {
-            ClearSelection();
-        }
+            => ClearSelection();
 
         // ═════════════════════════════════════════════════════════════════════
         // Core Logic
         // ═════════════════════════════════════════════════════════════════════
 
-        private void LoadAndFilter()
+        private async Task EnsureLoadedAsync()
         {
+            if (_allCustomers.Count > 0) return;
             try
             {
-                var json = _http.GetStringAsync("api/customers").Result;
-                _allCustomers = JsonSerializer.Deserialize<List<CustomerDto>>(json, _json)
-                                ?? new List<CustomerDto>();
+                _allCustomers = await ApiClient.Instance.GetAllAsync<CustomerDto>("api/customers");
             }
-            catch
+            catch (Exception ex)
             {
-                _allCustomers = new List<CustomerDto>();
+                System.Diagnostics.Debug.WriteLine($"[CustomerSearch] pre-load: {ex.Message}");
             }
+        }
 
+        private async Task LoadAndFilterAsync()
+        {
+            await EnsureLoadedAsync();
             ApplyFilter();
             ResultsPopup.IsOpen = true;
 
@@ -193,17 +190,14 @@ namespace SpareParts.Desktop.Wpf
                   ).ToList();
 
             FilteredCustomers.Clear();
-            foreach (var c in results)
-                FilteredCustomers.Add(c);
+            foreach (var c in results) FilteredCustomers.Add(c);
 
-            // Update count label in popup header
             CountLabel.Text = FilteredCustomers.Count == 0
                 ? "no results"
                 : $"{FilteredCustomers.Count} found";
 
-            // Show/hide empty state vs list
-            EmptyState.Visibility  = FilteredCustomers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            ResultsList.Visibility = FilteredCustomers.Count > 0  ? Visibility.Visible : Visibility.Collapsed;
+            EmptyState.Visibility  = FilteredCustomers.Count == 0 ? Visibility.Visible  : Visibility.Collapsed;
+            ResultsList.Visibility = FilteredCustomers.Count > 0  ? Visibility.Visible  : Visibility.Collapsed;
 
             if (FilteredCustomers.Count > 0)
                 ResultsPopup.IsOpen = true;
@@ -211,34 +205,31 @@ namespace SpareParts.Desktop.Wpf
 
         private void SelectCustomer(CustomerDto customer)
         {
-            SelectedCustomerId = customer.Id;
+            SelectedCustomerId   = customer.Id;
+            HasSelectedCustomer  = true;
 
-            // Update inline display
             SelectedNameInline.Text = customer.Name;
             PhoneLabel.Text         = customer.Phone ?? string.Empty;
             PhoneLabel.Visibility   = string.IsNullOrEmpty(customer.Phone)
                                       ? Visibility.Collapsed : Visibility.Visible;
 
-            // Switch pill to "selected" state
             SelectedIndicator.Visibility = Visibility.Visible;
             SearchBtn.Visibility         = Visibility.Collapsed;
             ClearBtn.Visibility          = Visibility.Visible;
 
-            // Accent border
             InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
 
-            // Clear search text + placeholder
             CustomerSearchText  = string.Empty;
             SearchBox.Text      = string.Empty;
             ShowPlaceholder();
-
             ResultsPopup.IsOpen = false;
         }
 
         private void ClearSelection()
         {
-            SelectedCustomerId = null;
+            SelectedCustomerId   = null;
+            HasSelectedCustomer  = false;
 
             SelectedIndicator.Visibility = Visibility.Collapsed;
             SelectedNameInline.Text      = string.Empty;
@@ -253,8 +244,7 @@ namespace SpareParts.Desktop.Wpf
             SearchBox.Focus();
         }
 
-        // ─── Visual helpers ───────────────────────────────────────────────────
-
+        // ── Visual helpers ────────────────────────────────────────────────────
         private void ShowPlaceholder() => Placeholder.Visibility = Visibility.Visible;
         private void HidePlaceholder() => Placeholder.Visibility = Visibility.Collapsed;
 

@@ -168,6 +168,26 @@ namespace SpareParts.Desktop.Wpf
                    ?? new List<PartDto>();
         }
 
+        // ── Generic helpers used by ManagementViewModel ───────────────────────
+        public async Task<List<T>> GetAllAsync<T>(string url)
+        {
+            var resp = await _http.GetAsync(url);
+            if (!resp.IsSuccessStatusCode)
+                throw new Exception($"GET {url} failed: {resp.StatusCode}");
+            return await resp.Content.ReadFromJsonAsync<List<T>>()
+                   ?? new List<T>();
+        }
+
+        public async Task PostAsync(string url, object payload)
+        {
+            var resp = await _http.PostAsJsonAsync(url, payload);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var msg = await resp.Content.ReadAsStringAsync();
+                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
+            }
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
         private static BitmapImage BytesToBitmap(byte[] bytes)
         {
