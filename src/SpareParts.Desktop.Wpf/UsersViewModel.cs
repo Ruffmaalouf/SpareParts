@@ -1,53 +1,29 @@
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Domain.Auth;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf
 {
-    // ── DTOs ──────────────────────────────────────────────────────────────────
-    public class UserManagementDto : INotifyPropertyChanged
+    // ── WPF display wrapper — adds UI-only computed properties to UserDto ─────
+    // Domain DTOs (UserDto, CreateUserRequest, UpdateUserRequest) live in
+    // SpareParts.Domain.Auth and are shared with the API.
+    public class UserManagementDto : UserDto, INotifyPropertyChanged
     {
-        public int      Id          { get; set; }
-        public string   Username    { get; set; } = string.Empty;
-        public string   FullName    { get; set; } = string.Empty;
-        public string?  Email       { get; set; }
-        public string   Role        { get; set; } = string.Empty;
-        public bool     IsActive    { get; set; }
-        public DateTime? LastLoginAt { get; set; }
-        public DateTime  CreatedAt  { get; set; }
-
         public string LastLoginDisplay =>
-            LastLoginAt.HasValue ? LastLoginAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm") : "Never";
+            LastLoginAt.HasValue
+                ? LastLoginAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                : "Never";
 
         public string StatusBadge => IsActive ? "Active" : "Inactive";
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public new event PropertyChangedEventHandler? PropertyChanged;
         public void Notify(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    public class CreateUserRequest
-    {
-        public string  Username { get; set; } = string.Empty;
-        public string  FullName { get; set; } = string.Empty;
-        public string? Email    { get; set; }
-        public string  Password { get; set; } = string.Empty;
-        public string  Role     { get; set; } = "Cashier";
-    }
-
-    public class UpdateUserRequest
-    {
-        public string  FullName    { get; set; } = string.Empty;
-        public string? Email       { get; set; }
-        public string  Role        { get; set; } = "Cashier";
-        public bool    IsActive    { get; set; } = true;
-        public string? NewPassword { get; set; }
     }
 
     // ── ViewModel ─────────────────────────────────────────────────────────────
@@ -71,19 +47,19 @@ namespace SpareParts.Desktop.Wpf
 
         public bool IsEditing => _selectedUser != null;
 
-        private string _formUsername  = string.Empty;
-        private string _formFullName  = string.Empty;
-        private string _formEmail     = string.Empty;
-        private string _formPassword  = string.Empty;
-        private string _formRole      = "Cashier";
-        private bool   _formIsActive  = true;
+        private string _formUsername = string.Empty;
+        private string _formFullName = string.Empty;
+        private string _formEmail    = string.Empty;
+        private string _formPassword = string.Empty;
+        private string _formRole     = "Cashier";
+        private bool   _formIsActive = true;
 
-        public string FormUsername  { get => _formUsername;  set { _formUsername  = value; OnPropertyChanged(nameof(FormUsername)); } }
-        public string FormFullName  { get => _formFullName;  set { _formFullName  = value; OnPropertyChanged(nameof(FormFullName)); } }
-        public string FormEmail     { get => _formEmail;     set { _formEmail     = value; OnPropertyChanged(nameof(FormEmail)); } }
-        public string FormPassword  { get => _formPassword;  set { _formPassword  = value; OnPropertyChanged(nameof(FormPassword)); } }
-        public string FormRole      { get => _formRole;      set { _formRole      = value; OnPropertyChanged(nameof(FormRole)); } }
-        public bool   FormIsActive  { get => _formIsActive;  set { _formIsActive  = value; OnPropertyChanged(nameof(FormIsActive)); } }
+        public string FormUsername { get => _formUsername; set { _formUsername = value; OnPropertyChanged(nameof(FormUsername)); } }
+        public string FormFullName { get => _formFullName; set { _formFullName = value; OnPropertyChanged(nameof(FormFullName)); } }
+        public string FormEmail    { get => _formEmail;    set { _formEmail    = value; OnPropertyChanged(nameof(FormEmail)); } }
+        public string FormPassword { get => _formPassword; set { _formPassword = value; OnPropertyChanged(nameof(FormPassword)); } }
+        public string FormRole     { get => _formRole;     set { _formRole     = value; OnPropertyChanged(nameof(FormRole)); } }
+        public bool   FormIsActive { get => _formIsActive; set { _formIsActive = value; OnPropertyChanged(nameof(FormIsActive)); } }
 
         public string[] Roles { get; } = { "Admin", "Manager", "Cashier" };
 
@@ -102,9 +78,9 @@ namespace SpareParts.Desktop.Wpf
         }
 
         // ── Commands ──────────────────────────────────────────────────────────
-        public ICommand LoadCommand      { get; }
-        public ICommand NewCommand       { get; }
-        public ICommand SaveCommand      { get; }
+        public ICommand LoadCommand       { get; }
+        public ICommand NewCommand        { get; }
+        public ICommand SaveCommand       { get; }
         public ICommand DeactivateCommand { get; }
 
         public UsersViewModel()
@@ -130,10 +106,7 @@ namespace SpareParts.Desktop.Wpf
                 });
                 Status = $"{Users.Count} user(s) loaded.";
             }
-            catch (Exception ex)
-            {
-                Status = $"Error: {ex.Message}";
-            }
+            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
             finally { IsBusy = false; }
         }
 
@@ -148,7 +121,6 @@ namespace SpareParts.Desktop.Wpf
             {
                 if (_selectedUser == null)
                 {
-                    // CREATE
                     if (string.IsNullOrWhiteSpace(FormUsername))
                     { Status = "Username is required."; return; }
                     if (string.IsNullOrWhiteSpace(FormPassword))
@@ -166,7 +138,6 @@ namespace SpareParts.Desktop.Wpf
                 }
                 else
                 {
-                    // UPDATE
                     await ApiClient.Instance.UpdateUserAsync(_selectedUser.Id, new UpdateUserRequest
                     {
                         FullName    = FormFullName.Trim(),
@@ -181,10 +152,7 @@ namespace SpareParts.Desktop.Wpf
                 ClearForm();
                 await LoadAsync();
             }
-            catch (Exception ex)
-            {
-                Status = $"Error: {ex.Message}";
-            }
+            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
             finally { IsBusy = false; }
         }
 
@@ -208,7 +176,7 @@ namespace SpareParts.Desktop.Wpf
             FormUsername = u.Username;
             FormFullName = u.FullName;
             FormEmail    = u.Email ?? string.Empty;
-            FormPassword = string.Empty;   // never pre-fill password
+            FormPassword = string.Empty; // never pre-fill password
             FormRole     = u.Role;
             FormIsActive = u.IsActive;
         }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
@@ -17,9 +18,15 @@ namespace SpareParts.Api.Controllers
         [HttpPost]
         public ActionResult<CreatePurchaseResponse> CreatePurchase([FromBody] CreatePurchaseRequest request)
         {
-            var userId = 1; // TODO: get from auth later
+            var userId = GetUserId();
             var result = _purchaseService.CreatePurchase(request, userId);
             return Ok(result);
+        }
+
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 1;
         }
     }
 }

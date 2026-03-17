@@ -315,5 +315,10 @@ namespace SpareParts.Infrastructure.Data
                 _session.Connection.Execute(sql, line, _session.Transaction);
             }
         }
+
+        public IEnumerable<object> GetAllCategories()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

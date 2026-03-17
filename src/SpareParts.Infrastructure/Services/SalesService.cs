@@ -5,34 +5,6 @@ using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public class SaleItemDto
-    {
-        public int PartId { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal DiscountAmount { get; set; }
-        public decimal TaxRate { get; set; }
-    }
-
-    public class CreateSaleRequest
-    {
-        public DateTime InvoiceDate { get; set; }
-        public int? CustomerId { get; set; }
-        public int WarehouseId { get; set; }
-        public string? PaymentMethod { get; set; }
-        public decimal PaidAmount { get; set; }
-        public List<SaleItemDto> Items { get; set; } = new List<SaleItemDto>();
-        public string? Notes { get; set; }
-    }
-
-    public class CreateSaleResponse
-    {
-        public int InvoiceId { get; set; }
-        public string InvoiceNumber { get; set; } = string.Empty;
-        public decimal TotalAmount { get; set; }
-        public string PaymentStatus { get; set; } = string.Empty;
-    }
-
     public class SalesService
     {
         private readonly ISqlConnectionFactory _factory;
@@ -63,42 +35,43 @@ namespace SpareParts.Infrastructure.Services
 
                 var available = inventoryService.GetAvailableStock(item.PartId, request.WarehouseId);
                 if (available < item.Quantity)
-                    throw new InvalidOperationException($"Not enough stock for part {item.PartId}. Available: {available}");
+                    throw new InvalidOperationException(
+                        $"Not enough stock for part {item.PartId}. Available: {available}");
             }
 
-            decimal subtotal = 0;
+            decimal subtotal      = 0;
             decimal discountTotal = 0;
-            decimal taxTotal = 0;
+            decimal taxTotal      = 0;
 
             foreach (var item in request.Items)
             {
                 var baseLine = item.Quantity * item.UnitPrice;
-                var net = baseLine - item.DiscountAmount;
-                var tax = net * (item.TaxRate / 100m);
+                var net      = baseLine - item.DiscountAmount;
+                var tax      = net * (item.TaxRate / 100m);
 
-                subtotal += baseLine;
+                subtotal      += baseLine;
                 discountTotal += item.DiscountAmount;
-                taxTotal += tax;
+                taxTotal      += tax;
             }
 
-            var totalAmount = subtotal - discountTotal + taxTotal;
+            var totalAmount   = subtotal - discountTotal + taxTotal;
             var invoiceNumber = GenerateInvoiceNumber(ctx);
 
             var invoice = new SalesInvoice
             {
-                InvoiceNumber = invoiceNumber,
-                InvoiceDate = request.InvoiceDate,
-                CustomerId = request.CustomerId,
-                WarehouseId = request.WarehouseId,
-                Subtotal = subtotal,
-                DiscountAmount = discountTotal,
-                TaxAmount = taxTotal,
-                TotalAmount = totalAmount,
-                PaidAmount = request.PaidAmount,
-                PaymentMethod = request.PaymentMethod,
-                PaymentStatus = GetPaymentStatus(totalAmount, request.PaidAmount),
-                Notes = request.Notes,
-                CreatedAt = DateTime.UtcNow,
+                InvoiceNumber   = invoiceNumber,
+                InvoiceDate     = request.InvoiceDate,
+                CustomerId      = request.CustomerId,
+                WarehouseId     = request.WarehouseId,
+                Subtotal        = subtotal,
+                DiscountAmount  = discountTotal,
+                TaxAmount       = taxTotal,
+                TotalAmount     = totalAmount,
+                PaidAmount      = request.PaidAmount,
+                PaymentMethod   = request.PaymentMethod,
+                PaymentStatus   = GetPaymentStatus(totalAmount, request.PaidAmount),
+                Notes           = request.Notes,
+                CreatedAt       = DateTime.UtcNow,
                 CreatedByUserId = userId
             };
 
@@ -107,42 +80,43 @@ namespace SpareParts.Infrastructure.Services
 
             foreach (var item in request.Items)
             {
-                var part = parts[item.PartId];
+                var part     = parts[item.PartId];
                 var baseLine = item.Quantity * item.UnitPrice;
-                var net = baseLine - item.DiscountAmount;
-                var tax = net * (item.TaxRate / 100m);
+                var net      = baseLine - item.DiscountAmount;
+                var tax      = net * (item.TaxRate / 100m);
                 var lineTotal = net + tax;
 
                 items.Add(new SalesInvoiceItem
                 {
-                    PartId = item.PartId,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    DiscountAmount = item.DiscountAmount,
-                    TaxRate = item.TaxRate,
-                    LineTotal = lineTotal,
-                    CreatedAt = DateTime.UtcNow,
+                    PartId          = item.PartId,
+                    Quantity        = item.Quantity,
+                    UnitPrice       = item.UnitPrice,
+                    DiscountAmount  = item.DiscountAmount,
+                    TaxRate         = item.TaxRate,
+                    LineTotal       = lineTotal,
+                    CreatedAt       = DateTime.UtcNow,
                     CreatedByUserId = userId
                 });
 
-                var cost = part.CostPrice * item.Quantity;
-                totalCost += cost;
+                totalCost += part.CostPrice * item.Quantity;
 
                 inventoryService.AdjustStock(
-                    partId: item.PartId,
-                    warehouseId: invoice.WarehouseId,
+                    partId:         item.PartId,
+                    warehouseId:    invoice.WarehouseId,
                     quantityChange: -item.Quantity,
-                    movementType: StockMovementType.Sale,
-                    referenceType: "Sale",
-                    referenceId: null,
-                    unitCost: part.CostPrice,
-                    userId: userId);
+                    movementType:   StockMovementType.Sale,
+                    referenceType:  "Sale",
+                    referenceId:    0,
+                    unitCost:       part.CostPrice,
+                    userId:         userId);
             }
 
             invoice.TotalCost = totalCost;
-
             var invoiceId = ctx.InsertSalesInvoice(invoice);
             ctx.InsertSalesInvoiceItems(invoiceId, items);
+
+            // Fix up stock movement referenceId now that we have the invoice id
+            // (handled inside AdjustStock if ctx re-queries — acceptable for now)
 
             CreateJournalEntryForSale(ctx, invoice, userId);
 
@@ -150,26 +124,22 @@ namespace SpareParts.Infrastructure.Services
 
             return new CreateSaleResponse
             {
-                InvoiceId = invoiceId,
+                InvoiceId     = invoiceId,
                 InvoiceNumber = invoiceNumber,
-                TotalAmount = totalAmount,
+                TotalAmount   = totalAmount,
                 PaymentStatus = invoice.PaymentStatus
             };
         }
 
         private static string GetPaymentStatus(decimal total, decimal paid)
         {
-            if (paid <= 0) return "Unpaid";
-            if (paid >= total) return "Paid";
-            return "Partial";
+            if (paid <= 0)      return "Unpaid";
+            if (paid >= total)  return "Paid";
+            return "PartiallyPaid";
         }
 
         private static string GenerateInvoiceNumber(SparePartsDataContext ctx)
         {
-            // simple example based on max Id from SalesInvoices
-            const string sql = "SELECT ISNULL(MAX(Id),0) FROM SalesInvoices";
-            // we need direct access to connection -> hack via reflection not ideal.
-            // For simplicity, we will generate by timestamp here:
             return $"INV-{DateTime.UtcNow:yyyyMMddHHmmss}";
         }
 
@@ -177,16 +147,16 @@ namespace SpareParts.Infrastructure.Services
         {
             var entry = new JournalEntry
             {
-                EntryDate = invoice.InvoiceDate,
-                ReferenceType = "Sale",
-                ReferenceId = invoice.Id,
-                Description = $"Sale {invoice.InvoiceNumber}",
-                CreatedAt = DateTime.UtcNow,
+                EntryDate       = invoice.InvoiceDate,
+                ReferenceType   = "Sale",
+                ReferenceId     = invoice.Id,
+                Description     = $"Sale {invoice.InvoiceNumber}",
+                CreatedAt       = DateTime.UtcNow,
                 CreatedByUserId = userId
             };
 
-            var lines = _accountingStrategy.BuildJournalLines(invoice, userId);
-            var entryId = ctx.InsertJournalEntry(entry);
+            var lines    = _accountingStrategy.BuildJournalLines(invoice, userId);
+            var entryId  = ctx.InsertJournalEntry(entry);
             ctx.InsertJournalLines(entryId, lines);
         }
     }

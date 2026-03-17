@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.ViewModels;
+using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,36 +11,29 @@ using System.Text;
 using System.Text.Json;
 using System.Windows.Input;
 
+// CarBrand / CarModel local UI-only models kept here because they are purely
+// presentational (hold LogoPath, AvailableCars, etc.) and are NOT persisted.
+// All API-crossing DTOs come from SpareParts.Domain.
+
 namespace SpareParts.Desktop.Wpf
 {
- 
-     
-    public class CarModel
+    // ── UI-only display models (never sent to API) ────────────────────────────
+    public class CarBrandUi
+    {
+        public int    Id      { get; set; }
+        public string Name    { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
+        public string LogoPath { get; set; } = string.Empty;
+    }
+
+    public class CarModelUi
     {
         public int     ModelId    { get; set; }
         public string  Name       { get; set; } = string.Empty;
         public string  Year       { get; set; } = string.Empty;
         public string  EngineType { get; set; } = string.Empty;
         public decimal BasePrice  { get; set; }
-        public string  ImagePath  { get; set; } = string.Empty; // e.g., Assets/Cars/m3.png
-    }
-    // ---------------------------------
-
-    public class CarBrand
-    {
-        public string Name     { get; set; } = string.Empty;
-        public string Country  { get; set; } = string.Empty; // Germany / Japan
-        public string LogoPath { get; set; } = string.Empty; // relative path, e.g. Assets/Logos/bmw.png
-    }
-
-    // DTOs must match API DTOs
-    public class SaleItemDto
-    {
-        public int     PartId         { get; set; }
-        public int     Quantity       { get; set; }
-        public decimal UnitPrice      { get; set; }
-        public decimal DiscountAmount { get; set; }
-        public decimal TaxRate        { get; set; }
+        public string  ImagePath  { get; set; } = string.Empty;
     }
 
     public class CarPartModel
@@ -49,59 +43,33 @@ namespace SpareParts.Desktop.Wpf
         public string  Description { get; set; } = string.Empty;
         public decimal UnitPrice   { get; set; }
     }
-
-    public class CreateSaleRequest
-    {
-        public DateTime InvoiceDate   { get; set; }
-        public int?     CustomerId    { get; set; }
-        public int      WarehouseId   { get; set; }
-        public string?  PaymentMethod { get; set; }
-        public decimal  PaidAmount    { get; set; }
-        public System.Collections.Generic.List<SaleItemDto> Items { get; set; } = new System.Collections.Generic.List<SaleItemDto>();
-        public string?  Notes         { get; set; }
-    }
-
-    public class CreateSaleResponse
-    {
-        public int     InvoiceId     { get; set; }
-        public string  InvoiceNumber { get; set; } = string.Empty;
-        public decimal TotalAmount   { get; set; }
-        public string  PaymentStatus { get; set; } = string.Empty;
-    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     public class PosViewModel : INotifyPropertyChanged
     {
-        public ObservableCollection<PosItemViewModel> Items { get; } = new ObservableCollection<PosItemViewModel>();
+        public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
         // Brand lists
-        public ObservableCollection<CarBrand>     GermanBrands   { get; } = new ObservableCollection<CarBrand>();
-        public ObservableCollection<CarBrand>     JapaneseBrands { get; } = new ObservableCollection<CarBrand>();
-        public ObservableCollection<CarBrand>     KoreanBrands   { get; } = new ObservableCollection<CarBrand>();
+        public ObservableCollection<CarBrandUi> GermanBrands   { get; } = new();
+        public ObservableCollection<CarBrandUi> JapaneseBrands { get; } = new();
+        public ObservableCollection<CarBrandUi> KoreanBrands   { get; } = new();
 
-        private CarBrand? _selectedBrand;
-        public CarBrand? SelectedBrand
+        private CarBrandUi? _selectedBrand;
+        public CarBrandUi? SelectedBrand
         {
             get => _selectedBrand;
-            set
-            {
-                _selectedBrand = value;
-                OnPropertyChanged(nameof(SelectedBrand));
-            }
+            set { _selectedBrand = value; OnPropertyChanged(nameof(SelectedBrand)); }
         }
 
-        private CarModel? _selectedCar;
-        public CarModel? SelectedCar
+        private CarModelUi? _selectedCar;
+        public CarModelUi? SelectedCar
         {
             get => _selectedCar;
-            set
-            {
-                _selectedCar = value;
-                OnPropertyChanged(nameof(SelectedCar));
-            }
+            set { _selectedCar = value; OnPropertyChanged(nameof(SelectedCar)); }
         }
 
-        public ObservableCollection<CarModel>     AvailableCars  { get; } = new ObservableCollection<CarModel>();
-        public ObservableCollection<CarPartModel> AvailableParts { get; } = new ObservableCollection<CarPartModel>();
+        public ObservableCollection<CarModelUi>  AvailableCars  { get; } = new();
+        public ObservableCollection<CarPartModel> AvailableParts { get; } = new();
 
         public enum AppScreen { HomePage, CarSelection, PartSelection, Pos }
 
@@ -109,14 +77,7 @@ namespace SpareParts.Desktop.Wpf
         public AppScreen ActiveScreen
         {
             get => _activeScreen;
-            set
-            {
-                if (_activeScreen != value)
-                {
-                    _activeScreen = value;
-                    OnPropertyChanged(nameof(ActiveScreen));
-                }
-            }
+            set { if (_activeScreen != value) { _activeScreen = value; OnPropertyChanged(nameof(ActiveScreen)); } }
         }
 
         private int _warehouseId = 1;
@@ -133,116 +94,51 @@ namespace SpareParts.Desktop.Wpf
             set { _customerId = value; OnPropertyChanged(nameof(CustomerId)); }
         }
 
-        private int _newPartId;
-        public int NewPartId
-        {
-            get => _newPartId;
-            set { _newPartId = value; OnPropertyChanged(nameof(NewPartId)); }
-        }
-
-        private int _newQuantity = 1;
-        public int NewQuantity
-        {
-            get => _newQuantity;
-            set { _newQuantity = value; OnPropertyChanged(nameof(NewQuantity)); }
-        }
-
-        private decimal _newUnitPrice;
-        public decimal NewUnitPrice
-        {
-            get => _newUnitPrice;
-            set { _newUnitPrice = value; OnPropertyChanged(nameof(NewUnitPrice)); }
-        }
-
         private decimal _paidAmount;
         public decimal PaidAmount
         {
             get => _paidAmount;
             set
             {
-                if (_paidAmount != value)
-                {
-                    _paidAmount = value;
-                    OnPropertyChanged(nameof(PaidAmount));
-                    OnPropertyChanged(nameof(RemainingAmount));
-                }
+                _paidAmount = value;
+                OnPropertyChanged(nameof(PaidAmount));
+                OnPropertyChanged(nameof(RemainingAmount));
             }
         }
 
-        public decimal TotalAmount     => Items.Sum(i => i.LineTotal);
-        public decimal RemainingAmount => PaidAmount - TotalAmount;
+        public decimal TotalAmount    => Items.Sum(i => i.LineTotal);
+        public decimal RemainingAmount => TotalAmount - PaidAmount;
 
-        public ICommand AddLineCommand          { get; }
-        public ICommand SubmitSaleCommand       { get; }
-        public ICommand SelectBrandCommand      { get; }
-        public ICommand GoToPosCommand          { get; }
-        public ICommand SelectCarCommand        { get; }
-        public ICommand GoToCarSelectionCommand { get; }
-        public ICommand SelectPartCommand       { get; }
-        public ICommand GoToHomeCommand         { get; }
+        // ── New-line entry ────────────────────────────────────────────────────
+        public int     NewPartId    { get; set; }
+        public int     NewQuantity  { get; set; } = 1;
+        public decimal NewUnitPrice { get; set; }
 
-        public ObservableCollection<ThemeOption> Themes { get; } = new();
-
-        private ThemeOption? _selectedTheme;
-        public ThemeOption? SelectedTheme
-        {
-            get => _selectedTheme;
-            set
-            {
-                if (_selectedTheme != value)
-                {
-                    _selectedTheme = value;
-                    OnPropertyChanged(nameof(SelectedTheme));
-
-                    if (value != null)
-                    {
-                        ThemeManager.ApplyTheme(value.Key);
-                    }
-                }
-            }
-        }
+        // ── Commands ──────────────────────────────────────────────────────────
+        public ICommand SelectBrandCommand  { get; }
+        public ICommand SelectCarCommand    { get; }
+        public ICommand SelectPartCommand   { get; }
+        public ICommand AddItemCommand      { get; }
+        public ICommand SubmitSaleCommand   { get; }
+        public ICommand GoHomeCommand       { get; }
 
         public PosViewModel()
         {
-            Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default" });
-            Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power" });
-            Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow,      Name = "Neon Glow" });
-            Themes.Add(new ThemeOption { Key = AppTheme.AMG,           Name = "AMG" });
-            Themes.Add(new ThemeOption { Key = AppTheme.PorscheRS,     Name = "Porsche RS" });
-            Themes.Add(new ThemeOption { Key = AppTheme.LamborghiniSC, Name = "Lamborghini Squadra Corse" });
+            SelectBrandCommand = new RelayCommand(SelectBrand);
+            SelectCarCommand   = new RelayCommand(SelectCar);
+            SelectPartCommand  = new RelayCommand(SelectPart);
+            AddItemCommand     = new RelayCommand(_ => AddItem());
+            SubmitSaleCommand  = new RelayCommand(_ => SubmitSale());
+            GoHomeCommand      = new RelayCommand(_ => ActiveScreen = AppScreen.HomePage);
 
-            // Start with Default
-            SelectedTheme = Themes[0];
-            // Commands
-            AddLineCommand          = new RelayCommand(_ => AddLine());
-            SubmitSaleCommand       = new RelayCommand(_ => SubmitSale());
-            SelectBrandCommand      = new RelayCommand(SelectBrand);
-            GoToPosCommand          = new RelayCommand(_ => ActiveScreen = AppScreen.Pos);
-            SelectCarCommand        = new RelayCommand(SelectCar);
-            GoToCarSelectionCommand = new RelayCommand(_ => ActiveScreen = AppScreen.CarSelection);
-            SelectPartCommand       = new RelayCommand(SelectPart);
-            GoToHomeCommand         = new RelayCommand(_ => Reset());
-
-            Items.CollectionChanged += (_, __) =>
-            {
-                OnPropertyChanged(nameof(TotalAmount));
-                OnPropertyChanged(nameof(RemainingAmount));
-            };
             SeedBrands();
-            Items = new ObservableCollection<PosItemViewModel>();
         }
 
-        private void Reset()
-        {
-            ActiveScreen  = AppScreen.HomePage;
-            SelectedBrand = null;
-        }
-
-        private void AddLine()
+        private void AddItem()
         {
             if (NewPartId <= 0 || NewQuantity <= 0 || NewUnitPrice <= 0)
             {
-                CustomMessageBox.Show("Please fill Part ID, Quantity and Unit Price with positive values before adding a line.", "Validation Error", "Warning");
+                CustomMessageBox.Show("Please fill in Part ID, Quantity, and Unit Price.", "Validation Error", "Warning");
                 return;
             }
 
@@ -253,14 +149,10 @@ namespace SpareParts.Desktop.Wpf
                 UnitPrice = NewUnitPrice
             });
 
-            NewPartId    = 0;
-            NewQuantity  = 1;
-            NewUnitPrice = 0;
+            NewPartId = 0; NewQuantity = 1; NewUnitPrice = 0;
             OnPropertyChanged(nameof(NewPartId));
             OnPropertyChanged(nameof(NewQuantity));
             OnPropertyChanged(nameof(NewUnitPrice));
-            OnPropertyChanged(nameof(Items));
-
             OnPropertyChanged(nameof(TotalAmount));
             OnPropertyChanged(nameof(RemainingAmount));
         }
@@ -275,80 +167,75 @@ namespace SpareParts.Desktop.Wpf
 
             try
             {
-                var client = new HttpClient();
-                client.BaseAddress = new Uri("http://localhost:5000/"); // adjust to your API port
-
+                // Use the shared ApiClient (already has the Bearer token set)
                 var req = new CreateSaleRequest
                 {
                     InvoiceDate   = DateTime.Now,
-                    CustomerId    = this.CustomerId,
-                    WarehouseId   = this.WarehouseId,
+                    CustomerId    = CustomerId,
+                    WarehouseId   = WarehouseId,
                     PaymentMethod = "Cash",
-                    PaidAmount    = this.PaidAmount,
-                    Notes         = SelectedBrand != null ? $"Sale for brand {SelectedBrand.Name}" : "WPF POS Sale"
-                };
-
-                foreach (var item in Items)
-                {
-                    req.Items.Add(new SaleItemDto
+                    PaidAmount    = PaidAmount,
+                    Notes         = SelectedBrand != null
+                                        ? $"Sale for brand {SelectedBrand.Name}"
+                                        : "WPF POS Sale",
+                    Items = Items.Select(i => new SaleItemDto
                     {
-                        PartId         = item.PartId,
-                        Quantity       = item.Quantity,
-                        UnitPrice      = item.UnitPrice,
+                        PartId         = i.PartId,
+                        Quantity       = i.Quantity,
+                        UnitPrice      = i.UnitPrice,
                         DiscountAmount = 0,
                         TaxRate        = 0
-                    });
-                }
+                    }).ToList()
+                };
 
-                var json     = JsonSerializer.Serialize(req);
-                var content  = new StringContent(json, Encoding.UTF8, "application/json");
+                var json    = JsonSerializer.Serialize(req);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                // Fire synchronously — PosViewModel is not async-aware yet
+                using var client = new HttpClient { BaseAddress = new Uri("http://localhost:5000/") };
                 var response = client.PostAsync("api/sales", content).Result;
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    CustomMessageBox.Show($"Error from API: {response.StatusCode}. Make sure the API is running.", "Validation Error", "Warning");
+                    CustomMessageBox.Show(
+                        $"Error from API: {response.StatusCode}. Make sure the API is running.",
+                        "Error", "Warning");
                     return;
                 }
 
-                var respJson = response.Content.ReadAsStringAsync().Result;
-                var result   = JsonSerializer.Deserialize<CreateSaleResponse>(respJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var result = JsonSerializer.Deserialize<CreateSaleResponse>(
+                    response.Content.ReadAsStringAsync().Result,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                CustomMessageBox.Show($"Sale created. Invoice: {result?.InvoiceNumber}, Total: {result?.TotalAmount}", "Validation Error", "Warning");
+                CustomMessageBox.Show(
+                    $"Sale created. Invoice: {result?.InvoiceNumber}, Total: {result?.TotalAmount:N2}",
+                    "Success", "Info");
 
                 Items.Clear();
                 PaidAmount = 0;
                 OnPropertyChanged(nameof(Items));
+                OnPropertyChanged(nameof(TotalAmount));
+                OnPropertyChanged(nameof(RemainingAmount));
                 OnPropertyChanged(nameof(PaidAmount));
             }
             catch (Exception ex)
             {
-                CustomMessageBox.Show($"Error while submitting sale: {ex.Message}", "Validation Error", "Warning");
+                CustomMessageBox.Show($"Error while submitting sale: {ex.Message}", "Error", "Warning");
             }
         }
 
         private void SelectBrand(object? parameter)
         {
-            if (parameter is not CarBrand brand)
-                return;
-
+            if (parameter is not CarBrandUi brand) return;
             SelectedBrand = brand;
             OnPropertyChanged(nameof(SelectedBrand));
-
-            // 1. Load cars for that brand
             LoadAvailableCars(brand.Name);
-
-            // 2. Switch to car selection screen
             ActiveScreen = AppScreen.CarSelection;
         }
 
         private void SelectCar(object? parameter)
         {
-            if (parameter is not CarModel car)
-                return;
-
+            if (parameter is not CarModelUi car) return;
             SelectedCar = car;
             LoadAvailableParts(car);
             ActiveScreen = AppScreen.PartSelection;
@@ -356,10 +243,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void SelectPart(object? parameter)
         {
-            if (parameter is not CarPartModel part)
-                return;
-
-            // Add line to POS
+            if (parameter is not CarPartModel part) return;
             Items.Add(new PosItemViewModel
             {
                 PartId      = part.PartId,
@@ -368,170 +252,50 @@ namespace SpareParts.Desktop.Wpf
                 UnitPrice   = part.UnitPrice
             });
             OnPropertyChanged(nameof(Items));
-
-            // Back to POS screen after selecting a part
+            OnPropertyChanged(nameof(TotalAmount));
+            OnPropertyChanged(nameof(RemainingAmount));
             ActiveScreen = AppScreen.Pos;
-        }
-
-        private void SeedBrands()
-        {
-            // German brands
-            GermanBrands.Add(new CarBrand { Name = "BMW",           Country = "Germany", LogoPath = "Assets/Logos/bmw.png" });
-            GermanBrands.Add(new CarBrand { Name = "Mercedes-Benz", Country = "Germany", LogoPath = "Assets/Logos/mercedes.png" });
-            GermanBrands.Add(new CarBrand { Name = "Audi",          Country = "Germany", LogoPath = "Assets/Logos/audi.png" });
-            GermanBrands.Add(new CarBrand { Name = "Volkswagen",    Country = "Germany", LogoPath = "Assets/Logos/volkswagen.png" });
-            GermanBrands.Add(new CarBrand { Name = "Porsche",       Country = "Germany", LogoPath = "Assets/Logos/porsche.png" });
-            GermanBrands.Add(new CarBrand { Name = "Opel",          Country = "Germany", LogoPath = "Assets/Logos/opel.png" });
-
-            // Japanese brands
-            JapaneseBrands.Add(new CarBrand { Name = "Toyota",     Country = "Japan", LogoPath = "Assets/Logos/toyota.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Honda",      Country = "Japan", LogoPath = "Assets/Logos/honda.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Nissan",     Country = "Japan", LogoPath = "Assets/Logos/nissan.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Mazda",      Country = "Japan", LogoPath = "Assets/Logos/mazda.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Subaru",     Country = "Japan", LogoPath = "Assets/Logos/subaru.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Mitsubishi", Country = "Japan", LogoPath = "Assets/Logos/mitsubishi.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Suzuki",     Country = "Japan", LogoPath = "Assets/Logos/suzuki.png" });
-            JapaneseBrands.Add(new CarBrand { Name = "Lexus",      Country = "Japan", LogoPath = "Assets/Logos/lexus.png" });
-
-            // Korean brands
-            KoreanBrands.Add(new CarBrand { Name = "Kia",     Country = "Korea", LogoPath = "Assets/Logos/Kia.png" });
-            KoreanBrands.Add(new CarBrand { Name = "Hyundai", Country = "Korea", LogoPath = "Assets/Logos/Hyundai.png" });
         }
 
         private void LoadAvailableCars(string? brandName)
         {
             AvailableCars.Clear();
-            if (brandName == "BMW")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 101, Name = "M3 Competition", Year = "2024", EngineType = "S58 I6",   BasePrice = 85000,  ImagePath = "Assets/Cars/bmw_m3.png" });
-                AvailableCars.Add(new CarModel { ModelId = 102, Name = "i4 M50",          Year = "2023", EngineType = "Electric", BasePrice = 69000,  ImagePath = "Assets/Cars/bmw_i4.png" });
-                AvailableCars.Add(new CarModel { ModelId = 103, Name = "X5 40i",          Year = "2023", EngineType = "B58 I6",   BasePrice = 73000,  ImagePath = "Assets/Cars/bmw_x5.png" });
-                AvailableCars.Add(new CarModel { ModelId = 104, Name = "320i",             Year = "2022", EngineType = "B48 I4",   BasePrice = 42000,  ImagePath = "Assets/Cars/bmw_320i.png" });
-                AvailableCars.Add(new CarModel { ModelId = 105, Name = "M5 CS",           Year = "2022", EngineType = "S63 V8",   BasePrice = 120000, ImagePath = "Assets/Cars/bmw_m5cs.png" });
-            }
-            else if (brandName == "Mercedes-Benz")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 201, Name = "C200",    Year = "2023", EngineType = "M254 I4",     BasePrice = 45000, ImagePath = "Assets/Cars/merc_c200.png" });
-                AvailableCars.Add(new CarModel { ModelId = 202, Name = "E300",    Year = "2023", EngineType = "M264 I4",     BasePrice = 53000, ImagePath = "Assets/Cars/merc_e300.png" });
-                AvailableCars.Add(new CarModel { ModelId = 203, Name = "GLC300",  Year = "2024", EngineType = "M254 I4",     BasePrice = 51000, ImagePath = "Assets/Cars/merc_glc.png" });
-                AvailableCars.Add(new CarModel { ModelId = 204, Name = "AMG C63", Year = "2024", EngineType = "M139 Hybrid", BasePrice = 92000, ImagePath = "Assets/Cars/merc_c63.png" });
-            }
-            else if (brandName == "Audi")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 301, Name = "A4 45 TFSI", Year = "2023", EngineType = "2.0T I4", BasePrice = 44000,  ImagePath = "Assets/Cars/audi_a4.png" });
-                AvailableCars.Add(new CarModel { ModelId = 302, Name = "A6 55 TFSI", Year = "2023", EngineType = "3.0T V6", BasePrice = 56000,  ImagePath = "Assets/Cars/audi_a6.png" });
-                AvailableCars.Add(new CarModel { ModelId = 303, Name = "Q7 55 TFSI", Year = "2023", EngineType = "3.0T V6", BasePrice = 59000,  ImagePath = "Assets/Cars/audi_q7.png" });
-                AvailableCars.Add(new CarModel { ModelId = 304, Name = "RS6 Avant",  Year = "2022", EngineType = "4.0T V8", BasePrice = 115000, ImagePath = "Assets/Cars/audi_rs6.png" });
-            }
-            else if (brandName == "Volkswagen")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 901, Name = "Golf GTI", Year = "2024", EngineType = "2.0T I4", BasePrice = 34000, ImagePath = "Assets/Cars/vw_golf.png" });
-                AvailableCars.Add(new CarModel { ModelId = 902, Name = "Tiguan",   Year = "2024", EngineType = "2.0T I4", BasePrice = 38000, ImagePath = "Assets/Cars/vw_tiguan.png" });
-            }
-            else if (brandName == "Porsche")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1001, Name = "911 Carrera", Year = "2024", EngineType = "3.0T H6", BasePrice = 115000, ImagePath = "Assets/Cars/porsche_911.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1002, Name = "Cayenne",     Year = "2024", EngineType = "3.0T V6", BasePrice = 85000,  ImagePath = "Assets/Cars/porsche_cayenne.png" });
-            }
-            else if (brandName == "Opel")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1101, Name = "Astra",    Year = "2023", EngineType = "1.4T I4", BasePrice = 22000, ImagePath = "Assets/Cars/opel_astra.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1102, Name = "Insignia", Year = "2023", EngineType = "2.0T I4", BasePrice = 30000, ImagePath = "Assets/Cars/opel_insignia.png" });
-            }
-            else if (brandName == "Toyota")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 401, Name = "Corolla",     Year = "2024", EngineType = "1.6L I4",     BasePrice = 21000, ImagePath = "Assets/Cars/toyota_corolla.png" });
-                AvailableCars.Add(new CarModel { ModelId = 402, Name = "Camry",        Year = "2024", EngineType = "2.5L I4",     BasePrice = 28000, ImagePath = "Assets/Cars/toyota_camry.png" });
-                AvailableCars.Add(new CarModel { ModelId = 403, Name = "RAV4",         Year = "2024", EngineType = "2.5L Hybrid", BasePrice = 33000, ImagePath = "Assets/Cars/toyota_rav4.png" });
-                AvailableCars.Add(new CarModel { ModelId = 404, Name = "Land Cruiser", Year = "2023", EngineType = "3.5L TT V6",  BasePrice = 95000, ImagePath = "Assets/Cars/toyota_landcruiser.png" });
-            }
-            else if (brandName == "Honda")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 501, Name = "Civic",  Year = "2024", EngineType = "1.5T I4",    BasePrice = 24000, ImagePath = "Assets/Cars/honda_civic.png" });
-                AvailableCars.Add(new CarModel { ModelId = 502, Name = "Accord", Year = "2024", EngineType = "1.5T I4",    BasePrice = 29000, ImagePath = "Assets/Cars/honda_accord.png" });
-                AvailableCars.Add(new CarModel { ModelId = 503, Name = "CR-V",   Year = "2024", EngineType = "2.0 Hybrid",  BasePrice = 35000, ImagePath = "Assets/Cars/honda_crv.png" });
-                AvailableCars.Add(new CarModel { ModelId = 504, Name = "Type R", Year = "2023", EngineType = "K20C1 Turbo", BasePrice = 43000, ImagePath = "Assets/Cars/honda_typr.png" });
-            }
-            else if (brandName == "Nissan")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 601, Name = "Altima",   Year = "2023", EngineType = "2.5L I4",    BasePrice = 26000, ImagePath = "Assets/Cars/nissan_altima.png" });
-                AvailableCars.Add(new CarModel { ModelId = 602, Name = "Patrol",   Year = "2023", EngineType = "5.6L V8",    BasePrice = 82000, ImagePath = "Assets/Cars/nissan_patrol.png" });
-                AvailableCars.Add(new CarModel { ModelId = 603, Name = "X-Trail",  Year = "2024", EngineType = "2.5L I4",    BasePrice = 32000, ImagePath = "Assets/Cars/nissan_xtrail.png" });
-                AvailableCars.Add(new CarModel { ModelId = 604, Name = "Nissan Z", Year = "2023", EngineType = "3.0L TT V6", BasePrice = 43000, ImagePath = "Assets/Cars/nissan_z.png" });
-            }
-            else if (brandName == "Mazda")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1301, Name = "Mazda3", Year = "2024", EngineType = "2.0L I4", BasePrice = 25000, ImagePath = "Assets/Cars/mazda3.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1302, Name = "CX-5",   Year = "2024", EngineType = "2.5L I4", BasePrice = 34000, ImagePath = "Assets/Cars/mazda_cx5.png" });
-            }
-            else if (brandName == "Subaru")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1401, Name = "Impreza",  Year = "2024", EngineType = "2.0L H4", BasePrice = 26000, ImagePath = "Assets/Cars/subaru_impreza.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1402, Name = "Forester", Year = "2024", EngineType = "2.5L H4", BasePrice = 32000, ImagePath = "Assets/Cars/subaru_forester.png" });
-            }
-            else if (brandName == "Mitsubishi")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1501, Name = "Outlander",    Year = "2024", EngineType = "2.5L I4", BasePrice = 31000, ImagePath = "Assets/Cars/mitsubishi_outlander.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1502, Name = "Eclipse Cross", Year = "2024", EngineType = "1.5T I4", BasePrice = 27000, ImagePath = "Assets/Cars/mitsubishi_eclipse.png" });
-            }
-            else if (brandName == "Suzuki")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1601, Name = "Swift",  Year = "2024", EngineType = "1.2L I4", BasePrice = 17000, ImagePath = "Assets/Cars/suzuki_swift.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1602, Name = "Vitara", Year = "2024", EngineType = "1.4T I4", BasePrice = 24000, ImagePath = "Assets/Cars/suzuki_vitara.png" });
-            }
-            else if (brandName == "Lexus")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 1201, Name = "IS 350",  Year = "2024", EngineType = "3.5L V6",     BasePrice = 48000, ImagePath = "Assets/Cars/lexus_is.png" });
-                AvailableCars.Add(new CarModel { ModelId = 1202, Name = "RX 500h", Year = "2024", EngineType = "2.4T Hybrid", BasePrice = 67000, ImagePath = "Assets/Cars/lexus_rx.png" });
-            }
-            else if (brandName == "Hyundai")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 701, Name = "Tucson",   Year = "2024", EngineType = "2.0L I4", BasePrice = 28000, ImagePath = "Assets/Cars/hyundai_tucson.png" });
-                AvailableCars.Add(new CarModel { ModelId = 702, Name = "Elantra",  Year = "2024", EngineType = "2.0L I4", BasePrice = 22000, ImagePath = "Assets/Cars/hyundai_elantra.png" });
-                AvailableCars.Add(new CarModel { ModelId = 703, Name = "Santa Fe", Year = "2023", EngineType = "2.5T I4", BasePrice = 38000, ImagePath = "Assets/Cars/hyundai_santafe.png" });
-            }
-            else if (brandName == "Kia")
-            {
-                AvailableCars.Add(new CarModel { ModelId = 801, Name = "Sportage", Year = "2024", EngineType = "2.0L I4", BasePrice = 27000, ImagePath = "Assets/Cars/kia_sportage.png" });
-                AvailableCars.Add(new CarModel { ModelId = 802, Name = "Cerato",   Year = "2024", EngineType = "2.0L I4", BasePrice = 21000, ImagePath = "Assets/Cars/kia_cerato.png" });
-                AvailableCars.Add(new CarModel { ModelId = 803, Name = "Sorento",  Year = "2023", EngineType = "2.5T I4", BasePrice = 36000, ImagePath = "Assets/Cars/kia_sorento.png" });
-            }
-            // ... add logic for other brands
+            // TODO: replace with ApiClient.Instance.GetCarModelsAsync(brandId)
         }
 
-        private void LoadAvailableParts(CarModel car)
+        private void LoadAvailableParts(CarModelUi car)
         {
             AvailableParts.Clear();
+            // TODO: replace with ApiClient.Instance.GetPartsAsync()
+        }
 
-            // Simple demo mapping by ModelId or Name
-            // You can wire this to DB later.
-            if (car.ModelId == 101) // M3 Competition
-            {
-                AvailableParts.Add(new CarPartModel { PartId = 10001, Code = "BMW-M3-OILFLT",   Description = "Oil Filter - M3 Competition",   UnitPrice = 45 });
-                AvailableParts.Add(new CarPartModel { PartId = 10002, Code = "BMW-M3-AIRFLT",   Description = "Air Filter - High Flow",         UnitPrice = 70 });
-                AvailableParts.Add(new CarPartModel { PartId = 10003, Code = "BMW-M3-BRKPAD-F", Description = "Front Brake Pads - Performance", UnitPrice = 220 });
-                AvailableParts.Add(new CarPartModel { PartId = 10004, Code = "BMW-M3-SPARK",    Description = "Spark Plugs Set",                UnitPrice = 160 });
-            }
-            else if (car.ModelId == 104) // BMW 320i
-            {
-                AvailableParts.Add(new CarPartModel { PartId = 11001, Code = "BMW-F30-OILFLT",   Description = "Oil Filter - 320i", UnitPrice = 35 });
-                AvailableParts.Add(new CarPartModel { PartId = 11002, Code = "BMW-F30-BRKPAD-F", Description = "Front Brake Pads",  UnitPrice = 150 });
-                AvailableParts.Add(new CarPartModel { PartId = 11003, Code = "BMW-F30-BRKPAD-R", Description = "Rear Brake Pads",   UnitPrice = 130 });
-            }
-            else
-            {
-                // Generic parts for all other models
-                AvailableParts.Add(new CarPartModel { PartId = 90001, Code = "GEN-OIL-5W40",   Description = "Engine Oil 5W-40 (4L)",  UnitPrice = 35 });
-                AvailableParts.Add(new CarPartModel { PartId = 90002, Code = "GEN-BRKPAD-SET", Description = "Brake Pads Set (Front)", UnitPrice = 120 });
-                AvailableParts.Add(new CarPartModel { PartId = 90003, Code = "GEN-AIRFLT",     Description = "Air Filter - Standard",  UnitPrice = 22 });
-                AvailableParts.Add(new CarPartModel { PartId = 90004, Code = "GEN-SPARKPLUG",  Description = "Spark Plugs Set",        UnitPrice = 55 });
-                AvailableParts.Add(new CarPartModel { PartId = 90005, Code = "GEN-CABINFLT",   Description = "Cabin Air Filter",       UnitPrice = 18 });
-            }
+        private void SeedBrands()
+        {
+            void Add(ObservableCollection<CarBrandUi> col, string name, string country, string logo)
+                => col.Add(new CarBrandUi { Name = name, Country = country, LogoPath = logo });
+
+            Add(GermanBrands,   "BMW",           "Germany", "Assets/Logos/bmw.png");
+            Add(GermanBrands,   "Mercedes-Benz", "Germany", "Assets/Logos/mercedes.png");
+            Add(GermanBrands,   "Audi",          "Germany", "Assets/Logos/audi.png");
+            Add(GermanBrands,   "Volkswagen",    "Germany", "Assets/Logos/volkswagen.png");
+            Add(GermanBrands,   "Porsche",       "Germany", "Assets/Logos/porsche.png");
+            Add(GermanBrands,   "Opel",          "Germany", "Assets/Logos/opel.png");
+
+            Add(JapaneseBrands, "Toyota",        "Japan",   "Assets/Logos/toyota.png");
+            Add(JapaneseBrands, "Honda",         "Japan",   "Assets/Logos/honda.png");
+            Add(JapaneseBrands, "Nissan",        "Japan",   "Assets/Logos/nissan.png");
+            Add(JapaneseBrands, "Mazda",         "Japan",   "Assets/Logos/mazda.png");
+            Add(JapaneseBrands, "Subaru",        "Japan",   "Assets/Logos/subaru.png");
+            Add(JapaneseBrands, "Mitsubishi",    "Japan",   "Assets/Logos/mitsubishi.png");
+            Add(JapaneseBrands, "Suzuki",        "Japan",   "Assets/Logos/suzuki.png");
+            Add(JapaneseBrands, "Lexus",         "Japan",   "Assets/Logos/lexus.png");
+
+            Add(KoreanBrands,   "Kia",           "Korea",   "Assets/Logos/kia.png");
+            Add(KoreanBrands,   "Hyundai",       "Korea",   "Assets/Logos/hyundai.png");
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        private void OnPropertyChanged(string n) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
-
- 
 }

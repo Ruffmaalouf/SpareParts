@@ -5,6 +5,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Api.Controllers
@@ -18,35 +19,6 @@ namespace SpareParts.Api.Controllers
     {
         [HttpGet("api/health")]
         public ActionResult Get() => Ok(new { status = "ok", utc = DateTime.UtcNow });
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  DTOs
-    // ══════════════════════════════════════════════════════════════════════════
-    public class LoginRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginResponse
-    {
-        public string   Token     { get; set; } = string.Empty;
-        public string   FullName  { get; set; } = string.Empty;
-        public string   Role      { get; set; } = string.Empty;
-        public int      UserId    { get; set; }
-        public DateTime ExpiresAt { get; set; }
-    }
-
-    // Typed row avoids dynamic cast issues with Dapper
-    internal class UserRow
-    {
-        public int    Id           { get; set; }
-        public string Username     { get; set; } = string.Empty;
-        public string FullName     { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
-        public string Role         { get; set; } = string.Empty;
-        public bool   IsActive     { get; set; }
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -75,31 +47,22 @@ namespace SpareParts.Api.Controllers
                 return BadRequest("Username and password are required.");
 
             using var conn = _factory.CreateConnection();
-
             var user = conn.QueryFirstOrDefault<UserRow>(
-                @"SELECT Id, Username, FullName, PasswordHash, Role, IsActive
-                  FROM   Users
-                  WHERE  Username = @Username AND IsActive = 1",
-                new { Username = req.Username.Trim() });
+                "SELECT Id, Username, FullName, PasswordHash, Role, IsActive " +
+                "FROM Users WHERE Username = @Username",
+                new { req.Username });
 
-            if (user == null)
+            if (user == null || !user.IsActive)
                 return Unauthorized("Invalid username or password.");
 
-            // Trim whitespace SQL Server may pad into NVARCHAR
-            var storedHash = user.PasswordHash.Trim();
-
             bool valid;
-            try
+            try   { valid = BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash); }
+            catch
             {
-                valid = BCrypt.Net.BCrypt.Verify(req.Password, storedHash);
-            }
-            catch (Exception ex)
-            {
-                // Hash in DB is malformed (placeholder) — guide the developer
-                return StatusCode(500,
-                    $"Password hash error: {ex.Message}. " +
+                return Unauthorized(
+                    "Password hash format is invalid. " +
                     "Use GET /api/auth/hashpassword?plain=YourPassword to generate a valid hash, " +
-                    "then UPDATE Users SET PasswordHash = '<result>' WHERE Username = '<user>'.");
+                    "then UPDATE Users SET PasswordHash = '<hash>' WHERE Username = '<user>'.");
             }
 
             if (!valid)
@@ -173,9 +136,6 @@ namespace SpareParts.Api.Controllers
 
     // ══════════════════════════════════════════════════════════════════════════
     //  USERS CONTROLLER — full CRUD (Admin only)
-    //  DTOs CreateUserRequest / UpdateUserRequest / UserManagementDto
-    //  are defined in UsersViewModel.cs (WPF project shares the type names;
-    //  the API just needs matching JSON property names which Dapper provides).
     // ══════════════════════════════════════════════════════════════════════════
     [ApiController]
     [Route("api/users")]
@@ -184,37 +144,6 @@ namespace SpareParts.Api.Controllers
     {
         private readonly ISqlConnectionFactory _factory;
         public UsersController(ISqlConnectionFactory factory) => _factory = factory;
-
-        // ── API-side DTOs (mirror of WPF DTOs — same JSON shape) ─────────────
-        public class UserDto
-        {
-            public int      Id          { get; set; }
-            public string   Username    { get; set; } = string.Empty;
-            public string   FullName    { get; set; } = string.Empty;
-            public string?  Email       { get; set; }
-            public string   Role        { get; set; } = string.Empty;
-            public bool     IsActive    { get; set; }
-            public DateTime? LastLoginAt { get; set; }
-            public DateTime  CreatedAt   { get; set; }
-        }
-
-        public class ApiCreateUserRequest
-        {
-            public string  Username { get; set; } = string.Empty;
-            public string  FullName { get; set; } = string.Empty;
-            public string? Email    { get; set; }
-            public string  Password { get; set; } = string.Empty;
-            public string  Role     { get; set; } = "Cashier";
-        }
-
-        public class ApiUpdateUserRequest
-        {
-            public string  FullName    { get; set; } = string.Empty;
-            public string? Email       { get; set; }
-            public string  Role        { get; set; } = "Cashier";
-            public bool    IsActive    { get; set; } = true;
-            public string? NewPassword { get; set; }
-        }
 
         [HttpGet]
         public ActionResult<IEnumerable<UserDto>> GetAll()
@@ -226,7 +155,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpPost]
-        public ActionResult<int> Create([FromBody] ApiCreateUserRequest req)
+        public ActionResult<int> Create([FromBody] CreateUserRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.Password))
                 return BadRequest("Password is required.");
@@ -238,13 +167,13 @@ namespace SpareParts.Api.Controllers
                 @"INSERT INTO Users (Username, FullName, Email, PasswordHash, Role, IsActive, CreatedAt)
                   VALUES (@Username, @FullName, @Email, @Hash, @Role, 1, @Now);
                   SELECT CAST(SCOPE_IDENTITY() AS INT);",
-                new { req.Username, req.FullName, req.Email, Hash = hash, req.Role,
-                      Now = DateTime.UtcNow });
+                new { req.Username, req.FullName, req.Email,
+                      Hash = hash, req.Role, Now = DateTime.UtcNow });
             return Ok(id);
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult Update(int id, [FromBody] ApiUpdateUserRequest req)
+        public ActionResult Update(int id, [FromBody] UpdateUserRequest req)
         {
             using var conn = _factory.CreateConnection();
 
@@ -252,32 +181,45 @@ namespace SpareParts.Api.Controllers
             {
                 var hash = BCrypt.Net.BCrypt.HashPassword(req.NewPassword.Trim(), workFactor: 12);
                 conn.Execute(
-                    @"UPDATE Users
-                      SET FullName=@FullName, Email=@Email, Role=@Role,
-                          IsActive=@IsActive, PasswordHash=@Hash, ModifiedAt=@Now
-                      WHERE Id=@Id",
+                    @"UPDATE Users SET FullName = @FullName, Email = @Email, Role = @Role,
+                                       IsActive = @IsActive, PasswordHash = @Hash,
+                                       ModifiedAt = @Now
+                      WHERE Id = @Id",
                     new { req.FullName, req.Email, req.Role, req.IsActive,
                           Hash = hash, Now = DateTime.UtcNow, Id = id });
             }
             else
             {
                 conn.Execute(
-                    @"UPDATE Users
-                      SET FullName=@FullName, Email=@Email, Role=@Role,
-                          IsActive=@IsActive, ModifiedAt=@Now
-                      WHERE Id=@Id",
+                    @"UPDATE Users SET FullName = @FullName, Email = @Email, Role = @Role,
+                                       IsActive = @IsActive, ModifiedAt = @Now
+                      WHERE Id = @Id",
                     new { req.FullName, req.Email, req.Role, req.IsActive,
                           Now = DateTime.UtcNow, Id = id });
             }
+
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public ActionResult Deactivate(int id)
         {
             using var conn = _factory.CreateConnection();
-            conn.Execute("UPDATE Users SET IsActive=0 WHERE Id=@Id", new { Id = id });
+            conn.Execute(
+                "UPDATE Users SET IsActive = 0, ModifiedAt = @Now WHERE Id = @Id",
+                new { Now = DateTime.UtcNow, Id = id });
             return NoContent();
         }
+    }
+
+    // ── Internal Dapper row type (not exposed as DTO) ─────────────────────────
+    internal class UserRow
+    {
+        public int    Id           { get; set; }
+        public string Username     { get; set; } = string.Empty;
+        public string FullName     { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public string Role         { get; set; } = string.Empty;
+        public bool   IsActive     { get; set; }
     }
 }

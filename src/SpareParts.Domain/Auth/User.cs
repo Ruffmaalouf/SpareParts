@@ -11,30 +11,16 @@ namespace SpareParts.Domain.Auth
 
     public class User : Entity
     {
-        public string   Username     { get; set; } = string.Empty;
-        public string   FullName     { get; set; } = string.Empty;
-        public string?  Email        { get; set; }
-        public string   PasswordHash { get; set; } = string.Empty;
-        public string   Role         { get; set; } = "Cashier";
-        public bool     IsActive     { get; set; } = true;
-        public DateTime? LastLoginAt { get; set; }
-        public DateTime CreatedAt    { get; set; }
-        public DateTime? ModifiedAt  { get; set; }
+        public string    Username     { get; set; } = string.Empty;
+        public string    FullName     { get; set; } = string.Empty;
+        public string?   Email        { get; set; }
+        public string    PasswordHash { get; set; } = string.Empty;
+        public string    Role         { get; set; } = "Cashier";
+        public bool      IsActive     { get; set; } = true;
+        public DateTime? LastLoginAt  { get; set; }
+        public DateTime  CreatedAt    { get; set; }
+        public DateTime? ModifiedAt   { get; set; }
     }
-
-
-    public class LoginRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginResponse
-    {
-        public string Token { get; set; } = string.Empty;
-        public string FullName { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-        public int UserId { get; set; }
-        public DateTime ExpiresAt { get; set; }
-    }
+    // NOTE: LoginRequest, LoginResponse, UserDto, CreateUserRequest,
+    //       UpdateUserRequest all live in AuthDtos.cs (same namespace).
 }

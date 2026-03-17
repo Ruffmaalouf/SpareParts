@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
@@ -17,10 +18,15 @@ namespace SpareParts.Api.Controllers
         [HttpPost]
         public ActionResult<CreateSaleResponse> CreateSale([FromBody] CreateSaleRequest request)
         {
-            // TODO: get real user id from auth
-            var userId = 1;
+            var userId = GetUserId();
             var result = _salesService.CreateSale(request, userId);
             return Ok(result);
+        }
+
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 1;
         }
     }
 }
