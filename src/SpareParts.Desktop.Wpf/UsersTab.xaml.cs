@@ -9,7 +9,7 @@ namespace SpareParts.Desktop.Wpf
             InitializeComponent();
         }
 
-        // PasswordBox can't bind directly — relay password changes to ViewModel
+        // PasswordBox cannot bind directly — relay changes to ViewModel
         private void PasswordInput_Changed(object sender, System.Windows.RoutedEventArgs e)
         {
             if (DataContext is UsersViewModel vm)

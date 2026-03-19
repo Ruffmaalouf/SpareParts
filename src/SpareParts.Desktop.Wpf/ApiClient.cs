@@ -2,6 +2,8 @@ using SpareParts.Domain.Auth;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
+using SpareParts.Domain.Sales;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -60,7 +62,7 @@ namespace SpareParts.Desktop.Wpf
         {
             try
             {
-                using var cts  = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(4));
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(4));
                 await _http.GetAsync("api/health", cts.Token);
                 return true;
             }
@@ -104,6 +106,13 @@ namespace SpareParts.Desktop.Wpf
                    ?? new List<CustomerDto>();
         }
 
+        // ── Warehouses ────────────────────────────────────────────────────────
+        public async Task<List<WarehouseDto>> GetWarehousesAsync()
+        {
+            return await _http.GetFromJsonAsync<List<WarehouseDto>>("api/warehouses")
+                   ?? new List<WarehouseDto>();
+        }
+
         // ── Car Brands ────────────────────────────────────────────────────────
         public async Task<List<CarBrandDto>> GetCarBrandsAsync()
         {
@@ -124,9 +133,9 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task UploadCarBrandLogoAsync(int brandId, string filePath)
         {
-            await using var fs      = File.OpenRead(filePath);
-            var content             = new MultipartFormDataContent();
-            var fileContent         = new StreamContent(fs);
+            await using var fs  = File.OpenRead(filePath);
+            var content         = new MultipartFormDataContent();
+            var fileContent     = new StreamContent(fs);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filePath));
             content.Add(fileContent, "image", Path.GetFileName(filePath));
             (await _http.PostAsync($"api/carbrands/{brandId}/logo", content)).EnsureSuccessStatusCode();
@@ -153,9 +162,9 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task UploadCarModelImageAsync(int modelId, string filePath)
         {
-            await using var fs      = File.OpenRead(filePath);
-            var content             = new MultipartFormDataContent();
-            var fileContent         = new StreamContent(fs);
+            await using var fs  = File.OpenRead(filePath);
+            var content         = new MultipartFormDataContent();
+            var fileContent     = new StreamContent(fs);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filePath));
             content.Add(fileContent, "image", Path.GetFileName(filePath));
             (await _http.PostAsync($"api/carmodels/{modelId}/image", content)).EnsureSuccessStatusCode();
@@ -166,6 +175,19 @@ namespace SpareParts.Desktop.Wpf
         {
             return await _http.GetFromJsonAsync<List<PartDto>>("api/parts")
                    ?? new List<PartDto>();
+        }
+
+        // ── Sales ─────────────────────────────────────────────────────────────
+        public async Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
+        {
+            var resp = await _http.PostAsJsonAsync("api/sales", req);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var msg = await resp.Content.ReadAsStringAsync();
+                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
+            }
+            return await resp.Content.ReadFromJsonAsync<CreateSaleResponse>()
+                   ?? throw new InvalidOperationException("Empty sale response.");
         }
 
         // ── Generic helpers used by ManagementViewModel ───────────────────────
@@ -188,7 +210,7 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────────
+        // ── Image helpers ─────────────────────────────────────────────────────
         private static BitmapImage BytesToBitmap(byte[] bytes)
         {
             using var ms = new MemoryStream(bytes);

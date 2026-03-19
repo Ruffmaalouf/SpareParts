@@ -12,7 +12,6 @@
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="Margin"     Value="0 12 0 4"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
         </Style>
 
         <Style x:Key="DeactivateBtn" TargetType="Button">
@@ -20,16 +19,15 @@
             <Setter Property="Foreground"      Value="#FFE57373"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="FontSize"        Value="10"/>
-            <Setter Property="Padding"         Value="6 3"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Padding"         Value="8 4"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" CornerRadius="4"
+                        <Border x:Name="Bd" CornerRadius="5"
                                 Background="{TemplateBinding Background}"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -45,7 +43,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="320"/>
         </Grid.ColumnDefinitions>
 
         <!-- ══ LEFT — DataGrid ══ -->
@@ -70,25 +68,20 @@
             <DataGrid Grid.Row="1"
                       ItemsSource="{Binding Users}"
                       SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      SelectionMode="Single"
-                      GridLinesVisibility="None"
-                      RowHeight="42" ColumnHeaderHeight="36"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      SelectionMode="Single" GridLinesVisibility="None"
+                      RowHeight="44" ColumnHeaderHeight="36"
                       CanUserReorderColumns="False" CanUserResizeRows="False">
                 <DataGrid.Columns>
+                    <DataGridTextColumn Header="USERNAME"  Binding="{Binding Username}"  Width="130" FontWeight="SemiBold"/>
+                    <DataGridTextColumn Header="FULL NAME" Binding="{Binding FullName}"  Width="160"/>
+                    <DataGridTextColumn Header="EMAIL"     Binding="{Binding Email}"     Width="180"/>
 
-                    <DataGridTextColumn Header="USERNAME"  Binding="{Binding Username}"
-                                        Width="120" FontWeight="SemiBold"/>
-                    <DataGridTextColumn Header="FULL NAME" Binding="{Binding FullName}"  Width="150"/>
-                    <DataGridTextColumn Header="EMAIL"     Binding="{Binding Email}"     Width="170"/>
-
-                    <!-- ROLE -->
-                    <DataGridTemplateColumn Header="ROLE" Width="95">
+                    <!-- ROLE badge -->
+                    <DataGridTemplateColumn Header="ROLE" Width="110">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border CornerRadius="4" Padding="8 3"
-                                        HorizontalAlignment="Left" Margin="4 0">
+                                <Border CornerRadius="5" Padding="8 3" HorizontalAlignment="Left" Margin="4 0">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="#2200E5FF"/>
@@ -122,12 +115,11 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- STATUS -->
-                    <DataGridTemplateColumn Header="STATUS" Width="85">
+                    <!-- STATUS badge -->
+                    <DataGridTemplateColumn Header="STATUS" Width="90">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border CornerRadius="4" Padding="8 3"
-                                        HorizontalAlignment="Left" Margin="4 0">
+                                <Border CornerRadius="5" Padding="8 3" HorizontalAlignment="Left" Margin="4 0">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="#22E53935"/>
@@ -155,9 +147,9 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="LAST LOGIN" Binding="{Binding LastLoginDisplay}" Width="150"/>
+                    <DataGridTextColumn Header="LAST LOGIN" Binding="{Binding LastLoginDisplay}" Width="160"/>
 
-                    <!-- DEACTIVATE -->
+                    <!-- Deactivate -->
                     <DataGridTemplateColumn Header="" Width="90">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -170,7 +162,6 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -182,7 +173,7 @@
         <!-- ══ RIGHT — Form ══ -->
         <Border Grid.Column="1"
                 Background="{DynamicResource CardBackgroundBrush}"
-                CornerRadius="8" Padding="20">
+                CornerRadius="10" Padding="24">
             <Border.Effect>
                 <DropShadowEffect Color="Black" BlurRadius="16" ShadowDepth="4" Opacity="0.2"/>
             </Border.Effect>
@@ -190,10 +181,9 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
 
-                    <!-- Title: no inline Style= attribute + TextBlock.Style together -->
-                    <TextBlock FontSize="16" FontWeight="Bold"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               Margin="0 0 0 4">
+                    <!-- Title -->
+                    <TextBlock FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 0 4">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Text" Value="New User"/>
@@ -205,10 +195,7 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-
-                    <TextBlock FontSize="11"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               Margin="0 0 0 16">
+                    <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 20">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Text" Value="Fill in details and click Save"/>
@@ -221,27 +208,29 @@
                         </TextBlock.Style>
                     </TextBlock>
 
+                    <!-- Username -->
                     <TextBlock Text="USERNAME" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding FormUsername, UpdateSourceTrigger=PropertyChanged}"
                              IsEnabled="{Binding IsEditing, Converter={StaticResource InvBool}}"
-                             Height="36" Padding="8 0"/>
+                             Height="38" Padding="10 0"/>
 
+                    <!-- Full Name -->
                     <TextBlock Text="FULL NAME" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding FormFullName, UpdateSourceTrigger=PropertyChanged}"
-                             Height="36" Padding="8 0"/>
+                             Height="38" Padding="10 0"/>
 
+                    <!-- Email -->
                     <TextBlock Text="EMAIL (optional)" Style="{StaticResource FieldLabel}"/>
                     <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}"
-                             Height="36" Padding="8 0"/>
+                             Height="38" Padding="10 0"/>
 
+                    <!-- Role — search control instead of ComboBox -->
                     <TextBlock Text="ROLE" Style="{StaticResource FieldLabel}"/>
-                    <ComboBox ItemsSource="{Binding Roles}"
-                              SelectedItem="{Binding FormRole, Mode=TwoWay}"
-                              Height="36"/>
+                    <local:RoleSearchControl
+                        SelectedRole="{Binding FormRole, Mode=TwoWay}"/>
 
-                    <!-- Password label — dynamic text WITHOUT double Style -->
+                    <!-- Password -->
                     <TextBlock Margin="0 12 0 4" FontSize="10" FontWeight="Bold"
-                               FontFamily="Segoe UI"
                                Foreground="{DynamicResource TextSecondaryBrush}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -254,31 +243,31 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-                    <PasswordBox x:Name="PasswordInput" Height="36"
+                    <PasswordBox x:Name="PasswordInput" Height="38"
                                  PasswordChanged="PasswordInput_Changed"/>
 
+                    <!-- Active toggle (edit mode only) -->
                     <StackPanel Orientation="Horizontal" Margin="0 16 0 0"
                                 Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
                         <CheckBox IsChecked="{Binding FormIsActive}"
-                                  VerticalAlignment="Center" Margin="0 0 8 0"/>
+                                  VerticalAlignment="Center" Margin="0 0 10 0"/>
                         <TextBlock Text="Account is Active"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center" FontSize="13"/>
                     </StackPanel>
 
-                    <Grid Margin="0 20 0 0">
+                    <!-- Buttons -->
+                    <Grid Margin="0 24 0 0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-
                         <Button Grid.Column="0" Content="Cancel"
                                 Command="{Binding NewCommand}"
                                 Style="{DynamicResource SecondaryButtonStyle}"
-                                Height="38"/>
-
-                        <Button Grid.Column="2" Height="38"
+                                Height="40"/>
+                        <Button Grid.Column="2" Height="40"
                                 Command="{Binding SaveCommand}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InvBool}}">
                             <Button.Style>

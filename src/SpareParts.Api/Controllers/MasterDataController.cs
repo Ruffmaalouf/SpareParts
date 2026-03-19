@@ -1,4 +1,6 @@
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Domain.MasterData;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Inventory;
 using SpareParts.Infrastructure.Data;
@@ -168,12 +170,12 @@ namespace SpareParts.Api.Controllers
         private readonly ISqlConnectionFactory _factory;
         public CategoriesController(ISqlConnectionFactory factory) => _factory = factory;
 
-        [HttpGet]
+        //[HttpGet]
         //public ActionResult<IEnumerable<CategoryDto>> GetAll()
         //{
         //    using var session = new DbSession(_factory);
         //    var ctx = new SparePartsDataContext(session);
-        //    return Ok(ctx.GetAllCategories().Where( c => new SpareParts.Domain.Inventory.CategoryDto
+        //    return Ok(ctx.GetAllCategories().Select(c => new CategoryDto
         //    {
         //        Id       = c.Id,
         //        Name     = c.Name,
@@ -269,6 +271,38 @@ namespace SpareParts.Api.Controllers
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
             return c != null ? int.Parse(c.Value) : 1;
+        }
+    }
+
+    // ── Warehouses ────────────────────────────────────────────────────────────
+    [ApiController]
+    [Route("api/warehouses")]
+    public class WarehousesController : ControllerBase
+    {
+        private readonly ISqlConnectionFactory _factory;
+        public WarehousesController(ISqlConnectionFactory factory) => _factory = factory;
+
+        /// <summary>GET /api/warehouses — all active warehouses</summary>
+        [HttpGet]
+        public ActionResult<IEnumerable<WarehouseDto>> GetAll()
+        {
+            using var conn = _factory.CreateConnection();
+            var rows = conn.Query<WarehouseDto>(
+                "SELECT Id, Name, Address, IsMain FROM Warehouses ORDER BY IsMain DESC, Name");
+            return Ok(rows);
+        }
+
+        /// <summary>POST /api/warehouses — create new warehouse</summary>
+        [HttpPost]
+        public ActionResult<int> Create([FromBody] CreateWarehouseRequest req)
+        {
+            using var conn = _factory.CreateConnection();
+            var id = conn.ExecuteScalar<int>(
+                @"INSERT INTO Warehouses (Name, Address, IsMain, CreatedAt)
+                  VALUES (@Name, @Address, @IsMain, @Now);
+                  SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                new { req.Name, req.Address, req.IsMain, Now = DateTime.UtcNow });
+            return Ok(id);
         }
     }
 }

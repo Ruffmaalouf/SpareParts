@@ -9,14 +9,23 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
-{ 
+{
     public class InvoiceTabsViewModel : INotifyPropertyChanged
-    { 
-        public ObservableCollection<BrandGroupViewModel> BrandGroups { get; } = new();
+    {
+        public ObservableCollection<BrandGroupViewModel>                         BrandGroups   { get; } = new();
+        public ObservableCollection<CarModelViewModel>                           AvailableCars  { get; } = new();
+        public ObservableCollection<CarPartModel>                                AvailableParts { get; } = new();
+        public ObservableCollection<SpareParts.Domain.MasterData.WarehouseDto>  Warehouses     { get; } = new();
 
-        // ── Cars and parts for selected brand ─────────────────────────────────
-        public ObservableCollection<CarModelViewModel> AvailableCars  { get; } = new();
-        public ObservableCollection<CarPartModel>      AvailableParts { get; } = new();
+        // ── Management panel (embedded in MainWindow) ─────────────────────────
+        public ManagementViewModel ManagementVm { get; } = new();
+
+        private bool _isManagementOpen;
+        public bool IsManagementOpen
+        {
+            get => _isManagementOpen;
+            set { _isManagementOpen = value; OnPropertyChanged(nameof(IsManagementOpen)); }
+        }
 
         // ── Selected items ────────────────────────────────────────────────────
         private CarBrandViewModel? _selectedBrand;
@@ -78,12 +87,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToPosCommand          { get; }
         public ICommand GoToCarSelectionCommand { get; }
         public ICommand GoToHomeCommand         { get; }
-        public ICommand OpenManagementCommand   { get; }
+        public ICommand OpenManagementCommand   { get; }  // kept same name so XAML binding unchanged
 
         // ── Constructor ───────────────────────────────────────────────────────
         public InvoiceTabsViewModel()
         {
-            // Themes
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });
             Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow,      Name = "Neon Glow",     SubTitle = "Cyberpunk · Electric Cyan",  AccentHex = "#00E5FF" });
@@ -112,19 +120,41 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 SelectedBrand = null;
                 AvailableCars.Clear();
             });
-            OpenManagementCommand = new RelayCommand(_ => new ManagementWindow().Show());
+
+            // Toggle the embedded management panel — no separate window
+            OpenManagementCommand = new RelayCommand(async _ =>
+            {
+                IsManagementOpen = !IsManagementOpen;
+                if (IsManagementOpen)
+                    await ManagementVm.LoadAllAsync();
+            });
 
             AddTabCommand   = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
             AddTab();
             _ = LoadBrandsAsync();
+            _ = LoadWarehousesAsync();
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  DATA LOADING
-        // ═════════════════════════════════════════════════════════════════════
+        private async Task LoadWarehousesAsync()
+        {
+            try
+            {
+                var list = await ApiClient.Instance.GetWarehousesAsync();
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Warehouses.Clear();
+                    foreach (var w in list) Warehouses.Add(w);
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LoadWarehouses] {ex.Message}");
+            }
+        }
 
+        // ── Data loading ──────────────────────────────────────────────────────
         private async Task LoadBrandsAsync()
         {
             IsLoadingBrands = true;
@@ -136,41 +166,31 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 {
                     BrandGroups.Clear();
 
-                    // Known order for the standard groups; new groups go at end
                     var knownOrder = new[] { "German", "Japanese", "Korean" };
-
                     var grouped = dtos
                         .GroupBy(d => d.RegionGroup)
                         .OrderBy(g =>
                         {
                             int i = Array.IndexOf(knownOrder, g.Key);
-                            return i >= 0 ? i : 999;
+                            return i >= 0 ? i : 99;
                         });
 
-                    foreach (var group in grouped)
+                    foreach (var grp in grouped)
                     {
-                        var groupVm = new BrandGroupViewModel
+                        var groupVm = new BrandGroupViewModel { RegionGroup = grp.Key.ToUpperInvariant() };
+                        foreach (var b in grp.OrderBy(x => x.SortOrder).ThenBy(x => x.Name))
                         {
-                            RegionGroup = group.Key.ToUpperInvariant()
-                        };
-
-                        foreach (var dto in group)
-                        {
-                            var brandVm = new CarBrandViewModel
+                            var bvm = new CarBrandViewModel
                             {
-                                Id          = dto.Id,
-                                Name        = dto.Name,
-                                Country     = dto.Country,
-                                RegionGroup = dto.RegionGroup,
-                                HasLogo     = dto.HasLogo
+                                Id          = b.Id,
+                                Name        = b.Name,
+                                Country     = b.Country,
+                                RegionGroup = b.RegionGroup
                             };
-                            groupVm.Brands.Add(brandVm);
-
-                            // Load logo bytes in background — updates Logo property when ready
-                            if (dto.HasLogo)
-                                _ = LoadBrandLogoAsync(brandVm);
+                            groupVm.Brands.Add(bvm);
+                            if (b.HasLogo)
+                                _ = LoadLogoAsync(bvm);
                         }
-
                         BrandGroups.Add(groupVm);
                     }
                 });
@@ -179,20 +199,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 System.Diagnostics.Debug.WriteLine($"[LoadBrands] {ex.Message}");
             }
-            finally
-            {
-                IsLoadingBrands = false;
-            }
+            finally { IsLoadingBrands = false; }
         }
 
-        private async Task LoadBrandLogoAsync(CarBrandViewModel vm)
+        private async Task LoadLogoAsync(CarBrandViewModel vm)
         {
             var bmp = await ApiClient.Instance.GetCarBrandLogoAsync(vm.Id);
             if (bmp == null) return;
             Application.Current.Dispatcher.Invoke(() => vm.Logo = bmp);
         }
 
-        // ── Brand selected → load its cars ────────────────────────────────────
+        // ── Brand selected ────────────────────────────────────────────────────
         private void SelectBrand(object? parameter)
         {
             if (parameter is not CarBrandViewModel brand) return;
@@ -206,9 +223,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AvailableCars.Clear();
             try
             {
-                // API filters by brandId — only this brand's cars are returned
                 var dtos = await ApiClient.Instance.GetCarModelsAsync(brandId);
-
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     AvailableCars.Clear();
@@ -225,9 +240,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                             HasImage   = dto.HasImage
                         };
                         AvailableCars.Add(vm);
-
-                        if (dto.HasImage)
-                            _ = LoadCarImageAsync(vm);
+                        if (dto.HasImage) _ = LoadCarImageAsync(vm);
                     }
                 });
             }
@@ -244,7 +257,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             Application.Current.Dispatcher.Invoke(() => vm.Image = bmp);
         }
 
-        // ── Car selected → load parts ─────────────────────────────────────────
+        // ── Car selected ──────────────────────────────────────────────────────
         private void SelectCar(object? parameter)
         {
             if (parameter is not CarModelViewModel car) return;
@@ -278,7 +291,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        // ── Part selected → add to current invoice tab ────────────────────────
+        // ── Part selected ─────────────────────────────────────────────────────
         private void SelectPart(object? parameter)
         {
             if (parameter is not CarPartModel part || SelectedTab == null) return;
@@ -298,6 +311,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var tab = new InvoiceTabViewModel();
             Tabs.Add(tab);
             SelectedTab = tab;
+            _ = LoadWarehousesIntoTab(tab);
+        }
+
+        private async Task LoadWarehousesIntoTab(InvoiceTabViewModel tab)
+        {
+            //try
+            //{
+            //    var warehouses = await ApiClient.Instance.GetWarehousesAsync();
+            //    Application.Current.Dispatcher.Invoke(() =>
+            //    {
+            //        tab.Warehouses.Clear();
+            //        foreach (var w in warehouses) tab.Warehouses.Add(w);
+            //        if (tab.Warehouses.Count > 0)
+            //            tab.SelectedWarehouse = tab.Warehouses[0];
+            //    });
+            //}
+            //catch (Exception ex)
+            //{
+            //    System.Diagnostics.Debug.WriteLine($"[LoadWarehouses] {ex.Message}");
+            //}
         }
 
         private void CloseTab(InvoiceTabViewModel? tab)
