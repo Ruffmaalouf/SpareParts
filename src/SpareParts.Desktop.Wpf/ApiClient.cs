@@ -176,7 +176,7 @@ namespace SpareParts.Desktop.Wpf
             return await _http.GetFromJsonAsync<List<PartDto>>("api/parts")
                    ?? new List<PartDto>();
         }
-
+         
         // ── Sales ─────────────────────────────────────────────────────────────
         public async Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
         {
@@ -189,7 +189,7 @@ namespace SpareParts.Desktop.Wpf
             return await resp.Content.ReadFromJsonAsync<CreateSaleResponse>()
                    ?? throw new InvalidOperationException("Empty sale response.");
         }
-
+         
         // ── Generic helpers used by ManagementViewModel ───────────────────────
         public async Task<List<T>> GetAllAsync<T>(string url)
         {
@@ -208,9 +208,7 @@ namespace SpareParts.Desktop.Wpf
                 var msg = await resp.Content.ReadAsStringAsync();
                 throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
             }
-        }
-
-        // ── Image helpers ─────────────────────────────────────────────────────
+        } 
         private static BitmapImage BytesToBitmap(byte[] bytes)
         {
             using var ms = new MemoryStream(bytes);
