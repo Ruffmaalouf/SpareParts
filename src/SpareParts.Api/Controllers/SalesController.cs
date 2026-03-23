@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Services;
 
@@ -6,6 +7,7 @@ namespace SpareParts.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SalesController : ControllerBase
     {
         private readonly SalesService _salesService;
@@ -26,7 +28,9 @@ namespace SpareParts.Api.Controllers
         private int GetUserId()
         {
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return claim != null ? int.Parse(claim.Value) : 1;
+            if (claim == null || !int.TryParse(claim.Value, out var userId))
+                throw new UnauthorizedAccessException("User identifier claim is missing.");
+            return userId;
         }
     }
 }

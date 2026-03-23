@@ -1,5 +1,6 @@
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Inventory;
@@ -10,6 +11,7 @@ namespace SpareParts.Api.Controllers
     // ── Customers ─────────────────────────────────────────────────────────────
     [ApiController]
     [Route("api/customers")]
+    [Authorize]
     public class CustomersController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
@@ -60,13 +62,16 @@ namespace SpareParts.Api.Controllers
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
+            if (c == null || !int.TryParse(c.Value, out var userId))
+                throw new UnauthorizedAccessException("User identifier claim is missing.");
+            return userId;
         }
     }
 
     // ── Suppliers ─────────────────────────────────────────────────────────────
     [ApiController]
     [Route("api/suppliers")]
+    [Authorize]
     public class SuppliersController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
@@ -113,13 +118,16 @@ namespace SpareParts.Api.Controllers
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
+            if (c == null || !int.TryParse(c.Value, out var userId))
+                throw new UnauthorizedAccessException("User identifier claim is missing.");
+            return userId;
         }
     }
 
     // ── Spare-part Brands ─────────────────────────────────────────────────────
     [ApiController]
     [Route("api/brands")]
+    [Authorize]
     public class BrandsController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
@@ -158,30 +166,33 @@ namespace SpareParts.Api.Controllers
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
+            if (c == null || !int.TryParse(c.Value, out var userId))
+                throw new UnauthorizedAccessException("User identifier claim is missing.");
+            return userId;
         }
     }
 
     // ── Categories ────────────────────────────────────────────────────────────
     [ApiController]
     [Route("api/categories")]
+    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
         public CategoriesController(ISqlConnectionFactory factory) => _factory = factory;
 
-        //[HttpGet]
-        //public ActionResult<IEnumerable<CategoryDto>> GetAll()
-        //{
-        //    using var session = new DbSession(_factory);
-        //    var ctx = new SparePartsDataContext(session);
-        //    return Ok(ctx.GetAllCategories().Select(c => new CategoryDto
-        //    {
-        //        Id       = c.Id,
-        //        Name     = c.Name,
-        //        ParentId = c.ParentId
-        //    }));
-        //}
+        [HttpGet]
+        public ActionResult<IEnumerable<CategoryDto>> GetAll()
+        {
+            using var session = new DbSession(_factory);
+            var ctx = new SparePartsDataContext(session);
+            return Ok(ctx.GetAllCategories().Select(c => new CategoryDto
+            {
+                Id       = c.Id,
+                Name     = c.Name,
+                ParentId = c.ParentId
+            }));
+        }
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateCategoryRequest req)
@@ -203,13 +214,16 @@ namespace SpareParts.Api.Controllers
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
+            if (c == null || !int.TryParse(c.Value, out var userId))
+                throw new UnauthorizedAccessException("User identifier claim is missing.");
+            return userId;
         }
     }
 
     // ── Parts ─────────────────────────────────────────────────────────────────
     [ApiController]
     [Route("api/parts")]
+    [Authorize]
     public class PartsController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
@@ -270,13 +284,16 @@ namespace SpareParts.Api.Controllers
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
+            if (c == null || !int.TryParse(c.Value, out var userId))
+                throw new UnauthorizedAccessException("User identifier claim is missing.");
+            return userId;
         }
     }
 
     // ── Warehouses ────────────────────────────────────────────────────────────
     [ApiController]
     [Route("api/warehouses")]
+    [Authorize]
     public class WarehousesController : ControllerBase
     {
         private readonly ISqlConnectionFactory _factory;
