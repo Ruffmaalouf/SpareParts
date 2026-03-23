@@ -1,0 +1,354 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.RolesTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SpareParts.Desktop.Wpf">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <local:InverseBoolConverter   x:Key="InvBool"/>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Margin"     Value="0 12 0 4"/>
+        </Style>
+
+        <!-- Badge preview tile -->
+        <Style x:Key="BadgePreviewStyle" TargetType="Border">
+            <Setter Property="CornerRadius"  Value="6"/>
+            <Setter Property="Padding"       Value="14 6"/>
+            <Setter Property="Margin"        Value="0 8 0 0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <Style x:Key="DeleteRoleBtn" TargetType="Button">
+            <Setter Property="Background"      Value="#22E53935"/>
+            <Setter Property="Foreground"      Value="#FFE57373"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Padding"         Value="10 4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" CornerRadius="5"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#44E53935"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>       <!-- list -->
+            <ColumnDefinition Width="320"/>     <!-- form -->
+        </Grid.ColumnDefinitions>
+
+        <!-- ══ LEFT — Roles list ══ -->
+        <Grid Grid.Column="0" Margin="0 0 12 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Toolbar -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 12">
+                <Button Content="↻  Refresh"
+                        Command="{Binding LoadCommand}"
+                        Style="{DynamicResource SecondaryButtonStyle}"
+                        Padding="14 6" Margin="0 0 8 0"/>
+                <Button Content="＋  New Role"
+                        Command="{Binding NewCommand}"
+                        Style="{DynamicResource PrimaryButtonStyle}"
+                        Padding="14 6"/>
+            </StackPanel>
+
+            <!-- Roles DataGrid -->
+            <DataGrid Grid.Row="1"
+                      ItemsSource="{Binding Roles}"
+                      SelectedItem="{Binding SelectedRole, Mode=TwoWay}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      SelectionMode="Single" GridLinesVisibility="None"
+                      RowHeight="48" ColumnHeaderHeight="36"
+                      CanUserReorderColumns="False" CanUserResizeRows="False">
+                <DataGrid.Columns>
+
+                    <!-- Badge column -->
+                    <DataGridTemplateColumn Header="BADGE" Width="130">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding BadgeColor}"
+                                        CornerRadius="5" Padding="10 4"
+                                        HorizontalAlignment="Left" Margin="8 0">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="12" FontWeight="Bold"
+                                               Foreground="{Binding BadgeTextColor}"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="NAME"        Binding="{Binding Name}"        Width="120" FontWeight="SemiBold"/>
+                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*"/>
+
+                    <!-- System badge -->
+                    <DataGridTemplateColumn Header="TYPE" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="5" Padding="8 3"
+                                        HorizontalAlignment="Left" Margin="4 0">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#22AAAAAA"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSystem}" Value="True">
+                                                    <Setter Property="Background" Value="#221C69D4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock FontSize="11" FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text"       Value="Custom"/>
+                                                <Setter Property="Foreground" Value="#AAAAAA"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSystem}" Value="True">
+                                                        <Setter Property="Text"       Value="Built-in"/>
+                                                        <Setter Property="Foreground" Value="#64B5F6"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Active badge -->
+                    <DataGridTemplateColumn Header="STATUS" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="5" Padding="8 3"
+                                        HorizontalAlignment="Left" Margin="4 0">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#22E53935"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                    <Setter Property="Background" Value="#224CAF50"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock FontSize="11" FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text"       Value="Inactive"/>
+                                                <Setter Property="Foreground" Value="#E57373"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                        <Setter Property="Text"       Value="Active"/>
+                                                        <Setter Property="Foreground" Value="#81C784"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Delete button (hidden for system roles) -->
+                    <DataGridTemplateColumn Header="" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="✕  Delete" 
+                                        Command="{Binding DataContext.DeleteCommand,
+                                                  RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource DeleteRoleBtn}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSystem}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Status bar -->
+            <TextBlock Grid.Row="2"
+                       Text="{Binding Status}"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="12" Margin="0 8 0 0"/>
+        </Grid>
+
+        <!-- ══ RIGHT — Form ══ -->
+        <Border Grid.Column="1"
+                Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="10" Padding="24">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="16" ShadowDepth="4" Opacity="0.2"/>
+            </Border.Effect>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+
+                    <!-- Title -->
+                    <TextBlock FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 0 4">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="New Role"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                        <Setter Property="Text" Value="Edit Role"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 0 0 20">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="Define a new role for your team"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                        <Setter Property="Text" Value="Update description or badge colors"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- Name (read-only when editing — name is the identity) -->
+                    <TextBlock Text="ROLE NAME *" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormName, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding IsEditing, Converter={StaticResource InvBool}}"
+                             Height="38" Padding="10 0"/>
+
+                    <!-- Description -->
+                    <TextBlock Text="DESCRIPTION" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormDescription, UpdateSourceTrigger=PropertyChanged}"
+                             Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                             Padding="10 6"/>
+
+                    <!-- Badge Color hex -->
+                    <TextBlock Text="BADGE BACKGROUND COLOR (hex)" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormBadgeColor, UpdateSourceTrigger=PropertyChanged}"
+                             Height="38" Padding="10 0"/>
+
+                    <!-- Badge Text Color hex -->
+                    <TextBlock Text="BADGE TEXT COLOR (hex)" Style="{StaticResource FieldLabel}"/>
+                    <TextBox Text="{Binding FormBadgeTextColor, UpdateSourceTrigger=PropertyChanged}"
+                             Height="38" Padding="10 0"/>
+
+                    <!-- Live preview -->
+                    <TextBlock Text="PREVIEW" Style="{StaticResource FieldLabel}"/>
+                    <Border Background="{Binding FormBadgeColor}"
+                            CornerRadius="6" Padding="14 6"
+                            HorizontalAlignment="Left" Margin="0 4 0 0">
+                        <TextBlock Text="{Binding FormName, FallbackValue='Role Name'}"
+                                   FontSize="13" FontWeight="Bold"
+                                   Foreground="{Binding FormBadgeTextColor}"/>
+                    </Border>
+
+                    <!-- Active toggle (edit only) -->
+                    <StackPanel Orientation="Horizontal" Margin="0 16 0 0"
+                                Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
+                        <CheckBox IsChecked="{Binding FormIsActive}"
+                                  VerticalAlignment="Center" Margin="0 0 10 0"/>
+                        <TextBlock Text="Role is Active"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center" FontSize="13"/>
+                    </StackPanel>
+
+                    <!-- Buttons -->
+                    <Grid Margin="0 24 0 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Cancel"
+                                Command="{Binding NewCommand}"
+                                Style="{DynamicResource SecondaryButtonStyle}"
+                                Height="40"/>
+                        <Button Grid.Column="2" Height="40"
+                                Command="{Binding SaveCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvBool}}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                                    <Setter Property="Content" Value="Save Role"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                            <Setter Property="Content" Value="Saving…"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+
+                    <!-- Color helper hints -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}"
+                            CornerRadius="8" Padding="14" Margin="0 20 0 0">
+                        <StackPanel>
+                            <TextBlock Text="COLOR TIPS" FontSize="10" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0 0 0 8"/>
+                            <TextBlock FontSize="11"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap">
+                                Use 8-digit hex for semi-transparent badge backgrounds,
+                                e.g. #22FF5722 (33% opacity orange). For solid text use
+                                6-digit hex like #FF7043.
+                            </TextBlock>
+                            <WrapPanel Margin="0 10 0 0">
+                                <Border Background="#22FF5722" CornerRadius="4" Padding="8 3" Margin="0 0 6 4">
+                                    <TextBlock Text="Admin orange" FontSize="10" FontWeight="Bold" Foreground="#FF7043"/>
+                                </Border>
+                                <Border Background="#2200E5FF" CornerRadius="4" Padding="8 3" Margin="0 0 6 4">
+                                    <TextBlock Text="Manager cyan" FontSize="10" FontWeight="Bold" Foreground="#00E5FF"/>
+                                </Border>
+                                <Border Background="#2244FF44" CornerRadius="4" Padding="8 3" Margin="0 0 6 4">
+                                    <TextBlock Text="Cashier green" FontSize="10" FontWeight="Bold" Foreground="#44FF44"/>
+                                </Border>
+                                <Border Background="#221C69D4" CornerRadius="4" Padding="8 3" Margin="0 0 6 4">
+                                    <TextBlock Text="Blue" FontSize="10" FontWeight="Bold" Foreground="#64B5F6"/>
+                                </Border>
+                                <Border Background="#22AA00FF" CornerRadius="4" Padding="8 3" Margin="0 0 6 4">
+                                    <TextBlock Text="Purple" FontSize="10" FontWeight="Bold" Foreground="#CC44FF"/>
+                                </Border>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>
