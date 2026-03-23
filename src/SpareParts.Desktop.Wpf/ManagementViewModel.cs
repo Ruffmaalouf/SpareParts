@@ -14,7 +14,7 @@ namespace SpareParts.Desktop.Wpf
     public class ManagementViewModel : INotifyPropertyChanged
     {
         // ── Use the shared ApiClient so the Bearer token is always present ────
-        private static ApiClient Api => ApiClient.Instance;
+        private static ApiClient Api => (ApiClient)ApiClient.Instance;
 
         // ── Lists ─────────────────────────────────────────────────────────────
         public UsersViewModel                      UsersVm    { get; } = new();
