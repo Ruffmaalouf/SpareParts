@@ -243,7 +243,7 @@ namespace SpareParts.Desktop.Wpf
             SelectedIndicator.Visibility = Visibility.Collapsed;
             SearchIcon.Visibility        = Visibility.Visible;
             SelectedNameInline.Text      = string.Empty;
-            PriceLabel.Visibility        = Visibility.Collapsed;
+            PriceLabel.Visibility        = Visibility.Hidden;
             PriceLabel.Text              = string.Empty;
             SearchBtn.Visibility         = Visibility.Visible;
             ClearBtn.Visibility          = Visibility.Collapsed;
