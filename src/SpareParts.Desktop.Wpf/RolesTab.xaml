@@ -50,12 +50,12 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>       <!-- list -->
             <ColumnDefinition Width="320"/>     <!-- form -->
+            <ColumnDefinition Width="*"/>       <!-- list -->
         </Grid.ColumnDefinitions>
 
-        <!-- ══ LEFT — Roles list ══ -->
-        <Grid Grid.Column="0" Margin="0 0 12 0">
+        <!-- ══ RIGHT — Roles list ══ -->
+        <Grid Grid.Column="1" Margin="12 0 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -204,8 +204,8 @@
                        FontSize="12" Margin="0 8 0 0"/>
         </Grid>
 
-        <!-- ══ RIGHT — Form ══ -->
-        <Border Grid.Column="1"
+        <!-- ══ LEFT — Form ══ -->
+        <Border Grid.Column="0"
                 Background="{DynamicResource CardBackgroundBrush}"
                 CornerRadius="10" Padding="24">
             <Border.Effect>
