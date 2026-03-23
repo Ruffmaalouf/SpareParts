@@ -316,9 +316,10 @@ namespace SpareParts.Infrastructure.Data
             }
         }
 
-        public IEnumerable<object> GetAllCategories()
+        public IEnumerable<Category> GetAllCategories()
         {
-            throw new NotImplementedException();
+            const string sql = "SELECT * FROM Categories ORDER BY Name";
+            return _session.Connection.Query<Category>(sql, transaction: _session.Transaction);
         }
     }
 }
