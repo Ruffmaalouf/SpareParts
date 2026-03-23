@@ -7,15 +7,36 @@ using SpareParts.Domain.Purchases;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var isDevelopment = builder.Environment.IsDevelopment();
 
 // ── Connection string ─────────────────────────────────────────────────────────
-var connString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=localhost;Database=SparePartsDb;Trusted_Connection=True;TrustServerCertificate=True;";
+var connString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connString))
+{
+    if (isDevelopment)
+    {
+        connString = "Server=localhost;Database=SparePartsDb;Trusted_Connection=True;TrustServerCertificate=True;";
+    }
+    else
+    {
+        throw new InvalidOperationException("Missing required connection string: ConnectionStrings:DefaultConnection");
+    }
+}
 
 // ── JWT settings ──────────────────────────────────────────────────────────────
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtSecret  = jwtSection["Secret"]
-    ?? "MaaloufAutoPartsSecretKey_ChangeInProduction_2024!";
+var jwtSecret  = jwtSection["Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+{
+    if (isDevelopment)
+    {
+        jwtSecret = "MaaloufAutoPartsSecretKey_ChangeInProduction_2024!";
+    }
+    else
+    {
+        throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
+    }
+}
 var jwtIssuer   = jwtSection["Issuer"]   ?? "SpareParts.Api";
 var jwtAudience = jwtSection["Audience"] ?? "SpareParts.Desktop";
 var jwtExpHours = int.TryParse(jwtSection["ExpiryHours"], out var h) ? h : 12;
@@ -70,9 +91,17 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 // ── CORS (allow WPF desktop loopback) ────────────────────────────────────────
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 builder.Services.AddCors(opt =>
     opt.AddDefaultPolicy(p =>
-        p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+    {
+        if (allowedOrigins is { Length: > 0 })
+            p.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        else if (isDevelopment)
+            p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        else
+            p.WithOrigins("http://localhost:5000").AllowAnyMethod().AllowAnyHeader();
+    }));
 
 var app = builder.Build();
 

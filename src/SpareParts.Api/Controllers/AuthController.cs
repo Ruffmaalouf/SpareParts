@@ -79,7 +79,9 @@ namespace SpareParts.Api.Controllers
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub,  user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier,    user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Name, user.FullName),
+                new Claim(ClaimTypes.Name,              user.FullName),
                 new Claim(ClaimTypes.Role,              user.Role),
                 new Claim("username",                   user.Username),
                 new Claim(JwtRegisteredClaimNames.Jti,  Guid.NewGuid().ToString())
@@ -115,10 +117,10 @@ namespace SpareParts.Api.Controllers
         /// <summary>
         /// GET /api/auth/hashpassword?plain=Admin@123
         /// Generates a real BCrypt hash to paste into the DB.
-        /// REMOVE [AllowAnonymous] after initial setup.
+        /// Admin-only utility endpoint for setup and support.
         /// </summary>
         [HttpGet("hashpassword")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public ActionResult HashPassword([FromQuery] string plain)
         {
             if (string.IsNullOrWhiteSpace(plain))
