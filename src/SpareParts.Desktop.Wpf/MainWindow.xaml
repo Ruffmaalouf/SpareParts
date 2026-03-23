@@ -370,90 +370,9 @@
                     <local:UsersTab/>
                 </TabItem>
 
-                <!-- TAB 7 — ROLES -->
-                <TabItem Header="🔑  Roles">
-                    <Border Background="{DynamicResource CardBackgroundBrush}"
-                            CornerRadius="10" Padding="30" Margin="10">
-                        <StackPanel MaxWidth="600" HorizontalAlignment="Left">
-                            <TextBlock Text="User Roles" FontSize="22" FontWeight="Bold" Margin="0 0 0 8"/>
-                            <TextBlock TextWrapping="Wrap" FontSize="13"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Margin="0 0 0 24">
-                                Roles control what each user can access. Assign a role when creating or editing a user in the Users tab.
-                            </TextBlock>
-
-                            <!-- Admin -->
-                            <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8"
-                                    Padding="20" Margin="0 0 0 12">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="#22FF5722" BorderBrush="#44FF5722"
-                                            BorderThickness="1" CornerRadius="6"
-                                            Padding="10 4" Margin="0 0 16 0" VerticalAlignment="Top">
-                                        <TextBlock Text="Admin" FontSize="13" FontWeight="Bold"
-                                                   Foreground="{DynamicResource AccentBrush}"/>
-                                    </Border>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="Full Access" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
-                                        <TextBlock Text="Can manage users, all master data, view all reports, and perform any operation in the system."
-                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   TextWrapping="Wrap" Margin="0 4 0 0"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                            <!-- Manager -->
-                            <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8"
-                                    Padding="20" Margin="0 0 0 12">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="#2200E5FF" BorderBrush="#4400E5FF"
-                                            BorderThickness="1" CornerRadius="6"
-                                            Padding="10 4" Margin="0 0 16 0" VerticalAlignment="Top">
-                                        <TextBlock Text="Manager" FontSize="13" FontWeight="Bold"
-                                                   Foreground="#00E5FF"/>
-                                    </Border>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="Operations Access" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
-                                        <TextBlock Text="Can manage customers, suppliers, inventory, sales and purchases. Cannot manage users or system settings."
-                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   TextWrapping="Wrap" Margin="0 4 0 0"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                            <!-- Cashier -->
-                            <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8"
-                                    Padding="20">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Background="#2244FF44" BorderBrush="#4444FF44"
-                                            BorderThickness="1" CornerRadius="6"
-                                            Padding="10 4" Margin="0 0 16 0" VerticalAlignment="Top">
-                                        <TextBlock Text="Cashier" FontSize="13" FontWeight="Bold"
-                                                   Foreground="#44FF44"/>
-                                    </Border>
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="POS Only" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
-                                        <TextBlock Text="Can create and submit sales invoices only. Cannot access management, reports, or settings."
-                                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   TextWrapping="Wrap" Margin="0 4 0 0"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
-                    </Border>
+                <TabItem Header="🔑  Roles" DataContext="{Binding RolesVm}">
+                    <local:RolesTab Margin="10"/>
                 </TabItem>
-
             </TabControl>
         </DataTemplate>
 
