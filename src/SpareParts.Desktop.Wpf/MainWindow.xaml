@@ -282,16 +282,16 @@
                                     <TextBox Text="{Binding NewPartOEM, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Category" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding Categories}"
-                                              Style="{StaticResource ManagementComboBoxStyle}"
                                               DisplayMemberPath="Name"
                                               SelectedValuePath="Id"
-                                              SelectedValue="{Binding NewPartCategoryId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                              SelectedValue="{Binding NewPartCategoryId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0 0 0 10"/>
                                     <TextBlock Text="Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding Brands}"
-                                              Style="{StaticResource ManagementComboBoxStyle}"
                                               DisplayMemberPath="Name"
                                               SelectedValuePath="Id"
-                                              SelectedValue="{Binding NewPartBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                              SelectedValue="{Binding NewPartBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0 0 0 10"/>
                                     <TextBlock Text="Cost Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartCostPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Sale Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -348,10 +348,10 @@
                                 <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
                                 <TextBlock Text="Car Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <ComboBox ItemsSource="{Binding Brands}"
-                                          Style="{StaticResource ManagementComboBoxStyle}"
                                           DisplayMemberPath="Name"
                                           SelectedValuePath="Id"
-                                          SelectedValue="{Binding NewCarModelBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                          SelectedValue="{Binding NewCarModelBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Margin="0 0 0 10"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Year" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
