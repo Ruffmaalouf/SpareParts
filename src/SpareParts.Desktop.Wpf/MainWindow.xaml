@@ -712,41 +712,30 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
-                                <!-- header -->
                                 <RowDefinition Height="Auto"/>
-                                <!-- form card -->
                                 <RowDefinition Height="*"/>
-                                <!-- items grid -->
                                 <RowDefinition Height="Auto"/>
-                                <!-- totals -->
                             </Grid.RowDefinitions>
 
-                            <!-- ── Header ── -->
+                            <!-- ── Header ───────────────────────────────────────────────── -->
                             <StackPanel Grid.Row="0" Margin="20,20,20,10">
                                 <TextBlock Text="New Sale" FontSize="26" FontWeight="Bold"/>
                                 <TextBlock Text="Enter invoice details below" FontSize="14"
                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
                             </StackPanel>
 
-                            <!-- ── Form card ── -->
-                            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}"
+                            <!-- ── Form card ─────────────────────────────────────────────── -->
+                            <Border Grid.Row="1"
+                    Background="{DynamicResource CardBackgroundBrush}"
                     CornerRadius="8" Padding="20" Margin="20,0,20,15">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="20" ShadowDepth="5"/>
                                 </Border.Effect>
 
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <!-- row 1: Customer | Warehouse -->
-                                        <RowDefinition Height="12"/>
-                                        <!-- gap -->
-                                        <RowDefinition Height="Auto"/>
-                                        <!-- row 2: Part | Qty | Price | Add | Submit -->
-                                    </Grid.RowDefinitions>
+                                <StackPanel>
 
-                                    <!-- Row 1 — Customer + Warehouse -->
-                                    <Grid Grid.Row="0">
+                                    <!-- Row 1: Customer + Warehouse -->
+                                    <Grid Margin="0 0 0 16">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="16"/>
@@ -764,38 +753,43 @@
                             VerticalAlignment="Top"/>
                                     </Grid>
 
-                                    <!-- Row 2 — Part picker + Qty + Price + Buttons -->
-                                    <Grid Grid.Row="2">
+                                    <!-- Row 2: Part | Qty | Price | [Add] [Submit] -->
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <!-- Part search -->
                                             <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="88"/>
                                             <!-- Qty -->
                                             <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="120"/>
                                             <!-- Unit Price -->
                                             <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="130"/>
                                             <!-- Add button -->
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="12"/>
+                                            <ColumnDefinition Width="180"/>
                                             <!-- Submit button -->
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Part search control
-                             SelectedPartId  → NewPartId  (what gets added to the line)
-                             SelectedPartPrice → NewUnitPrice (auto-fills the price field) -->
+                                        <!--
+                            PartSearchControl
+                            SelectedPartId          → NewPartId          (part FK for the invoice line)
+                            SelectedPartPrice       → NewUnitPrice       (auto-fills price)
+                            SelectedPartDescription → NewPartDescription  (stored so Description column shows)
+                        -->
                                         <local:PartSearchControl
                             Grid.Column="0"
-                            SelectedPartId="{Binding NewPartId, Mode=TwoWay}"
-                            SelectedPartPrice="{Binding NewUnitPrice, Mode=TwoWay}"
+                            SelectedPartId="{Binding NewPartId,          Mode=TwoWay}"
+                            SelectedPartPrice="{Binding NewUnitPrice,     Mode=TwoWay}"
+                            SelectedPartDescription="{Binding NewPartDescription, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
 
-                                        <!-- Qty -->
+                                        <!-- Qty pill -->
                                         <StackPanel Grid.Column="2" VerticalAlignment="Top">
                                             <TextBlock Text="QTY" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0 0 0 6"/>
                                             <Border Background="#FF1A1A22"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1" CornerRadius="10" Height="52">
@@ -804,14 +798,30 @@
                                          Foreground="White" FontSize="15"
                                          HorizontalContentAlignment="Center"
                                          VerticalContentAlignment="Center"
-                                         Padding="8 0"/>
+                                         Padding="8 0" CaretBrush="{DynamicResource AccentBrush}">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="TextBox">
+                                                                        <ScrollViewer x:Name="PART_ContentHost"
+                                                                      Margin="{TemplateBinding Padding}"
+                                                                      VerticalAlignment="Center"
+                                                                      HorizontalAlignment="Center"/>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
                                             </Border>
                                         </StackPanel>
 
-                                        <!-- Unit Price (auto-filled, but editable) -->
+                                        <!-- Unit Price pill (auto-filled, cashier can override) -->
                                         <StackPanel Grid.Column="4" VerticalAlignment="Top">
                                             <TextBlock Text="UNIT PRICE" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0 0 0 6"/>
                                             <Border Background="#FF1A1A22"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1" CornerRadius="10" Height="52">
@@ -820,30 +830,55 @@
                                          Foreground="White" FontSize="15"
                                          HorizontalContentAlignment="Right"
                                          VerticalContentAlignment="Center"
-                                         Padding="8 0"/>
+                                         Padding="8 0" CaretBrush="{DynamicResource AccentBrush}">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="TextBox">
+                                                                        <ScrollViewer x:Name="PART_ContentHost"
+                                                                      Margin="{TemplateBinding Padding}"
+                                                                      VerticalAlignment="Center"/>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
                                             </Border>
                                         </StackPanel>
 
-                                        <!-- Add button -->
+                                        <!--
+                            ＋ Add button  — PrimaryButtonStyle (same glowing pill as Submit)
+                            Height="52" matches the pill inputs above for perfect alignment
+                        -->
                                         <Button Grid.Column="6"
-                                Content="＋ Add"
+                                Content="＋  Add Line"
                                 Command="{Binding AddItemCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Height="52" Padding="18 0"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Height="52"
                                 VerticalAlignment="Bottom"/>
 
-                                        <!-- Submit button -->
+                                        <!-- Submit Invoice button -->
                                         <Button Grid.Column="8"
-                                Content="Submit Invoice"
+                                Content="✔  Submit Invoice"
                                 Command="{Binding SubmitSaleCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
-                                Width="160" Height="52"
-                                VerticalAlignment="Bottom"/>
+                                Height="52"
+                                VerticalAlignment="Bottom">
+                                            <!-- Slightly different shade so the two buttons are visually distinct -->
+                                            <Button.Resources>
+                                                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                                                    <Setter Property="Opacity" Value="0.92"/>
+                                                </Style>
+                                            </Button.Resources>
+                                        </Button>
+
                                     </Grid>
-                                </Grid>
+                                </StackPanel>
                             </Border>
 
-                            <!-- ── Items DataGrid ── -->
+                            <!-- ── Items DataGrid ────────────────────────────────────────── -->
                             <Border Grid.Row="2" CornerRadius="8"
                     Background="{DynamicResource CardBackgroundBrush}"
                     Margin="20,0,20,0">
@@ -857,36 +892,52 @@
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
                           ScrollViewer.CanContentScroll="True">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Part #"      Binding="{Binding PartId}"      Width="80"/>
-                                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
-                                        <DataGridTextColumn Header="Qty"         Binding="{Binding Quantity}"    Width="60"/>
-                                        <DataGridTextColumn Header="Unit Price"  Binding="{Binding UnitPrice, StringFormat={}{0:N0}}"  Width="120"/>
-                                        <DataGridTextColumn Header="Total"       Binding="{Binding LineTotal, StringFormat={}{0:N0}}"  Width="110" FontWeight="Bold"/>
+                                        <DataGridTextColumn Header="Part #"
+                                            Binding="{Binding PartId}"
+                                            Width="80"/>
+                                        <DataGridTextColumn Header="Description"
+                                            Binding="{Binding Description}"
+                                            Width="*"/>
+                                        <DataGridTextColumn Header="Qty"
+                                            Binding="{Binding Quantity}"
+                                            Width="60"/>
+                                        <DataGridTextColumn Header="Unit Price"
+                                            Binding="{Binding UnitPrice, StringFormat={}{0:N0}}"
+                                            Width="120"/>
+                                        <DataGridTextColumn Header="Total"
+                                            Binding="{Binding LineTotal, StringFormat={}{0:N0}}"
+                                            Width="110"
+                                            FontWeight="Bold"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Border>
 
-                            <!-- ── Footer totals ── -->
+                            <!-- ── Footer totals ─────────────────────────────────────────── -->
                             <Border Grid.Row="3" Margin="20,10,20,20" Padding="16 12">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Total:" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                     <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
                                FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
+
                                     <TextBlock Text="Paid:" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                     <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
                              Width="150" FontSize="14" FontWeight="SemiBold"
-                             Background="Transparent" BorderThickness="0 0 0 1" Margin="0 0 30 0"/>
+                             Background="Transparent" BorderThickness="0 0 0 1"
+                             Margin="0 0 30 0"/>
+
                                     <TextBlock Text="Remaining:" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                     <TextBlock Text="{Binding RemainingAmount, StringFormat={}{0:N0}}"
                                FontSize="14" FontWeight="SemiBold"/>
                                 </StackPanel>
                             </Border>
+
                         </Grid>
                     </DataTemplate>
                 </TabControl.ContentTemplate>
+
 
             </TabControl>
 
