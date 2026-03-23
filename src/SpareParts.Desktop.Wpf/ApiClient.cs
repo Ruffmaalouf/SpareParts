@@ -229,7 +229,8 @@ namespace SpareParts.Desktop.Wpf
                 _ => "image/png"
             };
 
-        // ── Roles ─────────────────────────────────────────────────────────────────────
+       
+        // ── Roles ─────────────────────────────────────────────────────────────────
         public async Task<List<RoleDto>> GetRolesAsync()
         {
             return await _http.GetFromJsonAsync<List<RoleDto>>("api/roles")
@@ -258,5 +259,6 @@ namespace SpareParts.Desktop.Wpf
             if (!resp.IsSuccessStatusCode)
                 throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
         }
+
     }
 }

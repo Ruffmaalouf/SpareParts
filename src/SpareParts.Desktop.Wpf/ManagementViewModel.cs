@@ -18,6 +18,7 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Lists ─────────────────────────────────────────────────────────────
         public UsersViewModel                      UsersVm    { get; } = new();
+        public RolesViewModel                      RolesVm    { get; } = new();
         public ObservableCollection<CustomerDto>   Customers  { get; } = new();
         public ObservableCollection<SupplierDto>   Suppliers  { get; } = new();
         public ObservableCollection<BrandDto>      Brands     { get; } = new();
@@ -100,7 +101,7 @@ namespace SpareParts.Desktop.Wpf
                 var brands    = await Api.GetAllAsync<BrandDto>("api/brands");
                 var parts     = await Api.GetAllAsync<PartDto>("api/parts");
                 var carModels = await Api.GetAllAsync<CarModelDto>("api/carmodels");
-
+                await RolesVm.LoadAsync();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     Customers.Clear(); foreach (var x in customers)  Customers.Add(x);

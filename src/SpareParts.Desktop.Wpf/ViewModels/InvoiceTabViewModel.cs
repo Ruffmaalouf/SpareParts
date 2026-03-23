@@ -4,9 +4,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
@@ -15,12 +12,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
     {
         private static int _counter;
 
-        public int TabNumber { get; } = ++_counter;
-        public string Header => $"Invoice #{TabNumber}";
+        public int    TabNumber { get; } = ++_counter;
+        public string Header    => $"Invoice #{TabNumber}";
 
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
-        // ── Invoice header fields ─────────────────────────────────────────────
+        // ── Invoice header ────────────────────────────────────────────────────
 
         private int? _customerId;
         public int? CustomerId
@@ -48,10 +45,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        public decimal TotalAmount    => Items.Sum(i => i.LineTotal);
+        public decimal TotalAmount     => Items.Sum(i => i.LineTotal);
         public decimal RemainingAmount => TotalAmount - PaidAmount;
 
-        // ── New-line entry — Part picker fields ───────────────────────────────
+        // ── New-line entry fields (bound from PartSearchControl + manual) ─────
 
         private int? _newPartId;
         public int? NewPartId
@@ -60,7 +57,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _newPartId = value; OnPropertyChanged(nameof(NewPartId)); }
         }
 
-        /// <summary>Auto-filled when a part is selected via the search control.</summary>
+        // Auto-populated when a part is chosen; cashier can still override it
         private decimal _newUnitPrice;
         public decimal NewUnitPrice
         {
@@ -75,6 +72,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _newQuantity = value; OnPropertyChanged(nameof(NewQuantity)); }
         }
 
+        // Populated automatically when a part is selected — not shown in form, used internally
+        private string _newPartDescription = string.Empty;
+        public string NewPartDescription
+        {
+            get => _newPartDescription;
+            set { _newPartDescription = value; OnPropertyChanged(nameof(NewPartDescription)); }
+        }
+
         // ── Commands ──────────────────────────────────────────────────────────
 
         public ICommand AddItemCommand    { get; }
@@ -85,7 +90,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AddItemCommand    = new RelayCommand(_ => AddItem());
             SubmitSaleCommand = new RelayCommand(_ => SubmitSale());
 
-            // Recalculate totals whenever Items collection changes
             Items.CollectionChanged += (_, _) =>
             {
                 OnPropertyChanged(nameof(TotalAmount));
@@ -115,15 +119,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             Items.Add(new PosItemViewModel
             {
-                PartId    = NewPartId.Value,
-                Quantity  = NewQuantity,
-                UnitPrice = NewUnitPrice
+                PartId      = NewPartId.Value,
+                Description = NewPartDescription,   // ← FIX: description now stored
+                Quantity    = NewQuantity,
+                UnitPrice   = NewUnitPrice
             });
 
-            // Reset entry fields
-            NewPartId    = null;
-            NewQuantity  = 1;
-            NewUnitPrice = 0;
+            // Reset entry fields after adding
+            NewPartId           = null;
+            NewQuantity         = 1;
+            NewUnitPrice        = 0;
+            NewPartDescription  = string.Empty;
 
             OnPropertyChanged(nameof(TotalAmount));
             OnPropertyChanged(nameof(RemainingAmount));
