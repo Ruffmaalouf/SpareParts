@@ -85,6 +85,17 @@
 
         <!-- ══════ Management DataTemplate ══════ -->
         <DataTemplate DataType="{x:Type local:ManagementViewModel}">
+            <DataTemplate.Resources>
+                <Style x:Key="ManagementComboBoxStyle" TargetType="ComboBox">
+                    <Setter Property="Height" Value="34"/>
+                    <Setter Property="Padding" Value="10 0"/>
+                    <Setter Property="Margin" Value="0 0 0 10"/>
+                    <Setter Property="Background" Value="#FF1A1A22"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                </Style>
+            </DataTemplate.Resources>
             <TabControl Background="Transparent" BorderThickness="0" Margin="0">
 
                 <!-- TAB 1 — CUSTOMERS -->
@@ -131,6 +142,7 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Customers}"
+                                          SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -189,6 +201,7 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Suppliers}"
+                                          SelectedItem="{Binding SelectedSupplier, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -234,6 +247,7 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Brands}"
+                                          SelectedItem="{Binding SelectedBrand, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -266,8 +280,18 @@
                                     <TextBox Text="{Binding NewPartName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="OEM Number" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartOEM, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
-                                    <TextBlock Text="Category ID" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewPartCategoryId, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Category" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Categories}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding NewPartCategoryId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock Text="Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Brands}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding NewPartBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     <TextBlock Text="Cost Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartCostPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Sale Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -292,6 +316,7 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Parts}"
+                                          SelectedItem="{Binding SelectedPart, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -321,8 +346,12 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                 <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
-                                <TextBlock Text="Car Brand ID" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                <TextBox Text="{Binding NewCarModelBrandId, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Car Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <ComboBox ItemsSource="{Binding Brands}"
+                                          Style="{StaticResource ManagementComboBoxStyle}"
+                                          DisplayMemberPath="Name"
+                                          SelectedValuePath="Id"
+                                          SelectedValue="{Binding NewCarModelBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Year" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -348,6 +377,7 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding CarModels}"
+                                          SelectedItem="{Binding SelectedCarModel, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">

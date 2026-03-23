@@ -82,15 +82,22 @@
         </Style>
     </UserControl.Resources>
 
-    <StackPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="18"/>
+        </Grid.RowDefinitions>
 
-        <TextBlock Text="PART"
+        <TextBlock Grid.Row="0"
+                   Text="PART"
                    FontSize="11" FontWeight="Bold" FontFamily="Segoe UI"
                    Foreground="{DynamicResource TextSecondaryBrush}"
                    Margin="0 0 0 6"/>
 
         <!-- Input pill -->
-        <Border x:Name="InputPill"
+        <Border Grid.Row="1"
+                x:Name="InputPill"
                 Background="#FF1A1A22"
                 BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="1"
@@ -160,11 +167,12 @@
         </Border>
 
         <!-- Price sub-label when selected -->
-        <TextBlock x:Name="PriceLabel"
+        <TextBlock Grid.Row="2"
+                   x:Name="PriceLabel"
                    FontSize="11"
                    Foreground="{DynamicResource TextSecondaryBrush}"
                    Margin="6 4 0 0"
-                   Visibility="Collapsed"/>
+                   Visibility="Hidden"/>
 
         <!-- Popup
              StaysOpen="True" — we close it manually so clicking inside
@@ -283,5 +291,5 @@
             </Border>
         </Popup>
 
-    </StackPanel>
+    </Grid>
 </UserControl>

@@ -14,7 +14,7 @@ namespace SpareParts.Desktop.Wpf
     public class ManagementViewModel : INotifyPropertyChanged
     {
         // ── Use the shared ApiClient so the Bearer token is always present ────
-        private static ApiClient Api => ApiClient.Instance;
+        private static IApiClient Api => ApiClient.Instance;
 
         // ── Lists ─────────────────────────────────────────────────────────────
         public UsersViewModel                      UsersVm    { get; } = new();
@@ -22,8 +22,69 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CustomerDto>   Customers  { get; } = new();
         public ObservableCollection<SupplierDto>   Suppliers  { get; } = new();
         public ObservableCollection<BrandDto>      Brands     { get; } = new();
+        public ObservableCollection<CategoryDto>   Categories { get; } = new();
         public ObservableCollection<PartDto>       Parts      { get; } = new();
         public ObservableCollection<CarModelDto>   CarModels  { get; } = new();
+
+        private CustomerDto? _selectedCustomer;
+        public CustomerDto? SelectedCustomer
+        {
+            get => _selectedCustomer;
+            set
+            {
+                _selectedCustomer = value;
+                OnPropertyChanged(nameof(SelectedCustomer));
+                if (value != null) PopulateCustomerForm(value);
+            }
+        }
+
+        private SupplierDto? _selectedSupplier;
+        public SupplierDto? SelectedSupplier
+        {
+            get => _selectedSupplier;
+            set
+            {
+                _selectedSupplier = value;
+                OnPropertyChanged(nameof(SelectedSupplier));
+                if (value != null) PopulateSupplierForm(value);
+            }
+        }
+
+        private BrandDto? _selectedBrand;
+        public BrandDto? SelectedBrand
+        {
+            get => _selectedBrand;
+            set
+            {
+                _selectedBrand = value;
+                OnPropertyChanged(nameof(SelectedBrand));
+                if (value != null) PopulateBrandForm(value);
+            }
+        }
+
+        private PartDto? _selectedPart;
+        public PartDto? SelectedPart
+        {
+            get => _selectedPart;
+            set
+            {
+                _selectedPart = value;
+                OnPropertyChanged(nameof(SelectedPart));
+                if (value != null) PopulatePartForm(value);
+            }
+        }
+
+        private CarModelDto? _selectedCarModel;
+        public CarModelDto? SelectedCarModel
+        {
+            get => _selectedCarModel;
+            set
+            {
+                _selectedCarModel = value;
+                OnPropertyChanged(nameof(SelectedCarModel));
+                if (value != null) PopulateCarModelForm(value);
+            }
+        }
 
         // ── Status ────────────────────────────────────────────────────────────
         private string _status = string.Empty;
@@ -99,6 +160,7 @@ namespace SpareParts.Desktop.Wpf
                 var customers = await Api.GetAllAsync<CustomerDto>("api/customers");
                 var suppliers = await Api.GetAllAsync<SupplierDto>("api/suppliers");
                 var brands    = await Api.GetAllAsync<BrandDto>("api/brands");
+                var categories = await Api.GetAllAsync<CategoryDto>("api/categories");
                 var parts     = await Api.GetAllAsync<PartDto>("api/parts");
                 var carModels = await Api.GetAllAsync<CarModelDto>("api/carmodels");
                 await RolesVm.LoadAsync();
@@ -107,6 +169,7 @@ namespace SpareParts.Desktop.Wpf
                     Customers.Clear(); foreach (var x in customers)  Customers.Add(x);
                     Suppliers.Clear(); foreach (var x in suppliers)  Suppliers.Add(x);
                     Brands.Clear();    foreach (var x in brands)     Brands.Add(x);
+                    Categories.Clear(); foreach (var x in categories) Categories.Add(x);
                     Parts.Clear();     foreach (var x in parts)      Parts.Add(x);
                     CarModels.Clear(); foreach (var x in carModels)  CarModels.Add(x);
                 });
@@ -205,6 +268,66 @@ namespace SpareParts.Desktop.Wpf
         private void RaiseAll(params string[] names)
         {
             foreach (var n in names) OnPropertyChanged(n);
+        }
+
+        private void PopulateCustomerForm(CustomerDto c)
+        {
+            NewCustomerName = c.Name;
+            NewCustomerPhone = c.Phone;
+            NewCustomerEmail = c.Email;
+            NewCustomerAddress = c.Address;
+            NewCustomerTax = c.TaxNumber;
+            NewCustomerBalance = c.OpeningBalance;
+            RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail),
+                     nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
+        }
+
+        private void PopulateSupplierForm(SupplierDto s)
+        {
+            NewSupplierName = s.Name;
+            NewSupplierPhone = s.Phone;
+            NewSupplierEmail = s.Email;
+            NewSupplierAddress = s.Address;
+            NewSupplierTax = s.TaxNumber;
+            NewSupplierBalance = s.OpeningBalance;
+            RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail),
+                     nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
+        }
+
+        private void PopulateBrandForm(BrandDto b)
+        {
+            NewBrandName = b.Name;
+            NewBrandIsActive = b.IsActive;
+            RaiseAll(nameof(NewBrandName), nameof(NewBrandIsActive));
+        }
+
+        private void PopulatePartForm(PartDto p)
+        {
+            NewPartCode = p.InternalCode;
+            NewPartName = p.Name;
+            NewPartOEM = p.OEMNumber;
+            NewPartCategoryId = p.CategoryId;
+            NewPartBrandId = p.BrandId;
+            NewPartCostPrice = p.CostPrice;
+            NewPartSalePrice = p.SalePrice;
+            NewPartCurrency = p.Currency;
+            NewPartMinStock = p.MinStock;
+            NewPartNotes = p.Notes;
+            RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM),
+                     nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice),
+                     nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock),
+                     nameof(NewPartNotes));
+        }
+
+        private void PopulateCarModelForm(CarModelDto m)
+        {
+            NewCarModelBrandId = m.CarBrandId;
+            NewCarModelName = m.Name;
+            NewCarModelYear = m.Year;
+            NewCarModelEngine = m.EngineType;
+            NewCarModelBasePrice = m.BasePrice;
+            RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear),
+                     nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
