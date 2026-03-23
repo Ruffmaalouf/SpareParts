@@ -96,6 +96,87 @@
                     <Setter Property="BorderThickness" Value="1"/>
                     <Setter Property="FontSize" Value="15"/>
                     <Setter Property="ItemContainerStyle" Value="{DynamicResource ThemeComboBoxItemStyle}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBox">
+                                <Grid>
+                                    <Border x:Name="OuterBorder"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <ContentPresenter Grid.Column="0"
+                                                              Margin="{TemplateBinding Padding}"
+                                                              VerticalAlignment="Center"
+                                                              HorizontalAlignment="Left"
+                                                              Content="{TemplateBinding SelectionBoxItem}"
+                                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+
+                                            <Border Grid.Column="1"
+                                                    Width="34"
+                                                    Height="34"
+                                                    Margin="0 0 8 0"
+                                                    Background="{DynamicResource AccentBrush}"
+                                                    CornerRadius="8"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE70D;"
+                                                           FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="11"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                    <Popup x:Name="PART_Popup"
+                                           Placement="Bottom"
+                                           AllowsTransparency="True"
+                                           Focusable="False"
+                                           IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                           PopupAnimation="Fade">
+                                        <Border Margin="0 6 0 0"
+                                                MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                                Background="#FF1E1E28"
+                                                BorderBrush="#33FF5722"
+                                                BorderThickness="1"
+                                                CornerRadius="12">
+                                            <ScrollViewer Margin="4"
+                                                          MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Popup>
+
+                                    <ToggleButton Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Focusable="False"
+                                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="HasItems" Value="False">
+                                        <Setter TargetName="PART_Popup" Property="MinHeight" Value="60"/>
+                                    </Trigger>
+                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.6"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </DataTemplate.Resources>
             <TabControl Background="Transparent" BorderThickness="0" Margin="0">
