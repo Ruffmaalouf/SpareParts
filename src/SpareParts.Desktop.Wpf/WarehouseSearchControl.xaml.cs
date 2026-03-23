@@ -14,8 +14,10 @@ namespace SpareParts.Desktop.Wpf
     public partial class WarehouseSearchControl : UserControl
     {
         private List<WarehouseDto> _all = new();
+        private bool _suppressClose;
 
         // ── Dependency Properties ─────────────────────────────────────────────
+
         public static readonly DependencyProperty SelectedWarehouseIdProperty =
             DependencyProperty.Register(nameof(SelectedWarehouseId), typeof(int?),
                 typeof(WarehouseSearchControl),
@@ -49,31 +51,45 @@ namespace SpareParts.Desktop.Wpf
         }
 
         // ── Constructor ───────────────────────────────────────────────────────
+
         public WarehouseSearchControl()
         {
             InitializeComponent();
             FilteredWarehouses = new ObservableCollection<WarehouseDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
+
+            Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;
         }
 
-        // ── Load from API ─────────────────────────────────────────────────────
-        private async Task EnsureLoadedAsync()
+        private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (_all.Count > 0) return;
-            try
+            if (!ResultsPopup.IsOpen) return;
+            if (_suppressClose) { _suppressClose = false; return; }
+
+            var hit = e.OriginalSource as DependencyObject;
+            if (IsInsideControl(hit)) return;
+            ClosePopup();
+        }
+
+        private bool IsInsideControl(DependencyObject? d)
+        {
+            while (d != null)
             {
-                _all = await ApiClient.Instance.GetAllAsync<WarehouseDto>("api/warehouses");
+                if (d == InputPill || d == ResultsPopup) return true;
+                if (d is System.Windows.Controls.Primitives.Popup) return true;
+                d = VisualTreeHelper.GetParent(d) ??
+                    LogicalTreeHelper.GetParent(d) as DependencyObject;
             }
-            catch
-            {
-                // Fallback: show a default warehouse so the POS screen isn't broken
-                _all = new List<WarehouseDto> { new() { Id = 1, Name = "Main Warehouse", IsMain = true } };
-            }
+            return false;
         }
 
         // ── Event Handlers ────────────────────────────────────────────────────
+
         private void SearchButton_Click(object sender, RoutedEventArgs e)
-            => _ = OpenPopupAsync();
+        {
+            _suppressClose = true;
+            _ = OpenPopupAsync();
+        }
 
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -92,10 +108,11 @@ namespace SpareParts.Desktop.Wpf
                     _ = OpenPopupAsync();
                     break;
                 case Key.Escape:
-                    ResultsPopup.IsOpen = false;
+                    ClosePopup();
                     RestorePill();
                     break;
                 case Key.Down when ResultsPopup.IsOpen:
+                    _suppressClose = true;
                     ResultsList.Focus();
                     if (ResultsList.Items.Count > 0) ResultsList.SelectedIndex = 0;
                     break;
@@ -107,18 +124,33 @@ namespace SpareParts.Desktop.Wpf
 
         private void ResultItem_DoubleClick(object sender, MouseButtonEventArgs e)
         {
+            _suppressClose = true;
             if (ResultsList.SelectedItem is WarehouseDto w) Select(w);
         }
 
         private void ResultsList_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && ResultsList.SelectedItem is WarehouseDto w) Select(w);
-            else if (e.Key == Key.Escape) { ResultsPopup.IsOpen = false; SearchBox.Focus(); }
+            else if (e.Key == Key.Escape) { ClosePopup(); SearchBox.Focus(); }
         }
 
         private void ClearWarehouse_Click(object sender, RoutedEventArgs e) => Clear();
 
         // ── Logic ─────────────────────────────────────────────────────────────
+
+        private async Task EnsureLoadedAsync()
+        {
+            if (_all.Count > 0) return;
+            try
+            {
+                _all = await ApiClient.Instance.GetAllAsync<WarehouseDto>("api/warehouses");
+            }
+            catch
+            {
+                _all = new List<WarehouseDto> { new() { Id = 1, Name = "Main Warehouse", IsMain = true } };
+            }
+        }
+
         private async Task OpenPopupAsync()
         {
             await EnsureLoadedAsync();
@@ -127,6 +159,7 @@ namespace SpareParts.Desktop.Wpf
 
             if (FilteredWarehouses.Count > 0)
             {
+                _suppressClose = true;
                 ResultsList.Focus();
                 ResultsList.SelectedIndex = 0;
             }
@@ -159,7 +192,7 @@ namespace SpareParts.Desktop.Wpf
             WarehouseSearchText       = string.Empty;
             SearchBox.Text            = string.Empty;
             ShowPlaceholder();
-            ResultsPopup.IsOpen = false;
+            ClosePopup();
         }
 
         private void Clear()
@@ -173,6 +206,12 @@ namespace SpareParts.Desktop.Wpf
             RestorePill();
             ShowPlaceholder();
             SearchBox.Focus();
+        }
+
+        private void ClosePopup()
+        {
+            ResultsPopup.IsOpen = false;
+            _suppressClose = false;
         }
 
         private void ShowPlaceholder() => Placeholder.Visibility = Visibility.Visible;

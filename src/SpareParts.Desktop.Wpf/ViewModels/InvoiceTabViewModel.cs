@@ -1,11 +1,12 @@
-﻿using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Domain.Sales;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
@@ -19,6 +20,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
+        // ── Invoice header fields ─────────────────────────────────────────────
+
         private int? _customerId;
         public int? CustomerId
         {
@@ -26,8 +29,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _customerId = value; OnPropertyChanged(nameof(CustomerId)); }
         }
 
-        private int _warehouseId = 1;
-        public int WarehouseId
+        private int? _warehouseId;
+        public int? WarehouseId
         {
             get => _warehouseId;
             set { _warehouseId = value; OnPropertyChanged(nameof(WarehouseId)); }
@@ -45,10 +48,137 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        public decimal TotalAmount => Items.Sum(i => i.LineTotal);
+        public decimal TotalAmount    => Items.Sum(i => i.LineTotal);
         public decimal RemainingAmount => TotalAmount - PaidAmount;
 
-        public ICommand SubmitSaleCommand { get; set; } = new RelayCommand(_ => { });
+        // ── New-line entry — Part picker fields ───────────────────────────────
+
+        private int? _newPartId;
+        public int? NewPartId
+        {
+            get => _newPartId;
+            set { _newPartId = value; OnPropertyChanged(nameof(NewPartId)); }
+        }
+
+        /// <summary>Auto-filled when a part is selected via the search control.</summary>
+        private decimal _newUnitPrice;
+        public decimal NewUnitPrice
+        {
+            get => _newUnitPrice;
+            set { _newUnitPrice = value; OnPropertyChanged(nameof(NewUnitPrice)); }
+        }
+
+        private int _newQuantity = 1;
+        public int NewQuantity
+        {
+            get => _newQuantity;
+            set { _newQuantity = value; OnPropertyChanged(nameof(NewQuantity)); }
+        }
+
+        // ── Commands ──────────────────────────────────────────────────────────
+
+        public ICommand AddItemCommand    { get; }
+        public ICommand SubmitSaleCommand { get; }
+
+        public InvoiceTabViewModel()
+        {
+            AddItemCommand    = new RelayCommand(_ => AddItem());
+            SubmitSaleCommand = new RelayCommand(_ => SubmitSale());
+
+            // Recalculate totals whenever Items collection changes
+            Items.CollectionChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(TotalAmount));
+                OnPropertyChanged(nameof(RemainingAmount));
+            };
+        }
+
+        // ── Add line ──────────────────────────────────────────────────────────
+
+        private void AddItem()
+        {
+            if (NewPartId == null || NewPartId <= 0)
+            {
+                CustomMessageBox.Show("Please select a part first.", "Validation", "Warning");
+                return;
+            }
+            if (NewQuantity <= 0)
+            {
+                CustomMessageBox.Show("Quantity must be greater than zero.", "Validation", "Warning");
+                return;
+            }
+            if (NewUnitPrice <= 0)
+            {
+                CustomMessageBox.Show("Unit price must be greater than zero.", "Validation", "Warning");
+                return;
+            }
+
+            Items.Add(new PosItemViewModel
+            {
+                PartId    = NewPartId.Value,
+                Quantity  = NewQuantity,
+                UnitPrice = NewUnitPrice
+            });
+
+            // Reset entry fields
+            NewPartId    = null;
+            NewQuantity  = 1;
+            NewUnitPrice = 0;
+
+            OnPropertyChanged(nameof(TotalAmount));
+            OnPropertyChanged(nameof(RemainingAmount));
+        }
+
+        // ── Submit ────────────────────────────────────────────────────────────
+
+        private void SubmitSale()
+        {
+            if (Items.Count == 0)
+            {
+                CustomMessageBox.Show("Add at least one line before submitting.", "Validation", "Warning");
+                return;
+            }
+            if (WarehouseId == null)
+            {
+                CustomMessageBox.Show("Please select a warehouse.", "Validation", "Warning");
+                return;
+            }
+
+            try
+            {
+                var req = new CreateSaleRequest
+                {
+                    InvoiceDate   = DateTime.Now,
+                    CustomerId    = CustomerId,
+                    WarehouseId   = WarehouseId.Value,
+                    PaymentMethod = "Cash",
+                    PaidAmount    = PaidAmount,
+                    Items         = Items.Select(i => new SaleItemDto
+                    {
+                        PartId         = i.PartId,
+                        Quantity       = i.Quantity,
+                        UnitPrice      = i.UnitPrice,
+                        DiscountAmount = 0,
+                        TaxRate        = 0
+                    }).ToList()
+                };
+
+                var result = ApiClient.Instance.CreateSaleAsync(req).GetAwaiter().GetResult();
+
+                CustomMessageBox.Show(
+                    $"Invoice {result.InvoiceNumber} created.\nTotal: {result.TotalAmount:N0}",
+                    "Sale Submitted", "Success");
+
+                Items.Clear();
+                PaidAmount = 0;
+                OnPropertyChanged(nameof(TotalAmount));
+                OnPropertyChanged(nameof(RemainingAmount));
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Error: {ex.Message}", "Error", "Error");
+            }
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>

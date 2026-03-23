@@ -1,4 +1,4 @@
-using SpareParts.Domain.BusinessPartners;
+using SpareParts.Domain.Inventory;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,64 +11,64 @@ using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public partial class CustomerSearchControl : UserControl
+    public partial class PartSearchControl : UserControl
     {
-        private List<CustomerDto> _allCustomers = new();
-        private bool _suppressClose;
+        private List<PartDto> _allParts = new();
+        private bool _suppressClose;   // prevents popup closing on internal clicks
 
         // ── Dependency Properties ─────────────────────────────────────────────
 
-        public static readonly DependencyProperty SelectedCustomerIdProperty =
+        public static readonly DependencyProperty SelectedPartIdProperty =
             DependencyProperty.Register(
-                nameof(SelectedCustomerId), typeof(int?), typeof(CustomerSearchControl),
+                nameof(SelectedPartId), typeof(int?), typeof(PartSearchControl),
                 new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
-        public int? SelectedCustomerId
+        public int? SelectedPartId
         {
-            get => (int?)GetValue(SelectedCustomerIdProperty);
-            set => SetValue(SelectedCustomerIdProperty, value);
+            get => (int?)GetValue(SelectedPartIdProperty);
+            set => SetValue(SelectedPartIdProperty, value);
         }
 
-        public static readonly DependencyProperty CustomerSearchTextProperty =
-            DependencyProperty.Register(nameof(CustomerSearchText), typeof(string),
-                typeof(CustomerSearchControl), new PropertyMetadata(string.Empty));
+        public static readonly DependencyProperty SelectedPartPriceProperty =
+            DependencyProperty.Register(
+                nameof(SelectedPartPrice), typeof(decimal), typeof(PartSearchControl),
+                new FrameworkPropertyMetadata(0m, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
-        public string CustomerSearchText
+        public decimal SelectedPartPrice
         {
-            get => (string)GetValue(CustomerSearchTextProperty);
-            set => SetValue(CustomerSearchTextProperty, value);
+            get => (decimal)GetValue(SelectedPartPriceProperty);
+            set => SetValue(SelectedPartPriceProperty, value);
         }
 
-        public static readonly DependencyProperty FilteredCustomersProperty =
-            DependencyProperty.Register(nameof(FilteredCustomers),
-                typeof(ObservableCollection<CustomerDto>), typeof(CustomerSearchControl),
-                new PropertyMetadata(new ObservableCollection<CustomerDto>()));
+        public static readonly DependencyProperty PartSearchTextProperty =
+            DependencyProperty.Register(nameof(PartSearchText), typeof(string),
+                typeof(PartSearchControl), new PropertyMetadata(string.Empty));
 
-        public ObservableCollection<CustomerDto> FilteredCustomers
+        public string PartSearchText
         {
-            get => (ObservableCollection<CustomerDto>)GetValue(FilteredCustomersProperty);
-            set => SetValue(FilteredCustomersProperty, value);
+            get => (string)GetValue(PartSearchTextProperty);
+            set => SetValue(PartSearchTextProperty, value);
         }
 
-        public static readonly DependencyProperty HasSelectedCustomerProperty =
-            DependencyProperty.Register(nameof(HasSelectedCustomer), typeof(bool),
-                typeof(CustomerSearchControl), new PropertyMetadata(false));
+        public static readonly DependencyProperty FilteredPartsProperty =
+            DependencyProperty.Register(nameof(FilteredParts),
+                typeof(ObservableCollection<PartDto>), typeof(PartSearchControl),
+                new PropertyMetadata(new ObservableCollection<PartDto>()));
 
-        public bool HasSelectedCustomer
+        public ObservableCollection<PartDto> FilteredParts
         {
-            get => (bool)GetValue(HasSelectedCustomerProperty);
-            set => SetValue(HasSelectedCustomerProperty, value);
+            get => (ObservableCollection<PartDto>)GetValue(FilteredPartsProperty);
+            set => SetValue(FilteredPartsProperty, value);
         }
 
         // ── Constructor ───────────────────────────────────────────────────────
-
-        public CustomerSearchControl()
+        public PartSearchControl()
         {
             InitializeComponent();
-            FilteredCustomers = new ObservableCollection<CustomerDto>();
+            FilteredParts = new ObservableCollection<PartDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
 
-            // Global mouse-down handler to close popup on outside click
+            // Close popup when user clicks outside this control
             Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;
         }
 
@@ -77,16 +77,19 @@ namespace SpareParts.Desktop.Wpf
             if (!ResultsPopup.IsOpen) return;
             if (_suppressClose) { _suppressClose = false; return; }
 
+            // Check if click is inside our popup or input pill
             var hit = e.OriginalSource as DependencyObject;
-            if (IsInsideControl(hit)) return;
+            if (IsDescendantOfPopupOrPill(hit)) return;
+
             ClosePopup();
         }
 
-        private bool IsInsideControl(DependencyObject? d)
+        private bool IsDescendantOfPopupOrPill(DependencyObject? d)
         {
             while (d != null)
             {
-                if (d == InputPill || d == ResultsPopup) return true;
+                if (d == ResultsPopup || d == InputPill) return true;
+                // Also check the popup's child (the Border)
                 if (d is System.Windows.Controls.Primitives.Popup) return true;
                 d = VisualTreeHelper.GetParent(d) ??
                     LogicalTreeHelper.GetParent(d) as DependencyObject;
@@ -108,10 +111,19 @@ namespace SpareParts.Desktop.Wpf
             InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
 
-            if (_allCustomers.Count > 0)
+            if (_allParts.Count > 0)
                 ApplyFilter();
             else
                 _ = LoadAndFilterAsync();
+        }
+
+        private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            // Only close if focus moved outside the control entirely
+            // (not to the ResultsList inside the popup)
+            var focused = Keyboard.FocusedElement as DependencyObject;
+            if (IsDescendantOfPopupOrPill(focused)) return;
+            // Don't close here — let MainWindow_PreviewMouseDown handle it
         }
 
         private void SearchBox_KeyUp(object sender, KeyEventArgs e)
@@ -119,8 +131,8 @@ namespace SpareParts.Desktop.Wpf
             switch (e.Key)
             {
                 case Key.Enter:
-                    if (FilteredCustomers.Count == 1)
-                    { SelectCustomer(FilteredCustomers[0]); return; }
+                    if (FilteredParts.Count == 1)
+                    { SelectPart(FilteredParts[0]); return; }
                     _ = LoadAndFilterAsync();
                     break;
 
@@ -139,7 +151,7 @@ namespace SpareParts.Desktop.Wpf
                 default:
                     HidePlaceholder();
                     if (string.IsNullOrEmpty(SearchBox.Text)) ShowPlaceholder();
-                    if (_allCustomers.Count > 0) ApplyFilter();
+                    if (_allParts.Count > 0) ApplyFilter();
                     break;
             }
         }
@@ -147,13 +159,13 @@ namespace SpareParts.Desktop.Wpf
         private void ResultItem_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             _suppressClose = true;
-            if (ResultsList.SelectedItem is CustomerDto c) SelectCustomer(c);
+            if (ResultsList.SelectedItem is PartDto p) SelectPart(p);
         }
 
         private void ResultsList_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && ResultsList.SelectedItem is CustomerDto c)
-                SelectCustomer(c);
+            if (e.Key == Key.Enter && ResultsList.SelectedItem is PartDto p)
+                SelectPart(p);
             else if (e.Key == Key.Escape)
             {
                 ClosePopup();
@@ -161,21 +173,26 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private void ClearCustomer_Click(object sender, RoutedEventArgs e)
+        private void ClearPart_Click(object sender, RoutedEventArgs e)
             => ClearSelection();
+
+        private void Popup_MouseLeave(object sender, MouseEventArgs e)
+        {
+            // Do NOT close on mouse-leave — only close on outside click
+        }
 
         // ── Core logic ────────────────────────────────────────────────────────
 
         private async Task EnsureLoadedAsync()
         {
-            if (_allCustomers.Count > 0) return;
+            if (_allParts.Count > 0) return;
             try
             {
-                _allCustomers = await ApiClient.Instance.GetAllAsync<CustomerDto>("api/customers");
+                _allParts = await ApiClient.Instance.GetPartsAsync();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CustomerSearch] pre-load: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[PartSearch] pre-load: {ex.Message}");
             }
         }
 
@@ -185,7 +202,7 @@ namespace SpareParts.Desktop.Wpf
             ApplyFilter();
             ResultsPopup.IsOpen = true;
 
-            if (FilteredCustomers.Count > 0)
+            if (FilteredParts.Count > 0)
             {
                 _suppressClose = true;
                 ResultsList.Focus();
@@ -195,62 +212,63 @@ namespace SpareParts.Desktop.Wpf
 
         private void ApplyFilter()
         {
-            var q = (CustomerSearchText ?? string.Empty).Trim();
+            var q = (PartSearchText ?? string.Empty).Trim();
 
             var results = string.IsNullOrEmpty(q)
-                ? _allCustomers
-                : _allCustomers.Where(c =>
-                    (c.Name  ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                    (c.Phone ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                    (c.Email ?? "").Contains(q, StringComparison.OrdinalIgnoreCase)
+                ? _allParts
+                : _allParts.Where(p =>
+                    (p.InternalCode ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    (p.Name         ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    (p.OEMNumber    ?? "").Contains(q, StringComparison.OrdinalIgnoreCase)
                   ).ToList();
 
-            FilteredCustomers.Clear();
-            foreach (var c in results) FilteredCustomers.Add(c);
+            FilteredParts.Clear();
+            foreach (var p in results) FilteredParts.Add(p);
 
-            CountLabel.Text = FilteredCustomers.Count == 0
+            CountLabel.Text = FilteredParts.Count == 0
                 ? "no results"
-                : $"{FilteredCustomers.Count} found";
+                : $"{FilteredParts.Count} found";
 
-            EmptyState.Visibility  = FilteredCustomers.Count == 0 ? Visibility.Visible  : Visibility.Collapsed;
-            ResultsList.Visibility = FilteredCustomers.Count > 0  ? Visibility.Visible  : Visibility.Collapsed;
+            EmptyState.Visibility  = FilteredParts.Count == 0 ? Visibility.Visible  : Visibility.Collapsed;
+            ResultsList.Visibility = FilteredParts.Count > 0  ? Visibility.Visible  : Visibility.Collapsed;
 
-            if (FilteredCustomers.Count > 0)
+            if (FilteredParts.Count > 0)
                 ResultsPopup.IsOpen = true;
         }
 
-        private void SelectCustomer(CustomerDto customer)
+        private void SelectPart(PartDto part)
         {
-            SelectedCustomerId   = customer.Id;
-            HasSelectedCustomer  = true;
+            SelectedPartId    = part.Id;
+            SelectedPartPrice = part.SalePrice;
 
-            SelectedNameInline.Text = customer.Name;
-            PhoneLabel.Text         = customer.Phone ?? string.Empty;
-            PhoneLabel.Visibility   = string.IsNullOrEmpty(customer.Phone)
-                                      ? Visibility.Collapsed : Visibility.Visible;
+            SelectedNameInline.Text = $"{part.InternalCode} — {part.Name}";
+            PriceLabel.Text         = $"{part.SalePrice:N0} {part.Currency}";
+            PriceLabel.Visibility   = Visibility.Visible;
 
             SelectedIndicator.Visibility = Visibility.Visible;
+            SearchIcon.Visibility        = Visibility.Collapsed;
             SearchBtn.Visibility         = Visibility.Collapsed;
             ClearBtn.Visibility          = Visibility.Visible;
 
             InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
 
-            CustomerSearchText  = string.Empty;
-            SearchBox.Text      = string.Empty;
+            PartSearchText  = string.Empty;
+            SearchBox.Text  = string.Empty;
             ShowPlaceholder();
             ClosePopup();
         }
 
         private void ClearSelection()
         {
-            SelectedCustomerId   = null;
-            HasSelectedCustomer  = false;
+            SelectedPartId    = null;
+            SelectedPartPrice = 0;
 
             SelectedIndicator.Visibility = Visibility.Collapsed;
+            SearchIcon.Visibility        = Visibility.Visible;
             SelectedNameInline.Text      = string.Empty;
-            PhoneLabel.Visibility        = Visibility.Collapsed;
-            PhoneLabel.Text              = string.Empty;
+            PriceLabel.Visibility        = Visibility.Collapsed;
+            PriceLabel.Text              = string.Empty;
 
             SearchBtn.Visibility = Visibility.Visible;
             ClearBtn.Visibility  = Visibility.Collapsed;

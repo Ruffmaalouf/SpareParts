@@ -71,9 +71,6 @@
     </UserControl.Resources>
 
     <StackPanel>
-        <TextBlock Text="ROLE" FontSize="11" FontWeight="Bold"
-                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
-
         <Border x:Name="InputPill" Background="#FF1A1A22"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                 CornerRadius="10" Height="52">
@@ -84,13 +81,11 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Role icon when nothing selected -->
                 <TextBlock Grid.Column="0" x:Name="RoleIcon"
                            Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                            Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center" Margin="0 0 10 0"/>
 
-                <!-- Selected role badge -->
                 <StackPanel Grid.Column="0" x:Name="SelectedIndicator"
                             Orientation="Horizontal" VerticalAlignment="Center"
                             Margin="0 0 10 0" Visibility="Collapsed">
@@ -125,10 +120,12 @@
             </Grid>
         </Border>
 
+        <!-- StaysOpen="True" — closed manually -->
         <Popup x:Name="ResultsPopup"
                PlacementTarget="{Binding ElementName=InputPill}"
                Placement="Bottom" VerticalOffset="6"
-               StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+               StaysOpen="True"
+               AllowsTransparency="True" PopupAnimation="Fade">
             <Border Background="#FF1E1E28" BorderBrush="#33FF5722" BorderThickness="1"
                     CornerRadius="12"
                     MinWidth="{Binding ActualWidth, ElementName=InputPill}"
@@ -138,23 +135,18 @@
                 </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>   <!-- header -->
-                        <RowDefinition Height="*"/>      <!-- list -->
-                        <RowDefinition Height="Auto"/>   <!-- add-new footer -->
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Popup header -->
                     <Border Grid.Row="0" Background="#0DFF5722" BorderBrush="#1AFF5722"
                             BorderThickness="0 0 0 1" CornerRadius="12 12 0 0" Padding="16 10">
                         <TextBlock Text="SELECT ROLE" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource AccentBrush}"/>
                     </Border>
 
-                    <!--
-                        IMPORTANT: NO <ListBox.Items> block here.
-                        ItemsSource is assigned in code-behind to avoid the
-                        "Items collection must be empty before using ItemsSource" exception.
-                    -->
+                    <!-- NO <ListBox.Items> here — ItemsSource set in code-behind -->
                     <ListBox x:Name="ResultsList" Grid.Row="1"
                              Background="Transparent" BorderThickness="0"
                              ItemContainerStyle="{StaticResource RoleRowStyle}"
@@ -183,7 +175,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <!-- Add new role footer -->
+                    <!-- Add custom role -->
                     <Border Grid.Row="2" BorderBrush="#1AFFFFFF" BorderThickness="0 1 0 0"
                             CornerRadius="0 0 12 12" Padding="12 10">
                         <Grid>
@@ -192,12 +184,12 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Margin="0 0 8 0"
-                                    Background="#FF1A1A22" BorderBrush="{DynamicResource BorderBrush}"
+                                    Background="#FF1A1A22"
+                                    BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1" CornerRadius="6">
                                 <TextBox x:Name="NewRoleBox"
                                          Height="32" Padding="8 0"
-                                         FontSize="13"
-                                         Background="Transparent"
+                                         FontSize="13" Background="Transparent"
                                          Foreground="White"
                                          CaretBrush="{DynamicResource AccentBrush}"
                                          BorderThickness="0"
@@ -218,13 +210,11 @@
                                     </TextBox.Style>
                                 </TextBox>
                             </Border>
-                            <Button Grid.Column="1" x:Name="AddRoleBtn"
-                                    Content="＋ Add Role"
+                            <Button Grid.Column="1" Content="＋ Add Role"
                                     Click="AddRole_Click"
                                     Height="32" Padding="12 0"
                                     FontSize="12" FontWeight="SemiBold"
-                                    Foreground="White"
-                                    Cursor="Hand">
+                                    Foreground="White" Cursor="Hand">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd" CornerRadius="6"
@@ -238,19 +228,14 @@
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
                                             </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
-                                            </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
                         </Grid>
                     </Border>
-
                 </Grid>
             </Border>
         </Popup>
-
     </StackPanel>
 </UserControl>

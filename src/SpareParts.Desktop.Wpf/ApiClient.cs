@@ -27,7 +27,7 @@ namespace SpareParts.Desktop.Wpf
             _http = new HttpClient
             {
                 BaseAddress = new Uri(AppSettings.ApiBaseUrl),
-                Timeout     = TimeSpan.FromSeconds(30)
+                Timeout = TimeSpan.FromSeconds(30)
             };
             _http.DefaultRequestHeaders.Accept
                  .Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -133,9 +133,9 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task UploadCarBrandLogoAsync(int brandId, string filePath)
         {
-            await using var fs  = File.OpenRead(filePath);
-            var content         = new MultipartFormDataContent();
-            var fileContent     = new StreamContent(fs);
+            await using var fs = File.OpenRead(filePath);
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(fs);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filePath));
             content.Add(fileContent, "image", Path.GetFileName(filePath));
             (await _http.PostAsync($"api/carbrands/{brandId}/logo", content)).EnsureSuccessStatusCode();
@@ -162,9 +162,9 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task UploadCarModelImageAsync(int modelId, string filePath)
         {
-            await using var fs  = File.OpenRead(filePath);
-            var content         = new MultipartFormDataContent();
-            var fileContent     = new StreamContent(fs);
+            await using var fs = File.OpenRead(filePath);
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(fs);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filePath));
             content.Add(fileContent, "image", Path.GetFileName(filePath));
             (await _http.PostAsync($"api/carmodels/{modelId}/image", content)).EnsureSuccessStatusCode();
@@ -176,7 +176,7 @@ namespace SpareParts.Desktop.Wpf
             return await _http.GetFromJsonAsync<List<PartDto>>("api/parts")
                    ?? new List<PartDto>();
         }
-         
+
         // ── Sales ─────────────────────────────────────────────────────────────
         public async Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
         {
@@ -189,7 +189,7 @@ namespace SpareParts.Desktop.Wpf
             return await resp.Content.ReadFromJsonAsync<CreateSaleResponse>()
                    ?? throw new InvalidOperationException("Empty sale response.");
         }
-         
+
         // ── Generic helpers used by ManagementViewModel ───────────────────────
         public async Task<List<T>> GetAllAsync<T>(string url)
         {
@@ -208,13 +208,13 @@ namespace SpareParts.Desktop.Wpf
                 var msg = await resp.Content.ReadAsStringAsync();
                 throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
             }
-        } 
+        }
         private static BitmapImage BytesToBitmap(byte[] bytes)
         {
             using var ms = new MemoryStream(bytes);
-            var bmp      = new BitmapImage();
+            var bmp = new BitmapImage();
             bmp.BeginInit();
-            bmp.CacheOption  = BitmapCacheOption.OnLoad;
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.StreamSource = ms;
             bmp.EndInit();
             bmp.Freeze();
@@ -225,8 +225,38 @@ namespace SpareParts.Desktop.Wpf
             Path.GetExtension(path).ToLower() switch
             {
                 ".jpg" or ".jpeg" => "image/jpeg",
-                ".webp"           => "image/webp",
-                _                 => "image/png"
+                ".webp" => "image/webp",
+                _ => "image/png"
             };
+
+        // ── Roles ─────────────────────────────────────────────────────────────────────
+        public async Task<List<RoleDto>> GetRolesAsync()
+        {
+            return await _http.GetFromJsonAsync<List<RoleDto>>("api/roles")
+                   ?? new List<RoleDto>();
+        }
+
+        public async Task<RoleDto> CreateRoleAsync(CreateRoleRequest req)
+        {
+            var resp = await _http.PostAsJsonAsync("api/roles", req);
+            if (!resp.IsSuccessStatusCode)
+                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+            return await resp.Content.ReadFromJsonAsync<RoleDto>()
+                   ?? throw new InvalidOperationException("Empty role response.");
+        }
+
+        public async Task UpdateRoleAsync(int id, UpdateRoleRequest req)
+        {
+            var resp = await _http.PutAsJsonAsync($"api/roles/{id}", req);
+            if (!resp.IsSuccessStatusCode)
+                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+        }
+
+        public async Task DeleteRoleAsync(int id)
+        {
+            var resp = await _http.DeleteAsync($"api/roles/{id}");
+            if (!resp.IsSuccessStatusCode)
+                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+        }
     }
 }

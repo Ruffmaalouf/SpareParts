@@ -42,11 +42,11 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RowBg"    Property="Background" Value="#0DFFFFFF"/>
+                                <Setter TargetName="RowBg"     Property="Background" Value="#0DFFFFFF"/>
                                 <Setter TargetName="AccentBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="RowBg"    Property="Background" Value="#18FF5722"/>
+                                <Setter TargetName="RowBg"     Property="Background" Value="#18FF5722"/>
                                 <Setter TargetName="AccentBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -55,9 +55,9 @@
             </Setter>
         </Style>
         <Style x:Key="WhIconBtnStyle" TargetType="Button">
-            <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="BorderThickness"  Value="0"/>
+            <Setter Property="Cursor"           Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -85,13 +85,11 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Search icon when nothing selected -->
                 <TextBlock Grid.Column="0" x:Name="WSearchIcon"
                            Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                            Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center" Margin="0 0 10 0"/>
 
-                <!-- Selected indicator -->
                 <StackPanel Grid.Column="0" x:Name="SelectedIndicator"
                             Orientation="Horizontal" VerticalAlignment="Center"
                             Margin="0 0 10 0" Visibility="Collapsed">
@@ -129,10 +127,12 @@
             </Grid>
         </Border>
 
+        <!-- StaysOpen="True" — closed manually on outside click -->
         <Popup x:Name="ResultsPopup"
                PlacementTarget="{Binding ElementName=InputPill}"
                Placement="Bottom" VerticalOffset="6"
-               StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+               StaysOpen="True"
+               AllowsTransparency="True" PopupAnimation="Fade">
             <Border Background="#FF1E1E28" BorderBrush="#33FF5722" BorderThickness="1"
                     CornerRadius="12"
                     MinWidth="{Binding ActualWidth, ElementName=InputPill}"
