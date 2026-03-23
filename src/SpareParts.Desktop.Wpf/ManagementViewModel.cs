@@ -22,6 +22,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CustomerDto>   Customers  { get; } = new();
         public ObservableCollection<SupplierDto>   Suppliers  { get; } = new();
         public ObservableCollection<BrandDto>      Brands     { get; } = new();
+        public ObservableCollection<CarBrandDto>   CarBrands  { get; } = new();
         public ObservableCollection<CategoryDto>   Categories { get; } = new();
         public ObservableCollection<PartDto>       Parts      { get; } = new();
         public ObservableCollection<CarModelDto>   CarModels  { get; } = new();
@@ -160,6 +161,7 @@ namespace SpareParts.Desktop.Wpf
                 var customers = await Api.GetAllAsync<CustomerDto>("api/customers");
                 var suppliers = await Api.GetAllAsync<SupplierDto>("api/suppliers");
                 var brands    = await Api.GetAllAsync<BrandDto>("api/brands");
+                var carBrands = await Api.GetCarBrandsAsync();
                 var categories = await Api.GetAllAsync<CategoryDto>("api/categories");
                 var parts     = await Api.GetAllAsync<PartDto>("api/parts");
                 var carModels = await Api.GetAllAsync<CarModelDto>("api/carmodels");
@@ -169,6 +171,7 @@ namespace SpareParts.Desktop.Wpf
                     Customers.Clear(); foreach (var x in customers)  Customers.Add(x);
                     Suppliers.Clear(); foreach (var x in suppliers)  Suppliers.Add(x);
                     Brands.Clear();    foreach (var x in brands)     Brands.Add(x);
+                    CarBrands.Clear(); foreach (var x in carBrands)  CarBrands.Add(x);
                     Categories.Clear(); foreach (var x in categories) Categories.Add(x);
                     Parts.Clear();     foreach (var x in parts)      Parts.Add(x);
                     CarModels.Clear(); foreach (var x in carModels)  CarModels.Add(x);
