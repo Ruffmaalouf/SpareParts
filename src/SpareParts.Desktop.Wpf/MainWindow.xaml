@@ -167,6 +167,9 @@
                                     <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                         <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                     </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
                                         <Setter Property="Opacity" Value="0.6"/>
                                     </Trigger>
