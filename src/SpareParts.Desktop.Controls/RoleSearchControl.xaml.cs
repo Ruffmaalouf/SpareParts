@@ -8,14 +8,6 @@ using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public class RoleItem
-    {
-        public string Name           { get; set; } = string.Empty;
-        public string Description    { get; set; } = string.Empty;
-        public string BadgeColor     { get; set; } = "#22FFFFFF";
-        public string BadgeTextColor { get; set; } = "#FFFFFF";
-    }
-
     public partial class RoleSearchControl : UserControl
     {
         private readonly List<RoleItem> _allRoles = new()

@@ -18,20 +18,4 @@ namespace SpareParts.Domain.Accounting
         public AccountType AccountType { get; set; }
         public int? ParentId { get; set; }
     }
-
-    public class JournalEntry : AuditableEntity
-    {
-        public DateTime EntryDate { get; set; }
-        public string? ReferenceType { get; set; }
-        public int? ReferenceId { get; set; }
-        public string? Description { get; set; }
-    }
-
-    public class JournalLine : AuditableEntity
-    {
-        public int JournalEntryId { get; set; }
-        public int AccountId { get; set; }
-        public decimal Debit { get; set; }
-        public decimal Credit { get; set; }
-    }
 }
