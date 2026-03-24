@@ -87,6 +87,19 @@ namespace SpareParts.Api.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            using var session = new DbSession(_factory);
+            var deleted = session.Connection.Execute(
+                "DELETE FROM Customers WHERE Id = @Id",
+                new { Id = id },
+                session.Transaction);
+            if (deleted == 0) return NotFound();
+            session.Commit();
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -171,6 +184,19 @@ namespace SpareParts.Api.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            using var session = new DbSession(_factory);
+            var deleted = session.Connection.Execute(
+                "DELETE FROM Suppliers WHERE Id = @Id",
+                new { Id = id },
+                session.Transaction);
+            if (deleted == 0) return NotFound();
+            session.Commit();
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -238,6 +264,19 @@ namespace SpareParts.Api.Controllers
                 },
                 session.Transaction);
             if (updated == 0) return NotFound();
+            session.Commit();
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            using var session = new DbSession(_factory);
+            var deleted = session.Connection.Execute(
+                "DELETE FROM Brands WHERE Id = @Id",
+                new { Id = id },
+                session.Transaction);
+            if (deleted == 0) return NotFound();
             session.Commit();
             return NoContent();
         }
@@ -391,6 +430,19 @@ namespace SpareParts.Api.Controllers
                 },
                 session.Transaction);
             if (updated == 0) return NotFound();
+            session.Commit();
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            using var session = new DbSession(_factory);
+            var deleted = session.Connection.Execute(
+                "DELETE FROM Parts WHERE Id = @Id",
+                new { Id = id },
+                session.Transaction);
+            if (deleted == 0) return NotFound();
             session.Commit();
             return NoContent();
         }

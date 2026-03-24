@@ -217,6 +217,16 @@ namespace SpareParts.Api.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin,Manager")]
+        public IActionResult Delete(int id)
+        {
+            using var conn = _factory.CreateConnection();
+            var deleted = conn.Execute("DELETE FROM CarModels WHERE Id = @Id", new { Id = id });
+            if (deleted == 0) return NotFound();
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

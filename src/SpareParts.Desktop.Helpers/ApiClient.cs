@@ -45,6 +45,7 @@ namespace SpareParts.Desktop.Wpf
         Task<List<T>> GetAllAsync<T>(string url);
         Task PostAsync(string url, object payload);
         Task PutAsync(string url, object payload);
+        Task DeleteAsync(string url);
 
         Task<List<RoleDto>> GetRolesAsync();
         Task<RoleDto> CreateRoleAsync(CreateRoleRequest req);
@@ -93,6 +94,7 @@ namespace SpareParts.Desktop.Wpf
         public abstract Task<List<T>> GetAllAsync<T>(string url);
         public abstract Task PostAsync(string url, object payload);
         public abstract Task PutAsync(string url, object payload);
+        public abstract Task DeleteAsync(string url);
         public abstract Task<List<RoleDto>> GetRolesAsync();
         public abstract Task<RoleDto> CreateRoleAsync(CreateRoleRequest req);
         public abstract Task UpdateRoleAsync(int id, UpdateRoleRequest req);
@@ -300,6 +302,16 @@ namespace SpareParts.Desktop.Wpf
         public override async Task PutAsync(string url, object payload)
         {
             var resp = await Http.PutAsJsonAsync(url, payload);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var msg = await resp.Content.ReadAsStringAsync();
+                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
+            }
+        }
+
+        public override async Task DeleteAsync(string url)
+        {
+            var resp = await Http.DeleteAsync(url);
             if (!resp.IsSuccessStatusCode)
             {
                 var msg = await resp.Content.ReadAsStringAsync();
