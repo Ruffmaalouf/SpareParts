@@ -6,6 +6,7 @@ using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Sales;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -46,10 +47,20 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(4));
-                await Http.GetAsync("api/health", cts.Token);
+                var response = await Http.GetAsync("api/health", cts.Token);
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogWarning($"Ping failed with status code {(int)response.StatusCode}.");
+                    return false;
+                }
+
                 return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                LogWarning($"Ping failed: {ex.Message}");
+                return false;
+            }
         }
 
         // ── Users ─────────────────────────────────────────────────────────────
@@ -108,10 +119,19 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 var resp = await Http.GetAsync($"api/carbrands/{brandId}/logo");
-                if (!resp.IsSuccessStatusCode) return null;
+                if (!resp.IsSuccessStatusCode)
+                {
+                    LogWarning($"Brand logo load failed for brand {brandId}. Status: {(int)resp.StatusCode}.");
+                    return null;
+                }
+
                 return BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                LogWarning($"Brand logo load failed for brand {brandId}: {ex.Message}");
+                return null;
+            }
         }
 
         public override async Task UploadCarBrandLogoAsync(int brandId, string filePath)
@@ -137,10 +157,19 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 var resp = await Http.GetAsync($"api/carmodels/{modelId}/image");
-                if (!resp.IsSuccessStatusCode) return null;
+                if (!resp.IsSuccessStatusCode)
+                {
+                    LogWarning($"Model image load failed for model {modelId}. Status: {(int)resp.StatusCode}.");
+                    return null;
+                }
+
                 return BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                LogWarning($"Model image load failed for model {modelId}: {ex.Message}");
+                return null;
+            }
         }
 
         public override async Task UploadCarModelImageAsync(int modelId, string filePath)
@@ -241,6 +270,11 @@ namespace SpareParts.Desktop.Wpf
             var resp = await Http.DeleteAsync($"api/roles/{id}");
             if (!resp.IsSuccessStatusCode)
                 throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+        }
+
+        private static void LogWarning(string message)
+        {
+            Trace.TraceWarning($"[ApiClient] {message}");
         }
     }
 }

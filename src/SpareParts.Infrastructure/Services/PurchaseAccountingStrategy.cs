@@ -16,10 +16,23 @@ namespace SpareParts.Infrastructure.Services
 
         public List<JournalLine> BuildJournalLines(PurchaseInvoice purchase, int userId)
         {
-            var lines = new List<JournalLine>();
+            if (purchase.TotalAmount < 0)
+            {
+                throw new InvalidOperationException("Purchase journal lines cannot be generated from negative totals.");
+            }
 
-            lines.Add(new JournalLine { AccountId = _inventoryAccountId, Debit = purchase.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId });
-            lines.Add(new JournalLine { AccountId = _cashOrApAccountId, Debit = 0, Credit = purchase.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId });
+            var lines = new List<JournalLine>
+            {
+                new() { AccountId = _inventoryAccountId, Debit = purchase.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = _cashOrApAccountId, Debit = 0, Credit = purchase.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
+            };
+
+            var totalDebit = lines.Sum(x => x.Debit);
+            var totalCredit = lines.Sum(x => x.Credit);
+            if (totalDebit != totalCredit)
+            {
+                throw new InvalidOperationException("Purchase journal entry is not balanced.");
+            }
 
             return lines;
         }

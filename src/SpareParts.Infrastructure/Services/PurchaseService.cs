@@ -13,6 +13,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
         private readonly IAccountingStrategy<PurchaseInvoice> _accountingStrategy;
+        private readonly IInvoiceTotalsCalculator _totalsCalculator;
 
         public PurchaseService(
             ISqlConnectionFactory factory,
@@ -20,7 +21,8 @@ namespace SpareParts.Infrastructure.Services
             IInventoryService inventoryService,
             IInvoiceNumberGenerator invoiceNumberGenerator,
             IPaymentStatusPolicy paymentStatusPolicy,
-            IAccountingStrategy<PurchaseInvoice> accountingStrategy)
+            IAccountingStrategy<PurchaseInvoice> accountingStrategy,
+            IInvoiceTotalsCalculator totalsCalculator)
         {
             _factory = factory;
             _ctxFactory = ctxFactory;
@@ -28,18 +30,22 @@ namespace SpareParts.Infrastructure.Services
             _invoiceNumberGenerator = invoiceNumberGenerator;
             _paymentStatusPolicy = paymentStatusPolicy;
             _accountingStrategy = accountingStrategy;
+            _totalsCalculator = totalsCalculator;
         }
 
         public CreatePurchaseResponse CreatePurchase(CreatePurchaseRequest request, int userId)
         {
             using var session = new DbSession(_factory);
             var ctx = _ctxFactory.Create(session);
+            var purchasesRepository = new PurchasesRepository(ctx);
+            var partsRepository = new PartsRepository(ctx);
+            var journalRepository = new JournalRepository(ctx);
 
             ValidateRequest(request);
-            var parts = LoadParts(ctx, request);
+            var parts = LoadParts(partsRepository, request);
 
-            var (purchaseItems, subtotal, discountTotal, taxTotal) = BuildPurchaseItems(request.Items, parts, userId);
-            var totalAmount = subtotal - discountTotal + taxTotal;
+            var (purchaseItems, _) = BuildPurchaseItems(request.Items, parts, userId);
+            var totals = _totalsCalculator.CalculatePurchase(request.Items);
             var purchaseNumber = _invoiceNumberGenerator.NextPurchaseNumber();
 
             var purchase = new PurchaseInvoice
@@ -48,22 +54,22 @@ namespace SpareParts.Infrastructure.Services
                 PurchaseDate = request.PurchaseDate,
                 SupplierId = request.SupplierId,
                 WarehouseId = request.WarehouseId,
-                Subtotal = subtotal,
-                DiscountAmount = discountTotal,
-                TaxAmount = taxTotal,
-                TotalAmount = totalAmount,
+                Subtotal = totals.Subtotal,
+                DiscountAmount = totals.DiscountTotal,
+                TaxAmount = totals.TaxTotal,
+                TotalAmount = totals.TotalAmount,
                 PaidAmount = request.PaidAmount,
-                PaymentStatus = _paymentStatusPolicy.Resolve(totalAmount, request.PaidAmount),
+                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId,
                 Items = purchaseItems
             };
 
-            var purchaseId = ctx.InsertPurchaseInvoice(purchase);
-            ctx.InsertPurchaseInvoiceItems(purchaseId, purchaseItems);
+            var purchaseId = purchasesRepository.InsertInvoice(purchase);
+            purchasesRepository.InsertItems(purchaseId, purchaseItems);
 
             AdjustStockForPurchase(ctx, request, purchaseItems, purchaseId, userId);
-            CreateJournalEntryForPurchase(ctx, purchase, purchaseId, userId);
+            CreateJournalEntryForPurchase(journalRepository, purchase, purchaseId, userId);
 
             session.Commit();
 
@@ -71,7 +77,7 @@ namespace SpareParts.Infrastructure.Services
             {
                 PurchaseId = purchaseId,
                 PurchaseNumber = purchaseNumber,
-                TotalAmount = totalAmount,
+                TotalAmount = totals.TotalAmount,
                 PaymentStatus = purchase.PaymentStatus
             };
         }
@@ -84,10 +90,10 @@ namespace SpareParts.Infrastructure.Services
             }
         }
 
-        private static Dictionary<int, Part> LoadParts(SparePartsDataContext ctx, CreatePurchaseRequest request)
+        private static Dictionary<int, Part> LoadParts(IPartsRepository repository, CreatePurchaseRequest request)
         {
             var partIds = request.Items.Select(i => i.PartId).Distinct().ToList();
-            var parts = ctx.GetPartsByIds(partIds).ToDictionary(p => p.Id, p => p);
+            var parts = repository.GetByIds(partIds);
 
             foreach (var item in request.Items)
             {
@@ -100,15 +106,13 @@ namespace SpareParts.Infrastructure.Services
             return parts;
         }
 
-        private static (List<PurchaseInvoiceItem> Items, decimal Subtotal, decimal DiscountTotal, decimal TaxTotal) BuildPurchaseItems(
+        private static (List<PurchaseInvoiceItem> Items, decimal TotalCost) BuildPurchaseItems(
             IList<PurchaseItemDto> requestItems,
             IReadOnlyDictionary<int, Part> parts,
             int userId)
         {
             var purchaseItems = new List<PurchaseInvoiceItem>();
-            decimal subtotal = 0;
-            decimal discountTotal = 0;
-            decimal taxTotal = 0;
+            decimal totalCost = 0;
 
             foreach (var item in requestItems)
             {
@@ -117,9 +121,6 @@ namespace SpareParts.Infrastructure.Services
                 var baseLine = item.Quantity * item.UnitCost;
                 var tax = baseLine * (item.TaxRate / 100m);
                 var lineTotal = baseLine + tax;
-
-                subtotal += baseLine;
-                taxTotal += tax;
 
                 purchaseItems.Add(new PurchaseInvoiceItem
                 {
@@ -131,9 +132,11 @@ namespace SpareParts.Infrastructure.Services
                     CreatedAt = DateTime.UtcNow,
                     CreatedByUserId = userId
                 });
+
+                totalCost += item.UnitCost * item.Quantity;
             }
 
-            return (purchaseItems, subtotal, discountTotal, taxTotal);
+            return (purchaseItems, totalCost);
         }
 
         private void AdjustStockForPurchase(
@@ -158,7 +161,7 @@ namespace SpareParts.Infrastructure.Services
             }
         }
 
-        private void CreateJournalEntryForPurchase(SparePartsDataContext ctx, PurchaseInvoice purchase, int purchaseId, int userId)
+        private void CreateJournalEntryForPurchase(IJournalRepository journalRepository, PurchaseInvoice purchase, int purchaseId, int userId)
         {
             var entry = new JournalEntry
             {
@@ -171,8 +174,8 @@ namespace SpareParts.Infrastructure.Services
             };
 
             var lines = _accountingStrategy.BuildJournalLines(purchase, userId);
-            var entryId = ctx.InsertJournalEntry(entry);
-            ctx.InsertJournalLines(entryId, lines);
+            var entryId = journalRepository.InsertEntry(entry);
+            journalRepository.InsertLines(entryId, lines);
         }
     }
 }

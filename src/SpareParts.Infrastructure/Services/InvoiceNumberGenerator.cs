@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Threading;
 
 namespace SpareParts.Infrastructure.Services
@@ -10,7 +11,7 @@ namespace SpareParts.Infrastructure.Services
 
     public class UtcInvoiceNumberGenerator : IInvoiceNumberGenerator
     {
-        private static int _counter;
+        private static long _counter;
 
         public string NextSalesNumber() => Next("INV");
 
@@ -19,8 +20,9 @@ namespace SpareParts.Infrastructure.Services
         private static string Next(string prefix)
         {
             var now = DateTime.UtcNow;
-            var seq = Interlocked.Increment(ref _counter) % 1000;
-            return $"{prefix}-{now:yyyyMMddHHmmssfff}-{seq:D3}";
+            var sequence = Interlocked.Increment(ref _counter) % 1_000_000;
+            var random = RandomNumberGenerator.GetInt32(0, 1_000_000);
+            return $"{prefix}-{now:yyyyMMddHHmmssfffffff}-{sequence:D6}-{random:D6}";
         }
     }
 }
