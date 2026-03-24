@@ -71,6 +71,7 @@ builder.Services.AddScoped<ISparePartsDataContextFactory, SparePartsDataContextF
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator>();
 builder.Services.AddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
+builder.Services.AddSingleton<IInvoiceTotalsCalculator, InvoiceTotalsCalculator>();
 
 builder.Services.AddScoped<SalesService>();
 builder.Services.AddScoped<PurchaseService>();

@@ -13,6 +13,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
         private readonly IAccountingStrategy<SalesInvoice> _accountingStrategy;
+        private readonly IInvoiceTotalsCalculator _totalsCalculator;
 
         public SalesService(
             ISqlConnectionFactory factory,
@@ -20,7 +21,8 @@ namespace SpareParts.Infrastructure.Services
             IInventoryService inventoryService,
             IInvoiceNumberGenerator invoiceNumberGenerator,
             IPaymentStatusPolicy paymentStatusPolicy,
-            IAccountingStrategy<SalesInvoice> accountingStrategy)
+            IAccountingStrategy<SalesInvoice> accountingStrategy,
+            IInvoiceTotalsCalculator totalsCalculator)
         {
             _factory = factory;
             _ctxFactory = ctxFactory;
@@ -28,19 +30,22 @@ namespace SpareParts.Infrastructure.Services
             _invoiceNumberGenerator = invoiceNumberGenerator;
             _paymentStatusPolicy = paymentStatusPolicy;
             _accountingStrategy = accountingStrategy;
+            _totalsCalculator = totalsCalculator;
         }
 
         public CreateSaleResponse CreateSale(CreateSaleRequest request, int userId)
         {
             using var session = new DbSession(_factory);
             var ctx = _ctxFactory.Create(session);
+            var salesRepository = new SalesRepository(ctx);
+            var partsRepository = new PartsRepository(ctx);
+            var journalRepository = new JournalRepository(ctx);
 
             ValidateRequest(request);
-            var parts = LoadParts(ctx, request);
+            var parts = LoadParts(partsRepository, request);
             EnsureStockAvailability(ctx, request, parts);
 
-            var (subtotal, discountTotal, taxTotal) = CalculateTotals(request.Items);
-            var totalAmount = subtotal - discountTotal + taxTotal;
+            var totals = _totalsCalculator.CalculateSales(request.Items);
             var invoiceNumber = _invoiceNumberGenerator.NextSalesNumber();
 
             var invoice = new SalesInvoice
@@ -49,13 +54,13 @@ namespace SpareParts.Infrastructure.Services
                 InvoiceDate = request.InvoiceDate,
                 CustomerId = request.CustomerId,
                 WarehouseId = request.WarehouseId,
-                Subtotal = subtotal,
-                DiscountAmount = discountTotal,
-                TaxAmount = taxTotal,
-                TotalAmount = totalAmount,
+                Subtotal = totals.Subtotal,
+                DiscountAmount = totals.DiscountTotal,
+                TaxAmount = totals.TaxTotal,
+                TotalAmount = totals.TotalAmount,
                 PaidAmount = request.PaidAmount,
                 PaymentMethod = request.PaymentMethod,
-                PaymentStatus = _paymentStatusPolicy.Resolve(totalAmount, request.PaidAmount),
+                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount),
                 Notes = request.Notes,
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId
@@ -64,11 +69,11 @@ namespace SpareParts.Infrastructure.Services
             var (items, totalCost) = BuildSaleItems(request, parts, userId);
             invoice.TotalCost = totalCost;
 
-            var invoiceId = ctx.InsertSalesInvoice(invoice);
-            ctx.InsertSalesInvoiceItems(invoiceId, items);
+            var invoiceId = salesRepository.InsertInvoice(invoice);
+            salesRepository.InsertItems(invoiceId, items);
 
             AdjustStockForSale(ctx, invoiceId, request, items, parts, userId);
-            CreateJournalEntryForSale(ctx, invoice, invoiceId, userId);
+            CreateJournalEntryForSale(journalRepository, invoice, invoiceId, userId);
 
             session.Commit();
 
@@ -76,7 +81,7 @@ namespace SpareParts.Infrastructure.Services
             {
                 InvoiceId = invoiceId,
                 InvoiceNumber = invoiceNumber,
-                TotalAmount = totalAmount,
+                TotalAmount = totals.TotalAmount,
                 PaymentStatus = invoice.PaymentStatus
             };
         }
@@ -89,10 +94,10 @@ namespace SpareParts.Infrastructure.Services
             }
         }
 
-        private static Dictionary<int, Part> LoadParts(SparePartsDataContext ctx, CreateSaleRequest request)
+        private static Dictionary<int, Part> LoadParts(IPartsRepository repository, CreateSaleRequest request)
         {
             var partIds = request.Items.Select(i => i.PartId).Distinct().ToList();
-            return ctx.GetPartsByIds(partIds).ToDictionary(p => p.Id, p => p);
+            return repository.GetByIds(partIds);
         }
 
         private void EnsureStockAvailability(
@@ -113,26 +118,6 @@ namespace SpareParts.Infrastructure.Services
                     throw new InvalidOperationException($"Not enough stock for part {item.PartId}. Available: {available}");
                 }
             }
-        }
-
-        private static (decimal Subtotal, decimal DiscountTotal, decimal TaxTotal) CalculateTotals(IList<SaleItemDto> items)
-        {
-            decimal subtotal = 0;
-            decimal discountTotal = 0;
-            decimal taxTotal = 0;
-
-            foreach (var item in items)
-            {
-                var baseLine = item.Quantity * item.UnitPrice;
-                var net = baseLine - item.DiscountAmount;
-                var tax = net * (item.TaxRate / 100m);
-
-                subtotal += baseLine;
-                discountTotal += item.DiscountAmount;
-                taxTotal += tax;
-            }
-
-            return (subtotal, discountTotal, taxTotal);
         }
 
         private static (List<SalesInvoiceItem> Items, decimal TotalCost) BuildSaleItems(
@@ -193,7 +178,7 @@ namespace SpareParts.Infrastructure.Services
             }
         }
 
-        private void CreateJournalEntryForSale(SparePartsDataContext ctx, SalesInvoice invoice, int invoiceId, int userId)
+        private void CreateJournalEntryForSale(IJournalRepository journalRepository, SalesInvoice invoice, int invoiceId, int userId)
         {
             var entry = new JournalEntry
             {
@@ -206,8 +191,8 @@ namespace SpareParts.Infrastructure.Services
             };
 
             var lines = _accountingStrategy.BuildJournalLines(invoice, userId);
-            var entryId = ctx.InsertJournalEntry(entry);
-            ctx.InsertJournalLines(entryId, lines);
+            var entryId = journalRepository.InsertEntry(entry);
+            journalRepository.InsertLines(entryId, lines);
         }
     }
 }
