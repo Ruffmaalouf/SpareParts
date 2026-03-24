@@ -14,12 +14,14 @@ namespace SpareParts.Infrastructure.Data
     {
         int InsertInvoice(SalesInvoice invoice);
         void InsertItems(int invoiceId, IList<SalesInvoiceItem> items);
+        bool InvoiceNumberExists(string invoiceNumber);
     }
 
     public interface IPurchasesRepository
     {
         int InsertInvoice(PurchaseInvoice invoice);
         void InsertItems(int purchaseId, IList<PurchaseInvoiceItem> items);
+        bool PurchaseNumberExists(string purchaseNumber);
     }
 
     public interface IJournalRepository
@@ -55,6 +57,8 @@ namespace SpareParts.Infrastructure.Data
         public int InsertInvoice(SalesInvoice invoice) => _ctx.InsertSalesInvoice(invoice);
 
         public void InsertItems(int invoiceId, IList<SalesInvoiceItem> items) => _ctx.InsertSalesInvoiceItems(invoiceId, items);
+
+        public bool InvoiceNumberExists(string invoiceNumber) => _ctx.SalesInvoiceNumberExists(invoiceNumber);
     }
 
     public class PurchasesRepository : IPurchasesRepository
@@ -69,6 +73,8 @@ namespace SpareParts.Infrastructure.Data
         public int InsertInvoice(PurchaseInvoice invoice) => _ctx.InsertPurchaseInvoice(invoice);
 
         public void InsertItems(int purchaseId, IList<PurchaseInvoiceItem> items) => _ctx.InsertPurchaseInvoiceItems(purchaseId, items);
+
+        public bool PurchaseNumberExists(string purchaseNumber) => _ctx.PurchaseNumberExists(purchaseNumber);
     }
 
     public class JournalRepository : IJournalRepository
