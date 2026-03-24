@@ -31,12 +31,7 @@ namespace SpareParts.Desktop.Wpf
             var resp = await Http.PostAsJsonAsync("api/auth/login",
                 new LoginRequest { Username = username, Password = password });
 
-            if (!resp.IsSuccessStatusCode)
-            {
-                var msg = await resp.Content.ReadAsStringAsync();
-                throw new UnauthorizedAccessException(
-                    msg.Trim('"', ' ', '\n') is { Length: > 0 } m ? m : "Invalid credentials.");
-            }
+            await EnsureSuccessAsync(resp, "Invalid credentials.");
 
             return await resp.Content.ReadFromJsonAsync<LoginResponse>()
                    ?? throw new InvalidOperationException("Empty login response.");
@@ -78,23 +73,20 @@ namespace SpareParts.Desktop.Wpf
         public override async Task<int> CreateUserAsync(CreateUserRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/users", req);
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+            await EnsureSuccessAsync(resp, "Request failed.");
             return await resp.Content.ReadFromJsonAsync<int>();
         }
 
         public override async Task UpdateUserAsync(int id, UpdateUserRequest req)
         {
             var resp = await Http.PutAsJsonAsync($"api/users/{id}", req);
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+            await EnsureSuccessAsync(resp, "Request failed.");
         }
 
         public override async Task DeleteUserAsync(int id)
         {
             var resp = await Http.DeleteAsync($"api/users/{id}");
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception($"Deactivate failed: {resp.StatusCode}");
+            await EnsureSuccessAsync(resp, $"Deactivate failed: {resp.StatusCode}");
         }
 
         // ── Customers ─────────────────────────────────────────────────────────
@@ -208,11 +200,7 @@ namespace SpareParts.Desktop.Wpf
         public override async Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/sales", req);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var msg = await resp.Content.ReadAsStringAsync();
-                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
-            }
+            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
             return await resp.Content.ReadFromJsonAsync<CreateSaleResponse>()
                    ?? throw new InvalidOperationException("Empty sale response.");
         }
@@ -221,8 +209,7 @@ namespace SpareParts.Desktop.Wpf
         public override async Task<List<T>> GetAllAsync<T>(string url)
         {
             var resp = await Http.GetAsync(url);
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception($"GET {url} failed: {resp.StatusCode}");
+            await EnsureSuccessAsync(resp, $"GET {url} failed: {resp.StatusCode}");
             return await resp.Content.ReadFromJsonAsync<List<T>>()
                    ?? new List<T>();
         }
@@ -230,31 +217,19 @@ namespace SpareParts.Desktop.Wpf
         public override async Task PostAsync(string url, object payload)
         {
             var resp = await Http.PostAsJsonAsync(url, payload);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var msg = await resp.Content.ReadAsStringAsync();
-                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
-            }
+            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
         }
 
         public override async Task PutAsync(string url, object payload)
         {
             var resp = await Http.PutAsJsonAsync(url, payload);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var msg = await resp.Content.ReadAsStringAsync();
-                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
-            }
+            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
         }
 
         public override async Task DeleteAsync(string url)
         {
             var resp = await Http.DeleteAsync(url);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var msg = await resp.Content.ReadAsStringAsync();
-                throw new Exception(msg.Trim('"', ' ') is { Length: > 0 } m ? m : resp.StatusCode.ToString());
-            }
+            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
         }
 
         // ── Roles ─────────────────────────────────────────────────────────────────
@@ -267,8 +242,7 @@ namespace SpareParts.Desktop.Wpf
         public override async Task<RoleDto> CreateRoleAsync(CreateRoleRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/roles", req);
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+            await EnsureSuccessAsync(resp, "Request failed.");
             return await resp.Content.ReadFromJsonAsync<RoleDto>()
                    ?? throw new InvalidOperationException("Empty role response.");
         }
@@ -276,15 +250,13 @@ namespace SpareParts.Desktop.Wpf
         public override async Task UpdateRoleAsync(int id, UpdateRoleRequest req)
         {
             var resp = await Http.PutAsJsonAsync($"api/roles/{id}", req);
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+            await EnsureSuccessAsync(resp, "Request failed.");
         }
 
         public override async Task DeleteRoleAsync(int id)
         {
             var resp = await Http.DeleteAsync($"api/roles/{id}");
-            if (!resp.IsSuccessStatusCode)
-                throw new Exception((await resp.Content.ReadAsStringAsync()).Trim('"'));
+            await EnsureSuccessAsync(resp, "Request failed.");
         }
 
         private static void LogWarning(string message)
