@@ -20,12 +20,25 @@ namespace SpareParts.Infrastructure.Services
 
         public List<JournalLine> BuildJournalLines(SalesInvoice invoice, int userId)
         {
-            var lines = new List<JournalLine>();
+            if (invoice.TotalAmount < 0 || invoice.TotalCost < 0)
+            {
+                throw new InvalidOperationException("Sale journal lines cannot be generated from negative totals.");
+            }
 
-            lines.Add(new JournalLine { AccountId = _cashAccountId, Debit = invoice.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId });
-            lines.Add(new JournalLine { AccountId = _salesAccountId, Debit = 0, Credit = invoice.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId });
-            lines.Add(new JournalLine { AccountId = _cogsAccountId, Debit = invoice.TotalCost, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId });
-            lines.Add(new JournalLine { AccountId = _inventoryAccountId, Debit = 0, Credit = invoice.TotalCost, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId });
+            var lines = new List<JournalLine>
+            {
+                new() { AccountId = _cashAccountId, Debit = invoice.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = _salesAccountId, Debit = 0, Credit = invoice.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = _cogsAccountId, Debit = invoice.TotalCost, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = _inventoryAccountId, Debit = 0, Credit = invoice.TotalCost, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
+            };
+
+            var totalDebit = lines.Sum(x => x.Debit);
+            var totalCredit = lines.Sum(x => x.Credit);
+            if (totalDebit != totalCredit)
+            {
+                throw new InvalidOperationException("Sale journal entry is not balanced.");
+            }
 
             return lines;
         }
