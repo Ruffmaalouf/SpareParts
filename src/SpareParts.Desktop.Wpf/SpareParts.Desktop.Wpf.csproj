@@ -36,11 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="RestSharp" Version="114.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
+    <ProjectReference Include="..\SpareParts.Desktop.Helpers\SpareParts.Desktop.Helpers.csproj" />
+    <ProjectReference Include="..\SpareParts.Desktop.Controls\SpareParts.Desktop.Controls.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,23 +9,6 @@ using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf
 {
-    // ── WPF display wrapper — adds UI-only computed properties to UserDto ─────
-    // Domain DTOs (UserDto, CreateUserRequest, UpdateUserRequest) live in
-    // SpareParts.Domain.Auth and are shared with the API.
-    public class UserManagementDto : UserDto, INotifyPropertyChanged
-    {
-        public string LastLoginDisplay =>
-            LastLoginAt.HasValue
-                ? LastLoginAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
-                : "Never";
-
-        public string StatusBadge => IsActive ? "Active" : "Inactive";
-
-        public new event PropertyChangedEventHandler? PropertyChanged;
-        public void Notify(string n) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
     // ── ViewModel ─────────────────────────────────────────────────────────────
     public class UsersViewModel : INotifyPropertyChanged
     {
