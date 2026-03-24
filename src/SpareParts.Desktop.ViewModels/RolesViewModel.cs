@@ -9,13 +9,6 @@ using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public class RoleManagementDto : RoleDto, INotifyPropertyChanged
-    {
-        public new event PropertyChangedEventHandler? PropertyChanged;
-        public void Notify(string n) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
     public class RolesViewModel : INotifyPropertyChanged
     {
         public ObservableCollection<RoleManagementDto> Roles { get; } = new();

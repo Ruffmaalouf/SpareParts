@@ -141,19 +141,4 @@ namespace SpareParts.Desktop.Wpf
         private void OnPropertyChanged(string name) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
-
-    // ── Session holder ────────────────────────────────────────────────────────
-    public class SessionUser
-    {
-        public int      UserId    { get; set; }
-        public string   FullName  { get; set; } = string.Empty;
-        public string   Role      { get; set; } = string.Empty;
-        public string   Token     { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; }
-    }
-
-    public static class SessionContext
-    {
-        public static SessionUser? CurrentUser { get; set; }
-    }
 }

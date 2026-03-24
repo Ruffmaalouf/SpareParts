@@ -18,33 +18,6 @@ using System.Windows.Input;
 namespace SpareParts.Desktop.Wpf
 {
     // ── UI-only display models (never sent to API) ────────────────────────────
-    public class CarBrandUi
-    {
-        public int    Id      { get; set; }
-        public string Name    { get; set; } = string.Empty;
-        public string Country { get; set; } = string.Empty;
-        public string LogoPath { get; set; } = string.Empty;
-    }
-
-    public class CarModelUi
-    {
-        public int     ModelId    { get; set; }
-        public string  Name       { get; set; } = string.Empty;
-        public string  Year       { get; set; } = string.Empty;
-        public string  EngineType { get; set; } = string.Empty;
-        public decimal BasePrice  { get; set; }
-        public string  ImagePath  { get; set; } = string.Empty;
-    }
-
-    public class CarPartModel
-    {
-        public int     PartId      { get; set; }
-        public string  Code        { get; set; } = string.Empty;
-        public string  Description { get; set; } = string.Empty;
-        public decimal UnitPrice   { get; set; }
-    }
-    // ─────────────────────────────────────────────────────────────────────────
-
     public class PosViewModel : INotifyPropertyChanged
     {
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
