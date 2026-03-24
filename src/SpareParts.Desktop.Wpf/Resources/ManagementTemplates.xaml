@@ -1,0 +1,414 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:SpareParts.Desktop.Wpf">
+
+        <!-- ══════ Management DataTemplate ══════ -->
+        <DataTemplate DataType="{x:Type local:ManagementViewModel}">
+            <DataTemplate.Resources>
+                <Style x:Key="ManagementComboBoxStyle" TargetType="ComboBox">
+                    <Setter Property="Height" Value="52"/>
+                    <Setter Property="Padding" Value="14 0"/>
+                    <Setter Property="Margin" Value="0 0 0 10"/>
+                    <Setter Property="Background" Value="#FF1A1A22"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="FontSize" Value="15"/>
+                    <Setter Property="ItemContainerStyle" Value="{DynamicResource ThemeComboBoxItemStyle}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBox">
+                                <Grid>
+                                    <Border x:Name="OuterBorder"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <ContentPresenter Grid.Column="0"
+                                                              Margin="{TemplateBinding Padding}"
+                                                              VerticalAlignment="Center"
+                                                              HorizontalAlignment="Left"
+                                                              Content="{TemplateBinding SelectionBoxItem}"
+                                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+
+                                            <Border Grid.Column="1"
+                                                    Width="34"
+                                                    Height="34"
+                                                    Margin="0 0 8 0"
+                                                    Background="{DynamicResource AccentBrush}"
+                                                    CornerRadius="8"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="&#xE70D;"
+                                                           FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="11"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                    <Popup x:Name="PART_Popup"
+                                           Placement="Bottom"
+                                           AllowsTransparency="True"
+                                           Focusable="False"
+                                           IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                           PopupAnimation="Fade">
+                                        <Border Margin="0 6 0 0"
+                                                MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                                Background="#FF1E1E28"
+                                                BorderBrush="#33FF5722"
+                                                BorderThickness="1"
+                                                CornerRadius="12">
+                                            <ScrollViewer Margin="4"
+                                                          MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Popup>
+
+                                    <ToggleButton Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Focusable="False"
+                                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="HasItems" Value="False">
+                                        <Setter TargetName="PART_Popup" Property="MinHeight" Value="60"/>
+                                    </Trigger>
+                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.6"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataTemplate.Resources>
+            <TabControl Background="Transparent" BorderThickness="0" Margin="0">
+
+                <!-- TAB 1 — CUSTOMERS -->
+                <TabItem Header="👤  Customers">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="New Customer" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Phone" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewCustomerPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Email" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewCustomerEmail, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewCustomerAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Tax Number" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewCustomerTax, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Opening Balance" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewCustomerBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                    <Button Content="＋  Save Customer" Command="{Binding SaveCustomerCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42"/>
+                                    <TextBlock Text="{Binding Status}" FontSize="12" Margin="0 10 0 0"
+                                               Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Customers" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Customers}"
+                                          SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="50"/>
+                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
+                                        <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"          Width="120"/>
+                                        <DataGridTextColumn Header="Email"   Binding="{Binding Email}"          Width="160"/>
+                                        <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, StringFormat={}{0:N0}}" Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 2 — SUPPLIERS -->
+                <TabItem Header="🏭  Suppliers">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="New Supplier" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewSupplierName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Phone" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewSupplierPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Email" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewSupplierEmail, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewSupplierAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Tax Number" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewSupplierTax, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Opening Balance" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewSupplierBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                    <Button Content="＋  Save Supplier" Command="{Binding SaveSupplierCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Suppliers" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Suppliers}"
+                                          SelectedItem="{Binding SelectedSupplier, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="50"/>
+                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
+                                        <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"          Width="120"/>
+                                        <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, StringFormat={}{0:N0}}" Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 3 — BRANDS -->
+                <TabItem Header="🏷  Brands">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="280"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <StackPanel>
+                                <TextBlock Text="New Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewBrandName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                <Button Content="＋  Save Brand" Command="{Binding SaveBrandCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Brands" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Brands}"
+                                          SelectedItem="{Binding SelectedBrand, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"     Binding="{Binding Id}"       Width="50"/>
+                                        <DataGridTextColumn Header="Name"   Binding="{Binding Name}"     Width="*"/>
+                                        <DataGridTextColumn Header="Active" Binding="{Binding IsActive}" Width="70"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 4 — PARTS -->
+                <TabItem Header="🔧  Parts">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="New Part" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="Internal Code *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartCode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="OEM Number" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartOEM, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Category" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Categories}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding NewPartCategoryId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              />
+                                    <TextBlock Text="Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Brands}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding NewPartBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              />
+                                    <TextBlock Text="Cost Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartCostPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Sale Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartSalePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Min Stock" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartMinStock, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                    <Button Content="＋  Save Part" Command="{Binding SavePartCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Parts" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Parts}"
+                                          SelectedItem="{Binding SelectedPart, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"       Binding="{Binding Id}"                               Width="50"/>
+                                        <DataGridTextColumn Header="Code"     Binding="{Binding InternalCode}"                     Width="100"/>
+                                        <DataGridTextColumn Header="Name"     Binding="{Binding Name}"                             Width="*"/>
+                                        <DataGridTextColumn Header="OEM"      Binding="{Binding OEMNumber}"                        Width="100"/>
+                                        <DataGridTextColumn Header="Cost"     Binding="{Binding CostPrice, StringFormat={}{0:N0}}" Width="80"/>
+                                        <DataGridTextColumn Header="Sale"     Binding="{Binding SalePrice, StringFormat={}{0:N0}}" Width="80"/>
+                                        <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock}"                        Width="80"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 5 — CAR MODELS -->
+                <TabItem Header="🚗  Car Models">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <StackPanel>
+                                <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                <TextBlock Text="Car Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <ComboBox ItemsSource="{Binding CarBrands}"
+                                          Style="{StaticResource ManagementComboBoxStyle}"
+                                          DisplayMemberPath="Name"
+                                          SelectedValuePath="Id"
+                                          SelectedValue="{Binding NewCarModelBrandId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          />
+                                <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Year" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarModelYear, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Engine Type" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarModelEngine, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Base Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarModelBasePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                <Button Content="＋  Save Car Model" Command="{Binding SaveCarModelCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Car Models" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding CarModels}"
+                                          SelectedItem="{Binding SelectedCarModel, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"         Binding="{Binding Id}"                                 Width="50"/>
+                                        <DataGridTextColumn Header="Brand ID"   Binding="{Binding CarBrandId}"                         Width="80"/>
+                                        <DataGridTextColumn Header="Name"       Binding="{Binding Name}"                               Width="*"/>
+                                        <DataGridTextColumn Header="Year"       Binding="{Binding Year}"                               Width="70"/>
+                                        <DataGridTextColumn Header="Engine"     Binding="{Binding EngineType}"                         Width="100"/>
+                                        <DataGridTextColumn Header="Base Price" Binding="{Binding BasePrice, StringFormat={}{0:N0}}"   Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 6 — USERS (UsersVm sub-binding) -->
+                <TabItem Header="👥  Users" DataContext="{Binding UsersVm}">
+                    <controls:UsersTab/>
+                </TabItem>
+
+                <TabItem Header="🔑  Roles" DataContext="{Binding RolesVm}">
+                    <controls:RolesTab Margin="10"/>
+                </TabItem>
+            </TabControl>
+        </DataTemplate>
+
+</ResourceDictionary>
