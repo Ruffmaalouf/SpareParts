@@ -1,4 +1,3 @@
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Inventory;
@@ -19,8 +18,8 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<BrandDto>> GetAll()
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            return Ok(ctx.GetAllBrands().Select(b => new BrandDto
+            var brandsRepository = new BrandsRepository(session);
+            return Ok(brandsRepository.GetAll().Select(b => new BrandDto
             {
                 Id = b.Id,
                 Name = b.Name,
@@ -32,7 +31,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<int> Create([FromBody] CreateBrandRequest req)
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
+            var brandsRepository = new BrandsRepository(session);
             var brand = new Domain.MasterData.Brand
             {
                 Name = req.Name,
@@ -40,7 +39,7 @@ namespace SpareParts.Api.Controllers
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = GetUserId()
             };
-            var id = ctx.InsertBrand(brand);
+            var id = brandsRepository.Insert(brand);
             session.Commit();
             return Ok(id);
         }
@@ -49,21 +48,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Update(int id, [FromBody] CreateBrandRequest req)
         {
             using var session = new DbSession(_factory);
-            var updated = session.Connection.Execute(
-                @"UPDATE Brands
-                  SET Name = @Name, IsActive = @IsActive,
-                      ModifiedAt = @Now, ModifiedByUserId = @UserId
-                  WHERE Id = @Id",
-                new
-                {
-                    Id = id,
-                    req.Name,
-                    req.IsActive,
-                    Now = DateTime.UtcNow,
-                    UserId = GetUserId()
-                },
-                session.Transaction);
-            if (updated == 0) return NotFound();
+            var brandsRepository = new BrandsRepository(session);
+            if (!brandsRepository.Update(id, req.Name, req.IsActive, GetUserId())) return NotFound();
             session.Commit();
             return NoContent();
         }
@@ -72,11 +58,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Delete(int id)
         {
             using var session = new DbSession(_factory);
-            var deleted = session.Connection.Execute(
-                "DELETE FROM Brands WHERE Id = @Id",
-                new { Id = id },
-                session.Transaction);
-            if (deleted == 0) return NotFound();
+            var brandsRepository = new BrandsRepository(session);
+            if (!brandsRepository.Delete(id)) return NotFound();
             session.Commit();
             return NoContent();
         }

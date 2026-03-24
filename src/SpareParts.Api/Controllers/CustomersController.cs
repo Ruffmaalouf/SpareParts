@@ -1,4 +1,3 @@
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.BusinessPartners;
@@ -18,8 +17,8 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<CustomerDto>> GetAll([FromQuery] string? search = null)
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            var all = ctx.GetAllCustomers();
+            var customersRepository = new CustomersRepository(session);
+            var all = customersRepository.GetAll();
             if (!string.IsNullOrWhiteSpace(search))
             {
                 all = all.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
@@ -41,7 +40,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<int> Create([FromBody] CreateCustomerRequest req)
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
+            var customersRepository = new CustomersRepository(session);
             var customer = new Customer
             {
                 Name = req.Name,
@@ -53,7 +52,7 @@ namespace SpareParts.Api.Controllers
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = GetUserId()
             };
-            var id = ctx.InsertCustomer(customer);
+            var id = customersRepository.Insert(customer);
             session.Commit();
             return Ok(id);
         }
@@ -62,26 +61,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Update(int id, [FromBody] CreateCustomerRequest req)
         {
             using var session = new DbSession(_factory);
-            var updated = session.Connection.Execute(
-                @"UPDATE Customers
-                  SET Name = @Name, Phone = @Phone, Email = @Email, Address = @Address,
-                      TaxNumber = @TaxNumber, OpeningBalance = @OpeningBalance,
-                      ModifiedAt = @Now, ModifiedByUserId = @UserId
-                  WHERE Id = @Id",
-                new
-                {
-                    Id = id,
-                    req.Name,
-                    req.Phone,
-                    req.Email,
-                    req.Address,
-                    req.TaxNumber,
-                    req.OpeningBalance,
-                    Now = DateTime.UtcNow,
-                    UserId = GetUserId()
-                },
-                session.Transaction);
-            if (updated == 0) return NotFound();
+            var customersRepository = new CustomersRepository(session);
+            if (!customersRepository.Update(id, req, GetUserId())) return NotFound();
             session.Commit();
             return NoContent();
         }
@@ -90,11 +71,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Delete(int id)
         {
             using var session = new DbSession(_factory);
-            var deleted = session.Connection.Execute(
-                "DELETE FROM Customers WHERE Id = @Id",
-                new { Id = id },
-                session.Transaction);
-            if (deleted == 0) return NotFound();
+            var customersRepository = new CustomersRepository(session);
+            if (!customersRepository.Delete(id)) return NotFound();
             session.Commit();
             return NoContent();
         }

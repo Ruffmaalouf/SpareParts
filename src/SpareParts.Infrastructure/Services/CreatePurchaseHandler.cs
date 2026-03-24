@@ -8,7 +8,6 @@ namespace SpareParts.Infrastructure.Services
     public class CreatePurchaseHandler : ICreatePurchaseHandler
     {
         private readonly ISqlConnectionFactory _factory;
-        private readonly ISparePartsDataContextFactory _ctxFactory;
         private readonly IInventoryService _inventoryService;
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
@@ -17,7 +16,6 @@ namespace SpareParts.Infrastructure.Services
 
         public CreatePurchaseHandler(
             ISqlConnectionFactory factory,
-            ISparePartsDataContextFactory ctxFactory,
             IInventoryService inventoryService,
             IInvoiceNumberGenerator invoiceNumberGenerator,
             IPaymentStatusPolicy paymentStatusPolicy,
@@ -25,7 +23,6 @@ namespace SpareParts.Infrastructure.Services
             IInvoiceTotalsCalculator totalsCalculator)
         {
             _factory = factory;
-            _ctxFactory = ctxFactory;
             _inventoryService = inventoryService;
             _invoiceNumberGenerator = invoiceNumberGenerator;
             _paymentStatusPolicy = paymentStatusPolicy;
@@ -36,11 +33,10 @@ namespace SpareParts.Infrastructure.Services
         public CreatePurchaseResponse Handle(CreatePurchaseRequest request, int userId)
         {
             using var session = new DbSession(_factory);
-            var ctx = _ctxFactory.Create(session);
-            var purchasesRepository = new PurchasesRepository(ctx);
-            var partsRepository = new PartsRepository(ctx);
-            var inventoryRepository = new InventoryRepository(ctx);
-            var journalRepository = new JournalRepository(ctx);
+            var purchasesRepository = new PurchasesRepository(session);
+            var partsRepository = new PartsRepository(session);
+            var inventoryRepository = new InventoryRepository(session);
+            var journalRepository = new JournalRepository(session);
 
             ValidateRequest(request);
             var parts = LoadParts(partsRepository, request);
