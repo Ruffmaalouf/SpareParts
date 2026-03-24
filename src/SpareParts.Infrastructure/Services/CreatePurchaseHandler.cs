@@ -39,6 +39,7 @@ namespace SpareParts.Infrastructure.Services
             var ctx = _ctxFactory.Create(session);
             var purchasesRepository = new PurchasesRepository(ctx);
             var partsRepository = new PartsRepository(ctx);
+            var inventoryRepository = new InventoryRepository(ctx);
             var journalRepository = new JournalRepository(ctx);
 
             ValidateRequest(request);
@@ -68,7 +69,7 @@ namespace SpareParts.Infrastructure.Services
             var purchaseId = purchasesRepository.InsertInvoice(purchase);
             purchasesRepository.InsertItems(purchaseId, purchaseItems);
 
-            AdjustStockForPurchase(ctx, request, purchaseItems, purchaseId, userId);
+            AdjustStockForPurchase(inventoryRepository, request, purchaseItems, purchaseId, userId);
             CreateJournalEntryForPurchase(journalRepository, purchase, purchaseId, userId);
 
             session.Commit();
@@ -93,14 +94,14 @@ namespace SpareParts.Infrastructure.Services
                 }
             }
 
-            throw new InvalidOperationException("Failed to generate a unique purchase number after multiple attempts.");
+            throw new ConflictException("Failed to generate a unique purchase number after multiple attempts.");
         }
 
         private static void ValidateRequest(CreatePurchaseRequest request)
         {
             if (request.Items == null || request.Items.Count == 0)
             {
-                throw new InvalidOperationException("Purchase must have at least one item.");
+                throw new ValidationException("Purchase must have at least one item.");
             }
         }
 
@@ -113,7 +114,7 @@ namespace SpareParts.Infrastructure.Services
             {
                 if (!parts.ContainsKey(item.PartId))
                 {
-                    throw new InvalidOperationException($"Part {item.PartId} not found.");
+                    throw new NotFoundException($"Part {item.PartId} not found.");
                 }
             }
 
@@ -154,7 +155,7 @@ namespace SpareParts.Infrastructure.Services
         }
 
         private void AdjustStockForPurchase(
-            SparePartsDataContext ctx,
+            IInventoryRepository inventoryRepository,
             CreatePurchaseRequest request,
             IReadOnlyCollection<PurchaseInvoiceItem> purchaseItems,
             int purchaseId,
@@ -163,7 +164,7 @@ namespace SpareParts.Infrastructure.Services
             foreach (var item in purchaseItems)
             {
                 _inventoryService.AdjustStock(
-                    ctx: ctx,
+                    inventoryRepository: inventoryRepository,
                     partId: item.PartId,
                     warehouseId: request.WarehouseId,
                     quantityChange: item.Quantity,

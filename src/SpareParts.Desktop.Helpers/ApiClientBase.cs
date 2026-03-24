@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using System.Text.Json;
 using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf
@@ -62,6 +63,34 @@ namespace SpareParts.Desktop.Wpf
         public abstract Task UpdateRoleAsync(int id, UpdateRoleRequest req);
         public abstract Task DeleteRoleAsync(int id);
 
+
+        protected static async Task EnsureSuccessAsync(HttpResponseMessage response, string fallbackMessage)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            var raw = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var envelope = JsonSerializer.Deserialize<ApiErrorEnvelope>(raw, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (envelope != null && !string.IsNullOrWhiteSpace(envelope.Code))
+                {
+                    throw new ApiClientException(envelope.Code, envelope.Message, envelope.TraceId);
+                }
+            }
+            catch (JsonException)
+            {
+                // ignore and fallback below
+            }
+
+            throw new ApiClientException("http_error", string.IsNullOrWhiteSpace(raw) ? fallbackMessage : raw.Trim('"', ' ', '\n'));
+        }
         protected static BitmapImage BytesToBitmap(byte[] bytes)
         {
             using var ms = new MemoryStream(bytes);
