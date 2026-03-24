@@ -10,6 +10,14 @@ namespace SpareParts.Infrastructure.Data
         Dictionary<int, Part> GetByIds(IList<int> partIds);
     }
 
+    public interface IInventoryRepository
+    {
+        Stock? GetStock(int partId, int warehouseId);
+        int InsertStock(Stock stock);
+        void UpdateStockQuantity(int stockId, int delta, int userId);
+        int InsertStockMovement(StockMovement movement);
+    }
+
     public interface ISalesRepository
     {
         int InsertInvoice(SalesInvoice invoice);
@@ -40,9 +48,25 @@ namespace SpareParts.Infrastructure.Data
         }
 
         public Dictionary<int, Part> GetByIds(IList<int> partIds)
+            => _ctx.GetPartsByIds(partIds).ToDictionary(p => p.Id, p => p);
+    }
+
+    public class InventoryRepository : IInventoryRepository
+    {
+        private readonly SparePartsDataContext _ctx;
+
+        public InventoryRepository(SparePartsDataContext ctx)
         {
-            return _ctx.GetPartsByIds(partIds).ToDictionary(p => p.Id, p => p);
+            _ctx = ctx;
         }
+
+        public Stock? GetStock(int partId, int warehouseId) => _ctx.GetStock(partId, warehouseId);
+
+        public int InsertStock(Stock stock) => _ctx.InsertStock(stock);
+
+        public void UpdateStockQuantity(int stockId, int delta, int userId) => _ctx.UpdateStockQuantity(stockId, delta, userId);
+
+        public int InsertStockMovement(StockMovement movement) => _ctx.InsertStockMovement(movement);
     }
 
     public class SalesRepository : ISalesRepository

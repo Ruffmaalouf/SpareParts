@@ -39,11 +39,12 @@ namespace SpareParts.Infrastructure.Services
             var ctx = _ctxFactory.Create(session);
             var salesRepository = new SalesRepository(ctx);
             var partsRepository = new PartsRepository(ctx);
+            var inventoryRepository = new InventoryRepository(ctx);
             var journalRepository = new JournalRepository(ctx);
 
             ValidateRequest(request);
             var parts = LoadParts(partsRepository, request);
-            EnsureStockAvailability(ctx, request, parts);
+            EnsureStockAvailability(inventoryRepository, request, parts);
 
             var totals = _totalsCalculator.CalculateSales(request.Items);
             var invoiceNumber = GenerateUniqueSalesNumber(salesRepository);
@@ -72,7 +73,7 @@ namespace SpareParts.Infrastructure.Services
             var invoiceId = salesRepository.InsertInvoice(invoice);
             salesRepository.InsertItems(invoiceId, items);
 
-            AdjustStockForSale(ctx, invoiceId, request, items, parts, userId);
+            AdjustStockForSale(inventoryRepository, invoiceId, request, items, parts, userId);
             CreateJournalEntryForSale(journalRepository, invoice, invoiceId, userId);
 
             session.Commit();
@@ -97,14 +98,14 @@ namespace SpareParts.Infrastructure.Services
                 }
             }
 
-            throw new InvalidOperationException("Failed to generate a unique sales invoice number after multiple attempts.");
+            throw new ConflictException("Failed to generate a unique sales invoice number after multiple attempts.");
         }
 
         private static void ValidateRequest(CreateSaleRequest request)
         {
             if (request.Items == null || request.Items.Count == 0)
             {
-                throw new InvalidOperationException("Invoice must have at least one item.");
+                throw new ValidationException("Invoice must have at least one item.");
             }
         }
 
@@ -115,7 +116,7 @@ namespace SpareParts.Infrastructure.Services
         }
 
         private void EnsureStockAvailability(
-            SparePartsDataContext ctx,
+            IInventoryRepository inventoryRepository,
             CreateSaleRequest request,
             IReadOnlyDictionary<int, Part> parts)
         {
@@ -123,13 +124,13 @@ namespace SpareParts.Infrastructure.Services
             {
                 if (!parts.ContainsKey(item.PartId))
                 {
-                    throw new InvalidOperationException($"Part {item.PartId} not found.");
+                    throw new NotFoundException($"Part {item.PartId} not found.");
                 }
 
-                var available = _inventoryService.GetAvailableStock(ctx, item.PartId, request.WarehouseId);
+                var available = _inventoryService.GetAvailableStock(inventoryRepository, item.PartId, request.WarehouseId);
                 if (available < item.Quantity)
                 {
-                    throw new InvalidOperationException($"Not enough stock for part {item.PartId}. Available: {available}");
+                    throw new ConflictException($"Not enough stock for part {item.PartId}. Available: {available}");
                 }
             }
         }
@@ -169,7 +170,7 @@ namespace SpareParts.Infrastructure.Services
         }
 
         private void AdjustStockForSale(
-            SparePartsDataContext ctx,
+            IInventoryRepository inventoryRepository,
             int invoiceId,
             CreateSaleRequest request,
             IReadOnlyCollection<SalesInvoiceItem> items,
@@ -180,7 +181,7 @@ namespace SpareParts.Infrastructure.Services
             {
                 var part = parts[item.PartId];
                 _inventoryService.AdjustStock(
-                    ctx: ctx,
+                    inventoryRepository: inventoryRepository,
                     partId: item.PartId,
                     warehouseId: request.WarehouseId,
                     quantityChange: -item.Quantity,
