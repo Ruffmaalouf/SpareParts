@@ -12,6 +12,9 @@
 #    pwsh -File src/SpareParts.Desktop.Wpf/UpdateLogos.ps1 \
 #      -DatabaseName SparePartsDb \
 #      -OutputFile ./tmp/UpdateLogos.sql
+#
+#  Python alternative (if PowerShell is unavailable):
+#    python3 src/SpareParts.Desktop.Wpf/update_logos.py
 # ============================================================
 
 [CmdletBinding()]
