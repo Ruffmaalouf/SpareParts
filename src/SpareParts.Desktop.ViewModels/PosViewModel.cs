@@ -84,7 +84,11 @@ namespace SpareParts.Desktop.Wpf
         public int     NewQuantity  { get; set; } = 1;
         public decimal NewUnitPrice { get; set; }
 
-        // ── Commands ──────────────────────────────────────────────────────────
+        // ── Dependencies / Commands ──────────────────────────────────────────
+        private readonly ISalesApiClient _salesApi;
+        private readonly ICarCatalogApiClient _carCatalogApi;
+        private readonly IPartsApiClient _partsApi;
+
         public ICommand SelectBrandCommand  { get; }
         public ICommand SelectCarCommand    { get; }
         public ICommand SelectPartCommand   { get; }
@@ -92,8 +96,12 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SubmitSaleCommand   { get; }
         public ICommand GoHomeCommand       { get; }
 
-        public PosViewModel()
+        public PosViewModel(ISalesApiClient? salesApi = null, ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null)
         {
+            _salesApi = salesApi ?? new SalesApiClient();
+            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
+            _partsApi = partsApi ?? new PartsApiClient();
+
             SelectBrandCommand = new RelayCommand(SelectBrand);
             SelectCarCommand   = new RelayCommand(SelectCar);
             SelectPartCommand  = new RelayCommand(SelectPart);
@@ -158,7 +166,7 @@ namespace SpareParts.Desktop.Wpf
                     }).ToList()
                 };
 
-                var result = await ApiClient.Instance.CreateSaleAsync(req);
+                var result = await _salesApi.CreateSaleAsync(req);
 
                 CustomMessageBox.Show(
                     $"Sale created. Invoice: {result?.InvoiceNumber}, Total: {result?.TotalAmount:N2}",
@@ -216,12 +224,12 @@ namespace SpareParts.Desktop.Wpf
             if (string.IsNullOrWhiteSpace(brandName))
                 return;
 
-            var brands = await ApiClient.Instance.GetCarBrandsAsync();
+            var brands = await _carCatalogApi.GetCarBrandsAsync();
             var brand = brands.FirstOrDefault(
                 b => string.Equals(b.Name, brandName, StringComparison.OrdinalIgnoreCase));
             if (brand == null) return;
 
-            var models = await ApiClient.Instance.GetCarModelsAsync(brand.Id);
+            var models = await _carCatalogApi.GetCarModelsAsync(brand.Id);
             foreach (var model in models)
             {
                 AvailableCars.Add(new CarModelUi
@@ -236,7 +244,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task LoadAvailablePartsAsync(CarModelUi car)
         {
             AvailableParts.Clear();
-            var parts = await ApiClient.Instance.GetPartsAsync();
+            var parts = await _partsApi.GetPartsAsync();
             foreach (var part in parts)
             {
                 AvailableParts.Add(new CarPartModel

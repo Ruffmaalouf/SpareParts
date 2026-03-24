@@ -80,13 +80,15 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _newPartDescription = value; OnPropertyChanged(nameof(NewPartDescription)); }
         }
 
-        // ── Commands ──────────────────────────────────────────────────────────
+        // ── Dependencies / Commands ──────────────────────────────────────────
+        private readonly ISalesApiClient _salesApi;
 
         public ICommand AddItemCommand    { get; }
         public ICommand SubmitSaleCommand { get; }
 
-        public InvoiceTabViewModel()
+        public InvoiceTabViewModel(ISalesApiClient? salesApi = null)
         {
+            _salesApi = salesApi ?? new SalesApiClient();
             AddItemCommand    = new RelayCommand(_ => AddItem());
             SubmitSaleCommand = new RelayCommand(_ => SubmitSale());
 
@@ -169,7 +171,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     }).ToList()
                 };
 
-                var result = ApiClient.Instance.CreateSaleAsync(req).GetAwaiter().GetResult();
+                var result = _salesApi.CreateSaleAsync(req).GetAwaiter().GetResult();
 
                 CustomMessageBox.Show(
                     $"Invoice {result.InvoiceNumber} created.\nTotal: {result.TotalAmount:N0}",

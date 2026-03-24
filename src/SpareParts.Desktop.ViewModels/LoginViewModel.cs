@@ -63,11 +63,17 @@ namespace SpareParts.Desktop.Wpf
         // ── Event raised when login succeeds ──────────────────────────────────
         public event Action<LoginResponse>? LoginSucceeded;
 
-        // ── Commands ──────────────────────────────────────────────────────────
+        // ── Dependencies / Commands ───────────────────────────────────────────
+        private readonly IAuthApiClient _authApi;
+        private readonly IApiSessionClient _sessionApi;
+
         public ICommand LoginCommand { get; }
 
-        public LoginViewModel()
+        public LoginViewModel(IAuthApiClient? authApi = null, IApiSessionClient? sessionApi = null)
         {
+            _authApi = authApi ?? new AuthApiClient();
+            _sessionApi = sessionApi ?? new ApiSessionClient();
+
             LoginCommand = new RelayCommand(pwd => ExecuteLoginAsync(pwd as string ?? string.Empty));
             _ = CheckApiAsync();
         }
@@ -84,10 +90,10 @@ namespace SpareParts.Desktop.Wpf
             IsLoading = true;
             try
             {
-                var result = await ApiClient.Instance.LoginAsync(Username.Trim(), password);
+                var result = await _authApi.LoginAsync(Username.Trim(), password);
 
                 // Store token in ApiClient — all future calls use it
-                ApiClient.Instance.SetToken(result.Token);
+                _sessionApi.SetToken(result.Token);
 
                 // Store session info globally
                 SessionContext.CurrentUser = new SessionUser
@@ -121,7 +127,7 @@ namespace SpareParts.Desktop.Wpf
             StatusText  = "Connecting to API…";
             StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
 
-            bool alive = await ApiClient.Instance.PingAsync();
+            bool alive = await _authApi.PingAsync();
 
             if (alive)
             {

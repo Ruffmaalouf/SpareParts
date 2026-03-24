@@ -60,14 +60,18 @@ namespace SpareParts.Desktop.Wpf
             set { _isBusy = value; OnPropertyChanged(nameof(IsBusy)); }
         }
 
-        // ── Commands ──────────────────────────────────────────────────────────
+        // ── Dependencies / Commands ──────────────────────────────────────────
+        private readonly IUserApiClient _usersApi;
+
         public ICommand LoadCommand       { get; }
         public ICommand NewCommand        { get; }
         public ICommand SaveCommand       { get; }
         public ICommand DeactivateCommand { get; }
 
-        public UsersViewModel()
+        public UsersViewModel(IUserApiClient? usersApi = null)
         {
+            _usersApi = usersApi ?? new UsersApiClient();
+
             LoadCommand       = new RelayCommand(_ => _ = LoadAsync());
             NewCommand        = new RelayCommand(_ => ClearForm());
             SaveCommand       = new RelayCommand(_ => _ = SaveAsync());
@@ -81,7 +85,7 @@ namespace SpareParts.Desktop.Wpf
             Status = string.Empty;
             try
             {
-                var list = await ApiClient.Instance.GetUsersAsync();
+                var list = await _usersApi.GetUsersAsync();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     Users.Clear();
@@ -109,7 +113,7 @@ namespace SpareParts.Desktop.Wpf
                     if (string.IsNullOrWhiteSpace(FormPassword))
                     { Status = "Password is required for new users."; return; }
 
-                    await ApiClient.Instance.CreateUserAsync(new CreateUserRequest
+                    await _usersApi.CreateUserAsync(new CreateUserRequest
                     {
                         Username = FormUsername.Trim(),
                         FullName = FormFullName.Trim(),
@@ -121,7 +125,7 @@ namespace SpareParts.Desktop.Wpf
                 }
                 else
                 {
-                    await ApiClient.Instance.UpdateUserAsync(_selectedUser.Id, new UpdateUserRequest
+                    await _usersApi.UpdateUserAsync(_selectedUser.Id, new UpdateUserRequest
                     {
                         FullName    = FormFullName.Trim(),
                         Email       = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
@@ -146,7 +150,7 @@ namespace SpareParts.Desktop.Wpf
             IsBusy = true;
             try
             {
-                await ApiClient.Instance.DeleteUserAsync(user.Id);
+                await _usersApi.DeleteUserAsync(user.Id);
                 Status = $"User '{user.Username}' deactivated.";
                 await LoadAsync();
             }

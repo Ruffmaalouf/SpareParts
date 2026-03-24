@@ -13,6 +13,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class WarehouseSearchControl : UserControl
     {
+
+        private readonly ICrudApiClient _crudApi;
         private List<WarehouseDto> _all = new();
         private bool _suppressClose;
 
@@ -52,9 +54,10 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public WarehouseSearchControl()
+        public WarehouseSearchControl(ICrudApiClient? crudApi = null)
         {
             InitializeComponent();
+            _crudApi = crudApi ?? new CrudApiClient();
             FilteredWarehouses = new ObservableCollection<WarehouseDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
 
@@ -143,7 +146,7 @@ namespace SpareParts.Desktop.Wpf
             if (_all.Count > 0) return;
             try
             {
-                _all = await ApiClient.Instance.GetAllAsync<WarehouseDto>("api/warehouses");
+                _all = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
             }
             catch
             {
