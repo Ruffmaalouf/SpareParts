@@ -1,6 +1,7 @@
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Data;
 
