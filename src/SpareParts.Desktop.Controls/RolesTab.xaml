@@ -81,6 +81,7 @@
                       SelectedItem="{Binding SelectedRole, Mode=TwoWay}"
                       AutoGenerateColumns="False" IsReadOnly="True"
                       SelectionMode="Single" GridLinesVisibility="None"
+                      HeadersVisibility="Column" BorderThickness="0"
                       RowHeight="48" ColumnHeaderHeight="36"
                       CanUserReorderColumns="False" CanUserResizeRows="False">
                 <DataGrid.Columns>
