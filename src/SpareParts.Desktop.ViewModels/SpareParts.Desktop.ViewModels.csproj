@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
+    <ProjectReference Include="..\SpareParts.Desktop.Helpers\SpareParts.Desktop.Helpers.csproj" />
+    <ProjectReference Include="..\SpareParts.Desktop.Controls\SpareParts.Desktop.Controls.csproj" />
+  </ItemGroup>
+
+</Project>

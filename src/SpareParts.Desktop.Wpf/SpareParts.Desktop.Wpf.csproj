@@ -36,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Desktop.ViewModels\SpareParts.Desktop.ViewModels.csproj" />
     <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
     <ProjectReference Include="..\SpareParts.Desktop.Helpers\SpareParts.Desktop.Helpers.csproj" />
     <ProjectReference Include="..\SpareParts.Desktop.Controls\SpareParts.Desktop.Controls.csproj" />
