@@ -13,6 +13,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class CustomerSearchControl : UserControl
     {
+
+        private readonly ICrudApiClient _crudApi;
         private List<CustomerDto> _allCustomers = new();
         private bool _suppressClose;
 
@@ -62,9 +64,14 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public CustomerSearchControl()
+        public CustomerSearchControl() : this(new CrudApiClient())
+        {
+        }
+
+        public CustomerSearchControl(ICrudApiClient crudApi)
         {
             InitializeComponent();
+            _crudApi = crudApi;
             FilteredCustomers = new ObservableCollection<CustomerDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
 
@@ -171,7 +178,7 @@ namespace SpareParts.Desktop.Wpf
             if (_allCustomers.Count > 0) return;
             try
             {
-                _allCustomers = await ApiClient.Instance.GetAllAsync<CustomerDto>("api/customers");
+                _allCustomers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
             }
             catch (Exception ex)
             {

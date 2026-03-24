@@ -13,6 +13,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class PartSearchControl : UserControl
     {
+
+        private readonly IPartsApiClient _partsApi;
         private List<PartDto> _allParts = new();
         private bool _suppressClose;
 
@@ -78,9 +80,14 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public PartSearchControl()
+        public PartSearchControl() : this(new PartsApiClient())
+        {
+        }
+
+        public PartSearchControl(IPartsApiClient partsApi)
         {
             InitializeComponent();
+            _partsApi = partsApi;
             FilteredParts = new ObservableCollection<PartDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
             Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;
@@ -173,7 +180,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task EnsureLoadedAsync()
         {
             if (_allParts.Count > 0) return;
-            try { _allParts = await ApiClient.Instance.GetPartsAsync(); }
+            try { _allParts = await _partsApi.GetPartsAsync(); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[PartSearch] {ex.Message}"); }
         }
 

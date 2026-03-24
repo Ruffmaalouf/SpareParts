@@ -16,7 +16,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<CarPartModel>        AvailableParts { get; } = new();
 
         // ── Management panel ──────────────────────────────────────────────────
-        public ManagementViewModel ManagementVm { get; } = new();
+        private readonly ICarCatalogApiClient _carCatalogApi;
+        private readonly IPartsApiClient _partsApi;
+        private readonly ISalesApiClient _salesApi;
+
+        public ManagementViewModel ManagementVm { get; }
 
         private bool _isManagementOpen;
         public bool IsManagementOpen
@@ -81,8 +85,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand OpenManagementCommand   { get; }
 
         // ── Constructor ───────────────────────────────────────────────────────
-        public InvoiceTabsViewModel()
+        public InvoiceTabsViewModel(ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null, ISalesApiClient? salesApi = null, ICrudApiClient? crudApi = null)
         {
+            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
+            _partsApi = partsApi ?? new PartsApiClient();
+            _salesApi = salesApi ?? new SalesApiClient();
+            ManagementVm = new ManagementViewModel(crudApi ?? new CrudApiClient(), _carCatalogApi);
+
             // Themes
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });
@@ -136,7 +145,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IsLoadingBrands = true;
             try
             {
-                var dtos = await ApiClient.Instance.GetCarBrandsAsync();
+                var dtos = await _carCatalogApi.GetCarBrandsAsync();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     BrandGroups.Clear();
@@ -170,7 +179,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private async Task LoadLogoAsync(CarBrandViewModel vm)
         {
-            var bmp = await ApiClient.Instance.GetCarBrandLogoAsync(vm.Id);
+            var bmp = await _carCatalogApi.GetCarBrandLogoAsync(vm.Id);
             if (bmp == null) return;
             Application.Current.Dispatcher.Invoke(() => vm.Logo = bmp);
         }
@@ -189,7 +198,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AvailableCars.Clear();
             try
             {
-                var dtos = await ApiClient.Instance.GetCarModelsAsync(brandId);
+                var dtos = await _carCatalogApi.GetCarModelsAsync(brandId);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     AvailableCars.Clear();
@@ -215,7 +224,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private async Task LoadCarImageAsync(CarModelViewModel vm)
         {
-            var bmp = await ApiClient.Instance.GetCarModelImageAsync(vm.Id);
+            var bmp = await _carCatalogApi.GetCarModelImageAsync(vm.Id);
             if (bmp == null) return;
             Application.Current.Dispatcher.Invoke(() => vm.Image = bmp);
         }
@@ -234,7 +243,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AvailableParts.Clear();
             try
             {
-                var dtos = await ApiClient.Instance.GetPartsAsync();
+                var dtos = await _partsApi.GetPartsAsync();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     AvailableParts.Clear();
@@ -268,7 +277,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         // ── Tab management ────────────────────────────────────────────────────
         private void AddTab()
         {
-            var tab = new InvoiceTabViewModel();
+            var tab = new InvoiceTabViewModel(_salesApi);
             Tabs.Add(tab);
             SelectedTab = tab;
         }

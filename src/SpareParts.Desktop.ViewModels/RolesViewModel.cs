@@ -56,14 +56,18 @@ namespace SpareParts.Desktop.Wpf
             set { _isBusy = value; OnPropertyChanged(nameof(IsBusy)); }
         }
 
-        // ── Commands ──────────────────────────────────────────────────────────
+        // ── Dependencies / Commands ──────────────────────────────────────────
+        private readonly IRoleApiClient _rolesApi;
+
         public ICommand LoadCommand   { get; }
         public ICommand NewCommand    { get; }
         public ICommand SaveCommand   { get; }
         public ICommand DeleteCommand { get; }
 
-        public RolesViewModel()
+        public RolesViewModel(IRoleApiClient? rolesApi = null)
         {
+            _rolesApi = rolesApi ?? new RolesApiClient();
+
             LoadCommand   = new RelayCommand(_ => _ = LoadAsync());
             NewCommand    = new RelayCommand(_ => { SelectedRole = null; ClearForm(); });
             SaveCommand   = new RelayCommand(_ => _ = SaveAsync());
@@ -77,7 +81,7 @@ namespace SpareParts.Desktop.Wpf
             Status = string.Empty;
             try
             {
-                var list = await ApiClient.Instance.GetRolesAsync();
+                var list = await _rolesApi.GetRolesAsync();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     Roles.Clear();
@@ -111,7 +115,7 @@ namespace SpareParts.Desktop.Wpf
                 if (_selectedRole == null)
                 {
                     // Create
-                    await ApiClient.Instance.CreateRoleAsync(new CreateRoleRequest
+                    await _rolesApi.CreateRoleAsync(new CreateRoleRequest
                     {
                         Name           = FormName.Trim(),
                         Description    = FormDescription.Trim(),
@@ -123,7 +127,7 @@ namespace SpareParts.Desktop.Wpf
                 else
                 {
                     // Update
-                    await ApiClient.Instance.UpdateRoleAsync(_selectedRole.Id, new UpdateRoleRequest
+                    await _rolesApi.UpdateRoleAsync(_selectedRole.Id, new UpdateRoleRequest
                     {
                         Description    = FormDescription.Trim(),
                         BadgeColor     = FormBadgeColor.Trim(),
@@ -150,7 +154,7 @@ namespace SpareParts.Desktop.Wpf
             IsBusy = true;
             try
             {
-                await ApiClient.Instance.DeleteRoleAsync(role.Id);
+                await _rolesApi.DeleteRoleAsync(role.Id);
                 Status = $"✓ Role '{role.Name}' deactivated.";
                 await LoadAsync();
             }
