@@ -129,6 +129,9 @@
                                     <Button Content="＋  Save Customer" Command="{Binding SaveCustomerCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42"/>
+                                    <Button Content="🗑  Delete Selected" Command="{Binding DeleteCustomerCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                     <TextBlock Text="{Binding Status}" FontSize="12" Margin="0 10 0 0"
                                                Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
@@ -190,6 +193,9 @@
                                     <Button Content="＋  Save Supplier" Command="{Binding SaveSupplierCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42"/>
+                                    <Button Content="🗑  Delete Selected" Command="{Binding DeleteSupplierCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
@@ -237,6 +243,9 @@
                                 <Button Content="＋  Save Brand" Command="{Binding SaveBrandCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
+                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteBrandCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
                         </Border>
                         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
@@ -307,6 +316,9 @@
                                     <Button Content="＋  Save Part" Command="{Binding SavePartCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42"/>
+                                    <Button Content="🗑  Delete Selected" Command="{Binding DeletePartCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
@@ -370,6 +382,9 @@
                                 <Button Content="＋  Save Car Model" Command="{Binding SaveCarModelCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
+                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteCarModelCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
                         </Border>
                         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">

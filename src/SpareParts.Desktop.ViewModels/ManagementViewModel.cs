@@ -137,19 +137,29 @@ namespace SpareParts.Desktop.Wpf
         // ── Commands ──────────────────────────────────────────────────────────
         public ICommand LoadAllCommand       { get; }
         public ICommand SaveCustomerCommand  { get; }
+        public ICommand DeleteCustomerCommand { get; }
         public ICommand SaveSupplierCommand  { get; }
+        public ICommand DeleteSupplierCommand { get; }
         public ICommand SaveBrandCommand     { get; }
+        public ICommand DeleteBrandCommand { get; }
         public ICommand SavePartCommand      { get; }
+        public ICommand DeletePartCommand { get; }
         public ICommand SaveCarModelCommand  { get; }
+        public ICommand DeleteCarModelCommand { get; }
 
         public ManagementViewModel()
         {
             LoadAllCommand      = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
+            DeleteCustomerCommand = new RelayCommand(_ => _ = DeleteCustomerAsync());
             SaveSupplierCommand = new RelayCommand(_ => _ = SaveSupplierAsync());
+            DeleteSupplierCommand = new RelayCommand(_ => _ = DeleteSupplierAsync());
             SaveBrandCommand    = new RelayCommand(_ => _ = SaveBrandAsync());
+            DeleteBrandCommand  = new RelayCommand(_ => _ = DeleteBrandAsync());
             SavePartCommand     = new RelayCommand(_ => _ = SavePartAsync());
+            DeletePartCommand   = new RelayCommand(_ => _ = DeletePartAsync());
             SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
+            DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
         }
 
         // ── Load all ──────────────────────────────────────────────────────────
@@ -200,6 +210,18 @@ namespace SpareParts.Desktop.Wpf
                      nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         }
 
+        private async Task DeleteCustomerAsync()
+        {
+            if (SelectedCustomer is not { Id: > 0 })
+            {
+                Status = "✗ Select a customer to delete.";
+                return;
+            }
+
+            await DeleteAsync($"api/customers/{SelectedCustomer.Id}", "Customer");
+            SelectedCustomer = null;
+        }
+
         // ── Save: Supplier ────────────────────────────────────────────────────
         private async Task SaveSupplierAsync()
         {
@@ -218,6 +240,18 @@ namespace SpareParts.Desktop.Wpf
                      nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         }
 
+        private async Task DeleteSupplierAsync()
+        {
+            if (SelectedSupplier is not { Id: > 0 })
+            {
+                Status = "✗ Select a supplier to delete.";
+                return;
+            }
+
+            await DeleteAsync($"api/suppliers/{SelectedSupplier.Id}", "Supplier");
+            SelectedSupplier = null;
+        }
+
         // ── Save: Brand ───────────────────────────────────────────────────────
         private async Task SaveBrandAsync()
         {
@@ -228,6 +262,18 @@ namespace SpareParts.Desktop.Wpf
             NewBrandName = string.Empty;
             SelectedBrand = null;
             RaiseAll(nameof(NewBrandName));
+        }
+
+        private async Task DeleteBrandAsync()
+        {
+            if (SelectedBrand is not { Id: > 0 })
+            {
+                Status = "✗ Select a brand to delete.";
+                return;
+            }
+
+            await DeleteAsync($"api/brands/{SelectedBrand.Id}", "Brand");
+            SelectedBrand = null;
         }
 
         // ── Save: Part ────────────────────────────────────────────────────────
@@ -250,6 +296,18 @@ namespace SpareParts.Desktop.Wpf
                      nameof(NewPartNotes), nameof(NewPartCostPrice), nameof(NewPartSalePrice));
         }
 
+        private async Task DeletePartAsync()
+        {
+            if (SelectedPart is not { Id: > 0 })
+            {
+                Status = "✗ Select a part to delete.";
+                return;
+            }
+
+            await DeleteAsync($"api/parts/{SelectedPart.Id}", "Part");
+            SelectedPart = null;
+        }
+
         // ── Save: Car Model ───────────────────────────────────────────────────
         private async Task SaveCarModelAsync()
         {
@@ -265,6 +323,18 @@ namespace SpareParts.Desktop.Wpf
             SelectedCarModel = null;
             RaiseAll(nameof(NewCarModelName), nameof(NewCarModelYear),
                      nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
+        }
+
+        private async Task DeleteCarModelAsync()
+        {
+            if (SelectedCarModel is not { Id: > 0 })
+            {
+                Status = "✗ Select a car model to delete.";
+                return;
+            }
+
+            await DeleteAsync($"api/carmodels/{SelectedCarModel.Id}", "Car model");
+            SelectedCarModel = null;
         }
 
         // ── Shared save via ApiClient (has token) ─────────────────────────────
@@ -285,6 +355,17 @@ namespace SpareParts.Desktop.Wpf
                 await LoadAllAsync();
             }
             catch (Exception ex) { Status = $"✗ Error saving {entityName}: {ex.Message}"; }
+        }
+
+        private async Task DeleteAsync(string url, string entityName)
+        {
+            try
+            {
+                await Api.DeleteAsync(url);
+                Status = $"✓ {entityName} deleted.";
+                await LoadAllAsync();
+            }
+            catch (Exception ex) { Status = $"✗ Error deleting {entityName}: {ex.Message}"; }
         }
 
         private void RaiseAll(params string[] names)
