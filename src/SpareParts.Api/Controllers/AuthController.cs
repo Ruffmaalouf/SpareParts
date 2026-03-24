@@ -16,11 +16,13 @@ namespace SpareParts.Api.Controllers
     {
         private readonly ISqlConnectionFactory _factory;
         private readonly JwtSettings _jwt;
+        private readonly IHostEnvironment _hostEnvironment;
 
-        public AuthController(ISqlConnectionFactory factory, JwtSettings jwt)
+        public AuthController(ISqlConnectionFactory factory, JwtSettings jwt, IHostEnvironment hostEnvironment)
         {
             _factory = factory;
             _jwt = jwt;
+            _hostEnvironment = hostEnvironment;
         }
 
         [HttpPost("login")]
@@ -111,6 +113,11 @@ namespace SpareParts.Api.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult HashPassword([FromQuery] string plain)
         {
+            if (!_hostEnvironment.IsDevelopment())
+            {
+                return NotFound();
+            }
+
             if (string.IsNullOrWhiteSpace(plain))
             {
                 return BadRequest("?plain= is required");
@@ -120,8 +127,7 @@ namespace SpareParts.Api.Controllers
             return Ok(new
             {
                 plain,
-                hash,
-                sqlUpdate = $"UPDATE Users SET PasswordHash = '{hash}' WHERE Username = 'yourusername';"
+                hash
             });
         }
     }
