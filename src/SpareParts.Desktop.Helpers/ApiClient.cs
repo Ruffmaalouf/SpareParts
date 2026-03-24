@@ -23,7 +23,7 @@ namespace SpareParts.Desktop.Wpf
         Task<LoginResponse> LoginAsync(string username, string password);
         Task<bool> PingAsync();
 
-        Task<List<UserManagementDto>> GetUsersAsync();
+        Task<List<UserDto>> GetUsersAsync();
         Task<int> CreateUserAsync(CreateUserRequest req);
         Task UpdateUserAsync(int id, UpdateUserRequest req);
         Task DeleteUserAsync(int id);
@@ -75,7 +75,7 @@ namespace SpareParts.Desktop.Wpf
 
         public abstract Task<LoginResponse> LoginAsync(string username, string password);
         public abstract Task<bool> PingAsync();
-        public abstract Task<List<UserManagementDto>> GetUsersAsync();
+        public abstract Task<List<UserDto>> GetUsersAsync();
         public abstract Task<int> CreateUserAsync(CreateUserRequest req);
         public abstract Task UpdateUserAsync(int id, UpdateUserRequest req);
         public abstract Task DeleteUserAsync(int id);
@@ -155,10 +155,10 @@ namespace SpareParts.Desktop.Wpf
         }
 
         // ── Users ─────────────────────────────────────────────────────────────
-        public override async Task<List<UserManagementDto>> GetUsersAsync()
+        public override async Task<List<UserDto>> GetUsersAsync()
         {
-            return await Http.GetFromJsonAsync<List<UserManagementDto>>("api/users")
-                   ?? new List<UserManagementDto>();
+            return await Http.GetFromJsonAsync<List<UserDto>>("api/users")
+                   ?? new List<UserDto>();
         }
 
         public override async Task<int> CreateUserAsync(CreateUserRequest req)

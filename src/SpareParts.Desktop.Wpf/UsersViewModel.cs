@@ -85,7 +85,7 @@ namespace SpareParts.Desktop.Wpf
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     Users.Clear();
-                    foreach (var u in list) Users.Add(u);
+                    foreach (var u in list) Users.Add(UserManagementDto.FromUser(u));
                 });
                 Status = $"{Users.Count} user(s) loaded.";
             }
