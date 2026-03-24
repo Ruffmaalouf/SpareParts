@@ -15,7 +15,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public class ManagementViewModel : INotifyPropertyChanged
     {
-        private static IApiClient Api => ApiClient.Instance;
+        private readonly ICrudApiClient _crudApi;
+        private readonly ICarCatalogApiClient _carCatalogApi;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -89,8 +90,11 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SaveCarModelCommand { get; }
         public ICommand DeleteCarModelCommand { get; }
 
-        public ManagementViewModel()
+        public ManagementViewModel(ICrudApiClient? crudApi = null, ICarCatalogApiClient? carCatalogApi = null)
         {
+            _crudApi = crudApi ?? new CrudApiClient();
+            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
+
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
             DeleteCustomerCommand = new RelayCommand(_ => _ = DeleteCustomerAsync());
@@ -109,13 +113,13 @@ namespace SpareParts.Desktop.Wpf
             Status = "Loading…";
             try
             {
-                var customers = await Api.GetAllAsync<CustomerDto>("api/customers");
-                var suppliers = await Api.GetAllAsync<SupplierDto>("api/suppliers");
-                var brands = await Api.GetAllAsync<BrandDto>("api/brands");
-                var carBrands = await Api.GetCarBrandsAsync();
-                var categories = await Api.GetAllAsync<CategoryDto>("api/categories");
-                var parts = await Api.GetAllAsync<PartDto>("api/parts");
-                var carModels = await Api.GetAllAsync<CarModelDto>("api/carmodels");
+                var customers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
+                var suppliers = await _crudApi.GetAllAsync<SupplierDto>("api/suppliers");
+                var brands = await _crudApi.GetAllAsync<BrandDto>("api/brands");
+                var carBrands = await _carCatalogApi.GetCarBrandsAsync();
+                var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
+                var parts = await _crudApi.GetAllAsync<PartDto>("api/parts");
+                var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
                 await RolesVm.LoadAsync();
 
                 Application.Current.Dispatcher.Invoke(() =>
@@ -268,8 +272,8 @@ namespace SpareParts.Desktop.Wpf
         {
             try
             {
-                if (isEditing) { await Api.PutAsync(url, payload); Status = $"✓ {entityName} updated."; }
-                else { await Api.PostAsync(url, payload); Status = $"✓ {entityName} saved."; }
+                if (isEditing) { await _crudApi.PutAsync(url, payload); Status = $"✓ {entityName} updated."; }
+                else { await _crudApi.PostAsync(url, payload); Status = $"✓ {entityName} saved."; }
                 await LoadAllAsync();
             }
             catch (Exception ex) { Status = $"✗ Error saving {entityName}: {ex.Message}"; }
@@ -279,7 +283,7 @@ namespace SpareParts.Desktop.Wpf
         {
             try
             {
-                await Api.DeleteAsync(url);
+                await _crudApi.DeleteAsync(url);
                 Status = $"✓ {entityName} deleted.";
                 await LoadAllAsync();
             }
