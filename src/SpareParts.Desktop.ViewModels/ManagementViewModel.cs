@@ -15,8 +15,7 @@ namespace SpareParts.Desktop.Wpf
 {
     public class ManagementViewModel : INotifyPropertyChanged
     {
-        private readonly ICrudApiClient _crudApi;
-        private readonly ICarCatalogApiClient _carCatalogApi;
+        private readonly ManagementCoordinator _coordinator;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -92,8 +91,7 @@ namespace SpareParts.Desktop.Wpf
 
         public ManagementViewModel(ICrudApiClient? crudApi = null, ICarCatalogApiClient? carCatalogApi = null)
         {
-            _crudApi = crudApi ?? new CrudApiClient();
-            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
+            _coordinator = new ManagementCoordinator(crudApi ?? new CrudApiClient(), carCatalogApi ?? new CarCatalogApiClient());
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
@@ -113,24 +111,17 @@ namespace SpareParts.Desktop.Wpf
             Status = "Loading…";
             try
             {
-                var customers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
-                var suppliers = await _crudApi.GetAllAsync<SupplierDto>("api/suppliers");
-                var brands = await _crudApi.GetAllAsync<BrandDto>("api/brands");
-                var carBrands = await _carCatalogApi.GetCarBrandsAsync();
-                var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
-                var parts = await _crudApi.GetAllAsync<PartDto>("api/parts");
-                var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
-                await RolesVm.LoadAsync();
+                var loadResult = await _coordinator.LoadAllAsync(RolesVm);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Replace(Customers, customers);
-                    Replace(Suppliers, suppliers);
-                    Replace(Brands, brands);
-                    Replace(CarBrands, carBrands);
-                    Replace(Categories, categories);
-                    Replace(Parts, parts);
-                    Replace(CarModels, carModels);
+                    Replace(Customers, loadResult.Customers);
+                    Replace(Suppliers, loadResult.Suppliers);
+                    Replace(Brands, loadResult.Brands);
+                    Replace(CarBrands, loadResult.CarBrands);
+                    Replace(Categories, loadResult.Categories);
+                    Replace(Parts, loadResult.Parts);
+                    Replace(CarModels, loadResult.CarModels);
                 });
 
                 Status = "✓ Data loaded.";
@@ -149,145 +140,112 @@ namespace SpareParts.Desktop.Wpf
 
         private async Task SaveCustomerAsync()
         {
-            if (string.IsNullOrWhiteSpace(NewCustomerName)) { Status = "✗ Customer name is required."; return; }
-            var isEditing = SelectedCustomer is { Id: > 0 };
-            await SaveAsync(isEditing ? $"api/customers/{SelectedCustomer!.Id}" : "api/customers", new CreateCustomerRequest
-            {
-                Name = NewCustomerName,
-                Phone = NewCustomerPhone,
-                Email = NewCustomerEmail,
-                Address = NewCustomerAddress,
-                TaxNumber = NewCustomerTax,
-                OpeningBalance = NewCustomerBalance
-            }, "Customer", isEditing);
+            var result = await _coordinator.SaveCustomerAsync(CustomersFeature);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             CustomersFeature.ClearForm();
             RaiseCustomerProps();
         }
 
         private async Task DeleteCustomerAsync()
         {
-            if (SelectedCustomer is not { Id: > 0 }) { Status = "✗ Select a customer to delete."; return; }
-            await DeleteAsync($"api/customers/{SelectedCustomer.Id}", "Customer");
+            var result = await _coordinator.DeleteCustomerAsync(SelectedCustomer);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             CustomersFeature.SelectedCustomer = null;
             OnPropertyChanged(nameof(SelectedCustomer));
         }
 
         private async Task SaveSupplierAsync()
         {
-            if (string.IsNullOrWhiteSpace(NewSupplierName)) { Status = "✗ Supplier name is required."; return; }
-            var isEditing = SelectedSupplier is { Id: > 0 };
-            await SaveAsync(isEditing ? $"api/suppliers/{SelectedSupplier!.Id}" : "api/suppliers", new CreateSupplierRequest
-            {
-                Name = NewSupplierName,
-                Phone = NewSupplierPhone,
-                Email = NewSupplierEmail,
-                Address = NewSupplierAddress,
-                TaxNumber = NewSupplierTax,
-                OpeningBalance = NewSupplierBalance
-            }, "Supplier", isEditing);
+            var result = await _coordinator.SaveSupplierAsync(SuppliersFeature);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             SuppliersFeature.ClearForm();
             RaiseSupplierProps();
         }
 
         private async Task DeleteSupplierAsync()
         {
-            if (SelectedSupplier is not { Id: > 0 }) { Status = "✗ Select a supplier to delete."; return; }
-            await DeleteAsync($"api/suppliers/{SelectedSupplier.Id}", "Supplier");
+            var result = await _coordinator.DeleteSupplierAsync(SelectedSupplier);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             SuppliersFeature.SelectedSupplier = null;
             OnPropertyChanged(nameof(SelectedSupplier));
         }
 
         private async Task SaveBrandAsync()
         {
-            if (string.IsNullOrWhiteSpace(NewBrandName)) { Status = "✗ Brand name is required."; return; }
-            var isEditing = SelectedBrand is { Id: > 0 };
-            await SaveAsync(isEditing ? $"api/brands/{SelectedBrand!.Id}" : "api/brands", new CreateBrandRequest { Name = NewBrandName, IsActive = NewBrandIsActive }, "Brand", isEditing);
+            var result = await _coordinator.SaveBrandAsync(BrandsFeature);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             BrandsFeature.ClearForm();
             RaiseAll(nameof(NewBrandName), nameof(NewBrandIsActive), nameof(SelectedBrand));
         }
 
         private async Task DeleteBrandAsync()
         {
-            if (SelectedBrand is not { Id: > 0 }) { Status = "✗ Select a brand to delete."; return; }
-            await DeleteAsync($"api/brands/{SelectedBrand.Id}", "Brand");
+            var result = await _coordinator.DeleteBrandAsync(SelectedBrand);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             BrandsFeature.SelectedBrand = null;
             OnPropertyChanged(nameof(SelectedBrand));
         }
 
         private async Task SavePartAsync()
         {
-            if (string.IsNullOrWhiteSpace(NewPartCode) || string.IsNullOrWhiteSpace(NewPartName)) { Status = "✗ Part code and name are required."; return; }
-            var isEditing = SelectedPart is { Id: > 0 };
-            await SaveAsync(isEditing ? $"api/parts/{SelectedPart!.Id}" : "api/parts", new CreatePartRequest
-            {
-                InternalCode = NewPartCode,
-                Name = NewPartName,
-                OEMNumber = NewPartOEM,
-                Condition = PartCondition.New,
-                CategoryId = NewPartCategoryId,
-                BrandId = NewPartBrandId,
-                CostPrice = NewPartCostPrice,
-                SalePrice = NewPartSalePrice,
-                Currency = NewPartCurrency,
-                MinStock = NewPartMinStock,
-                Notes = NewPartNotes
-            }, "Part", isEditing);
+            var result = await _coordinator.SavePartAsync(PartsFeature);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             PartsFeature.ClearForm();
             RaisePartProps();
         }
 
         private async Task DeletePartAsync()
         {
-            if (SelectedPart is not { Id: > 0 }) { Status = "✗ Select a part to delete."; return; }
-            await DeleteAsync($"api/parts/{SelectedPart.Id}", "Part");
+            var result = await _coordinator.DeletePartAsync(SelectedPart);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             PartsFeature.SelectedPart = null;
             OnPropertyChanged(nameof(SelectedPart));
         }
 
         private async Task SaveCarModelAsync()
         {
-            if (string.IsNullOrWhiteSpace(NewCarModelName)) { Status = "✗ Car model name is required."; return; }
-            var isEditing = SelectedCarModel is { Id: > 0 };
-            await SaveAsync(isEditing ? $"api/carmodels/{SelectedCarModel!.Id}" : "api/carmodels", new CreateCarModelRequest
-            {
-                Name = NewCarModelName,
-                Year = NewCarModelYear,
-                EngineType = NewCarModelEngine,
-                BasePrice = NewCarModelBasePrice,
-                CarBrandId = NewCarModelBrandId
-            }, "Car Model", isEditing);
+            var result = await _coordinator.SaveCarModelAsync(CarModelsFeature);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             CarModelsFeature.ClearForm();
             RaiseCarModelProps();
         }
 
         private async Task DeleteCarModelAsync()
         {
-            if (SelectedCarModel is not { Id: > 0 }) { Status = "✗ Select a car model to delete."; return; }
-            await DeleteAsync($"api/carmodels/{SelectedCarModel.Id}", "Car model");
+            var result = await _coordinator.DeleteCarModelAsync(SelectedCarModel);
+            Status = result.Message;
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             CarModelsFeature.SelectedCarModel = null;
             OnPropertyChanged(nameof(SelectedCarModel));
-        }
-
-        private async Task SaveAsync(string url, object payload, string entityName, bool isEditing)
-        {
-            try
-            {
-                if (isEditing) { await _crudApi.PutAsync(url, payload); Status = $"✓ {entityName} updated."; }
-                else { await _crudApi.PostAsync(url, payload); Status = $"✓ {entityName} saved."; }
-                await LoadAllAsync();
-            }
-            catch (Exception ex) { Status = $"✗ Error saving {entityName}: {ex.Message}"; }
-        }
-
-        private async Task DeleteAsync(string url, string entityName)
-        {
-            try
-            {
-                await _crudApi.DeleteAsync(url);
-                Status = $"✓ {entityName} deleted.";
-                await LoadAllAsync();
-            }
-            catch (Exception ex) { Status = $"✗ Error deleting {entityName}: {ex.Message}"; }
         }
 
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
