@@ -26,5 +26,6 @@ namespace SpareParts.Desktop.Wpf
         public string  EngineType { get; set; } = string.Empty;
         public decimal BasePrice  { get; set; }
         public string  ImagePath  { get; set; } = string.Empty;
+        public int Id { get;  set; }
     }
 }
