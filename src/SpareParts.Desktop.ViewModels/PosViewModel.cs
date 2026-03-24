@@ -4,11 +4,8 @@ using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 // CarBrand / CarModel local UI-only models kept here because they are purely
@@ -101,7 +98,7 @@ namespace SpareParts.Desktop.Wpf
             SelectCarCommand   = new RelayCommand(SelectCar);
             SelectPartCommand  = new RelayCommand(SelectPart);
             AddItemCommand     = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand  = new RelayCommand(_ => SubmitSale());
+            SubmitSaleCommand  = new RelayCommand(_ => SubmitSaleAsync());
             GoHomeCommand      = new RelayCommand(_ => ActiveScreen = AppScreen.HomePage);
 
             SeedBrands();
@@ -130,7 +127,7 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(RemainingAmount));
         }
 
-        private void SubmitSale()
+        private async void SubmitSaleAsync()
         {
             if (Items.Count == 0)
             {
@@ -161,24 +158,7 @@ namespace SpareParts.Desktop.Wpf
                     }).ToList()
                 };
 
-                var json    = JsonSerializer.Serialize(req);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Fire synchronously — PosViewModel is not async-aware yet
-                using var client = new HttpClient { BaseAddress = new Uri("http://localhost:5000/") };
-                var response = client.PostAsync("api/sales", content).Result;
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    CustomMessageBox.Show(
-                        $"Error from API: {response.StatusCode}. Make sure the API is running.",
-                        "Error", "Warning");
-                    return;
-                }
-
-                var result = JsonSerializer.Deserialize<CreateSaleResponse>(
-                    response.Content.ReadAsStringAsync().Result,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var result = await ApiClient.Instance.CreateSaleAsync(req);
 
                 CustomMessageBox.Show(
                     $"Sale created. Invoice: {result?.InvoiceNumber}, Total: {result?.TotalAmount:N2}",
@@ -197,20 +177,20 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private void SelectBrand(object? parameter)
+        private async void SelectBrand(object? parameter)
         {
             if (parameter is not CarBrandUi brand) return;
             SelectedBrand = brand;
             OnPropertyChanged(nameof(SelectedBrand));
-            LoadAvailableCars(brand.Name);
+            await LoadAvailableCarsAsync(brand.Name);
             ActiveScreen = AppScreen.CarSelection;
         }
 
-        private void SelectCar(object? parameter)
+        private async void SelectCar(object? parameter)
         {
             if (parameter is not CarModelUi car) return;
             SelectedCar = car;
-            LoadAvailableParts(car);
+            await LoadAvailablePartsAsync(car);
             ActiveScreen = AppScreen.PartSelection;
         }
 
@@ -230,16 +210,42 @@ namespace SpareParts.Desktop.Wpf
             ActiveScreen = AppScreen.Pos;
         }
 
-        private void LoadAvailableCars(string? brandName)
+        private async Task LoadAvailableCarsAsync(string? brandName)
         {
             AvailableCars.Clear();
-            // TODO: replace with ApiClient.Instance.GetCarModelsAsync(brandId)
+            if (string.IsNullOrWhiteSpace(brandName))
+                return;
+
+            var brands = await ApiClient.Instance.GetCarBrandsAsync();
+            var brand = brands.FirstOrDefault(
+                b => string.Equals(b.Name, brandName, StringComparison.OrdinalIgnoreCase));
+            if (brand == null) return;
+
+            var models = await ApiClient.Instance.GetCarModelsAsync(brand.Id);
+            foreach (var model in models)
+            {
+                AvailableCars.Add(new CarModelUi
+                {
+                    Id = model.Id,
+                    Name = model.Name,
+                    Year = model.Year
+                });
+            }
         }
 
-        private void LoadAvailableParts(CarModelUi car)
+        private async Task LoadAvailablePartsAsync(CarModelUi car)
         {
             AvailableParts.Clear();
-            // TODO: replace with ApiClient.Instance.GetPartsAsync()
+            var parts = await ApiClient.Instance.GetPartsAsync();
+            foreach (var part in parts)
+            {
+                AvailableParts.Add(new CarPartModel
+                {
+                    PartId = part.Id,
+                    Description = part.Name,
+                    UnitPrice = part.SalePrice
+                });
+            }
         }
 
         private void SeedBrands()

@@ -28,14 +28,7 @@ var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtSecret  = jwtSection["Secret"];
 if (string.IsNullOrWhiteSpace(jwtSecret))
 {
-    if (isDevelopment)
-    {
-        jwtSecret = "MaaloufAutoPartsSecretKey_ChangeInProduction_2024!";
-    }
-    else
-    {
-        throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
-    }
+    throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
 }
 var jwtIssuer   = jwtSection["Issuer"]   ?? "SpareParts.Api";
 var jwtAudience = jwtSection["Audience"] ?? "SpareParts.Desktop";

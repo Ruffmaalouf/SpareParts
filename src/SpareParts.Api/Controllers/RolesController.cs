@@ -93,14 +93,16 @@ namespace SpareParts.Api.Controllers
         {
             using var conn = _factory.CreateConnection();
 
-            var isSystem = conn.ExecuteScalar<bool>(
-                "SELECT IsSystem FROM Roles WHERE Id = @Id", new { Id = id });
-            if (isSystem)
+            var role = conn.QueryFirstOrDefault<(string Name, bool IsSystem)>(
+                "SELECT Name, IsSystem FROM Roles WHERE Id = @Id", new { Id = id });
+            if (string.IsNullOrWhiteSpace(role.Name))
+                return NotFound();
+            if (role.IsSystem)
                 return BadRequest("Built-in system roles cannot be deleted.");
 
             // Check if any user is assigned this role
             var usersWithRole = conn.ExecuteScalar<int>(
-                "SELECT COUNT(1) FROM Users WHERE RoleId = @Id", new { Id = id });
+                "SELECT COUNT(1) FROM Users WHERE Role = @RoleName", new { RoleName = role.Name });
             if (usersWithRole > 0)
                 return BadRequest($"Cannot delete role — {usersWithRole} user(s) are assigned to it.");
 
