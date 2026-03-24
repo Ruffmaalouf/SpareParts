@@ -22,3 +22,5 @@ src/SpareParts.Api/bin/
 src/SpareParts.Infrastructure/bin/
 
 src/SpareParts.Infrastructure/obj/
+
+src/SpareParts.Desktop.Controls/obj/
