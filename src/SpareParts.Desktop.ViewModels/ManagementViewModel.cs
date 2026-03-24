@@ -186,14 +186,16 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveCustomerAsync()
         {
             if (string.IsNullOrWhiteSpace(NewCustomerName)) { Status = "✗ Customer name is required."; return; }
-            await PostAsync("api/customers", new CreateCustomerRequest
+            var isEditing = SelectedCustomer is { Id: > 0 };
+            await SaveAsync(isEditing ? $"api/customers/{SelectedCustomer!.Id}" : "api/customers", new CreateCustomerRequest
             {
                 Name = NewCustomerName, Phone = NewCustomerPhone, Email = NewCustomerEmail,
                 Address = NewCustomerAddress, TaxNumber = NewCustomerTax, OpeningBalance = NewCustomerBalance
-            }, "Customer");
+            }, "Customer", isEditing);
             NewCustomerName = NewCustomerPhone = NewCustomerEmail =
             NewCustomerAddress = NewCustomerTax = string.Empty;
             NewCustomerBalance = 0;
+            SelectedCustomer = null;
             RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail),
                      nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         }
@@ -202,14 +204,16 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveSupplierAsync()
         {
             if (string.IsNullOrWhiteSpace(NewSupplierName)) { Status = "✗ Supplier name is required."; return; }
-            await PostAsync("api/suppliers", new CreateSupplierRequest
+            var isEditing = SelectedSupplier is { Id: > 0 };
+            await SaveAsync(isEditing ? $"api/suppliers/{SelectedSupplier!.Id}" : "api/suppliers", new CreateSupplierRequest
             {
                 Name = NewSupplierName, Phone = NewSupplierPhone, Email = NewSupplierEmail,
                 Address = NewSupplierAddress, TaxNumber = NewSupplierTax, OpeningBalance = NewSupplierBalance
-            }, "Supplier");
+            }, "Supplier", isEditing);
             NewSupplierName = NewSupplierPhone = NewSupplierEmail =
             NewSupplierAddress = NewSupplierTax = string.Empty;
             NewSupplierBalance = 0;
+            SelectedSupplier = null;
             RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail),
                      nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         }
@@ -218,8 +222,11 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveBrandAsync()
         {
             if (string.IsNullOrWhiteSpace(NewBrandName)) { Status = "✗ Brand name is required."; return; }
-            await PostAsync("api/brands", new CreateBrandRequest { Name = NewBrandName, IsActive = NewBrandIsActive }, "Brand");
+            var isEditing = SelectedBrand is { Id: > 0 };
+            await SaveAsync(isEditing ? $"api/brands/{SelectedBrand!.Id}" : "api/brands",
+                new CreateBrandRequest { Name = NewBrandName, IsActive = NewBrandIsActive }, "Brand", isEditing);
             NewBrandName = string.Empty;
+            SelectedBrand = null;
             RaiseAll(nameof(NewBrandName));
         }
 
@@ -228,15 +235,17 @@ namespace SpareParts.Desktop.Wpf
         {
             if (string.IsNullOrWhiteSpace(NewPartCode) || string.IsNullOrWhiteSpace(NewPartName))
             { Status = "✗ Part code and name are required."; return; }
-            await PostAsync("api/parts", new CreatePartRequest
+            var isEditing = SelectedPart is { Id: > 0 };
+            await SaveAsync(isEditing ? $"api/parts/{SelectedPart!.Id}" : "api/parts", new CreatePartRequest
             {
                 InternalCode = NewPartCode, Name = NewPartName, OEMNumber = NewPartOEM,
                 Condition    = PartCondition.New, CategoryId = NewPartCategoryId, BrandId = NewPartBrandId,
                 CostPrice    = NewPartCostPrice,  SalePrice  = NewPartSalePrice,
                 Currency     = NewPartCurrency,   MinStock   = NewPartMinStock, Notes = NewPartNotes
-            }, "Part");
+            }, "Part", isEditing);
             NewPartCode = NewPartName = NewPartOEM = NewPartNotes = string.Empty;
             NewPartCostPrice = NewPartSalePrice = 0;
+            SelectedPart = null;
             RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM),
                      nameof(NewPartNotes), nameof(NewPartCostPrice), nameof(NewPartSalePrice));
         }
@@ -245,24 +254,34 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveCarModelAsync()
         {
             if (string.IsNullOrWhiteSpace(NewCarModelName)) { Status = "✗ Car model name is required."; return; }
-            await PostAsync("api/carmodels", new CreateCarModelRequest
+            var isEditing = SelectedCarModel is { Id: > 0 };
+            await SaveAsync(isEditing ? $"api/carmodels/{SelectedCarModel!.Id}" : "api/carmodels", new CreateCarModelRequest
             {
                 Name = NewCarModelName, Year = NewCarModelYear, EngineType = NewCarModelEngine,
                 BasePrice = NewCarModelBasePrice, CarBrandId = NewCarModelBrandId
-            }, "Car Model");
+            }, "Car Model", isEditing);
             NewCarModelName = NewCarModelYear = NewCarModelEngine = string.Empty;
             NewCarModelBasePrice = 0;
+            SelectedCarModel = null;
             RaiseAll(nameof(NewCarModelName), nameof(NewCarModelYear),
                      nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
         }
 
-        // ── Shared POST via ApiClient (has token) ─────────────────────────────
-        private async Task PostAsync(string url, object payload, string entityName)
+        // ── Shared save via ApiClient (has token) ─────────────────────────────
+        private async Task SaveAsync(string url, object payload, string entityName, bool isEditing)
         {
             try
             {
-                await Api.PostAsync(url, payload);
-                Status = $"✓ {entityName} saved.";
+                if (isEditing)
+                {
+                    await Api.PutAsync(url, payload);
+                    Status = $"✓ {entityName} updated.";
+                }
+                else
+                {
+                    await Api.PostAsync(url, payload);
+                    Status = $"✓ {entityName} saved.";
+                }
                 await LoadAllAsync();
             }
             catch (Exception ex) { Status = $"✗ Error saving {entityName}: {ex.Message}"; }

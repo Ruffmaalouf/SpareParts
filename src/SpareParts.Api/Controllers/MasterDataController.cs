@@ -59,6 +59,34 @@ namespace SpareParts.Api.Controllers
             return Ok(id);
         }
 
+        [HttpPut("{id:int}")]
+        public IActionResult Update(int id, [FromBody] CreateCustomerRequest req)
+        {
+            using var session = new DbSession(_factory);
+            var updated = session.Connection.Execute(
+                @"UPDATE Customers
+                  SET Name = @Name, Phone = @Phone, Email = @Email, Address = @Address,
+                      TaxNumber = @TaxNumber, OpeningBalance = @OpeningBalance,
+                      ModifiedAt = @Now, ModifiedByUserId = @UserId
+                  WHERE Id = @Id",
+                new
+                {
+                    Id = id,
+                    req.Name,
+                    req.Phone,
+                    req.Email,
+                    req.Address,
+                    req.TaxNumber,
+                    req.OpeningBalance,
+                    Now = DateTime.UtcNow,
+                    UserId = GetUserId()
+                },
+                session.Transaction);
+            if (updated == 0) return NotFound();
+            session.Commit();
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -115,6 +143,34 @@ namespace SpareParts.Api.Controllers
             return Ok(id);
         }
 
+        [HttpPut("{id:int}")]
+        public IActionResult Update(int id, [FromBody] CreateSupplierRequest req)
+        {
+            using var session = new DbSession(_factory);
+            var updated = session.Connection.Execute(
+                @"UPDATE Suppliers
+                  SET Name = @Name, Phone = @Phone, Email = @Email, Address = @Address,
+                      TaxNumber = @TaxNumber, OpeningBalance = @OpeningBalance,
+                      ModifiedAt = @Now, ModifiedByUserId = @UserId
+                  WHERE Id = @Id",
+                new
+                {
+                    Id = id,
+                    req.Name,
+                    req.Phone,
+                    req.Email,
+                    req.Address,
+                    req.TaxNumber,
+                    req.OpeningBalance,
+                    Now = DateTime.UtcNow,
+                    UserId = GetUserId()
+                },
+                session.Transaction);
+            if (updated == 0) return NotFound();
+            session.Commit();
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -161,6 +217,29 @@ namespace SpareParts.Api.Controllers
             var id = ctx.InsertBrand(brand);
             session.Commit();
             return Ok(id);
+        }
+
+        [HttpPut("{id:int}")]
+        public IActionResult Update(int id, [FromBody] CreateBrandRequest req)
+        {
+            using var session = new DbSession(_factory);
+            var updated = session.Connection.Execute(
+                @"UPDATE Brands
+                  SET Name = @Name, IsActive = @IsActive,
+                      ModifiedAt = @Now, ModifiedByUserId = @UserId
+                  WHERE Id = @Id",
+                new
+                {
+                    Id = id,
+                    req.Name,
+                    req.IsActive,
+                    Now = DateTime.UtcNow,
+                    UserId = GetUserId()
+                },
+                session.Transaction);
+            if (updated == 0) return NotFound();
+            session.Commit();
+            return NoContent();
         }
 
         private int GetUserId()
@@ -279,6 +358,41 @@ namespace SpareParts.Api.Controllers
             var id = ctx.InsertPart(part);
             session.Commit();
             return Ok(id);
+        }
+
+        [HttpPut("{id:int}")]
+        public IActionResult Update(int id, [FromBody] CreatePartRequest req)
+        {
+            using var session = new DbSession(_factory);
+            var updated = session.Connection.Execute(
+                @"UPDATE Parts
+                  SET InternalCode = @InternalCode, Barcode = @Barcode, Name = @Name,
+                      OEMNumber = @OEMNumber, Condition = @Condition, CategoryId = @CategoryId, BrandId = @BrandId,
+                      CostPrice = @CostPrice, SalePrice = @SalePrice, Currency = @Currency, MinStock = @MinStock,
+                      Notes = @Notes, ModifiedAt = @Now, ModifiedByUserId = @UserId
+                  WHERE Id = @Id",
+                new
+                {
+                    Id = id,
+                    req.InternalCode,
+                    req.Barcode,
+                    req.Name,
+                    req.OEMNumber,
+                    req.Condition,
+                    req.CategoryId,
+                    req.BrandId,
+                    req.CostPrice,
+                    req.SalePrice,
+                    req.Currency,
+                    req.MinStock,
+                    req.Notes,
+                    Now = DateTime.UtcNow,
+                    UserId = GetUserId()
+                },
+                session.Transaction);
+            if (updated == 0) return NotFound();
+            session.Commit();
+            return NoContent();
         }
 
         private int GetUserId()
