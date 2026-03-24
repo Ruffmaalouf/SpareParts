@@ -192,6 +192,31 @@ namespace SpareParts.Api.Controllers
             return Ok(id);
         }
 
+        /// <summary>PUT /api/carmodels/{id} — update existing model</summary>
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin,Manager")]
+        public IActionResult Update(int id, [FromBody] CreateCarModelRequest req)
+        {
+            using var conn = _factory.CreateConnection();
+            var updated = conn.Execute(
+                @"UPDATE CarModels
+                  SET CarBrandId = @CarBrandId, Name = @Name, Year = @Year,
+                      EngineType = @EngineType, BasePrice = @BasePrice, ModifiedAt = @Now
+                  WHERE Id = @Id",
+                new
+                {
+                    Id = id,
+                    req.CarBrandId,
+                    req.Name,
+                    req.Year,
+                    req.EngineType,
+                    req.BasePrice,
+                    Now = DateTime.UtcNow
+                });
+            if (updated == 0) return NotFound();
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
