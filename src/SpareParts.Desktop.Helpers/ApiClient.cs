@@ -56,9 +56,14 @@ namespace SpareParts.Desktop.Wpf
 
                 return true;
             }
+            catch (TaskCanceledException ex)
+            {
+                LogError("Ping timed out.", ex);
+                return false;
+            }
             catch (Exception ex)
             {
-                LogWarning($"Ping failed: {ex.Message}");
+                LogError("Ping failed with unexpected error.", ex);
                 return false;
             }
         }
@@ -127,9 +132,14 @@ namespace SpareParts.Desktop.Wpf
 
                 return BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
             }
+            catch (HttpRequestException ex)
+            {
+                LogError($"Brand logo request failed for brand {brandId}.", ex);
+                return null;
+            }
             catch (Exception ex)
             {
-                LogWarning($"Brand logo load failed for brand {brandId}: {ex.Message}");
+                LogError($"Brand logo load failed for brand {brandId}.", ex);
                 return null;
             }
         }
@@ -165,9 +175,14 @@ namespace SpareParts.Desktop.Wpf
 
                 return BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
             }
+            catch (HttpRequestException ex)
+            {
+                LogError($"Model image request failed for model {modelId}.", ex);
+                return null;
+            }
             catch (Exception ex)
             {
-                LogWarning($"Model image load failed for model {modelId}: {ex.Message}");
+                LogError($"Model image load failed for model {modelId}.", ex);
                 return null;
             }
         }
@@ -275,6 +290,11 @@ namespace SpareParts.Desktop.Wpf
         private static void LogWarning(string message)
         {
             Trace.TraceWarning($"[ApiClient] {message}");
+        }
+
+        private static void LogError(string message, Exception ex)
+        {
+            Trace.TraceError($"[ApiClient] {message} Exception: {ex}");
         }
     }
 }

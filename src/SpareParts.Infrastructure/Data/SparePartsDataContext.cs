@@ -235,6 +235,12 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.ExecuteScalar<int>(sql, invoice, _session.Transaction);
         }
 
+        public bool SalesInvoiceNumberExists(string invoiceNumber)
+        {
+            const string sql = "SELECT COUNT(1) FROM SalesInvoices WHERE InvoiceNumber = @InvoiceNumber";
+            return _session.Connection.ExecuteScalar<int>(sql, new { InvoiceNumber = invoiceNumber }, _session.Transaction) > 0;
+        }
+
         public void InsertSalesInvoiceItems(int invoiceId, IList<SalesInvoiceItem> items)
         {
             const string sql = @"INSERT INTO SalesInvoiceItems
@@ -260,6 +266,12 @@ namespace SpareParts.Infrastructure.Data
                  @TaxAmount, @TotalAmount, @PaidAmount, @PaymentStatus, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
             return _session.Connection.ExecuteScalar<int>(sql, invoice, _session.Transaction);
+        }
+
+        public bool PurchaseNumberExists(string purchaseNumber)
+        {
+            const string sql = "SELECT COUNT(1) FROM PurchaseInvoices WHERE PurchaseNumber = @PurchaseNumber";
+            return _session.Connection.ExecuteScalar<int>(sql, new { PurchaseNumber = purchaseNumber }, _session.Transaction) > 0;
         }
 
         public void InsertPurchaseInvoiceItems(int purchaseId, IList<PurchaseInvoiceItem> items)

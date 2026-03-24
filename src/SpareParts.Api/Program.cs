@@ -73,6 +73,8 @@ builder.Services.AddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator
 builder.Services.AddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
 builder.Services.AddSingleton<IInvoiceTotalsCalculator, InvoiceTotalsCalculator>();
 
+builder.Services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
+builder.Services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
 builder.Services.AddScoped<SalesService>();
 builder.Services.AddScoped<PurchaseService>();
 
