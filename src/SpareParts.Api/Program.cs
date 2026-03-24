@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using SpareParts.Domain.Purchases;
+using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Services;
-using SpareParts.Domain.Sales;
-using SpareParts.Domain.Purchases;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,14 +26,16 @@ if (string.IsNullOrWhiteSpace(connString))
 
 // ── JWT settings ──────────────────────────────────────────────────────────────
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtSecret  = jwtSection["Secret"];
+var jwtSecret = jwtSection["Secret"];
 if (string.IsNullOrWhiteSpace(jwtSecret))
 {
     throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
 }
-var jwtIssuer   = jwtSection["Issuer"]   ?? "SpareParts.Api";
+var jwtIssuer = jwtSection["Issuer"] ?? "SpareParts.Api";
 var jwtAudience = jwtSection["Audience"] ?? "SpareParts.Desktop";
 var jwtExpHours = int.TryParse(jwtSection["ExpiryHours"], out var h) ? h : 12;
+
+builder.Services.Configure<AccountingOptions>(builder.Configuration.GetSection("Accounting"));
 
 // ── DI ────────────────────────────────────────────────────────────────────────
 builder.Services.AddSingleton<ISqlConnectionFactory>(_ =>
@@ -40,23 +43,34 @@ builder.Services.AddSingleton<ISqlConnectionFactory>(_ =>
 
 builder.Services.AddSingleton(new JwtSettings
 {
-    Secret     = jwtSecret,
-    Issuer     = jwtIssuer,
-    Audience   = jwtAudience,
+    Secret = jwtSecret,
+    Issuer = jwtIssuer,
+    Audience = jwtAudience,
     ExpiryHours = jwtExpHours
 });
 
-builder.Services.AddScoped<IAccountingStrategy<SalesInvoice>>(_ =>
-    new SaleAccountingStrategy(
-        cashAccountId:      1,
-        salesAccountId:     5,
-        cogsAccountId:      6,
-        inventoryAccountId: 2));
+builder.Services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<AccountingOptions>>().Value;
+    return new SaleAccountingStrategy(
+        cashAccountId: options.CashAccountId,
+        salesAccountId: options.SalesAccountId,
+        cogsAccountId: options.CogsAccountId,
+        inventoryAccountId: options.InventoryAccountId);
+});
 
-builder.Services.AddScoped<IAccountingStrategy<PurchaseInvoice>>(_ =>
-    new PurchaseAccountingStrategy(
-        inventoryAccountId:  2,
-        cashOrApAccountId:   4));
+builder.Services.AddScoped<IAccountingStrategy<PurchaseInvoice>>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<AccountingOptions>>().Value;
+    return new PurchaseAccountingStrategy(
+        inventoryAccountId: options.InventoryAccountId,
+        cashOrApAccountId: options.CashOrApAccountId);
+});
+
+builder.Services.AddScoped<ISparePartsDataContextFactory, SparePartsDataContextFactory>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator>();
+builder.Services.AddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
 
 builder.Services.AddScoped<SalesService>();
 builder.Services.AddScoped<PurchaseService>();
@@ -69,14 +83,14 @@ builder.Services
         opt.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey         = new SymmetricSecurityKey(
-                                           Encoding.UTF8.GetBytes(jwtSecret)),
-            ValidateIssuer   = true,
-            ValidIssuer      = jwtIssuer,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
             ValidateAudience = true,
-            ValidAudience    = jwtAudience,
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
-            ClockSkew        = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -108,8 +122,8 @@ app.Run();
 // ── Helper class (used by AuthController) ────────────────────────────────────
 public class JwtSettings
 {
-    public string Secret      { get; set; } = string.Empty;
-    public string Issuer      { get; set; } = string.Empty;
-    public string Audience    { get; set; } = string.Empty;
-    public int    ExpiryHours { get; set; } = 12;
+    public string Secret { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
+    public string Audience { get; set; } = string.Empty;
+    public int ExpiryHours { get; set; } = 12;
 }

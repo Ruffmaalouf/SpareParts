@@ -3,22 +3,32 @@ using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public class InventoryService
+    public interface IInventoryService
     {
-        private readonly SparePartsDataContext _ctx;
+        int GetAvailableStock(SparePartsDataContext ctx, int partId, int warehouseId);
 
-        public InventoryService(SparePartsDataContext ctx)
-        {
-            _ctx = ctx;
-        }
+        void AdjustStock(
+            SparePartsDataContext ctx,
+            int partId,
+            int warehouseId,
+            int quantityChange,
+            StockMovementType movementType,
+            string referenceType,
+            int? referenceId,
+            decimal unitCost,
+            int userId);
+    }
 
-        public int GetAvailableStock(int partId, int warehouseId)
+    public class InventoryService : IInventoryService
+    {
+        public int GetAvailableStock(SparePartsDataContext ctx, int partId, int warehouseId)
         {
-            var stock = _ctx.GetStock(partId, warehouseId);
+            var stock = ctx.GetStock(partId, warehouseId);
             return stock?.Quantity ?? 0;
         }
 
         public void AdjustStock(
+            SparePartsDataContext ctx,
             int partId,
             int warehouseId,
             int quantityChange,
@@ -28,7 +38,7 @@ namespace SpareParts.Infrastructure.Services
             decimal unitCost,
             int userId)
         {
-            var existing = _ctx.GetStock(partId, warehouseId);
+            var existing = ctx.GetStock(partId, warehouseId);
             if (existing == null)
             {
                 var stock = new Stock
@@ -40,11 +50,11 @@ namespace SpareParts.Infrastructure.Services
                     CreatedAt = DateTime.UtcNow,
                     CreatedByUserId = userId
                 };
-                _ctx.InsertStock(stock);
+                ctx.InsertStock(stock);
             }
             else
             {
-                _ctx.UpdateStockQuantity(existing.Id, quantityChange, userId);
+                ctx.UpdateStockQuantity(existing.Id, quantityChange, userId);
             }
 
             var movement = new StockMovement
@@ -59,7 +69,7 @@ namespace SpareParts.Infrastructure.Services
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId
             };
-            _ctx.InsertStockMovement(movement);
+            ctx.InsertStockMovement(movement);
         }
     }
 }
