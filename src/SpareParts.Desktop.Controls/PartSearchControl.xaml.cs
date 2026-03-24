@@ -80,10 +80,14 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public PartSearchControl(IPartsApiClient? partsApi = null)
+        public PartSearchControl() : this(new PartsApiClient())
+        {
+        }
+
+        public PartSearchControl(IPartsApiClient partsApi)
         {
             InitializeComponent();
-            _partsApi = partsApi ?? new PartsApiClient();
+            _partsApi = partsApi;
             FilteredParts = new ObservableCollection<PartDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
             Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;

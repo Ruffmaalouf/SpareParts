@@ -54,10 +54,14 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public WarehouseSearchControl(ICrudApiClient? crudApi = null)
+        public WarehouseSearchControl() : this(new CrudApiClient())
+        {
+        }
+
+        public WarehouseSearchControl(ICrudApiClient crudApi)
         {
             InitializeComponent();
-            _crudApi = crudApi ?? new CrudApiClient();
+            _crudApi = crudApi;
             FilteredWarehouses = new ObservableCollection<WarehouseDto>();
             Loaded += async (_, _) => await EnsureLoadedAsync();
 
