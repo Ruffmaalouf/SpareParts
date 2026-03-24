@@ -1,4 +1,3 @@
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Inventory;
@@ -18,8 +17,8 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<PartDto>> GetAll()
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            return Ok(ctx.GetAllParts().Select(p => new PartDto
+            var partsRepository = new PartsRepository(session);
+            return Ok(partsRepository.GetAllActive().Select(p => new PartDto
             {
                 Id = p.Id,
                 InternalCode = p.InternalCode,
@@ -42,7 +41,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<int> Create([FromBody] CreatePartRequest req)
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
+            var partsRepository = new PartsRepository(session);
             var part = new Domain.Inventory.Part
             {
                 InternalCode = req.InternalCode,
@@ -61,7 +60,7 @@ namespace SpareParts.Api.Controllers
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = GetUserId()
             };
-            var id = ctx.InsertPart(part);
+            var id = partsRepository.Insert(part);
             session.Commit();
             return Ok(id);
         }
@@ -70,33 +69,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Update(int id, [FromBody] CreatePartRequest req)
         {
             using var session = new DbSession(_factory);
-            var updated = session.Connection.Execute(
-                @"UPDATE Parts
-                  SET InternalCode = @InternalCode, Barcode = @Barcode, Name = @Name,
-                      OEMNumber = @OEMNumber, Condition = @Condition, CategoryId = @CategoryId, BrandId = @BrandId,
-                      CostPrice = @CostPrice, SalePrice = @SalePrice, Currency = @Currency, MinStock = @MinStock,
-                      Notes = @Notes, ModifiedAt = @Now, ModifiedByUserId = @UserId
-                  WHERE Id = @Id",
-                new
-                {
-                    Id = id,
-                    req.InternalCode,
-                    req.Barcode,
-                    req.Name,
-                    req.OEMNumber,
-                    req.Condition,
-                    req.CategoryId,
-                    req.BrandId,
-                    req.CostPrice,
-                    req.SalePrice,
-                    req.Currency,
-                    req.MinStock,
-                    req.Notes,
-                    Now = DateTime.UtcNow,
-                    UserId = GetUserId()
-                },
-                session.Transaction);
-            if (updated == 0) return NotFound();
+            var partsRepository = new PartsRepository(session);
+            if (!partsRepository.Update(id, req, GetUserId())) return NotFound();
             session.Commit();
             return NoContent();
         }
@@ -105,11 +79,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Delete(int id)
         {
             using var session = new DbSession(_factory);
-            var deleted = session.Connection.Execute(
-                "DELETE FROM Parts WHERE Id = @Id",
-                new { Id = id },
-                session.Transaction);
-            if (deleted == 0) return NotFound();
+            var partsRepository = new PartsRepository(session);
+            if (!partsRepository.Delete(id)) return NotFound();
             session.Commit();
             return NoContent();
         }

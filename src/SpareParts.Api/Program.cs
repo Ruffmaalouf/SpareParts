@@ -68,7 +68,6 @@ builder.Services.AddScoped<IAccountingStrategy<PurchaseInvoice>>(sp =>
         cashOrApAccountId: options.CashOrApAccountId);
 });
 
-builder.Services.AddScoped<ISparePartsDataContextFactory, SparePartsDataContextFactory>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator>();
 builder.Services.AddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();

@@ -1,4 +1,3 @@
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.BusinessPartners;
@@ -18,8 +17,8 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<SupplierDto>> GetAll()
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            return Ok(ctx.GetAllSuppliers().Select(s => new SupplierDto
+            var suppliersRepository = new SuppliersRepository(session);
+            return Ok(suppliersRepository.GetAll().Select(s => new SupplierDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -35,7 +34,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<int> Create([FromBody] CreateSupplierRequest req)
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
+            var suppliersRepository = new SuppliersRepository(session);
             var supplier = new Supplier
             {
                 Name = req.Name,
@@ -47,7 +46,7 @@ namespace SpareParts.Api.Controllers
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = GetUserId()
             };
-            var id = ctx.InsertSupplier(supplier);
+            var id = suppliersRepository.Insert(supplier);
             session.Commit();
             return Ok(id);
         }
@@ -56,26 +55,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Update(int id, [FromBody] CreateSupplierRequest req)
         {
             using var session = new DbSession(_factory);
-            var updated = session.Connection.Execute(
-                @"UPDATE Suppliers
-                  SET Name = @Name, Phone = @Phone, Email = @Email, Address = @Address,
-                      TaxNumber = @TaxNumber, OpeningBalance = @OpeningBalance,
-                      ModifiedAt = @Now, ModifiedByUserId = @UserId
-                  WHERE Id = @Id",
-                new
-                {
-                    Id = id,
-                    req.Name,
-                    req.Phone,
-                    req.Email,
-                    req.Address,
-                    req.TaxNumber,
-                    req.OpeningBalance,
-                    Now = DateTime.UtcNow,
-                    UserId = GetUserId()
-                },
-                session.Transaction);
-            if (updated == 0) return NotFound();
+            var suppliersRepository = new SuppliersRepository(session);
+            if (!suppliersRepository.Update(id, req, GetUserId())) return NotFound();
             session.Commit();
             return NoContent();
         }
@@ -84,11 +65,8 @@ namespace SpareParts.Api.Controllers
         public IActionResult Delete(int id)
         {
             using var session = new DbSession(_factory);
-            var deleted = session.Connection.Execute(
-                "DELETE FROM Suppliers WHERE Id = @Id",
-                new { Id = id },
-                session.Transaction);
-            if (deleted == 0) return NotFound();
+            var suppliersRepository = new SuppliersRepository(session);
+            if (!suppliersRepository.Delete(id)) return NotFound();
             session.Commit();
             return NoContent();
         }

@@ -18,8 +18,8 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<CategoryDto>> GetAll()
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
-            return Ok(ctx.GetAllCategories().Select(c => new CategoryDto
+            var categoriesRepository = new CategoriesRepository(session);
+            return Ok(categoriesRepository.GetAll().Select(c => new CategoryDto
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -31,7 +31,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<int> Create([FromBody] CreateCategoryRequest req)
         {
             using var session = new DbSession(_factory);
-            var ctx = new SparePartsDataContext(session);
+            var categoriesRepository = new CategoriesRepository(session);
             var cat = new Domain.MasterData.Category
             {
                 Name = req.Name,
@@ -39,7 +39,7 @@ namespace SpareParts.Api.Controllers
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = GetUserId()
             };
-            var id = ctx.InsertCategory(cat);
+            var id = categoriesRepository.Insert(cat);
             session.Commit();
             return Ok(id);
         }
