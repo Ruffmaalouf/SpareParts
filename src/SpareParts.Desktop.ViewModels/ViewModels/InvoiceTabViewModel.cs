@@ -84,6 +84,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly ISalesApiClient _salesApi;
+        private bool _isSubmitting;
 
         public ICommand AddItemCommand    { get; }
         public ICommand SubmitSaleCommand { get; }
@@ -146,6 +147,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private async Task SubmitSaleAsync()
         {
+            if (_isSubmitting)
+            {
+                return;
+            }
+
             if (Items.Count == 0)
             {
                 CustomMessageBox.Show("Add at least one line before submitting.", "Validation", "Warning");
@@ -161,6 +167,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             try
             {
+                _isSubmitting = true;
                 var req = new CreateSaleRequest
                 {
                     InvoiceDate   = DateTime.Now,
@@ -199,6 +206,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 CustomMessageBox.Show("Unexpected error while submitting sale.", "Error", "Error");
                 AppNotificationCenter.Instance.Publish("✗ Unexpected error while submitting sale.", false);
+            }
+            finally
+            {
+                _isSubmitting = false;
             }
         }
 
