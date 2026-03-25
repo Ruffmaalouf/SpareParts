@@ -69,6 +69,29 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { if (_activeScreen != value) { _activeScreen = value; OnPropertyChanged(nameof(ActiveScreen)); } }
         }
 
+
+        private bool _isInvoiceSearchOpen;
+        public bool IsInvoiceSearchOpen
+        {
+            get => _isInvoiceSearchOpen;
+            set { _isInvoiceSearchOpen = value; OnPropertyChanged(nameof(IsInvoiceSearchOpen)); }
+        }
+
+        private string _invoiceSearchText = string.Empty;
+        public string InvoiceSearchText
+        {
+            get => _invoiceSearchText;
+            set
+            {
+                if (_invoiceSearchText == value) return;
+                _invoiceSearchText = value;
+                OnPropertyChanged(nameof(InvoiceSearchText));
+                RefreshInvoiceSearch();
+            }
+        }
+
+        public ObservableCollection<InvoiceTabViewModel> InvoiceSearchResults { get; } = new();
+
         private bool _isLoadingBrands;
         public bool IsLoadingBrands
         {
@@ -100,6 +123,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToCarSelectionCommand { get; }
         public ICommand GoToHomeCommand         { get; }
         public ICommand OpenManagementCommand   { get; }
+        public ICommand OpenInvoiceSearchCommand { get; }
         public ICommand ToggleFeedCommand       { get; }
 
         // ── Constructor ───────────────────────────────────────────────────────
@@ -149,12 +173,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 if (IsManagementOpen)
                     _ = ManagementVm.LoadAllAsync();
             });
+            OpenInvoiceSearchCommand = new RelayCommand(_ =>
+            {
+                IsInvoiceSearchOpen = !IsInvoiceSearchOpen;
+                if (IsInvoiceSearchOpen)
+                {
+                    RefreshInvoiceSearch();
+                }
+            });
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
 
             AddTabCommand   = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
             AddTab();
+            RefreshInvoiceSearch();
             _ = LoadBrandsAsync();
         }
 
@@ -320,6 +353,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var tab = new InvoiceTabViewModel(_salesApi);
             Tabs.Add(tab);
             SelectedTab = tab;
+            RefreshInvoiceSearch();
         }
 
         private void CloseTab(InvoiceTabViewModel? tab)
@@ -328,7 +362,42 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             int idx = Tabs.IndexOf(tab);
             Tabs.Remove(tab);
             SelectedTab = Tabs[Math.Max(0, idx - 1)];
+            RefreshInvoiceSearch();
         }
+
+
+
+        private void RefreshInvoiceSearch()
+        {
+            var query = (InvoiceSearchText ?? string.Empty).Trim();
+            var matches = Tabs
+                .Where(t => string.IsNullOrWhiteSpace(query)
+                            || t.Header.Contains(query, StringComparison.OrdinalIgnoreCase)
+                            || t.Items.Any(i => i.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
+                            || t.Items.Any(i => i.PartId.ToString().Contains(query, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            InvoiceSearchResults.Clear();
+            foreach (var tab in matches)
+            {
+                InvoiceSearchResults.Add(tab);
+            }
+        }
+
+        public void OpenInvoiceFromSearch(InvoiceTabViewModel? tab)
+        {
+            if (tab == null)
+            {
+                return;
+            }
+
+            SelectedTab = tab;
+            ActiveScreen = PosViewModel.AppScreen.Pos;
+            tab.MarkOpenedFromSearch();
+            IsInvoiceSearchOpen = false;
+            AppNotificationCenter.Instance.Publish($"✓ Opened {tab.Header} for editing.", true);
+        }
+
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>
