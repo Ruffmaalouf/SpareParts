@@ -44,10 +44,26 @@ namespace SpareParts.Desktop.Wpf
 
         private void Calendar_SelectedDatesChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (SelectedDate.HasValue)
+            if (sender is Calendar calendar && calendar.SelectedDate.HasValue)
             {
-                CalendarPopup.IsOpen = false;
+                SelectedDate = calendar.SelectedDate;
             }
+        }
+
+        private void TodayButton_Click(object sender, RoutedEventArgs e)
+        {
+            SelectedDate = DateTime.Today;
+            CalendarPopup.IsOpen = true;
+        }
+
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            SelectedDate = null;
+        }
+
+        private void DoneButton_Click(object sender, RoutedEventArgs e)
+        {
+            CalendarPopup.IsOpen = false;
         }
     }
 }
