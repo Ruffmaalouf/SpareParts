@@ -183,6 +183,30 @@ namespace SpareParts.Desktop.Wpf.Management
             return DeleteAsync($"api/parts/{selected.Id}", "Part");
         }
 
+
+        public Task<ManagementOperationResult> SaveCarBrandAsync(CarModelManagementViewModel feature)
+        {
+            if (string.IsNullOrWhiteSpace(feature.NewCarBrandName))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Car brand name is required.", "car_brand_name_required"), "saving Car Brand"));
+            }
+
+            var payload = new CreateCarBrandRequest
+            {
+                Name = feature.NewCarBrandName,
+                Country = feature.NewCarBrandCountry,
+                RegionGroup = feature.NewCarBrandRegionGroup,
+                SortOrder = feature.NewCarBrandSortOrder
+            };
+
+            return SaveAsync(
+                false,
+                null,
+                "api/carbrands",
+                payload,
+                "Car Brand");
+        }
+
         public Task<ManagementOperationResult> SaveCarModelAsync(CarModelManagementViewModel feature)
         {
             if (string.IsNullOrWhiteSpace(feature.NewCarModelName))

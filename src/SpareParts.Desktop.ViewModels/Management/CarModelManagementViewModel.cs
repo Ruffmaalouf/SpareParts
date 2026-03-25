@@ -8,6 +8,11 @@ namespace SpareParts.Desktop.Wpf.Management
         public ObservableCollection<CarModelDto> CarModels { get; } = new();
         public ObservableCollection<CarBrandDto> CarBrands { get; } = new();
 
+        public string NewCarBrandName { get; set; } = string.Empty;
+        public string NewCarBrandCountry { get; set; } = string.Empty;
+        public string NewCarBrandRegionGroup { get; set; } = string.Empty;
+        public int NewCarBrandSortOrder { get; set; }
+
         public string NewCarModelName { get; set; } = string.Empty;
         public string NewCarModelYear { get; set; } = string.Empty;
         public string NewCarModelEngine { get; set; } = string.Empty;
@@ -22,6 +27,14 @@ namespace SpareParts.Desktop.Wpf.Management
             NewCarModelYear = m.Year;
             NewCarModelEngine = m.EngineType;
             NewCarModelBasePrice = m.BasePrice;
+        }
+
+        public void ClearCarBrandForm()
+        {
+            NewCarBrandName = string.Empty;
+            NewCarBrandCountry = string.Empty;
+            NewCarBrandRegionGroup = string.Empty;
+            NewCarBrandSortOrder = 0;
         }
 
         public void ClearForm()
