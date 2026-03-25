@@ -1,6 +1,6 @@
 using SpareParts.Domain.Accounting;
 
-namespace SpareParts.Infrastructure.Services
+namespace SpareParts.Infrastructure.Interfaces
 {
     public interface IAccountingStrategy<TDocument>
     {

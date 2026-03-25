@@ -1,14 +1,10 @@
 using Dapper;
 using SpareParts.Domain.Sales;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface ISalesRepository
-    {
-        int InsertInvoice(SalesInvoice invoice);
-        void InsertItems(int invoiceId, IList<SalesInvoiceItem> items);
-        bool InvoiceNumberExists(string invoiceNumber);
-    }
 
     public class SalesRepository : ISalesRepository
     {

@@ -1,12 +1,8 @@
 using SpareParts.Domain.Sales;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public interface ICreateSaleHandler
-    {
-        CreateSaleResponse Handle(CreateSaleRequest request, int userId);
-    }
-
     public class SalesService
     {
         private readonly ICreateSaleHandler _createSaleHandler;

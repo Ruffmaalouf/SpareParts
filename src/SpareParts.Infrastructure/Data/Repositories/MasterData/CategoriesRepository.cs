@@ -1,13 +1,10 @@
 using Dapper;
 using SpareParts.Domain.MasterData;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface ICategoriesRepository
-    {
-        IEnumerable<Category> GetAll();
-        int Insert(Category category);
-    }
 
     public class CategoriesRepository : ICategoriesRepository
     {

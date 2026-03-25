@@ -1,15 +1,10 @@
 using Dapper;
 using SpareParts.Domain.Inventory;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface IInventoryRepository
-    {
-        Stock? GetStock(int partId, int warehouseId);
-        int InsertStock(Stock stock);
-        void UpdateStockQuantity(int stockId, int delta, int userId);
-        int InsertStockMovement(StockMovement movement);
-    }
 
     public class InventoryRepository : IInventoryRepository
     {
