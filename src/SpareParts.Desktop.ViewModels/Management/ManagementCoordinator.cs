@@ -1,6 +1,7 @@
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
 using SpareParts.Desktop.Wpf.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
             var parts = await _crudApi.GetAllAsync<PartDto>("api/parts");
             var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
+            var warehouses = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
             await rolesVm.LoadAsync();
 
             return new ManagementLoadResult
@@ -38,7 +40,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 CarBrands = carBrands,
                 Categories = categories,
                 Parts = parts,
-                CarModels = carModels
+                CarModels = carModels,
+                Warehouses = warehouses
             };
         }
 
@@ -184,27 +187,36 @@ namespace SpareParts.Desktop.Wpf.Management
         }
 
 
-        public Task<ManagementOperationResult> SaveCarBrandAsync(CarModelManagementViewModel feature)
+        public Task<ManagementOperationResult> SaveWarehouseAsync(WarehouseManagementViewModel feature)
         {
-            if (string.IsNullOrWhiteSpace(feature.NewCarBrandName))
+            if (string.IsNullOrWhiteSpace(feature.NewWarehouseName))
             {
-                return Task.FromResult(ToFailure(new DomainValidationException("Car brand name is required.", "car_brand_name_required"), "saving Car Brand"));
+                return Task.FromResult(ToFailure(new DomainValidationException("Warehouse name is required.", "warehouse_name_required"), "saving Warehouse"));
             }
 
-            var payload = new CreateCarBrandRequest
+            var payload = new CreateWarehouseRequest
             {
-                Name = feature.NewCarBrandName,
-                Country = feature.NewCarBrandCountry,
-                RegionGroup = feature.NewCarBrandRegionGroup,
-                SortOrder = feature.NewCarBrandSortOrder
+                Name = feature.NewWarehouseName,
+                Address = feature.NewWarehouseAddress,
+                IsMain = feature.NewWarehouseIsMain
             };
 
             return SaveAsync(
-                false,
-                null,
-                "api/carbrands",
+                feature.SelectedWarehouse is { Id: > 0 },
+                feature.SelectedWarehouse?.Id,
+                "api/warehouses",
                 payload,
-                "Car Brand");
+                "Warehouse");
+        }
+
+        public Task<ManagementOperationResult> DeleteWarehouseAsync(WarehouseDto? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a warehouse to delete.", "warehouse_selection_required"), "deleting Warehouse"));
+            }
+
+            return DeleteAsync($"api/warehouses/{selected.Id}", "Warehouse");
         }
 
         public Task<ManagementOperationResult> SaveCarModelAsync(CarModelManagementViewModel feature)
