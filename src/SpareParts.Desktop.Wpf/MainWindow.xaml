@@ -468,21 +468,11 @@
                             SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
 
-                                        <StackPanel Grid.Column="4" VerticalAlignment="Top">
-                                            <TextBlock Text="DATE" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Margin="0 0 0 6"/>
-                                            <Border Background="#FF1A1A22"
-                                    BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1" CornerRadius="10" Height="52">
-                                                <DatePicker SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Foreground="White"
-                                        Padding="8 0"
-                                        VerticalContentAlignment="Center"/>
-                                            </Border>
-                                        </StackPanel>
+                                        <controls:SaleDatePickerControl
+                            Grid.Column="4"
+                            Label="DATE"
+                            SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
+                            VerticalAlignment="Top"/>
                                     </Grid>
 
                                     <!-- Row 2: Part | Qty | Price | [Add] [Submit] -->
