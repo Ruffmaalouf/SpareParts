@@ -4,15 +4,7 @@ using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public sealed record SalesTotalsResult(decimal Subtotal, decimal DiscountTotal, decimal TaxTotal)
-    {
-        public decimal TotalAmount => Subtotal - DiscountTotal + TaxTotal;
-    }
-
-    public sealed record PurchaseTotalsResult(decimal Subtotal, decimal DiscountTotal, decimal TaxTotal)
-    {
-        public decimal TotalAmount => Subtotal - DiscountTotal + TaxTotal;
-    }
+    
 
     public class InvoiceTotalsCalculator : IInvoiceTotalsCalculator
     {

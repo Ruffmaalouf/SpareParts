@@ -1,6 +1,6 @@
 namespace SpareParts.Infrastructure.Data
 {
-    public sealed class ExceptionLogEntry
+    public class ExceptionLogEntry
     {
         public DateTime OccurredAtUtc { get; init; }
         public string Application { get; init; } = string.Empty;
