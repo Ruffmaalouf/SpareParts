@@ -187,36 +187,27 @@ namespace SpareParts.Desktop.Wpf.Management
         }
 
 
-        public Task<ManagementOperationResult> SaveWarehouseAsync(WarehouseManagementViewModel feature)
+        public Task<ManagementOperationResult> SaveCarBrandAsync(CarModelManagementViewModel feature)
         {
-            if (string.IsNullOrWhiteSpace(feature.NewWarehouseName))
+            if (string.IsNullOrWhiteSpace(feature.NewCarBrandName))
             {
-                return Task.FromResult(ToFailure(new DomainValidationException("Warehouse name is required.", "warehouse_name_required"), "saving Warehouse"));
+                return Task.FromResult(ToFailure(new DomainValidationException("Car brand name is required.", "car_brand_name_required"), "saving Car Brand"));
             }
 
-            var payload = new CreateWarehouseRequest
+            var payload = new CreateCarBrandRequest
             {
-                Name = feature.NewWarehouseName,
-                Address = feature.NewWarehouseAddress,
-                IsMain = feature.NewWarehouseIsMain
+                Name = feature.NewCarBrandName,
+                Country = feature.NewCarBrandCountry,
+                RegionGroup = feature.NewCarBrandRegionGroup,
+                SortOrder = feature.NewCarBrandSortOrder
             };
 
             return SaveAsync(
-                feature.SelectedWarehouse is { Id: > 0 },
-                feature.SelectedWarehouse?.Id,
-                "api/warehouses",
+                false,
+                null,
+                "api/carbrands",
                 payload,
-                "Warehouse");
-        }
-
-        public Task<ManagementOperationResult> DeleteWarehouseAsync(WarehouseDto? selected)
-        {
-            if (selected is not { Id: > 0 })
-            {
-                return Task.FromResult(ToFailure(new DomainValidationException("Select a warehouse to delete.", "warehouse_selection_required"), "deleting Warehouse"));
-            }
-
-            return DeleteAsync($"api/warehouses/{selected.Id}", "Warehouse");
+                "Car Brand");
         }
 
         public Task<ManagementOperationResult> SaveCarModelAsync(CarModelManagementViewModel feature)

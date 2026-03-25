@@ -18,6 +18,7 @@ namespace SpareParts.Desktop.Wpf
     public class ManagementViewModel : INotifyPropertyChanged
     {
         private readonly ManagementCoordinator _coordinator;
+        private readonly ICrudApiClient _crudApi;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -111,7 +112,8 @@ namespace SpareParts.Desktop.Wpf
 
         public ManagementViewModel(ICrudApiClient? crudApi = null, ICarCatalogApiClient? carCatalogApi = null)
         {
-            _coordinator = new ManagementCoordinator(crudApi ?? new CrudApiClient(), carCatalogApi ?? new CarCatalogApiClient());
+            _crudApi = crudApi ?? new CrudApiClient();
+            _coordinator = new ManagementCoordinator(_crudApi, carCatalogApi ?? new CarCatalogApiClient());
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
@@ -258,13 +260,35 @@ namespace SpareParts.Desktop.Wpf
 
         private async Task SaveCarBrandAsync()
         {
-            var result = await _coordinator.SaveCarBrandAsync(CarModelsFeature);
-            SetStatus(result.Message, result.Success);
-            if (!result.Success) return;
+            if (string.IsNullOrWhiteSpace(NewCarBrandName))
+            {
+                SetStatus("✗ Car brand name is required.", false);
+                return;
+            }
 
-            await LoadAllAsync();
-            CarModelsFeature.ClearCarBrandForm();
-            RaiseCarBrandProps();
+            try
+            {
+                var payload = new CreateCarBrandRequest
+                {
+                    Name = NewCarBrandName,
+                    Country = NewCarBrandCountry,
+                    RegionGroup = NewCarBrandRegionGroup,
+                    SortOrder = NewCarBrandSortOrder
+                };
+
+                await _crudApi.PostAsync("api/carbrands", payload);
+                SetStatus("✓ Car Brand saved.", true);
+                await LoadAllAsync();
+                CarModelsFeature.ClearCarBrandForm();
+                RaiseCarBrandProps();
+            }
+            catch (Exception ex)
+            {
+                var message = ex is ApiClientException apiException
+                    ? $"✗ API error ({apiException.Code}): {apiException.Message}"
+                    : "✗ Unexpected error while saving Car Brand.";
+                SetStatus(message, false);
+            }
         }
 
         private async Task SaveCarModelAsync()
