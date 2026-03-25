@@ -98,7 +98,19 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public bool IsLoadedFromSearch
         {
             get => _isLoadedFromSearch;
-            private set { _isLoadedFromSearch = value; OnPropertyChanged(nameof(IsLoadedFromSearch)); }
+            private set
+            {
+                if (_isLoadedFromSearch == value)
+                {
+                    return;
+                }
+
+                _isLoadedFromSearch = value;
+                OnPropertyChanged(nameof(IsLoadedFromSearch));
+                OnPropertyChanged(nameof(IsModifyMode));
+                OnPropertyChanged(nameof(SaleModeTitle));
+                OnPropertyChanged(nameof(SaleModeSubtitle));
+            }
         }
 
         private bool _isInEditMode;
@@ -123,6 +135,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public bool IsEditEnabled => IsLoadedFromSearch && !IsInEditMode;
         public bool IsSaveEnabled => IsLoadedFromSearch && IsInEditMode;
         public bool IsResetEnabled => IsLoadedFromSearch && IsInEditMode;
+        public bool IsModifyMode => IsLoadedFromSearch;
+        public string SaleModeTitle => IsModifyMode ? "Modify Sale" : "New Sale";
+        public string SaleModeSubtitle => IsModifyMode
+            ? "Review and modify invoice details below"
+            : "Enter invoice details below";
 
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly ISalesApiClient _salesApi;
