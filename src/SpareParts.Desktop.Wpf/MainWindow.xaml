@@ -187,7 +187,7 @@
 
                     <Button Command="{Binding OpenManagementCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
-                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16">
+                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10">
                         <Button.Content>
                             <TextBlock>
                                 <TextBlock.Style>
@@ -203,6 +203,11 @@
                             </TextBlock>
                         </Button.Content>
                     </Button>
+
+                    <Button Command="{Binding OpenInvoiceSearchCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
+                            Content="🔎  Search Invoices"/>
 
                     <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
@@ -432,11 +437,36 @@
                             </Grid.RowDefinitions>
 
                             <!-- ── Header ───────────────────────────────────────────────── -->
-                            <StackPanel Grid.Row="0" Margin="20,20,20,10">
-                                <TextBlock Text="New Sale" FontSize="26" FontWeight="Bold"/>
-                                <TextBlock Text="Enter invoice details below" FontSize="14"
-                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
-                            </StackPanel>
+                            <DockPanel Grid.Row="0" Margin="20,20,20,10">
+                                <StackPanel DockPanel.Dock="Left">
+                                    <TextBlock Text="New Sale" FontSize="26" FontWeight="Bold"/>
+                                    <TextBlock Text="Enter invoice details below" FontSize="14"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLoadedFromSearch}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <Button Content="Edit"
+                                            Command="{Binding EditInvoiceCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Margin="0 0 8 0"/>
+                                    <Button Content="Save"
+                                            Command="{Binding SaveInvoiceCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            Margin="0 0 8 0"/>
+                                    <Button Content="Reset"
+                                            Command="{Binding ResetInvoiceCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"/>
+                                </StackPanel>
+                            </DockPanel>
 
                             <!-- ── Form card ─────────────────────────────────────────────── -->
                             <Border Grid.Row="1"
@@ -724,6 +754,79 @@
                     </ScrollViewer>
                 </StackPanel>
             </Border>
+
+
+            <!-- ══ INVOICE SEARCH OVERLAY ══ -->
+            <Grid Panel.ZIndex="18">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsInvoiceSearchOpen}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Border Background="#80000000"/>
+
+                <Border Width="760"
+                        MaxHeight="620"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="20">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Grid.Row="0" Margin="0 0 0 12">
+                            <TextBlock Text="Search Invoices"
+                                       FontSize="24"
+                                       FontWeight="Bold"
+                                       DockPanel.Dock="Left"/>
+                            <Button DockPanel.Dock="Right"
+                                    Command="{Binding OpenInvoiceSearchCommand}"
+                                    Content="✕"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="40"
+                                    Height="34"/>
+                        </DockPanel>
+
+                        <TextBox Grid.Row="1"
+                                 Text="{Binding InvoiceSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="40"
+                                 Margin="0 0 0 12"
+                                 FontSize="14"
+                                 Padding="10"
+                                 VerticalContentAlignment="Center"/>
+
+                        <DataGrid Grid.Row="2"
+                                  Name="InvoiceSearchResultsGrid"
+                                  ItemsSource="{Binding InvoiceSearchResults}"
+                                  AutoGenerateColumns="False"
+                                  MouseDoubleClick="InvoiceSearchResults_MouseDoubleClick"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Invoice" Binding="{Binding Header}" Width="220"/>
+                                <DataGridTextColumn Header="Lines" Binding="{Binding Items.Count}" Width="90"/>
+                                <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat={}{0:N0}}" Width="120"/>
+                                <DataGridTextColumn Header="Paid" Binding="{Binding PaidAmount, StringFormat={}{0:N0}}" Width="120"/>
+                                <DataGridTextColumn Header="Remaining" Binding="{Binding RemainingAmount, StringFormat={}{0:N0}}" Width="120"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
 
             <!-- ══ MANAGEMENT OVERLAY — ZIndex 20, shown when IsManagementOpen=True ══ -->
             <Grid Panel.ZIndex="20">
