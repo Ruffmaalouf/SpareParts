@@ -71,7 +71,7 @@ VALUES
     @IsCaught
 );";
 
-            using var connection = _connectionFactory.Create();
+            using var connection = _connectionFactory.CreateConnection();
             await connection.ExecuteAsync(new CommandDefinition(sql, entry, cancellationToken: cancellationToken));
         }
     }
