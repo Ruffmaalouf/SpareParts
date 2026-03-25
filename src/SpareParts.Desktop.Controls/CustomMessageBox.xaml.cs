@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Linq;
+using System.Windows;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -48,7 +49,23 @@ namespace SpareParts.Desktop.Wpf
         // Static method to show the modern dialog easily
         public static void Show(string message, string title = "System Notification", string type = "Info")
         {
-            new CustomMessageBox(title, message, type).ShowDialog();
+            var dialog = new CustomMessageBox(title, message, type);
+            var owner = Application.Current?.Windows
+                .OfType<Window>()
+                .FirstOrDefault(w => w.IsActive)
+                ?? Application.Current?.MainWindow;
+
+            if (owner != null && owner != dialog)
+            {
+                dialog.Owner = owner;
+                dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            }
+            else
+            {
+                dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+
+            dialog.ShowDialog();
         }
     }
 }
