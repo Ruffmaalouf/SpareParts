@@ -31,6 +31,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _isManagementOpen = value; OnPropertyChanged(nameof(IsManagementOpen)); }
         }
 
+        private bool _isFeedVisible = true;
+        public bool IsFeedVisible
+        {
+            get => _isFeedVisible;
+            set
+            {
+                if (_isFeedVisible == value) return;
+                _isFeedVisible = value;
+                OnPropertyChanged(nameof(IsFeedVisible));
+                OnPropertyChanged(nameof(FeedToggleText));
+            }
+        }
+
+        public string FeedToggleText => IsFeedVisible ? "Hide" : "Show";
+
         // ── Selected items ────────────────────────────────────────────────────
         private CarBrandViewModel? _selectedBrand;
         public CarBrandViewModel? SelectedBrand
@@ -85,6 +100,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToCarSelectionCommand { get; }
         public ICommand GoToHomeCommand         { get; }
         public ICommand OpenManagementCommand   { get; }
+        public ICommand ToggleFeedCommand       { get; }
 
         // ── Constructor ───────────────────────────────────────────────────────
         public InvoiceTabsViewModel(ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null, ISalesApiClient? salesApi = null, ICrudApiClient? crudApi = null)
@@ -133,6 +149,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 if (IsManagementOpen)
                     _ = ManagementVm.LoadAllAsync();
             });
+            ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
 
             AddTabCommand   = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
