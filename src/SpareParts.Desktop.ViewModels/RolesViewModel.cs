@@ -36,12 +36,25 @@ namespace SpareParts.Desktop.Wpf
         private string _formBadgeColor     = "#22FFFFFF";
         private string _formBadgeTextColor = "#FFFFFF";
         private bool   _formIsActive    = true;
+        private int _permissionsRoleId;
+        private bool _canViewInvoiceSearch;
+        private bool _canViewManagementScreen;
+        private bool _canViewSupplierTab;
+        private bool _canEditSupplier;
+        private bool _canModifySupplier;
+        private bool _canDeleteSupplier;
 
         public string FormName           { get => _formName;           set { _formName           = value; OnPropertyChanged(nameof(FormName)); } }
         public string FormDescription    { get => _formDescription;    set { _formDescription    = value; OnPropertyChanged(nameof(FormDescription)); } }
         public string FormBadgeColor     { get => _formBadgeColor;     set { _formBadgeColor     = value; OnPropertyChanged(nameof(FormBadgeColor)); } }
         public string FormBadgeTextColor { get => _formBadgeTextColor; set { _formBadgeTextColor = value; OnPropertyChanged(nameof(FormBadgeTextColor)); } }
         public bool   FormIsActive       { get => _formIsActive;       set { _formIsActive       = value; OnPropertyChanged(nameof(FormIsActive)); } }
+        public bool CanViewInvoiceSearch { get => _canViewInvoiceSearch; set { _canViewInvoiceSearch = value; OnPropertyChanged(nameof(CanViewInvoiceSearch)); } }
+        public bool CanViewManagementScreen { get => _canViewManagementScreen; set { _canViewManagementScreen = value; OnPropertyChanged(nameof(CanViewManagementScreen)); } }
+        public bool CanViewSupplierTab { get => _canViewSupplierTab; set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); } }
+        public bool CanEditSupplier { get => _canEditSupplier; set { _canEditSupplier = value; OnPropertyChanged(nameof(CanEditSupplier)); } }
+        public bool CanModifySupplier { get => _canModifySupplier; set { _canModifySupplier = value; OnPropertyChanged(nameof(CanModifySupplier)); } }
+        public bool CanDeleteSupplier { get => _canDeleteSupplier; set { _canDeleteSupplier = value; OnPropertyChanged(nameof(CanDeleteSupplier)); } }
 
         private string _status = string.Empty;
         public string Status
@@ -71,6 +84,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand NewCommand    { get; }
         public ICommand SaveCommand   { get; }
         public ICommand DeleteCommand { get; }
+        public ICommand SavePermissionsCommand { get; }
 
         public RolesViewModel(IRoleApiClient? rolesApi = null)
         {
@@ -80,6 +94,7 @@ namespace SpareParts.Desktop.Wpf
             NewCommand    = new RelayCommand(_ => { SelectedRole = null; ClearForm(); });
             SaveCommand   = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(r => _ = DeleteAsync(r as RoleManagementDto));
+            SavePermissionsCommand = new RelayCommand(_ => _ = SavePermissionsAsync());
         }
 
         // ── Load ──────────────────────────────────────────────────────────────
@@ -106,6 +121,10 @@ namespace SpareParts.Desktop.Wpf
                         });
                 });
                 SetStatus($"✓ {Roles.Count} role(s) loaded.", true);
+                if (SelectedRole == null)
+                {
+                    ClearPermissions();
+                }
             }
             catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
             catch (Exception) { SetStatus("✗ Unexpected error while loading roles.", false); }
@@ -124,13 +143,14 @@ namespace SpareParts.Desktop.Wpf
                 if (_selectedRole == null)
                 {
                     // Create
-                    await _rolesApi.CreateRoleAsync(new CreateRoleRequest
+                    var createdRole = await _rolesApi.CreateRoleAsync(new CreateRoleRequest
                     {
                         Name           = FormName.Trim(),
                         Description    = FormDescription.Trim(),
                         BadgeColor     = FormBadgeColor.Trim(),
                         BadgeTextColor = FormBadgeTextColor.Trim()
                     });
+                    await _rolesApi.UpdateRolePermissionsAsync(createdRole.Id, BuildPermissionsRequest());
                     SetStatus($"✓ Role '{FormName}' created.", true);
                 }
                 else
@@ -143,6 +163,7 @@ namespace SpareParts.Desktop.Wpf
                         BadgeTextColor = FormBadgeTextColor.Trim(),
                         IsActive       = FormIsActive
                     });
+                    await _rolesApi.UpdateRolePermissionsAsync(_selectedRole.Id, BuildPermissionsRequest());
                     SetStatus($"✓ Role '{_selectedRole.Name}' updated.", true);
                 }
 
@@ -182,11 +203,13 @@ namespace SpareParts.Desktop.Wpf
 
         private void PopulateForm(RoleManagementDto r)
         {
+            _permissionsRoleId = r.Id;
             FormName           = r.Name;
             FormDescription    = r.Description ?? string.Empty;
             FormBadgeColor     = r.BadgeColor;
             FormBadgeTextColor = r.BadgeTextColor;
             FormIsActive       = r.IsActive;
+            _ = LoadPermissionsAsync(r.Id);
         }
 
         private void ClearForm()
@@ -196,6 +219,62 @@ namespace SpareParts.Desktop.Wpf
             FormBadgeColor     = "#22FFFFFF";
             FormBadgeTextColor = "#FFFFFF";
             FormIsActive       = true;
+            _permissionsRoleId = 0;
+            ClearPermissions();
+        }
+
+        private async Task LoadPermissionsAsync(int roleId)
+        {
+            try
+            {
+                var permissions = await _rolesApi.GetRolePermissionsAsync(roleId);
+                _permissionsRoleId = roleId;
+                CanViewInvoiceSearch = permissions.CanViewInvoiceSearch;
+                CanViewManagementScreen = permissions.CanViewManagementScreen;
+                CanViewSupplierTab = permissions.CanViewSupplierTab;
+                CanEditSupplier = permissions.CanEditSupplier;
+                CanModifySupplier = permissions.CanModifySupplier;
+                CanDeleteSupplier = permissions.CanDeleteSupplier;
+            }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while loading role permissions.", false); }
+        }
+
+        private async Task SavePermissionsAsync()
+        {
+            if (_permissionsRoleId <= 0)
+            {
+                SetStatus("✗ Select a role first before saving permissions.", false);
+                return;
+            }
+
+            try
+            {
+                await _rolesApi.UpdateRolePermissionsAsync(_permissionsRoleId, BuildPermissionsRequest());
+                SetStatus("✓ Permissions updated.", true);
+            }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while saving permissions.", false); }
+        }
+
+        private UpdateRoleScreenPermissionsRequest BuildPermissionsRequest() => new()
+        {
+            CanViewInvoiceSearch = CanViewInvoiceSearch,
+            CanViewManagementScreen = CanViewManagementScreen,
+            CanViewSupplierTab = CanViewSupplierTab,
+            CanEditSupplier = CanEditSupplier,
+            CanModifySupplier = CanModifySupplier,
+            CanDeleteSupplier = CanDeleteSupplier
+        };
+
+        private void ClearPermissions()
+        {
+            CanViewInvoiceSearch = false;
+            CanViewManagementScreen = false;
+            CanViewSupplierTab = false;
+            CanEditSupplier = false;
+            CanModifySupplier = false;
+            CanDeleteSupplier = false;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

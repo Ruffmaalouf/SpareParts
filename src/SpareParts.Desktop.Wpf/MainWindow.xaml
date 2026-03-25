@@ -226,7 +226,8 @@
 
                     <Button Command="{Binding OpenManagementCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
-                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10">
+                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10"
+                            Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}">
                         <Button.Content>
                             <TextBlock>
                                 <TextBlock.Style>
@@ -246,6 +247,7 @@
                     <Button Command="{Binding OpenInvoiceSearchCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
+                            Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
                             Content="🔎  Search Invoices"/>
 
                     <Button Command="{Binding GoToPurchasesCommand}"

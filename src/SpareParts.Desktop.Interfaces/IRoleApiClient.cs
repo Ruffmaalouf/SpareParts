@@ -13,6 +13,9 @@ namespace SpareParts.Desktop.Wpf.Interfaces
     public interface IRoleApiClient
     {
         Task<List<RoleDto>> GetRolesAsync();
+        Task<RoleScreenPermissionsDto> GetRolePermissionsAsync(int roleId);
+        Task<RoleScreenPermissionsDto> GetRolePermissionsByNameAsync(string roleName);
+        Task UpdateRolePermissionsAsync(int roleId, UpdateRoleScreenPermissionsRequest req);
         Task<RoleDto> CreateRoleAsync(CreateRoleRequest req);
         Task UpdateRoleAsync(int id, UpdateRoleRequest req);
         Task DeleteRoleAsync(int id);

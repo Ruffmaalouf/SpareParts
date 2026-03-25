@@ -248,6 +248,25 @@ namespace SpareParts.Desktop.Wpf
                    ?? new List<RoleDto>();
         }
 
+        public override async Task<RoleScreenPermissionsDto> GetRolePermissionsAsync(int roleId)
+        {
+            return await Http.GetFromJsonAsync<RoleScreenPermissionsDto>($"api/roles/{roleId}/permissions")
+                   ?? new RoleScreenPermissionsDto { RoleId = roleId };
+        }
+
+        public override async Task<RoleScreenPermissionsDto> GetRolePermissionsByNameAsync(string roleName)
+        {
+            var encodedRoleName = Uri.EscapeDataString(roleName ?? string.Empty);
+            return await Http.GetFromJsonAsync<RoleScreenPermissionsDto>($"api/roles/by-name/{encodedRoleName}/permissions")
+                   ?? new RoleScreenPermissionsDto();
+        }
+
+        public override async Task UpdateRolePermissionsAsync(int roleId, UpdateRoleScreenPermissionsRequest req)
+        {
+            var resp = await Http.PutAsJsonAsync($"api/roles/{roleId}/permissions", req);
+            await EnsureSuccessAsync(resp, "Request failed.");
+        }
+
         public override async Task<RoleDto> CreateRoleAsync(CreateRoleRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/roles", req);
