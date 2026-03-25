@@ -24,12 +24,23 @@ namespace SpareParts.Desktop.Wpf
             DependencyProperty.Register(
                 nameof(SelectedPartId), typeof(int?), typeof(PartSearchControl),
                 new FrameworkPropertyMetadata(null,
-                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                    OnSelectedPartIdChanged));
 
         public int? SelectedPartId
         {
             get => (int?)GetValue(SelectedPartIdProperty);
             set => SetValue(SelectedPartIdProperty, value);
+        }
+
+        private static void OnSelectedPartIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not PartSearchControl control) return;
+            var value = e.NewValue as int?;
+            if (!value.HasValue || value.Value <= 0)
+            {
+                control.ClearSelectionVisualState();
+            }
         }
 
         public static readonly DependencyProperty SelectedPartPriceProperty =
@@ -244,6 +255,14 @@ namespace SpareParts.Desktop.Wpf
         private void ClearSelection()
         {
             SelectedPartId          = null;
+            SelectedPartPrice       = 0;
+            SelectedPartDescription = string.Empty;
+
+            ClearSelectionVisualState();
+        }
+
+        private void ClearSelectionVisualState()
+        {
             SelectedPartPrice       = 0;
             SelectedPartDescription = string.Empty;
 
