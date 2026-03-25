@@ -40,7 +40,10 @@ namespace SpareParts.Desktop.Wpf
             if (!value.HasValue || value.Value <= 0)
             {
                 control.ClearSelectionVisualState();
+                return;
             }
+
+            _ = control.ApplyExternalSelectionAsync(value);
         }
 
         public static readonly DependencyProperty SelectedPartPriceProperty =
@@ -189,8 +192,31 @@ namespace SpareParts.Desktop.Wpf
         private async Task EnsureLoadedAsync()
         {
             if (_allParts.Count > 0) return;
-            try { _allParts = await _partsApi.GetPartsAsync(); }
+            try
+            {
+                _allParts = await _partsApi.GetPartsAsync();
+                await ApplyExternalSelectionAsync(SelectedPartId);
+            }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[PartSearch] {ex.Message}"); }
+        }
+
+        private async Task ApplyExternalSelectionAsync(int? partId)
+        {
+            if (!partId.HasValue || partId.Value <= 0)
+            {
+                return;
+            }
+
+            if (_allParts.Count == 0)
+            {
+                await EnsureLoadedAsync();
+            }
+
+            var selected = _allParts.FirstOrDefault(p => p.Id == partId.Value);
+            if (selected != null)
+            {
+                SelectPart(selected);
+            }
         }
 
         private async Task LoadAndFilterAsync()

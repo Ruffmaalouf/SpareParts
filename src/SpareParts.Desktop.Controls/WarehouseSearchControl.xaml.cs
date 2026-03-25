@@ -23,12 +23,25 @@ namespace SpareParts.Desktop.Wpf
         public static readonly DependencyProperty SelectedWarehouseIdProperty =
             DependencyProperty.Register(nameof(SelectedWarehouseId), typeof(int?),
                 typeof(WarehouseSearchControl),
-                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+                new FrameworkPropertyMetadata(
+                    null,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                    OnSelectedWarehouseIdChanged));
 
         public int? SelectedWarehouseId
         {
             get => (int?)GetValue(SelectedWarehouseIdProperty);
             set => SetValue(SelectedWarehouseIdProperty, value);
+        }
+
+        private static void OnSelectedWarehouseIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not WarehouseSearchControl control)
+            {
+                return;
+            }
+
+            _ = control.ApplyExternalSelectionAsync(e.NewValue as int?);
         }
 
         public static readonly DependencyProperty WarehouseSearchTextProperty =
@@ -150,10 +163,36 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 _all = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
+                await ApplyExternalSelectionAsync(SelectedWarehouseId);
             }
             catch
             {
                 _all = new List<WarehouseDto> { new() { Id = 1, Name = "Main Warehouse", IsMain = true } };
+                await ApplyExternalSelectionAsync(SelectedWarehouseId);
+            }
+        }
+
+        private async Task ApplyExternalSelectionAsync(int? warehouseId)
+        {
+            if (!warehouseId.HasValue || warehouseId.Value <= 0)
+            {
+                SelectedIndicator.Visibility = Visibility.Collapsed;
+                WSearchIcon.Visibility = Visibility.Visible;
+                SelectedNameInline.Text = string.Empty;
+                SearchBtn.Visibility = Visibility.Visible;
+                ClearBtn.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (_all.Count == 0)
+            {
+                await EnsureLoadedAsync();
+            }
+
+            var selected = _all.FirstOrDefault(w => w.Id == warehouseId.Value);
+            if (selected != null)
+            {
+                Select(selected);
             }
         }
 
