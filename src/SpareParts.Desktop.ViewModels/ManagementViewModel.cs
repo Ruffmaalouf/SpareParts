@@ -268,6 +268,7 @@ namespace SpareParts.Desktop.Wpf
             Status = message;
             StatusBrush = isSuccess ? Brushes.MediumSeaGreen : Brushes.IndianRed;
             StatusMessages.Insert(0, new StatusMessage { Text = message, IsSuccess = isSuccess });
+            AppNotificationCenter.Instance.Publish(message, isSuccess);
             const int maxMessages = 8;
             while (StatusMessages.Count > maxMessages)
             {

@@ -117,6 +117,7 @@ namespace SpareParts.Desktop.Wpf
             if (NewPartId <= 0 || NewQuantity <= 0 || NewUnitPrice <= 0)
             {
                 CustomMessageBox.Show("Please fill in Part ID, Quantity, and Unit Price.", "Validation Error", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Please fill in Part ID, Quantity, and Unit Price.", false);
                 return;
             }
 
@@ -140,6 +141,7 @@ namespace SpareParts.Desktop.Wpf
             if (Items.Count == 0)
             {
                 CustomMessageBox.Show("Add at least one line before submitting the sale.", "Validation Error", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Add at least one line before submitting the sale.", false);
                 return;
             }
 
@@ -171,6 +173,7 @@ namespace SpareParts.Desktop.Wpf
                 CustomMessageBox.Show(
                     $"Sale created. Invoice: {result?.InvoiceNumber}, Total: {result?.TotalAmount:N2}",
                     "Success", "Info");
+                AppNotificationCenter.Instance.Publish($"✓ Sale created. Invoice: {result?.InvoiceNumber}", true);
 
                 Items.Clear();
                 PaidAmount = 0;
@@ -179,9 +182,15 @@ namespace SpareParts.Desktop.Wpf
                 OnPropertyChanged(nameof(RemainingAmount));
                 OnPropertyChanged(nameof(PaidAmount));
             }
-            catch (Exception ex)
+            catch (ApiClientException ex)
             {
                 CustomMessageBox.Show($"Error while submitting sale: {ex.Message}", "Error", "Warning");
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                CustomMessageBox.Show("Unexpected error while submitting sale.", "Error", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while submitting sale.", false);
             }
         }
 

@@ -177,6 +177,7 @@ namespace SpareParts.Desktop.Wpf
         {
             Status = message;
             StatusBrush = isSuccess ? Brushes.MediumSeaGreen : Brushes.IndianRed;
+            AppNotificationCenter.Instance.Publish(message, isSuccess);
         }
 
         private void PopulateForm(RoleManagementDto r)
