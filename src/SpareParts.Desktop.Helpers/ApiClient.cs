@@ -205,6 +205,15 @@ namespace SpareParts.Desktop.Wpf
                    ?? throw new InvalidOperationException("Empty sale response.");
         }
 
+        public override async Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query)
+        {
+            return await Http.GetFromJsonAsync<List<SalesInvoiceLookupDto>>($"api/sales?search={Uri.EscapeDataString(query ?? string.Empty)}")
+                   ?? new List<SalesInvoiceLookupDto>();
+        }
+
+        public override Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId)
+            => Http.GetFromJsonAsync<SalesInvoiceDetailsDto?>($"api/sales/{invoiceId}");
+
         // ── Generic helpers used by ManagementViewModel ───────────────────────
         public override async Task<List<T>> GetAllAsync<T>(string url)
         {

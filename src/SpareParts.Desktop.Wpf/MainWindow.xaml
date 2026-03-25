@@ -454,17 +454,23 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <Button Content="Edit"
+                                    <Button Content="✏️"
+                                            ToolTip="Edit Invoice"
                                             Command="{Binding EditInvoiceCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
+                                            Width="44"
                                             Margin="0 0 8 0"/>
-                                    <Button Content="Save"
+                                    <Button Content="💾"
+                                            ToolTip="Save Invoice"
                                             Command="{Binding SaveInvoiceCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
+                                            Width="44"
                                             Margin="0 0 8 0"/>
-                                    <Button Content="Reset"
+                                    <Button Content="↺"
+                                            ToolTip="Reset Invoice"
                                             Command="{Binding ResetInvoiceCommand}"
-                                            Style="{StaticResource SecondaryButtonStyle}"/>
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Width="44"/>
                                 </StackPanel>
                             </DockPanel>
 
@@ -817,11 +823,12 @@
                                   HeadersVisibility="Column"
                                   IsReadOnly="True">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Invoice" Binding="{Binding Header}" Width="220"/>
-                                <DataGridTextColumn Header="Lines" Binding="{Binding Items.Count}" Width="90"/>
+                                <DataGridTextColumn Header="Invoice #" Binding="{Binding InvoiceNumber}" Width="170"/>
+                                <DataGridTextColumn Header="Date" Binding="{Binding InvoiceDate, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
+                                <DataGridTextColumn Header="Customer" Binding="{Binding CustomerId}" Width="90"/>
+                                <DataGridTextColumn Header="Warehouse" Binding="{Binding WarehouseId}" Width="90"/>
                                 <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat={}{0:N0}}" Width="120"/>
                                 <DataGridTextColumn Header="Paid" Binding="{Binding PaidAmount, StringFormat={}{0:N0}}" Width="120"/>
-                                <DataGridTextColumn Header="Remaining" Binding="{Binding RemainingAmount, StringFormat={}{0:N0}}" Width="120"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>

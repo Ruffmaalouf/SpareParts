@@ -15,8 +15,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
     {
         private static int _counter;
 
-        public int    TabNumber { get; } = ++_counter;
-        public string Header    => $"Invoice #{TabNumber}";
+        public int TabNumber { get; } = ++_counter;
+
+        private string? _invoiceNumber;
+        public string Header => string.IsNullOrWhiteSpace(_invoiceNumber) ? $"Invoice #{TabNumber}" : $"Invoice {_invoiceNumber}";
+
+        public int? InvoiceId { get; private set; }
 
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
@@ -131,6 +135,32 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 _snapshot = CreateSnapshot();
             }
+        }
+
+        public void LoadFromDatabase(SalesInvoiceDetailsDto invoice)
+        {
+            InvoiceId = invoice.InvoiceId;
+            _invoiceNumber = invoice.InvoiceNumber;
+            OnPropertyChanged(nameof(Header));
+
+            CustomerId = invoice.CustomerId;
+            WarehouseId = invoice.WarehouseId;
+            InvoiceDate = invoice.InvoiceDate;
+            PaidAmount = invoice.PaidAmount;
+
+            Items.Clear();
+            foreach (var line in invoice.Items)
+            {
+                Items.Add(new PosItemViewModel
+                {
+                    PartId = line.PartId,
+                    Description = line.Description,
+                    Quantity = line.Quantity,
+                    UnitPrice = line.UnitPrice
+                });
+            }
+
+            MarkOpenedFromSearch();
         }
 
         // ── Add line ──────────────────────────────────────────────────────────

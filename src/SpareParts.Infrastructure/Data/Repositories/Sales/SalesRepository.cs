@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Sales;
 
 using SpareParts.Infrastructure.Interfaces.Repositories;
+using System.Linq;
 
 namespace SpareParts.Infrastructure.Data
 {
@@ -42,6 +43,58 @@ namespace SpareParts.Infrastructure.Data
             }
         }
 
+
+        public List<SalesInvoiceLookupDto> SearchInvoices(string? query)
+        {
+            const string sql = @"SELECT TOP (200)
+                    Id AS InvoiceId,
+                    InvoiceNumber,
+                    InvoiceDate,
+                    CustomerId,
+                    WarehouseId,
+                    TotalAmount,
+                    PaidAmount
+                FROM SalesInvoices
+                WHERE (@Query IS NULL OR @Query = ''
+                       OR InvoiceNumber LIKE '%' + @Query + '%'
+                       OR CAST(Id AS NVARCHAR(50)) LIKE '%' + @Query + '%')
+                ORDER BY InvoiceDate DESC, Id DESC;";
+
+            return _session.Connection.Query<SalesInvoiceLookupDto>(sql, new { Query = query?.Trim() }, _session.Transaction).ToList();
+        }
+
+        public SalesInvoiceDetailsDto? GetInvoiceById(int invoiceId)
+        {
+            const string invoiceSql = @"SELECT
+                    Id AS InvoiceId,
+                    InvoiceNumber,
+                    InvoiceDate,
+                    CustomerId,
+                    WarehouseId,
+                    TotalAmount,
+                    PaidAmount
+                FROM SalesInvoices
+                WHERE Id = @InvoiceId;";
+
+            const string itemsSql = @"SELECT
+                    sii.PartId,
+                    ISNULL(p.Name, '') AS Description,
+                    sii.Quantity,
+                    sii.UnitPrice
+                FROM SalesInvoiceItems sii
+                LEFT JOIN Parts p ON p.Id = sii.PartId
+                WHERE sii.InvoiceId = @InvoiceId
+                ORDER BY sii.Id;";
+
+            var invoice = _session.Connection.QuerySingleOrDefault<SalesInvoiceDetailsDto>(invoiceSql, new { InvoiceId = invoiceId }, _session.Transaction);
+            if (invoice == null)
+            {
+                return null;
+            }
+
+            invoice.Items = _session.Connection.Query<SalesInvoiceLineDto>(itemsSql, new { InvoiceId = invoiceId }, _session.Transaction).ToList();
+            return invoice;
+        }
         public bool InvoiceNumberExists(string invoiceNumber)
         {
             const string sql = "SELECT COUNT(1) FROM SalesInvoices WHERE InvoiceNumber = @InvoiceNumber";
