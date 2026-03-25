@@ -193,7 +193,7 @@
                              Background="Transparent" BorderThickness="0"
                              ItemsSource="{Binding FilteredCustomers, ElementName=Root}"
                              ItemContainerStyle="{StaticResource ResultRowStyle}"
-                             MouseDoubleClick="ResultItem_DoubleClick"
+                             PreviewMouseLeftButtonUp="ResultItem_Click"
                              KeyDown="ResultsList_KeyDown"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
