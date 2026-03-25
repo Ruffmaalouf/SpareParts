@@ -73,7 +73,8 @@ namespace SpareParts.Api.Errors
         private static (string? SourceClass, string? SourceMethod, int? SourceLine) ExtractSource(Exception ex)
         {
             var frames = new StackTrace(ex, true).GetFrames();
-            var frame = frames?.FirstOrDefault(f => f.GetFileLineNumber() > 0)
+            var frame = frames?.FirstOrDefault(IsApplicationFrame)
+                ?? frames?.FirstOrDefault(f => f.GetFileLineNumber() > 0)
                 ?? frames?.FirstOrDefault();
             var method = frame?.GetMethod();
             var line = frame?.GetFileLineNumber();
@@ -83,6 +84,22 @@ namespace SpareParts.Api.Errors
                 method?.Name,
                 line is > 0 ? line : null
             );
+        }
+
+        private static bool IsApplicationFrame(StackFrame frame)
+        {
+            var declaringType = frame.GetMethod()?.DeclaringType?.FullName;
+            if (string.IsNullOrWhiteSpace(declaringType))
+            {
+                return false;
+            }
+
+            if (!declaringType.StartsWith("SpareParts.", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return !declaringType.StartsWith("SpareParts.Api.Errors.ApiExceptionMiddleware", StringComparison.Ordinal);
         }
 
         private static async Task WriteError(HttpContext context, Exception ex, HttpStatusCode statusCode, string code)
