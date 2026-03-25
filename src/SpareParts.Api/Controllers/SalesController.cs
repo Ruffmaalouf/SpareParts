@@ -25,6 +25,25 @@ namespace SpareParts.Api.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        public ActionResult<List<SalesInvoiceLookupDto>> SearchInvoices([FromQuery] string? search = null)
+        {
+            var invoices = _salesService.SearchInvoices(search);
+            return Ok(invoices);
+        }
+
+        [HttpGet("{invoiceId:int}")]
+        public ActionResult<SalesInvoiceDetailsDto> GetById(int invoiceId)
+        {
+            var invoice = _salesService.GetInvoiceById(invoiceId);
+            if (invoice == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(invoice);
+        }
+
         private int GetUserId()
         {
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
