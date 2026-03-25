@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -53,6 +54,13 @@ namespace SpareParts.Desktop.Wpf
             set { _status = value; OnPropertyChanged(nameof(Status)); }
         }
 
+        private Brush _statusBrush = Brushes.Gray;
+        public Brush StatusBrush
+        {
+            get => _statusBrush;
+            set { _statusBrush = value; OnPropertyChanged(nameof(StatusBrush)); }
+        }
+
         private bool _isBusy;
         public bool IsBusy
         {
@@ -82,7 +90,7 @@ namespace SpareParts.Desktop.Wpf
         public async Task LoadAsync()
         {
             IsBusy = true;
-            Status = string.Empty;
+            SetStatus(string.Empty, true);
             try
             {
                 var list = await _usersApi.GetUsersAsync();
@@ -91,9 +99,10 @@ namespace SpareParts.Desktop.Wpf
                     Users.Clear();
                     foreach (var u in list) Users.Add(UserManagementDto.FromUser(u));
                 });
-                Status = $"{Users.Count} user(s) loaded.";
+                SetStatus($"✓ {Users.Count} user(s) loaded.", true);
             }
-            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while loading users.", false); }
             finally { IsBusy = false; }
         }
 
@@ -101,7 +110,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveAsync()
         {
             if (string.IsNullOrWhiteSpace(FormFullName))
-            { Status = "Full name is required."; return; }
+            { SetStatus("✗ Full name is required.", false); return; }
 
             IsBusy = true;
             try
@@ -109,9 +118,9 @@ namespace SpareParts.Desktop.Wpf
                 if (_selectedUser == null)
                 {
                     if (string.IsNullOrWhiteSpace(FormUsername))
-                    { Status = "Username is required."; return; }
+                    { SetStatus("✗ Username is required.", false); return; }
                     if (string.IsNullOrWhiteSpace(FormPassword))
-                    { Status = "Password is required for new users."; return; }
+                    { SetStatus("✗ Password is required for new users.", false); return; }
 
                     await _usersApi.CreateUserAsync(new CreateUserRequest
                     {
@@ -121,7 +130,7 @@ namespace SpareParts.Desktop.Wpf
                         Password = FormPassword,
                         Role     = FormRole
                     });
-                    Status = $"User '{FormUsername}' created.";
+                    SetStatus($"✓ User '{FormUsername}' created.", true);
                 }
                 else
                 {
@@ -133,13 +142,14 @@ namespace SpareParts.Desktop.Wpf
                         IsActive    = FormIsActive,
                         NewPassword = string.IsNullOrWhiteSpace(FormPassword) ? null : FormPassword
                     });
-                    Status = $"User '{_selectedUser.Username}' updated.";
+                    SetStatus($"✓ User '{_selectedUser.Username}' updated.", true);
                 }
 
                 ClearForm();
                 await LoadAsync();
             }
-            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while saving user.", false); }
             finally { IsBusy = false; }
         }
 
@@ -151,11 +161,19 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 await _usersApi.DeleteUserAsync(user.Id);
-                Status = $"User '{user.Username}' deactivated.";
+                SetStatus($"✓ User '{user.Username}' deactivated.", true);
                 await LoadAsync();
             }
-            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while deactivating user.", false); }
             finally { IsBusy = false; }
+        }
+
+        private void SetStatus(string message, bool isSuccess)
+        {
+            Status = message;
+            StatusBrush = isSuccess ? Brushes.MediumSeaGreen : Brushes.IndianRed;
+            AppNotificationCenter.Instance.Publish(message, isSuccess);
         }
 
         private void PopulateForm(UserManagementDto u)

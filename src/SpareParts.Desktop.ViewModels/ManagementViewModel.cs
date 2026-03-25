@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf
@@ -76,6 +77,10 @@ namespace SpareParts.Desktop.Wpf
 
         private string _status = string.Empty;
         public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(Status)); } }
+        public ObservableCollection<StatusMessage> StatusMessages { get; } = new();
+
+        private Brush _statusBrush = Brushes.DodgerBlue;
+        public Brush StatusBrush { get => _statusBrush; set { _statusBrush = value; OnPropertyChanged(nameof(StatusBrush)); } }
 
         public ICommand LoadAllCommand { get; }
         public ICommand SaveCustomerCommand { get; }
@@ -108,7 +113,7 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task LoadAllAsync()
         {
-            Status = "Loading…";
+            SetStatus("Loading…", true);
             try
             {
                 var loadResult = await _coordinator.LoadAllAsync(RolesVm);
@@ -124,9 +129,15 @@ namespace SpareParts.Desktop.Wpf
                     Replace(CarModels, loadResult.CarModels);
                 });
 
-                Status = "✓ Data loaded.";
+                SetStatus("✓ Data loaded.", true);
             }
-            catch (Exception ex) { Status = $"✗ Load failed: {ex.Message}"; }
+            catch (Exception ex)
+            {
+                var message = ex is ApiClientException apiException
+                    ? $"✗ API error ({apiException.Code}): {apiException.Message}"
+                    : "✗ Load failed due to an unexpected error.";
+                SetStatus(message, false);
+            }
         }
 
         private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
@@ -141,7 +152,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveCustomerAsync()
         {
             var result = await _coordinator.SaveCustomerAsync(CustomersFeature);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -152,7 +163,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task DeleteCustomerAsync()
         {
             var result = await _coordinator.DeleteCustomerAsync(SelectedCustomer);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -163,7 +174,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveSupplierAsync()
         {
             var result = await _coordinator.SaveSupplierAsync(SuppliersFeature);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -174,7 +185,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task DeleteSupplierAsync()
         {
             var result = await _coordinator.DeleteSupplierAsync(SelectedSupplier);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -185,7 +196,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveBrandAsync()
         {
             var result = await _coordinator.SaveBrandAsync(BrandsFeature);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -196,7 +207,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task DeleteBrandAsync()
         {
             var result = await _coordinator.DeleteBrandAsync(SelectedBrand);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -207,7 +218,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SavePartAsync()
         {
             var result = await _coordinator.SavePartAsync(PartsFeature);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -218,7 +229,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task DeletePartAsync()
         {
             var result = await _coordinator.DeletePartAsync(SelectedPart);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -229,7 +240,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveCarModelAsync()
         {
             var result = await _coordinator.SaveCarModelAsync(CarModelsFeature);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -240,7 +251,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task DeleteCarModelAsync()
         {
             var result = await _coordinator.DeleteCarModelAsync(SelectedCarModel);
-            Status = result.Message;
+            SetStatus(result.Message, result.Success);
             if (!result.Success) return;
 
             await LoadAllAsync();
@@ -252,6 +263,18 @@ namespace SpareParts.Desktop.Wpf
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
+        private void SetStatus(string message, bool isSuccess)
+        {
+            Status = message;
+            StatusBrush = isSuccess ? Brushes.MediumSeaGreen : Brushes.IndianRed;
+            StatusMessages.Insert(0, new StatusMessage { Text = message, IsSuccess = isSuccess });
+            AppNotificationCenter.Instance.Publish(message, isSuccess);
+            const int maxMessages = 8;
+            while (StatusMessages.Count > maxMessages)
+            {
+                StatusMessages.RemoveAt(StatusMessages.Count - 1);
+            }
+        }
 
         private void RaiseAll(params string[] names) { foreach (var n in names) OnPropertyChanged(n); }
 

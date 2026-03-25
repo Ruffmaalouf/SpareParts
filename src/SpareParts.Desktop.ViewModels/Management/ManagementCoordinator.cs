@@ -62,7 +62,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (string.IsNullOrWhiteSpace(feature.NewCustomerName))
             {
-                return Task.FromResult(Fail("✗ Customer name is required."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Customer name is required.", "customer_name_required"), "saving Customer"));
             }
 
             var payload = new CreateCustomerRequest
@@ -87,7 +87,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (selected is not { Id: > 0 })
             {
-                return Task.FromResult(Fail("✗ Select a customer to delete."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a customer to delete.", "customer_selection_required"), "deleting Customer"));
             }
 
             return DeleteAsync($"api/customers/{selected.Id}", "Customer");
@@ -97,7 +97,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (string.IsNullOrWhiteSpace(feature.NewSupplierName))
             {
-                return Task.FromResult(Fail("✗ Supplier name is required."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Supplier name is required.", "supplier_name_required"), "saving Supplier"));
             }
 
             var payload = new CreateSupplierRequest
@@ -122,7 +122,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (selected is not { Id: > 0 })
             {
-                return Task.FromResult(Fail("✗ Select a supplier to delete."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a supplier to delete.", "supplier_selection_required"), "deleting Supplier"));
             }
 
             return DeleteAsync($"api/suppliers/{selected.Id}", "Supplier");
@@ -132,7 +132,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (string.IsNullOrWhiteSpace(feature.NewBrandName))
             {
-                return Task.FromResult(Fail("✗ Brand name is required."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Brand name is required.", "brand_name_required"), "saving Brand"));
             }
 
             var payload = new CreateBrandRequest
@@ -153,7 +153,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (selected is not { Id: > 0 })
             {
-                return Task.FromResult(Fail("✗ Select a brand to delete."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a brand to delete.", "brand_selection_required"), "deleting Brand"));
             }
 
             return DeleteAsync($"api/brands/{selected.Id}", "Brand");
@@ -163,7 +163,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (string.IsNullOrWhiteSpace(feature.NewPartCode) || string.IsNullOrWhiteSpace(feature.NewPartName))
             {
-                return Task.FromResult(Fail("✗ Part code and name are required."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Part code and name are required.", "part_required_fields_missing"), "saving Part"));
             }
 
             var payload = new CreatePartRequest
@@ -193,7 +193,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (selected is not { Id: > 0 })
             {
-                return Task.FromResult(Fail("✗ Select a part to delete."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a part to delete.", "part_selection_required"), "deleting Part"));
             }
 
             return DeleteAsync($"api/parts/{selected.Id}", "Part");
@@ -203,7 +203,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (string.IsNullOrWhiteSpace(feature.NewCarModelName))
             {
-                return Task.FromResult(Fail("✗ Car model name is required."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Car model name is required.", "car_model_name_required"), "saving Car Model"));
             }
 
             var payload = new CreateCarModelRequest
@@ -227,7 +227,7 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (selected is not { Id: > 0 })
             {
-                return Task.FromResult(Fail("✗ Select a car model to delete."));
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a car model to delete.", "car_model_selection_required"), "deleting Car model"));
             }
 
             return DeleteAsync($"api/carmodels/{selected.Id}", "Car model");
@@ -248,7 +248,7 @@ namespace SpareParts.Desktop.Wpf.Management
             }
             catch (Exception ex)
             {
-                return Fail($"✗ Error saving {entityName}: {ex.Message}");
+                return ToFailure(ex, $"saving {entityName}");
             }
         }
 
@@ -261,11 +261,18 @@ namespace SpareParts.Desktop.Wpf.Management
             }
             catch (Exception ex)
             {
-                return Fail($"✗ Error deleting {entityName}: {ex.Message}");
+                return ToFailure(ex, $"deleting {entityName}");
             }
         }
 
         private static ManagementOperationResult Success(string message) => new() { Success = true, Message = message };
         private static ManagementOperationResult Fail(string message) => new() { Success = false, Message = message };
+        private static ManagementOperationResult ToFailure(Exception exception, string operationName)
+            => exception switch
+            {
+                DomainValidationException validation => Fail($"✗ {validation.Message}"),
+                ApiClientException apiException => Fail($"✗ API error ({apiException.Code}): {apiException.Message}"),
+                _ => Fail($"✗ Unexpected error while {operationName}.")
+            };
     }
 }
