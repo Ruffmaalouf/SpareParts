@@ -248,6 +248,16 @@
                             HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
                             Content="🔎  Search Invoices"/>
 
+                    <Button Command="{Binding GoToPurchasesCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10"
+                            Content="🧾  Purchases"/>
+
+                    <Button Command="{Binding GoToStockManagementCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
+                            Content="📦  Stock Management"/>
+
                     <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
                     <ScrollViewer MaxHeight="192" VerticalScrollBarVisibility="Auto">
@@ -318,10 +328,110 @@
                            Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <TextBlock Text="Maalouf Auto Parts" FontSize="28" FontWeight="Bold"
                                Margin="0 20 0 0" HorizontalAlignment="Center"/>
-                    <Button Content="Start New Sale" Command="{Binding GoToPosCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Width="200" Margin="0 30 0 0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 30 0 0">
+                        <Button Content="Start New Sale" Command="{Binding GoToPosCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="200"/>
+                        <Button Content="Open Purchases" Command="{Binding GoToPurchasesCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="200" Margin="12 0 0 0"/>
+                        <Button Content="Open Stock" Command="{Binding GoToStockManagementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="200" Margin="12 0 0 0"/>
+                    </StackPanel>
                 </StackPanel>
+            </Grid>
+
+            <!-- ── Purchases ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=Purchases}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Purchases" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Create and review supplier purchase drafts."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="⟵ Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120" Margin="0 0 10 0"/>
+                        <Button Content="Open POS"
+                                Command="{Binding GoToPosCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="120"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="12">
+                    <DataGrid ItemsSource="{Binding PurchaseDraftItems}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Part Code" Binding="{Binding PartCode}" Width="140"/>
+                            <DataGridTextColumn Header="Part Name" Binding="{Binding PartName}" Width="*"/>
+                            <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="220"/>
+                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
+                            <DataGridTextColumn Header="Unit Cost" Binding="{Binding UnitCost, StringFormat={}{0:N2} USD}" Width="130"/>
+                            <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal, StringFormat={}{0:N2} USD}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- ── Stock Management ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=StockManagement}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Stock Management" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Monitor stock levels and replenish low inventory."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="⟵ Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120" Margin="0 0 10 0"/>
+                        <Button Content="Open Purchases"
+                                Command="{Binding GoToPurchasesCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="140"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="12">
+                    <DataGrid ItemsSource="{Binding StockSnapshots}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Part Code" Binding="{Binding PartCode}" Width="140"/>
+                            <DataGridTextColumn Header="Part Name" Binding="{Binding PartName}" Width="*"/>
+                            <DataGridTextColumn Header="Warehouse" Binding="{Binding Warehouse}" Width="220"/>
+                            <DataGridTextColumn Header="On Hand" Binding="{Binding OnHand}" Width="100"/>
+                            <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock}" Width="100"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
             </Grid>
 
             <!-- ── Car Selection ── -->
