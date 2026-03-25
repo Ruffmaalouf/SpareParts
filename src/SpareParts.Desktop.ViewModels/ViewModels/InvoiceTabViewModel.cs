@@ -101,6 +101,29 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _isLoadedFromSearch = value; OnPropertyChanged(nameof(IsLoadedFromSearch)); }
         }
 
+        private bool _isInEditMode;
+        public bool IsInEditMode
+        {
+            get => _isInEditMode;
+            private set
+            {
+                if (_isInEditMode == value)
+                {
+                    return;
+                }
+
+                _isInEditMode = value;
+                OnPropertyChanged(nameof(IsInEditMode));
+                OnPropertyChanged(nameof(IsEditEnabled));
+                OnPropertyChanged(nameof(IsSaveEnabled));
+                OnPropertyChanged(nameof(IsResetEnabled));
+            }
+        }
+
+        public bool IsEditEnabled => IsLoadedFromSearch && !IsInEditMode;
+        public bool IsSaveEnabled => IsLoadedFromSearch && IsInEditMode;
+        public bool IsResetEnabled => IsLoadedFromSearch && IsInEditMode;
+
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly ISalesApiClient _salesApi;
         private bool _isSubmitting;
@@ -131,6 +154,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public void MarkOpenedFromSearch()
         {
             IsLoadedFromSearch = true;
+            IsInEditMode = false;
+            OnPropertyChanged(nameof(IsEditEnabled));
+            OnPropertyChanged(nameof(IsSaveEnabled));
+            OnPropertyChanged(nameof(IsResetEnabled));
+
             if (_snapshot == null)
             {
                 _snapshot = CreateSnapshot();
@@ -211,6 +239,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             _snapshot ??= CreateSnapshot();
+            IsInEditMode = true;
             AppNotificationCenter.Instance.Publish($"✎ {Header} is now editable.", true);
         }
 
@@ -221,13 +250,19 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 return;
             }
 
+            if (!IsInEditMode)
+            {
+                return;
+            }
+
             _snapshot = CreateSnapshot();
+            IsInEditMode = false;
             AppNotificationCenter.Instance.Publish($"✓ Changes saved for {Header}.", true);
         }
 
         private void ResetEdits()
         {
-            if (!IsLoadedFromSearch || _snapshot == null)
+            if (!IsLoadedFromSearch || _snapshot == null || !IsInEditMode)
             {
                 return;
             }
@@ -249,6 +284,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 });
             }
 
+            IsInEditMode = false;
             AppNotificationCenter.Instance.Publish($"↺ {Header} restored to last saved values.", true);
         }
 
