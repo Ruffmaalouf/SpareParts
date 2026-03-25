@@ -1,15 +1,10 @@
 using Dapper;
 using SpareParts.Domain.BusinessPartners;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface ICustomersRepository
-    {
-        IEnumerable<Customer> GetAll();
-        int Insert(Customer customer);
-        bool Update(int id, CreateCustomerRequest request, int userId);
-        bool Delete(int id);
-    }
 
     public class CustomersRepository : ICustomersRepository
     {

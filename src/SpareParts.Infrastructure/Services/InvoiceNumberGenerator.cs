@@ -1,14 +1,9 @@
+using SpareParts.Infrastructure.Interfaces;
 using System.Security.Cryptography;
 using System.Threading;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public interface IInvoiceNumberGenerator
-    {
-        string NextSalesNumber();
-        string NextPurchaseNumber();
-    }
-
     public class UtcInvoiceNumberGenerator : IInvoiceNumberGenerator
     {
         private static long _counter;

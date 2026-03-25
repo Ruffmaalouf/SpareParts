@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Desktop.Interfaces\SpareParts.Desktop.Interfaces.csproj" />
     <Compile Remove="MainWindow - Copy.xaml.cs" />
   </ItemGroup>
 

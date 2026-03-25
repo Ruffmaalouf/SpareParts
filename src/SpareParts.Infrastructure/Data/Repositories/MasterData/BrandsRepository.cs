@@ -1,15 +1,10 @@
 using Dapper;
 using SpareParts.Domain.MasterData;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface IBrandsRepository
-    {
-        IEnumerable<Brand> GetAll();
-        int Insert(Brand brand);
-        bool Update(int id, string name, bool isActive, int userId);
-        bool Delete(int id);
-    }
 
     public class BrandsRepository : IBrandsRepository
     {

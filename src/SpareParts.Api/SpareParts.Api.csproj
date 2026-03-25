@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Infrastructure.Interfaces\SpareParts.Infrastructure.Interfaces.csproj" />
     <PackageReference Include="BCrypt.Lite" Version="1.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.25" />

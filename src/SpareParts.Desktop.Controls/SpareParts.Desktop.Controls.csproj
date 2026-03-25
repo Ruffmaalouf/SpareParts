@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Desktop.Interfaces\SpareParts.Desktop.Interfaces.csproj" />
     <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
     <ProjectReference Include="..\SpareParts.Desktop.Helpers\SpareParts.Desktop.Helpers.csproj" />
   </ItemGroup>

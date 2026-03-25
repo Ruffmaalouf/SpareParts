@@ -1,13 +1,10 @@
 using Dapper;
 using SpareParts.Domain.Accounting;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface IJournalRepository
-    {
-        int InsertEntry(JournalEntry entry);
-        void InsertLines(int entryId, IList<JournalLine> lines);
-    }
 
     public class JournalRepository : IJournalRepository
     {

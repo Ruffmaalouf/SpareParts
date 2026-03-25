@@ -1,4 +1,6 @@
-namespace SpareParts.Infrastructure.Data
+using SpareParts.Infrastructure.Data;
+
+namespace SpareParts.Infrastructure.Interfaces
 {
     public interface IExceptionLogWriter
     {

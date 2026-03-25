@@ -2,16 +2,10 @@ using Dapper;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 
+using SpareParts.Infrastructure.Interfaces.Repositories;
+
 namespace SpareParts.Infrastructure.Data
 {
-    public interface IPartsRepository
-    {
-        Dictionary<int, Part> GetByIds(IList<int> partIds);
-        IEnumerable<Part> GetAllActive();
-        int Insert(Part part);
-        bool Update(int id, CreatePartRequest request, int userId);
-        bool Delete(int id);
-    }
 
     public class PartsRepository : IPartsRepository
     {

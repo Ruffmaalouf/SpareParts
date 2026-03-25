@@ -1,0 +1,20 @@
+using SpareParts.Domain.Auth;
+using SpareParts.Domain.BusinessPartners;
+using SpareParts.Domain.Cars;
+using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
+using SpareParts.Domain.Sales;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+
+namespace SpareParts.Desktop.Wpf.Interfaces
+{
+    public interface IUserApiClient
+    {
+        Task<List<UserDto>> GetUsersAsync();
+        Task<int> CreateUserAsync(CreateUserRequest req);
+        Task UpdateUserAsync(int id, UpdateUserRequest req);
+        Task DeleteUserAsync(int id);
+    }
+}

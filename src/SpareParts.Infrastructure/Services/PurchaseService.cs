@@ -1,12 +1,8 @@
 using SpareParts.Domain.Purchases;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public interface ICreatePurchaseHandler
-    {
-        CreatePurchaseResponse Handle(CreatePurchaseRequest request, int userId);
-    }
-
     public class PurchaseService
     {
         private readonly ICreatePurchaseHandler _createPurchaseHandler;

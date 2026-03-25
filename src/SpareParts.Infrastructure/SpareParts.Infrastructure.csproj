@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Infrastructure.Interfaces\SpareParts.Infrastructure.Interfaces.csproj" />
     <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>

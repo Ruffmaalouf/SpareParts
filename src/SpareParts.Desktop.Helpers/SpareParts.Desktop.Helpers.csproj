@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SpareParts.Desktop.Interfaces\SpareParts.Desktop.Interfaces.csproj" />
     <PackageReference Include="RestSharp" Version="114.0.0" />
   </ItemGroup>
 
