@@ -461,11 +461,31 @@
                 Background="{DynamicResource CardBackgroundBrush}"
                 Padding="20 10" Margin="16 6 16 16"
                 CornerRadius="8">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="●" FontSize="10" VerticalAlignment="Center"
-                           Foreground="{DynamicResource AccentBrush}" Margin="0 0 8 0"/>
-                <TextBlock Text="{Binding Status}" FontSize="13"
-                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="●" FontSize="10" VerticalAlignment="Center"
+                               Foreground="{Binding StatusBrush}" Margin="0 0 8 0"/>
+                    <TextBlock Text="{Binding Status}" FontSize="13"
+                               Foreground="{Binding StatusBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding StatusMessages}" Margin="0 8 0 0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Text}" FontSize="12" Margin="0 2 0 0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#FFE57373"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSuccess}" Value="True">
+                                                <Setter Property="Foreground" Value="#FF81C784"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </Border>
     </Grid>

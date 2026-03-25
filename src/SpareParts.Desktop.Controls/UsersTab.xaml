@@ -237,7 +237,7 @@
             </DataGrid>
 
             <TextBlock Grid.Row="2" Text="{Binding Status}"
-                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Foreground="{Binding StatusBrush}"
                        FontSize="12" Margin="0 8 0 0"/>
         </Grid>
 

@@ -655,6 +655,46 @@
 
             </TabControl>
 
+            <!-- ══ GLOBAL APP FEEDBACK CENTER ══ -->
+            <Border HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0 0 24 24"
+                    Width="430"
+                    MaxHeight="260"
+                    Background="#CC10141E"
+                    CornerRadius="10"
+                    Padding="12"
+                    Panel.ZIndex="10">
+                <StackPanel>
+                    <TextBlock Text="Activity Feed"
+                               FontSize="12"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 0 0 8"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  MaxHeight="220">
+                        <ItemsControl ItemsSource="{Binding Notifications}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Text}" Margin="0 2 0 2" FontSize="12">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#FFE57373"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSuccess}" Value="True">
+                                                        <Setter Property="Foreground" Value="#FF81C784"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+
             <!-- ══ MANAGEMENT OVERLAY — ZIndex 20, shown when IsManagementOpen=True ══ -->
             <Grid Panel.ZIndex="20">
                 <Grid.Style>

@@ -1,4 +1,5 @@
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,6 +15,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<BrandGroupViewModel> BrandGroups    { get; } = new();
         public ObservableCollection<CarModelViewModel>   AvailableCars  { get; } = new();
         public ObservableCollection<CarPartModel>        AvailableParts { get; } = new();
+        public ObservableCollection<StatusMessage> Notifications => AppNotificationCenter.Instance.Messages;
 
         // ── Management panel ──────────────────────────────────────────────────
         private readonly ICarCatalogApiClient _carCatalogApi;
@@ -173,7 +175,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     }
                 });
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[LoadBrands] {ex.Message}"); }
+            catch (ApiClientException ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading brands.", false);
+            }
             finally { IsLoadingBrands = false; }
         }
 
@@ -219,7 +228,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     }
                 });
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[LoadCars] {ex.Message}"); }
+            catch (ApiClientException ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading car models.", false);
+            }
         }
 
         private async Task LoadCarImageAsync(CarModelViewModel vm)
@@ -257,7 +273,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                         });
                 });
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[LoadParts] {ex.Message}"); }
+            catch (ApiClientException ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading parts.", false);
+            }
         }
 
         // ── Part selected ─────────────────────────────────────────────────────
