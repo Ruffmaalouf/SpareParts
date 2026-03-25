@@ -107,6 +107,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand SelectThemeCommand { get; private set; } = null!;
 
         public ObservableCollection<InvoiceTabViewModel> Tabs { get; } = new();
+        public ObservableCollection<PurchaseDraftItemViewModel> PurchaseDraftItems { get; } = new();
+        public ObservableCollection<StockSnapshotViewModel> StockSnapshots { get; } = new();
 
         private InvoiceTabViewModel? _selectedTab;
         public InvoiceTabViewModel? SelectedTab
@@ -125,6 +127,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToHomeCommand          { get; }
         public ICommand OpenManagementCommand    { get; }
         public ICommand OpenInvoiceSearchCommand { get; }
+        public ICommand GoToPurchasesCommand     { get; }
+        public ICommand GoToStockManagementCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
 
         public InvoiceTabsViewModel(ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null, ISalesApiClient? salesApi = null, ICrudApiClient? crudApi = null)
@@ -179,13 +183,30 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 }
             });
 
+            GoToPurchasesCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.Purchases);
+            GoToStockManagementCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.StockManagement);
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
             AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
+            SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
             _ = LoadBrandsAsync();
+        }
+
+        private void SeedPurchasesAndStock()
+        {
+            PurchaseDraftItems.Clear();
+            PurchaseDraftItems.Add(new PurchaseDraftItemViewModel { PartCode = "BP-2040", PartName = "Brake Pad Kit", SupplierName = "Nippon Supply", Quantity = 18, UnitCost = 34.50m });
+            PurchaseDraftItems.Add(new PurchaseDraftItemViewModel { PartCode = "FLT-8821", PartName = "Air Filter Element", SupplierName = "Filtronics", Quantity = 40, UnitCost = 7.80m });
+            PurchaseDraftItems.Add(new PurchaseDraftItemViewModel { PartCode = "BELT-119", PartName = "Alternator Belt", SupplierName = "Continental Partner", Quantity = 25, UnitCost = 12.40m });
+
+            StockSnapshots.Clear();
+            StockSnapshots.Add(new StockSnapshotViewModel { PartCode = "BP-2040", PartName = "Brake Pad Kit", Warehouse = "Main Warehouse", OnHand = 12, MinStock = 15 });
+            StockSnapshots.Add(new StockSnapshotViewModel { PartCode = "OIL-5W30", PartName = "Synthetic Oil 5W30", Warehouse = "Main Warehouse", OnHand = 62, MinStock = 25 });
+            StockSnapshots.Add(new StockSnapshotViewModel { PartCode = "SPK-660", PartName = "Spark Plug Set", Warehouse = "North Branch", OnHand = 8, MinStock = 10 });
+            StockSnapshots.Add(new StockSnapshotViewModel { PartCode = "FLT-8821", PartName = "Air Filter Element", Warehouse = "North Branch", OnHand = 47, MinStock = 20 });
         }
 
 
