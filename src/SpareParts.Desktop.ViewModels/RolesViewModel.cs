@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -49,6 +50,13 @@ namespace SpareParts.Desktop.Wpf
             set { _status = value; OnPropertyChanged(nameof(Status)); }
         }
 
+        private Brush _statusBrush = Brushes.Gray;
+        public Brush StatusBrush
+        {
+            get => _statusBrush;
+            set { _statusBrush = value; OnPropertyChanged(nameof(StatusBrush)); }
+        }
+
         private bool _isBusy;
         public bool IsBusy
         {
@@ -78,7 +86,7 @@ namespace SpareParts.Desktop.Wpf
         public async Task LoadAsync()
         {
             IsBusy = true;
-            Status = string.Empty;
+            SetStatus(string.Empty, true);
             try
             {
                 var list = await _rolesApi.GetRolesAsync();
@@ -97,9 +105,10 @@ namespace SpareParts.Desktop.Wpf
                             IsActive       = r.IsActive
                         });
                 });
-                Status = $"✓ {Roles.Count} role(s) loaded.";
+                SetStatus($"✓ {Roles.Count} role(s) loaded.", true);
             }
-            catch (Exception ex) { Status = $"✗ {ex.Message}"; }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while loading roles.", false); }
             finally { IsBusy = false; }
         }
 
@@ -107,7 +116,7 @@ namespace SpareParts.Desktop.Wpf
         private async Task SaveAsync()
         {
             if (string.IsNullOrWhiteSpace(FormName))
-            { Status = "✗ Role name is required."; return; }
+            { SetStatus("✗ Role name is required.", false); return; }
 
             IsBusy = true;
             try
@@ -122,7 +131,7 @@ namespace SpareParts.Desktop.Wpf
                         BadgeColor     = FormBadgeColor.Trim(),
                         BadgeTextColor = FormBadgeTextColor.Trim()
                     });
-                    Status = $"✓ Role '{FormName}' created.";
+                    SetStatus($"✓ Role '{FormName}' created.", true);
                 }
                 else
                 {
@@ -134,13 +143,14 @@ namespace SpareParts.Desktop.Wpf
                         BadgeTextColor = FormBadgeTextColor.Trim(),
                         IsActive       = FormIsActive
                     });
-                    Status = $"✓ Role '{_selectedRole.Name}' updated.";
+                    SetStatus($"✓ Role '{_selectedRole.Name}' updated.", true);
                 }
 
                 ClearForm();
                 await LoadAsync();
             }
-            catch (Exception ex) { Status = $"✗ {ex.Message}"; }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while saving role.", false); }
             finally { IsBusy = false; }
         }
 
@@ -149,17 +159,25 @@ namespace SpareParts.Desktop.Wpf
         {
             if (role == null) return;
             if (role.IsSystem)
-            { Status = "✗ Built-in system roles cannot be deleted."; return; }
+            { SetStatus("✗ Built-in system roles cannot be deleted.", false); return; }
 
             IsBusy = true;
             try
             {
                 await _rolesApi.DeleteRoleAsync(role.Id);
-                Status = $"✓ Role '{role.Name}' deactivated.";
+                SetStatus($"✓ Role '{role.Name}' deactivated.", true);
                 await LoadAsync();
             }
-            catch (Exception ex) { Status = $"✗ {ex.Message}"; }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while deleting role.", false); }
             finally { IsBusy = false; }
+        }
+
+        private void SetStatus(string message, bool isSuccess)
+        {
+            Status = message;
+            StatusBrush = isSuccess ? Brushes.MediumSeaGreen : Brushes.IndianRed;
+            AppNotificationCenter.Instance.Publish(message, isSuccess);
         }
 
         private void PopulateForm(RoleManagementDto r)

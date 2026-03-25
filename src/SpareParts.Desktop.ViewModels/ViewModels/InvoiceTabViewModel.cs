@@ -1,4 +1,5 @@
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf;
 using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
@@ -106,16 +107,19 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             if (NewPartId == null || NewPartId <= 0)
             {
                 CustomMessageBox.Show("Please select a part first.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Please select a part first.", false);
                 return;
             }
             if (NewQuantity <= 0)
             {
                 CustomMessageBox.Show("Quantity must be greater than zero.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Quantity must be greater than zero.", false);
                 return;
             }
             if (NewUnitPrice <= 0)
             {
                 CustomMessageBox.Show("Unit price must be greater than zero.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Unit price must be greater than zero.", false);
                 return;
             }
 
@@ -144,11 +148,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             if (Items.Count == 0)
             {
                 CustomMessageBox.Show("Add at least one line before submitting.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Add at least one line before submitting.", false);
                 return;
             }
             if (WarehouseId == null)
             {
                 CustomMessageBox.Show("Please select a warehouse.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Please select a warehouse.", false);
                 return;
             }
 
@@ -176,15 +182,22 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 CustomMessageBox.Show(
                     $"Invoice {result.InvoiceNumber} created.\nTotal: {result.TotalAmount:N0}",
                     "Sale Submitted", "Success");
+                AppNotificationCenter.Instance.Publish($"✓ Invoice {result.InvoiceNumber} created.", true);
 
                 Items.Clear();
                 PaidAmount = 0;
                 OnPropertyChanged(nameof(TotalAmount));
                 OnPropertyChanged(nameof(RemainingAmount));
             }
-            catch (Exception ex)
+            catch (ApiClientException ex)
             {
                 CustomMessageBox.Show($"Error: {ex.Message}", "Error", "Error");
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                CustomMessageBox.Show("Unexpected error while submitting sale.", "Error", "Error");
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while submitting sale.", false);
             }
         }
 
