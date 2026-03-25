@@ -17,6 +17,7 @@ namespace SpareParts.Desktop.Wpf
     public class ManagementViewModel : INotifyPropertyChanged
     {
         private readonly ManagementCoordinator _coordinator;
+        private readonly ICrudApiClient _crudApi;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -69,6 +70,11 @@ namespace SpareParts.Desktop.Wpf
         public int? NewPartBrandId { get => PartsFeature.NewPartBrandId; set { PartsFeature.NewPartBrandId = value; OnPropertyChanged(nameof(NewPartBrandId)); } }
         public string NewPartNotes { get => PartsFeature.NewPartNotes; set { PartsFeature.NewPartNotes = value; OnPropertyChanged(nameof(NewPartNotes)); } }
 
+        public string NewCarBrandName { get => CarModelsFeature.NewCarBrandName; set { CarModelsFeature.NewCarBrandName = value; OnPropertyChanged(nameof(NewCarBrandName)); } }
+        public string NewCarBrandCountry { get => CarModelsFeature.NewCarBrandCountry; set { CarModelsFeature.NewCarBrandCountry = value; OnPropertyChanged(nameof(NewCarBrandCountry)); } }
+        public string NewCarBrandRegionGroup { get => CarModelsFeature.NewCarBrandRegionGroup; set { CarModelsFeature.NewCarBrandRegionGroup = value; OnPropertyChanged(nameof(NewCarBrandRegionGroup)); } }
+        public int NewCarBrandSortOrder { get => CarModelsFeature.NewCarBrandSortOrder; set { CarModelsFeature.NewCarBrandSortOrder = value; OnPropertyChanged(nameof(NewCarBrandSortOrder)); } }
+
         public string NewCarModelName { get => CarModelsFeature.NewCarModelName; set { CarModelsFeature.NewCarModelName = value; OnPropertyChanged(nameof(NewCarModelName)); } }
         public string NewCarModelYear { get => CarModelsFeature.NewCarModelYear; set { CarModelsFeature.NewCarModelYear = value; OnPropertyChanged(nameof(NewCarModelYear)); } }
         public string NewCarModelEngine { get => CarModelsFeature.NewCarModelEngine; set { CarModelsFeature.NewCarModelEngine = value; OnPropertyChanged(nameof(NewCarModelEngine)); } }
@@ -91,12 +97,14 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteBrandCommand { get; }
         public ICommand SavePartCommand { get; }
         public ICommand DeletePartCommand { get; }
+        public ICommand SaveCarBrandCommand { get; }
         public ICommand SaveCarModelCommand { get; }
         public ICommand DeleteCarModelCommand { get; }
 
         public ManagementViewModel(ICrudApiClient? crudApi = null, ICarCatalogApiClient? carCatalogApi = null)
         {
-            _coordinator = new ManagementCoordinator(crudApi ?? new CrudApiClient(), carCatalogApi ?? new CarCatalogApiClient());
+            _crudApi = crudApi ?? new CrudApiClient();
+            _coordinator = new ManagementCoordinator(_crudApi, carCatalogApi ?? new CarCatalogApiClient());
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
@@ -107,6 +115,7 @@ namespace SpareParts.Desktop.Wpf
             DeleteBrandCommand = new RelayCommand(_ => _ = DeleteBrandAsync());
             SavePartCommand = new RelayCommand(_ => _ = SavePartAsync());
             DeletePartCommand = new RelayCommand(_ => _ = DeletePartAsync());
+            SaveCarBrandCommand = new RelayCommand(_ => _ = SaveCarBrandAsync());
             SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
             DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
         }
@@ -237,6 +246,39 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedPart));
         }
 
+        private async Task SaveCarBrandAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewCarBrandName))
+            {
+                SetStatus("✗ Car brand name is required.", false);
+                return;
+            }
+
+            try
+            {
+                var payload = new CreateCarBrandRequest
+                {
+                    Name = NewCarBrandName,
+                    Country = NewCarBrandCountry,
+                    RegionGroup = NewCarBrandRegionGroup,
+                    SortOrder = NewCarBrandSortOrder
+                };
+
+                await _crudApi.PostAsync("api/carbrands", payload);
+                SetStatus("✓ Car Brand saved.", true);
+                await LoadAllAsync();
+                CarModelsFeature.ClearCarBrandForm();
+                RaiseCarBrandProps();
+            }
+            catch (Exception ex)
+            {
+                var message = ex is ApiClientException apiException
+                    ? $"✗ API error ({apiException.Code}): {apiException.Message}"
+                    : "✗ Unexpected error while saving Car Brand.";
+                SetStatus(message, false);
+            }
+        }
+
         private async Task SaveCarModelAsync()
         {
             var result = await _coordinator.SaveCarModelAsync(CarModelsFeature);
@@ -262,6 +304,7 @@ namespace SpareParts.Desktop.Wpf
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
+        private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
         private void SetStatus(string message, bool isSuccess)
         {
