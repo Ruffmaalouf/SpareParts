@@ -1,6 +1,7 @@
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
 using System.Collections.Generic;
 
 namespace SpareParts.Desktop.Wpf.Management
@@ -14,5 +15,6 @@ namespace SpareParts.Desktop.Wpf.Management
         public required IEnumerable<CategoryDto> Categories { get; init; }
         public required IEnumerable<PartDto> Parts { get; init; }
         public required IEnumerable<CarModelDto> CarModels { get; init; }
+        public required IEnumerable<WarehouseDto> Warehouses { get; init; }
     }
 }
