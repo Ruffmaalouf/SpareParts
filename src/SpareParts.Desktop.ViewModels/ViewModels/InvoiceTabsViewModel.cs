@@ -184,6 +184,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
             AddTab();
+            RefreshInvoiceSearch();
             _ = LoadBrandsAsync();
         }
 
@@ -423,6 +424,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var tab = new InvoiceTabViewModel(_salesApi);
             Tabs.Add(tab);
             SelectedTab = tab;
+            RefreshInvoiceSearch();
         }
 
         private void CloseTab(InvoiceTabViewModel? tab)
@@ -431,7 +433,42 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             int idx = Tabs.IndexOf(tab);
             Tabs.Remove(tab);
             SelectedTab = Tabs[Math.Max(0, idx - 1)];
+            RefreshInvoiceSearch();
         }
+
+
+
+        private void RefreshInvoiceSearch()
+        {
+            var query = (InvoiceSearchText ?? string.Empty).Trim();
+            var matches = Tabs
+                .Where(t => string.IsNullOrWhiteSpace(query)
+                            || t.Header.Contains(query, StringComparison.OrdinalIgnoreCase)
+                            || t.Items.Any(i => i.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
+                            || t.Items.Any(i => i.PartId.ToString().Contains(query, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+            InvoiceSearchResults.Clear();
+            foreach (var tab in matches)
+            {
+                InvoiceSearchResults.Add(tab);
+            }
+        }
+
+        public void OpenInvoiceFromSearch(InvoiceTabViewModel? tab)
+        {
+            if (tab == null)
+            {
+                return;
+            }
+
+            SelectedTab = tab;
+            ActiveScreen = PosViewModel.AppScreen.Pos;
+            tab.MarkOpenedFromSearch();
+            IsInvoiceSearchOpen = false;
+            AppNotificationCenter.Instance.Publish($"✓ Opened {tab.Header} for editing.", true);
+        }
+
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>
