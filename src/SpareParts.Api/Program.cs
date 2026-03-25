@@ -41,6 +41,7 @@ builder.Services.Configure<AccountingOptions>(builder.Configuration.GetSection("
 // ── DI ────────────────────────────────────────────────────────────────────────
 builder.Services.AddSingleton<ISqlConnectionFactory>(_ =>
     new SqlConnectionFactory(connString));
+builder.Services.AddSingleton<IExceptionLogWriter, SqlExceptionLogWriter>();
 
 builder.Services.AddSingleton(new JwtSettings
 {
