@@ -454,6 +454,8 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="16"/>
                                             <ColumnDefinition Width="260"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="190"/>
                                         </Grid.ColumnDefinitions>
 
                                         <controls:CustomerSearchControl
@@ -464,6 +466,12 @@
                                         <controls:WarehouseSearchControl
                             Grid.Column="2"
                             SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"
+                            VerticalAlignment="Top"/>
+
+                                        <controls:SaleDatePickerControl
+                            Grid.Column="4"
+                            Label="DATE"
+                            SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
                                     </Grid>
 

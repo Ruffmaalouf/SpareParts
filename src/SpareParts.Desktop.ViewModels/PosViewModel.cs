@@ -76,6 +76,17 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
+        private DateTime _invoiceDate = DateTime.Today;
+        public DateTime InvoiceDate
+        {
+            get => _invoiceDate;
+            set
+            {
+                _invoiceDate = value;
+                OnPropertyChanged(nameof(InvoiceDate));
+            }
+        }
+
         public decimal TotalAmount    => Items.Sum(i => i.LineTotal);
         public decimal RemainingAmount => TotalAmount - PaidAmount;
 
@@ -150,7 +161,7 @@ namespace SpareParts.Desktop.Wpf
                 // Use the shared ApiClient (already has the Bearer token set)
                 var req = new CreateSaleRequest
                 {
-                    InvoiceDate   = DateTime.Now,
+                    InvoiceDate   = InvoiceDate,
                     CustomerId    = CustomerId,
                     WarehouseId   = WarehouseId,
                     PaymentMethod = "Cash",
