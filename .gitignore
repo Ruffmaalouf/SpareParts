@@ -34,3 +34,9 @@ src/SpareParts.Desktop.Controls/bin/
 src/SpareParts.Desktop.ViewModels/bin/
 
 src/SpareParts.Desktop.ViewModels/obj/
+
+src/SpareParts.Desktop.Interfaces/obj/
+
+src/SpareParts.Infrastructure.Interfaces/bin/
+
+src/SpareParts.Infrastructure.Interfaces/obj/
