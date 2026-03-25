@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
@@ -83,6 +84,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly ISalesApiClient _salesApi;
+        private bool _isSubmitting;
 
         public ICommand AddItemCommand    { get; }
         public ICommand SubmitSaleCommand { get; }
@@ -91,7 +93,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             _salesApi = salesApi ?? new SalesApiClient();
             AddItemCommand    = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand = new RelayCommand(_ => SubmitSale());
+            SubmitSaleCommand = new RelayCommand(_ => _ = SubmitSaleAsync());
 
             Items.CollectionChanged += (_, _) =>
             {
@@ -143,8 +145,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         // ── Submit ────────────────────────────────────────────────────────────
 
-        private void SubmitSale()
+        private async Task SubmitSaleAsync()
         {
+            if (_isSubmitting)
+            {
+                return;
+            }
+
             if (Items.Count == 0)
             {
                 CustomMessageBox.Show("Add at least one line before submitting.", "Validation", "Warning");
@@ -160,6 +167,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             try
             {
+                _isSubmitting = true;
                 var req = new CreateSaleRequest
                 {
                     InvoiceDate   = DateTime.Now,
@@ -177,7 +185,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     }).ToList()
                 };
 
-                var result = _salesApi.CreateSaleAsync(req).GetAwaiter().GetResult();
+                var result = await _salesApi.CreateSaleAsync(req);
 
                 CustomMessageBox.Show(
                     $"Invoice {result.InvoiceNumber} created.\nTotal: {result.TotalAmount:N0}",
@@ -198,6 +206,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 CustomMessageBox.Show("Unexpected error while submitting sale.", "Error", "Error");
                 AppNotificationCenter.Instance.Publish("✗ Unexpected error while submitting sale.", false);
+            }
+            finally
+            {
+                _isSubmitting = false;
             }
         }
 
