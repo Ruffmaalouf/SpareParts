@@ -23,12 +23,25 @@ namespace SpareParts.Desktop.Wpf
         public static readonly DependencyProperty SelectedCustomerIdProperty =
             DependencyProperty.Register(
                 nameof(SelectedCustomerId), typeof(int?), typeof(CustomerSearchControl),
-                new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+                new FrameworkPropertyMetadata(
+                    null,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                    OnSelectedCustomerIdChanged));
 
         public int? SelectedCustomerId
         {
             get => (int?)GetValue(SelectedCustomerIdProperty);
             set => SetValue(SelectedCustomerIdProperty, value);
+        }
+
+        private static void OnSelectedCustomerIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not CustomerSearchControl control)
+            {
+                return;
+            }
+
+            _ = control.ApplyExternalSelectionAsync(e.NewValue as int?);
         }
 
         public static readonly DependencyProperty CustomerSearchTextProperty =
@@ -174,10 +187,38 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 _allCustomers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
+                await ApplyExternalSelectionAsync(SelectedCustomerId);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[CustomerSearch] pre-load: {ex.Message}");
+            }
+        }
+
+        private async Task ApplyExternalSelectionAsync(int? customerId)
+        {
+            if (!customerId.HasValue || customerId.Value <= 0)
+            {
+                HasSelectedCustomer = false;
+                SelectedIndicator.Visibility = Visibility.Collapsed;
+                SearchIcon.Visibility = Visibility.Visible;
+                SelectedNameInline.Text = string.Empty;
+                PhoneLabel.Visibility = Visibility.Collapsed;
+                PhoneLabel.Text = string.Empty;
+                SearchBtn.Visibility = Visibility.Visible;
+                ClearBtn.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (_allCustomers.Count == 0)
+            {
+                await EnsureLoadedAsync();
+            }
+
+            var selected = _allCustomers.FirstOrDefault(c => c.Id == customerId.Value);
+            if (selected != null)
+            {
+                SelectCustomer(selected);
             }
         }
 
