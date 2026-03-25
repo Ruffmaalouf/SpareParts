@@ -1,4 +1,5 @@
 using Dapper;
+using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 
 namespace SpareParts.Infrastructure.Data
