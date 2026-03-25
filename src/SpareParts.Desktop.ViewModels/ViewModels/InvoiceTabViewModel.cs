@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
@@ -91,7 +92,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             _salesApi = salesApi ?? new SalesApiClient();
             AddItemCommand    = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand = new RelayCommand(_ => SubmitSale());
+            SubmitSaleCommand = new RelayCommand(_ => _ = SubmitSaleAsync());
 
             Items.CollectionChanged += (_, _) =>
             {
@@ -143,7 +144,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         // ── Submit ────────────────────────────────────────────────────────────
 
-        private void SubmitSale()
+        private async Task SubmitSaleAsync()
         {
             if (Items.Count == 0)
             {
@@ -177,7 +178,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     }).ToList()
                 };
 
-                var result = _salesApi.CreateSaleAsync(req).GetAwaiter().GetResult();
+                var result = await _salesApi.CreateSaleAsync(req);
 
                 CustomMessageBox.Show(
                     $"Invoice {result.InvoiceNumber} created.\nTotal: {result.TotalAmount:N0}",
