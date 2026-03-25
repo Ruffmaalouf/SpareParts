@@ -571,7 +571,8 @@
                                 Command="{Binding AddItemCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 Height="52"
-                                VerticalAlignment="Bottom"/>
+                                Margin="0,17,0,0"
+                                VerticalAlignment="Top"/>
 
                                         <!-- Submit Invoice button -->
                                         <Button Grid.Column="8"
@@ -579,7 +580,8 @@
                                 Command="{Binding SubmitSaleCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 Height="52"
-                                VerticalAlignment="Bottom">
+                                Margin="0,17,0,0"
+                                VerticalAlignment="Top">
                                             <!-- Slightly different shade so the two buttons are visually distinct -->
                                             <Button.Resources>
                                                 <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">

@@ -237,6 +237,7 @@ namespace SpareParts.Desktop.Wpf
                                       ? Visibility.Collapsed : Visibility.Visible;
 
             SelectedIndicator.Visibility = Visibility.Visible;
+            SearchIcon.Visibility        = Visibility.Collapsed;
             SearchBtn.Visibility         = Visibility.Collapsed;
             ClearBtn.Visibility          = Visibility.Visible;
 
@@ -255,6 +256,7 @@ namespace SpareParts.Desktop.Wpf
             HasSelectedCustomer  = false;
 
             SelectedIndicator.Visibility = Visibility.Collapsed;
+            SearchIcon.Visibility        = Visibility.Visible;
             SelectedNameInline.Text      = string.Empty;
             PhoneLabel.Visibility        = Visibility.Collapsed;
             PhoneLabel.Text              = string.Empty;
