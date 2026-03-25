@@ -151,7 +151,7 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private void ResultItem_DoubleClick(object sender, MouseButtonEventArgs e)
+        private void ResultItem_Click(object sender, MouseButtonEventArgs e)
         {
             _suppressClose = true;
             if (ResultsList.SelectedItem is CustomerDto c) SelectCustomer(c);
@@ -245,7 +245,7 @@ namespace SpareParts.Desktop.Wpf
 
             CustomerSearchText  = string.Empty;
             SearchBox.Text      = string.Empty;
-            ShowPlaceholder();
+            HidePlaceholder();
             ClosePopup();
         }
 

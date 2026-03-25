@@ -225,7 +225,7 @@
                              Background="Transparent" BorderThickness="0"
                              ItemsSource="{Binding FilteredParts, ElementName=Root}"
                              ItemContainerStyle="{StaticResource PartResultRowStyle}"
-                             MouseDoubleClick="ResultItem_DoubleClick"
+                             PreviewMouseLeftButtonUp="ResultItem_Click"
                              KeyDown="ResultsList_KeyDown"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
