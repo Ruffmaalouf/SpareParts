@@ -27,6 +27,7 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons"/>
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Template">
@@ -492,7 +493,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <Button Content="✏️"
+                                    <Button Content="&#xE70F;"
                                             ToolTip="Edit Invoice"
                                             Command="{Binding EditInvoiceCommand}"
                                             IsEnabled="{Binding IsEditEnabled}"
@@ -500,7 +501,7 @@
                                             Width="52"
                                             Height="52"
                                             Margin="0 0 8 0"/>
-                                    <Button Content="💾"
+                                    <Button Content="&#xE74E;"
                                             ToolTip="Save Invoice"
                                             Command="{Binding SaveInvoiceCommand}"
                                             IsEnabled="{Binding IsSaveEnabled}"
@@ -508,7 +509,7 @@
                                             Width="52"
                                             Height="52"
                                             Margin="0 0 8 0"/>
-                                    <Button Content="↺"
+                                    <Button Content="&#xE72C;"
                                             ToolTip="Reset Invoice"
                                             Command="{Binding ResetInvoiceCommand}"
                                             IsEnabled="{Binding IsResetEnabled}"
