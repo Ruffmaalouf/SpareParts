@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
              x:Name="Root"
-             MinWidth="190">
+             MinWidth="240">
     <UserControl.Resources>
         <Style x:Key="PickerIconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -73,8 +73,8 @@
                     <ControlTemplate TargetType="{x:Type primitives:CalendarDayButton}">
                         <Grid>
                             <Border x:Name="DayBorder"
-                                    Margin="2"
-                                    CornerRadius="9"
+                                    Margin="3"
+                                    CornerRadius="12"
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"/>
@@ -97,7 +97,7 @@
                                     <Condition Property="IsToday" Value="True"/>
                                     <Condition Property="IsSelected" Value="False"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="DayBorder" Property="Background" Value="#12FFFFFF"/>
+                                <Setter TargetName="DayBorder" Property="Background" Value="#1FFFFFFF"/>
                                 <Setter TargetName="DayBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </MultiTrigger>
                             <Trigger Property="IsInactive" Value="True">
@@ -128,7 +128,7 @@
 
         <Border x:Name="InputPill"
                 Grid.Row="1"
-                Height="52"
+                Height="56"
                 CornerRadius="10"
                 BorderThickness="1"
                 BorderBrush="{DynamicResource BorderBrush}"
@@ -147,7 +147,7 @@
                                FontSize="13"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                Text="&#xE823;"/>
-                    <TextBlock FontSize="14"
+                    <TextBlock FontSize="15"
                                FontWeight="SemiBold"
                                Foreground="White"
                                Text="{Binding SelectedDateDisplayText, ElementName=Root}"/>
@@ -175,16 +175,16 @@
                 <Popup x:Name="CalendarPopup"
                        Placement="Bottom"
                        PlacementTarget="{Binding ElementName=InputPill}"
-                       VerticalOffset="8"
+                       VerticalOffset="10"
                        StaysOpen="False"
                        AllowsTransparency="True"
                        PopupAnimation="Fade">
-                    <Border MinWidth="360"
-                            Padding="14"
+                    <Border MinWidth="430"
+                            Padding="18"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="14">
+                            CornerRadius="16">
                         <Border.Effect>
                             <DropShadowEffect Color="Black" Opacity="0.45" BlurRadius="20" ShadowDepth="8"/>
                         </Border.Effect>
@@ -197,7 +197,7 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0"
-                                       Margin="4 0 4 8"
+                                       Margin="6 0 6 10"
                                        FontSize="11"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource TextSecondaryBrush}"
@@ -205,9 +205,9 @@
 
                             <Calendar x:Name="PickerCalendar"
                                       Grid.Row="1"
-                                      Width="332"
-                                      Height="286"
-                                      FontSize="14"
+                                      Width="394"
+                                      Height="338"
+                                      FontSize="15"
                                       Background="{DynamicResource CardBackgroundBrush}"
                                       BorderBrush="{DynamicResource BorderBrush}"
                                       BorderThickness="1"
@@ -217,7 +217,7 @@
                                       CalendarButtonStyle="{StaticResource CalendarHeaderButtonStyle}"
                                       CalendarDayButtonStyle="{StaticResource CalendarDayStyle}"/>
 
-                            <Grid Grid.Row="2" Margin="0 12 0 0">
+                            <Grid Grid.Row="2" Margin="0 14 0 0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>

@@ -70,7 +70,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void Calendar_SelectedDatesChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (sender is SaleDatePickerControl calendar)
+            if (sender is Calendar calendar)
             {
                 SelectedDate = calendar.SelectedDate;
             }
