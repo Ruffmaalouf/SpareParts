@@ -68,6 +68,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type primitives:CalendarDayButton}">
@@ -84,13 +85,21 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="DayBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                <Setter TargetName="DayBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="DayBorder" Property="Background" Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
                             </Trigger>
                             <Trigger Property="IsToday" Value="True">
                                 <Setter TargetName="DayBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsInactive" Value="True">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                            <Trigger Property="IsBlackedOut" Value="True">
+                                <Setter Property="Opacity" Value="0.35"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -124,11 +133,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0"
-                           VerticalAlignment="Center"
-                           Foreground="White"
-                           FontSize="14"
-                           Text="{Binding SelectedDate, ElementName=Root, StringFormat={}{0:dd MMM yyyy}, TargetNullValue=Select date}"/>
+                <StackPanel Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <TextBlock Text="&#xE823;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 0 8 0"/>
+                    <TextBlock Foreground="White"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Text="{Binding SelectedDate, ElementName=Root, StringFormat={}{0:dddd, dd MMM yyyy}, TargetNullValue=Select date}"/>
+                </StackPanel>
 
                 <Button Grid.Column="1"
                         Style="{StaticResource IconButtonStyle}"
@@ -171,8 +188,9 @@
                                        Margin="4 0 4 10"/>
                             <Calendar SelectedDate="{Binding SelectedDate, ElementName=Root, Mode=TwoWay}"
                                       SelectedDatesChanged="Calendar_SelectedDatesChanged"
-                                      Background="Transparent"
-                                      BorderThickness="0"
+                                      Background="{DynamicResource CardBackgroundBrush}"
+                                      BorderBrush="{DynamicResource BorderBrush}"
+                                      BorderThickness="1"
                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                       CalendarButtonStyle="{StaticResource ThemedCalendarButtonStyle}"
                                       CalendarDayButtonStyle="{StaticResource ThemedCalendarDayButtonStyle}"
