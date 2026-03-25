@@ -420,7 +420,61 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 6 — USERS (UsersVm sub-binding) -->
+                <!-- TAB 6 — WAREHOUSES -->
+                <TabItem Header="🏬  Warehouses">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <StackPanel>
+                                <TextBlock Text="New Warehouse" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewWarehouseName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewWarehouseAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <CheckBox Content="Set as main warehouse"
+                                          IsChecked="{Binding NewWarehouseIsMain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Margin="0 0 0 20"/>
+                                <Button Content="＋  Save Warehouse" Command="{Binding SaveWarehouseCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42"/>
+                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteWarehouseCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Warehouses" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Warehouses}"
+                                          SelectedItem="{Binding SelectedWarehouse, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id}"       Width="50"/>
+                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name}"     Width="*"/>
+                                        <DataGridTextColumn Header="Address" Binding="{Binding Address}"  Width="220"/>
+                                        <DataGridCheckBoxColumn Header="Main" Binding="{Binding IsMain}"  Width="60"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 7 — USERS (UsersVm sub-binding) -->
                 <TabItem Header="👥  Users" DataContext="{Binding UsersVm}">
                     <controls:UsersTab/>
                 </TabItem>

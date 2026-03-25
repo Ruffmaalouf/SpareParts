@@ -34,5 +34,28 @@ namespace SpareParts.Api.Controllers
                 new { req.Name, req.Address, req.IsMain, Now = DateTime.UtcNow });
             return Ok(id);
         }
+
+        [HttpPut("{id:int}")]
+        public IActionResult Update(int id, [FromBody] CreateWarehouseRequest req)
+        {
+            using var conn = _factory.CreateConnection();
+            var affected = conn.Execute(
+                @"UPDATE Warehouses
+                  SET Name = @Name,
+                      Address = @Address,
+                      IsMain = @IsMain
+                  WHERE Id = @Id;",
+                new { Id = id, req.Name, req.Address, req.IsMain });
+
+            return affected > 0 ? NoContent() : NotFound();
+        }
+
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            using var conn = _factory.CreateConnection();
+            var affected = conn.Execute("DELETE FROM Warehouses WHERE Id = @Id;", new { Id = id });
+            return affected > 0 ? NoContent() : NotFound();
+        }
     }
 }

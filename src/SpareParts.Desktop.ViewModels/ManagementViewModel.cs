@@ -3,6 +3,7 @@ using SpareParts.Desktop.Wpf.Management;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,12 +18,14 @@ namespace SpareParts.Desktop.Wpf
     public class ManagementViewModel : INotifyPropertyChanged
     {
         private readonly ManagementCoordinator _coordinator;
+        private readonly ICrudApiClient _crudApi;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
         public BrandManagementViewModel BrandsFeature { get; } = new();
         public PartManagementViewModel PartsFeature { get; } = new();
         public CarModelManagementViewModel CarModelsFeature { get; } = new();
+        public WarehouseManagementViewModel WarehousesFeature { get; } = new();
 
         public UsersViewModel UsersVm { get; } = new();
         public RolesViewModel RolesVm { get; } = new();
@@ -34,6 +37,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<PartDto> Parts => PartsFeature.Parts;
         public ObservableCollection<CarModelDto> CarModels => CarModelsFeature.CarModels;
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
+        public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
 
         private bool _canViewSupplierTab;
         public bool CanViewSupplierTab { get => _canViewSupplierTab; private set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
@@ -60,6 +64,7 @@ namespace SpareParts.Desktop.Wpf
         public BrandDto? SelectedBrand { get => BrandsFeature.SelectedBrand; set { BrandsFeature.SelectedBrand = value; OnPropertyChanged(nameof(SelectedBrand)); if (value != null) { BrandsFeature.PopulateForm(value); RaiseAll(nameof(NewBrandName), nameof(NewBrandIsActive)); } } }
         public PartDto? SelectedPart { get => PartsFeature.SelectedPart; set { PartsFeature.SelectedPart = value; OnPropertyChanged(nameof(SelectedPart)); if (value != null) { PartsFeature.PopulateForm(value); RaisePartProps(); } } }
         public CarModelDto? SelectedCarModel { get => CarModelsFeature.SelectedCarModel; set { CarModelsFeature.SelectedCarModel = value; OnPropertyChanged(nameof(SelectedCarModel)); if (value != null) { CarModelsFeature.PopulateForm(value); RaiseCarModelProps(); } } }
+        public WarehouseDto? SelectedWarehouse { get => WarehousesFeature.SelectedWarehouse; set { WarehousesFeature.SelectedWarehouse = value; OnPropertyChanged(nameof(SelectedWarehouse)); if (value != null) { WarehousesFeature.PopulateForm(value); RaiseWarehouseProps(); } } }
 
         public string NewCustomerName { get => CustomersFeature.NewCustomerName; set { CustomersFeature.NewCustomerName = value; OnPropertyChanged(nameof(NewCustomerName)); } }
         public string NewCustomerPhone { get => CustomersFeature.NewCustomerPhone; set { CustomersFeature.NewCustomerPhone = value; OnPropertyChanged(nameof(NewCustomerPhone)); } }
@@ -89,11 +94,19 @@ namespace SpareParts.Desktop.Wpf
         public int? NewPartBrandId { get => PartsFeature.NewPartBrandId; set { PartsFeature.NewPartBrandId = value; OnPropertyChanged(nameof(NewPartBrandId)); } }
         public string NewPartNotes { get => PartsFeature.NewPartNotes; set { PartsFeature.NewPartNotes = value; OnPropertyChanged(nameof(NewPartNotes)); } }
 
+        public string NewCarBrandName { get => CarModelsFeature.NewCarBrandName; set { CarModelsFeature.NewCarBrandName = value; OnPropertyChanged(nameof(NewCarBrandName)); } }
+        public string NewCarBrandCountry { get => CarModelsFeature.NewCarBrandCountry; set { CarModelsFeature.NewCarBrandCountry = value; OnPropertyChanged(nameof(NewCarBrandCountry)); } }
+        public string NewCarBrandRegionGroup { get => CarModelsFeature.NewCarBrandRegionGroup; set { CarModelsFeature.NewCarBrandRegionGroup = value; OnPropertyChanged(nameof(NewCarBrandRegionGroup)); } }
+        public int NewCarBrandSortOrder { get => CarModelsFeature.NewCarBrandSortOrder; set { CarModelsFeature.NewCarBrandSortOrder = value; OnPropertyChanged(nameof(NewCarBrandSortOrder)); } }
+
         public string NewCarModelName { get => CarModelsFeature.NewCarModelName; set { CarModelsFeature.NewCarModelName = value; OnPropertyChanged(nameof(NewCarModelName)); } }
         public string NewCarModelYear { get => CarModelsFeature.NewCarModelYear; set { CarModelsFeature.NewCarModelYear = value; OnPropertyChanged(nameof(NewCarModelYear)); } }
         public string NewCarModelEngine { get => CarModelsFeature.NewCarModelEngine; set { CarModelsFeature.NewCarModelEngine = value; OnPropertyChanged(nameof(NewCarModelEngine)); } }
         public decimal NewCarModelBasePrice { get => CarModelsFeature.NewCarModelBasePrice; set { CarModelsFeature.NewCarModelBasePrice = value; OnPropertyChanged(nameof(NewCarModelBasePrice)); } }
         public int NewCarModelBrandId { get => CarModelsFeature.NewCarModelBrandId; set { CarModelsFeature.NewCarModelBrandId = value; OnPropertyChanged(nameof(NewCarModelBrandId)); } }
+        public string NewWarehouseName { get => WarehousesFeature.NewWarehouseName; set { WarehousesFeature.NewWarehouseName = value; OnPropertyChanged(nameof(NewWarehouseName)); } }
+        public string NewWarehouseAddress { get => WarehousesFeature.NewWarehouseAddress; set { WarehousesFeature.NewWarehouseAddress = value; OnPropertyChanged(nameof(NewWarehouseAddress)); } }
+        public bool NewWarehouseIsMain { get => WarehousesFeature.NewWarehouseIsMain; set { WarehousesFeature.NewWarehouseIsMain = value; OnPropertyChanged(nameof(NewWarehouseIsMain)); } }
 
         private string _status = string.Empty;
         public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(Status)); } }
@@ -111,8 +124,11 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteBrandCommand { get; }
         public ICommand SavePartCommand { get; }
         public ICommand DeletePartCommand { get; }
+        public ICommand SaveCarBrandCommand { get; }
         public ICommand SaveCarModelCommand { get; }
         public ICommand DeleteCarModelCommand { get; }
+        public ICommand SaveWarehouseCommand { get; }
+        public ICommand DeleteWarehouseCommand { get; }
 
         public ManagementViewModel(
             ICrudApiClient? crudApi = null,
@@ -135,8 +151,11 @@ namespace SpareParts.Desktop.Wpf
             DeleteBrandCommand = new RelayCommand(_ => _ = DeleteBrandAsync());
             SavePartCommand = new RelayCommand(_ => _ = SavePartAsync());
             DeletePartCommand = new RelayCommand(_ => _ = DeletePartAsync());
+            SaveCarBrandCommand = new RelayCommand(_ => _ = SaveCarBrandAsync());
             SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
             DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
+            SaveWarehouseCommand = new RelayCommand(_ => _ = SaveWarehouseAsync());
+            DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
         }
 
         public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
@@ -163,6 +182,7 @@ namespace SpareParts.Desktop.Wpf
                     Replace(Categories, loadResult.Categories);
                     Replace(Parts, loadResult.Parts);
                     Replace(CarModels, loadResult.CarModels);
+                    Replace(Warehouses, loadResult.Warehouses);
                 });
 
                 SetStatus("✓ Data loaded.", true);
@@ -306,6 +326,39 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedPart));
         }
 
+        private async Task SaveCarBrandAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewCarBrandName))
+            {
+                SetStatus("✗ Car brand name is required.", false);
+                return;
+            }
+
+            try
+            {
+                var payload = new CreateCarBrandRequest
+                {
+                    Name = NewCarBrandName,
+                    Country = NewCarBrandCountry,
+                    RegionGroup = NewCarBrandRegionGroup,
+                    SortOrder = NewCarBrandSortOrder
+                };
+
+                await _crudApi.PostAsync("api/carbrands", payload);
+                SetStatus("✓ Car Brand saved.", true);
+                await LoadAllAsync();
+                CarModelsFeature.ClearCarBrandForm();
+                RaiseCarBrandProps();
+            }
+            catch (Exception ex)
+            {
+                var message = ex is ApiClientException apiException
+                    ? $"✗ API error ({apiException.Code}): {apiException.Message}"
+                    : "✗ Unexpected error while saving Car Brand.";
+                SetStatus(message, false);
+            }
+        }
+
         private async Task SaveCarModelAsync()
         {
             var result = await _coordinator.SaveCarModelAsync(CarModelsFeature);
@@ -328,10 +381,34 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedCarModel));
         }
 
+        private async Task SaveWarehouseAsync()
+        {
+            var result = await _coordinator.SaveWarehouseAsync(WarehousesFeature);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            WarehousesFeature.ClearForm();
+            RaiseWarehouseProps();
+        }
+
+        private async Task DeleteWarehouseAsync()
+        {
+            var result = await _coordinator.DeleteWarehouseAsync(SelectedWarehouse);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            WarehousesFeature.SelectedWarehouse = null;
+            OnPropertyChanged(nameof(SelectedWarehouse));
+        }
+
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
+        private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
+        private void RaiseWarehouseProps() => RaiseAll(nameof(NewWarehouseName), nameof(NewWarehouseAddress), nameof(NewWarehouseIsMain));
         private void SetStatus(string message, bool isSuccess)
         {
             Status = message;
