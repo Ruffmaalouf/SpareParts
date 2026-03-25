@@ -1,6 +1,7 @@
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
 using SpareParts.Desktop.Wpf.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
             var parts = await _crudApi.GetAllAsync<PartDto>("api/parts");
             var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
+            var warehouses = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
             await rolesVm.LoadAsync();
 
             return new ManagementLoadResult
@@ -38,7 +40,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 CarBrands = carBrands,
                 Categories = categories,
                 Parts = parts,
-                CarModels = carModels
+                CarModels = carModels,
+                Warehouses = warehouses
             };
         }
 
