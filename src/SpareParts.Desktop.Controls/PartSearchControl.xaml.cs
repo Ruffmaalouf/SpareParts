@@ -138,8 +138,6 @@ namespace SpareParts.Desktop.Wpf
             HidePlaceholder();
             InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
-            if (_allParts.Count > 0) ApplyFilter();
-            else _ = LoadAndFilterAsync();
         }
 
         private void SearchBox_LostFocus(object sender, RoutedEventArgs e)

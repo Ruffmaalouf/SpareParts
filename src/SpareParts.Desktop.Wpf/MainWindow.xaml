@@ -478,8 +478,8 @@
                             <!-- ── Header ───────────────────────────────────────────────── -->
                             <DockPanel Grid.Row="0" Margin="20,20,20,10">
                                 <StackPanel DockPanel.Dock="Left">
-                                    <TextBlock Text="New Sale" FontSize="26" FontWeight="Bold"/>
-                                    <TextBlock Text="Enter invoice details below" FontSize="14"
+                                    <TextBlock Text="{Binding SaleModeTitle}" FontSize="26" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SaleModeSubtitle}" FontSize="14"
                                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
                                 </StackPanel>
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -674,12 +674,15 @@
                                 Height="52"
                                 Margin="0,17,0,0"
                                 VerticalAlignment="Top">
-                                            <!-- Slightly different shade so the two buttons are visually distinct -->
-                                            <Button.Resources>
+                                            <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-                                                    <Setter Property="Opacity" Value="0.92"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsModifyMode}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
                                                 </Style>
-                                            </Button.Resources>
+                                            </Button.Style>
                                         </Button>
 
                                     </Grid>

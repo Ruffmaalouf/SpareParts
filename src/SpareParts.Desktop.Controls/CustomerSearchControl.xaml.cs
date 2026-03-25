@@ -114,11 +114,6 @@ namespace SpareParts.Desktop.Wpf
             HidePlaceholder();
             InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
-
-            if (_allCustomers.Count > 0)
-                ApplyFilter();
-            else
-                _ = LoadAndFilterAsync();
         }
 
         private void SearchBox_KeyUp(object sender, KeyEventArgs e)

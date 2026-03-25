@@ -103,7 +103,6 @@ namespace SpareParts.Desktop.Wpf
             HidePlaceholder();
             InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
-            _ = OpenPopupAsync();
         }
 
         private void SearchBox_KeyUp(object sender, KeyEventArgs e)
