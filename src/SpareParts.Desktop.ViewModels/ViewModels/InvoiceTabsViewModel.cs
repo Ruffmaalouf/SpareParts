@@ -83,7 +83,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 if (_invoiceSearchText == value) return;
                 _invoiceSearchText = value;
                 OnPropertyChanged(nameof(InvoiceSearchText));
-                _ = RefreshInvoiceSearchAsync();
+                RefreshInvoiceSearch();
             }
         }
 
@@ -175,7 +175,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 IsInvoiceSearchOpen = !IsInvoiceSearchOpen;
                 if (IsInvoiceSearchOpen)
                 {
-                    _ = RefreshInvoiceSearchAsync();
+                    RefreshInvoiceSearch();
                 }
             });
 
@@ -186,6 +186,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AddTab();
             RefreshInvoiceSearch();
             _ = LoadBrandsAsync();
+        }
+
+
+        private void RefreshInvoiceSearch()
+        {
+            _ = RefreshInvoiceSearchAsync();
         }
 
         private async Task RefreshInvoiceSearchAsync()
