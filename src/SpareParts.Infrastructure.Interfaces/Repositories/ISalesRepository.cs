@@ -1,4 +1,5 @@
 using SpareParts.Domain.Sales;
+using System.Collections.Generic;
 
 namespace SpareParts.Infrastructure.Interfaces.Repositories
 {
@@ -7,5 +8,7 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
         int InsertInvoice(SalesInvoice invoice);
         void InsertItems(int invoiceId, IList<SalesInvoiceItem> items);
         bool InvoiceNumberExists(string invoiceNumber);
+        List<SalesInvoiceLookupDto> SearchInvoices(string? query);
+        SalesInvoiceDetailsDto? GetInvoiceById(int invoiceId);
     }
 }

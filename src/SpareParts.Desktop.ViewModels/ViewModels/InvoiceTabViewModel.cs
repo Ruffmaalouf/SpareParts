@@ -3,6 +3,7 @@ using SpareParts.Desktop.Wpf;
 using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,8 +15,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
     {
         private static int _counter;
 
-        public int    TabNumber { get; } = ++_counter;
-        public string Header    => $"Invoice #{TabNumber}";
+        public int TabNumber { get; } = ++_counter;
+
+        private string? _invoiceNumber;
+        public string Header => string.IsNullOrWhiteSpace(_invoiceNumber) ? $"Invoice #{TabNumber}" : $"Invoice {_invoiceNumber}";
+
+        public int? InvoiceId { get; private set; }
 
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
@@ -33,6 +38,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             get => _warehouseId;
             set { _warehouseId = value; OnPropertyChanged(nameof(WarehouseId)); }
+        }
+
+        private DateTime _invoiceDate = DateTime.Now;
+        public DateTime InvoiceDate
+        {
+            get => _invoiceDate;
+            set { _invoiceDate = value; OnPropertyChanged(nameof(InvoiceDate)); }
         }
 
         private decimal _paidAmount;
@@ -82,24 +94,73 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _newPartDescription = value; OnPropertyChanged(nameof(NewPartDescription)); }
         }
 
+        private bool _isLoadedFromSearch;
+        public bool IsLoadedFromSearch
+        {
+            get => _isLoadedFromSearch;
+            private set { _isLoadedFromSearch = value; OnPropertyChanged(nameof(IsLoadedFromSearch)); }
+        }
+
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly ISalesApiClient _salesApi;
         private bool _isSubmitting;
+        private InvoiceSnapshot? _snapshot;
 
-        public ICommand AddItemCommand    { get; }
-        public ICommand SubmitSaleCommand { get; }
+        public ICommand AddItemCommand      { get; }
+        public ICommand SubmitSaleCommand   { get; }
+        public ICommand EditInvoiceCommand  { get; }
+        public ICommand SaveInvoiceCommand  { get; }
+        public ICommand ResetInvoiceCommand { get; }
 
         public InvoiceTabViewModel(ISalesApiClient? salesApi = null)
         {
             _salesApi = salesApi ?? new SalesApiClient();
-            AddItemCommand    = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand = new RelayCommand(_ => _ = SubmitSaleAsync());
+            AddItemCommand      = new RelayCommand(_ => AddItem());
+            SubmitSaleCommand   = new RelayCommand(_ => _ = SubmitSaleAsync());
+            EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());
+            SaveInvoiceCommand  = new RelayCommand(_ => SaveEdits());
+            ResetInvoiceCommand = new RelayCommand(_ => ResetEdits());
 
             Items.CollectionChanged += (_, _) =>
             {
                 OnPropertyChanged(nameof(TotalAmount));
                 OnPropertyChanged(nameof(RemainingAmount));
             };
+        }
+
+        public void MarkOpenedFromSearch()
+        {
+            IsLoadedFromSearch = true;
+            if (_snapshot == null)
+            {
+                _snapshot = CreateSnapshot();
+            }
+        }
+
+        public void LoadFromDatabase(SalesInvoiceDetailsDto invoice)
+        {
+            InvoiceId = invoice.InvoiceId;
+            _invoiceNumber = invoice.InvoiceNumber;
+            OnPropertyChanged(nameof(Header));
+
+            CustomerId = invoice.CustomerId;
+            WarehouseId = invoice.WarehouseId;
+            InvoiceDate = invoice.InvoiceDate;
+            PaidAmount = invoice.PaidAmount;
+
+            Items.Clear();
+            foreach (var line in invoice.Items)
+            {
+                Items.Add(new PosItemViewModel
+                {
+                    PartId = line.PartId,
+                    Description = line.Description,
+                    Quantity = line.Quantity,
+                    UnitPrice = line.UnitPrice
+                });
+            }
+
+            MarkOpenedFromSearch();
         }
 
         // ── Add line ──────────────────────────────────────────────────────────
@@ -128,20 +189,83 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             Items.Add(new PosItemViewModel
             {
                 PartId      = NewPartId.Value,
-                Description = NewPartDescription,   // ← FIX: description now stored
+                Description = NewPartDescription,
                 Quantity    = NewQuantity,
                 UnitPrice   = NewUnitPrice
             });
 
-            // Reset entry fields after adding
-            NewPartId           = null;
-            NewQuantity         = 1;
-            NewUnitPrice        = 0;
-            NewPartDescription  = string.Empty;
+            NewPartId          = null;
+            NewQuantity        = 1;
+            NewUnitPrice       = 0;
+            NewPartDescription = string.Empty;
 
             OnPropertyChanged(nameof(TotalAmount));
             OnPropertyChanged(nameof(RemainingAmount));
         }
+
+        private void BeginEditMode()
+        {
+            if (!IsLoadedFromSearch)
+            {
+                return;
+            }
+
+            _snapshot ??= CreateSnapshot();
+            AppNotificationCenter.Instance.Publish($"✎ {Header} is now editable.", true);
+        }
+
+        private void SaveEdits()
+        {
+            if (!IsLoadedFromSearch)
+            {
+                return;
+            }
+
+            _snapshot = CreateSnapshot();
+            AppNotificationCenter.Instance.Publish($"✓ Changes saved for {Header}.", true);
+        }
+
+        private void ResetEdits()
+        {
+            if (!IsLoadedFromSearch || _snapshot == null)
+            {
+                return;
+            }
+
+            CustomerId = _snapshot.CustomerId;
+            WarehouseId = _snapshot.WarehouseId;
+            PaidAmount = _snapshot.PaidAmount;
+            InvoiceDate = _snapshot.InvoiceDate;
+
+            Items.Clear();
+            foreach (var line in _snapshot.Items)
+            {
+                Items.Add(new PosItemViewModel
+                {
+                    PartId = line.PartId,
+                    Description = line.Description,
+                    Quantity = line.Quantity,
+                    UnitPrice = line.UnitPrice
+                });
+            }
+
+            AppNotificationCenter.Instance.Publish($"↺ {Header} restored to last saved values.", true);
+        }
+
+        private InvoiceSnapshot CreateSnapshot() => new()
+        {
+            CustomerId = CustomerId,
+            WarehouseId = WarehouseId,
+            PaidAmount = PaidAmount,
+            InvoiceDate = InvoiceDate,
+            Items = Items.Select(i => new InvoiceSnapshotLine
+            {
+                PartId = i.PartId,
+                Description = i.Description,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice
+            }).ToList()
+        };
 
         // ── Submit ────────────────────────────────────────────────────────────
 
@@ -170,7 +294,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 _isSubmitting = true;
                 var req = new CreateSaleRequest
                 {
-                    InvoiceDate   = DateTime.Now,
+                    InvoiceDate   = InvoiceDate,
                     CustomerId    = CustomerId,
                     WarehouseId   = WarehouseId.Value,
                     PaymentMethod = "Cash",
@@ -216,5 +340,22 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+
+        private sealed class InvoiceSnapshot
+        {
+            public int? CustomerId { get; init; }
+            public int? WarehouseId { get; init; }
+            public decimal PaidAmount { get; init; }
+            public DateTime InvoiceDate { get; init; }
+            public List<InvoiceSnapshotLine> Items { get; init; } = new();
+        }
+
+        private sealed class InvoiceSnapshotLine
+        {
+            public int PartId { get; init; }
+            public string Description { get; init; } = string.Empty;
+            public int Quantity { get; init; }
+            public decimal UnitPrice { get; init; }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf;
+using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -17,7 +18,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<CarPartModel>        AvailableParts { get; } = new();
         public ObservableCollection<StatusMessage> Notifications => AppNotificationCenter.Instance.Messages;
 
-        // ── Management panel ──────────────────────────────────────────────────
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
         private readonly ISalesApiClient _salesApi;
@@ -46,7 +46,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         public string FeedToggleText => IsFeedVisible ? "Hide" : "Show";
 
-        // ── Selected items ────────────────────────────────────────────────────
         private CarBrandViewModel? _selectedBrand;
         public CarBrandViewModel? SelectedBrand
         {
@@ -61,12 +60,40 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _selectedCar = value; OnPropertyChanged(nameof(SelectedCar)); }
         }
 
-        // ── Active screen ─────────────────────────────────────────────────────
         private PosViewModel.AppScreen _activeScreen = PosViewModel.AppScreen.HomePage;
         public PosViewModel.AppScreen ActiveScreen
         {
             get => _activeScreen;
             set { if (_activeScreen != value) { _activeScreen = value; OnPropertyChanged(nameof(ActiveScreen)); } }
+        }
+
+        private bool _isInvoiceSearchOpen;
+        public bool IsInvoiceSearchOpen
+        {
+            get => _isInvoiceSearchOpen;
+            set { _isInvoiceSearchOpen = value; OnPropertyChanged(nameof(IsInvoiceSearchOpen)); }
+        }
+
+        private string _invoiceSearchText = string.Empty;
+        public string InvoiceSearchText
+        {
+            get => _invoiceSearchText;
+            set
+            {
+                if (_invoiceSearchText == value) return;
+                _invoiceSearchText = value;
+                OnPropertyChanged(nameof(InvoiceSearchText));
+                _ = RefreshInvoiceSearchAsync();
+            }
+        }
+
+        public ObservableCollection<SalesInvoiceLookupDto> InvoiceSearchResults { get; } = new();
+
+        private bool _isLoadingInvoiceSearch;
+        public bool IsLoadingInvoiceSearch
+        {
+            get => _isLoadingInvoiceSearch;
+            set { _isLoadingInvoiceSearch = value; OnPropertyChanged(nameof(IsLoadingInvoiceSearch)); }
         }
 
         private bool _isLoadingBrands;
@@ -76,11 +103,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _isLoadingBrands = value; OnPropertyChanged(nameof(IsLoadingBrands)); }
         }
 
-        // ── Themes ────────────────────────────────────────────────────────────
         public ObservableCollection<ThemeOption> Themes { get; } = new();
         public ICommand SelectThemeCommand { get; private set; } = null!;
 
-        // ── Invoice tabs ──────────────────────────────────────────────────────
         public ObservableCollection<InvoiceTabViewModel> Tabs { get; } = new();
 
         private InvoiceTabViewModel? _selectedTab;
@@ -90,19 +115,18 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _selectedTab = value; OnPropertyChanged(nameof(SelectedTab)); }
         }
 
-        // ── Commands ──────────────────────────────────────────────────────────
-        public ICommand AddTabCommand           { get; }
-        public ICommand CloseTabCommand         { get; }
-        public ICommand SelectBrandCommand      { get; }
-        public ICommand SelectCarCommand        { get; }
-        public ICommand SelectPartCommand       { get; }
-        public ICommand GoToPosCommand          { get; }
-        public ICommand GoToCarSelectionCommand { get; }
-        public ICommand GoToHomeCommand         { get; }
-        public ICommand OpenManagementCommand   { get; }
-        public ICommand ToggleFeedCommand       { get; }
+        public ICommand AddTabCommand            { get; }
+        public ICommand CloseTabCommand          { get; }
+        public ICommand SelectBrandCommand       { get; }
+        public ICommand SelectCarCommand         { get; }
+        public ICommand SelectPartCommand        { get; }
+        public ICommand GoToPosCommand           { get; }
+        public ICommand GoToCarSelectionCommand  { get; }
+        public ICommand GoToHomeCommand          { get; }
+        public ICommand OpenManagementCommand    { get; }
+        public ICommand OpenInvoiceSearchCommand { get; }
+        public ICommand ToggleFeedCommand        { get; }
 
-        // ── Constructor ───────────────────────────────────────────────────────
         public InvoiceTabsViewModel(ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null, ISalesApiClient? salesApi = null, ICrudApiClient? crudApi = null)
         {
             _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
@@ -110,7 +134,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _salesApi = salesApi ?? new SalesApiClient();
             ManagementVm = new ManagementViewModel(crudApi ?? new CrudApiClient(), _carCatalogApi);
 
-            // Themes
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });
             Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow,      Name = "Neon Glow",     SubTitle = "Cyberpunk · Electric Cyan",  AccentHex = "#00E5FF" });
@@ -140,25 +163,103 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 AvailableCars.Clear();
             });
 
-            // Toggle immediately (sync) then kick off load as fire-and-forget.
-            // Using plain RelayCommand keeps CanExecute always true so the button
-            // never gets disabled while data loads.
             OpenManagementCommand = new RelayCommand(_ =>
             {
                 IsManagementOpen = !IsManagementOpen;
                 if (IsManagementOpen)
                     _ = ManagementVm.LoadAllAsync();
             });
-            ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
 
-            AddTabCommand   = new RelayCommand(_ => AddTab());
+            OpenInvoiceSearchCommand = new RelayCommand(_ =>
+            {
+                IsInvoiceSearchOpen = !IsInvoiceSearchOpen;
+                if (IsInvoiceSearchOpen)
+                {
+                    _ = RefreshInvoiceSearchAsync();
+                }
+            });
+
+            ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
+            AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
             AddTab();
             _ = LoadBrandsAsync();
         }
 
-        // ── Data loading ──────────────────────────────────────────────────────
+        private async Task RefreshInvoiceSearchAsync()
+        {
+            try
+            {
+                IsLoadingInvoiceSearch = true;
+                var results = await _salesApi.SearchInvoicesAsync(InvoiceSearchText ?? string.Empty);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    InvoiceSearchResults.Clear();
+                    foreach (var invoice in results)
+                    {
+                        InvoiceSearchResults.Add(invoice);
+                    }
+                });
+            }
+            catch (ApiClientException ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while searching invoices.", false);
+            }
+            finally
+            {
+                IsLoadingInvoiceSearch = false;
+            }
+        }
+
+        public async Task OpenInvoiceFromSearchAsync(SalesInvoiceLookupDto? lookup)
+        {
+            if (lookup == null)
+            {
+                return;
+            }
+
+            var existing = Tabs.FirstOrDefault(t => t.InvoiceId == lookup.InvoiceId);
+            if (existing != null)
+            {
+                SelectedTab = existing;
+                ActiveScreen = PosViewModel.AppScreen.Pos;
+                IsInvoiceSearchOpen = false;
+                return;
+            }
+
+            try
+            {
+                var invoice = await _salesApi.GetInvoiceByIdAsync(lookup.InvoiceId);
+                if (invoice == null)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ Selected invoice was not found.", false);
+                    return;
+                }
+
+                var tab = new InvoiceTabViewModel(_salesApi);
+                tab.LoadFromDatabase(invoice);
+                Tabs.Add(tab);
+                SelectedTab = tab;
+                ActiveScreen = PosViewModel.AppScreen.Pos;
+                IsInvoiceSearchOpen = false;
+                AppNotificationCenter.Instance.Publish($"✓ Loaded invoice {invoice.InvoiceNumber} from database.", true);
+            }
+            catch (ApiClientException ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while opening invoice.", false);
+            }
+        }
+
         private async Task LoadBrandsAsync()
         {
             IsLoadingBrands = true;
@@ -210,7 +311,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             Application.Current.Dispatcher.Invoke(() => vm.Logo = bmp);
         }
 
-        // ── Brand selected ────────────────────────────────────────────────────
         private void SelectBrand(object? parameter)
         {
             if (parameter is not CarBrandViewModel brand) return;
@@ -262,7 +362,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             Application.Current.Dispatcher.Invoke(() => vm.Image = bmp);
         }
 
-        // ── Car selected ──────────────────────────────────────────────────────
         private void SelectCar(object? parameter)
         {
             if (parameter is not CarModelViewModel car) return;
@@ -300,7 +399,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        // ── Part selected ─────────────────────────────────────────────────────
         private void SelectPart(object? parameter)
         {
             if (parameter is not CarPartModel part || SelectedTab == null) return;
@@ -314,7 +412,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ActiveScreen = PosViewModel.AppScreen.Pos;
         }
 
-        // ── Tab management ────────────────────────────────────────────────────
         private void AddTab()
         {
             var tab = new InvoiceTabViewModel(_salesApi);

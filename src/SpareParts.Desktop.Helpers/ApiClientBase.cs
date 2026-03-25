@@ -54,6 +54,8 @@ namespace SpareParts.Desktop.Wpf
         public abstract Task UploadCarModelImageAsync(int modelId, string filePath);
         public abstract Task<List<PartDto>> GetPartsAsync();
         public abstract Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req);
+        public abstract Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query);
+        public abstract Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId);
         public abstract Task<List<T>> GetAllAsync<T>(string url);
         public abstract Task PostAsync(string url, object payload);
         public abstract Task PutAsync(string url, object payload);
