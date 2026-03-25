@@ -525,7 +525,8 @@
                             <!-- ── Form card ─────────────────────────────────────────────── -->
                             <Border Grid.Row="1"
                     Background="{DynamicResource CardBackgroundBrush}"
-                    CornerRadius="8" Padding="20" Margin="20,0,20,15">
+                    CornerRadius="8" Padding="20" Margin="20,0,20,15"
+                    IsEnabled="{Binding IsInvoiceContentEnabled}">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="20" ShadowDepth="5"/>
                                 </Border.Effect>
@@ -692,7 +693,8 @@
                             <!-- ── Items DataGrid ────────────────────────────────────────── -->
                             <Border Grid.Row="2" CornerRadius="8"
                     Background="{DynamicResource CardBackgroundBrush}"
-                    Margin="20,0,20,0">
+                    Margin="20,0,20,0"
+                    IsEnabled="{Binding IsInvoiceContentEnabled}">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" Opacity="0.10" BlurRadius="15" ShadowDepth="3"/>
                                 </Border.Effect>
@@ -724,7 +726,8 @@
                             </Border>
 
                             <!-- ── Footer totals ─────────────────────────────────────────── -->
-                            <Border Grid.Row="3" Margin="20,10,20,20" Padding="16 12">
+                            <Border Grid.Row="3" Margin="20,10,20,20" Padding="16 12"
+                                    IsEnabled="{Binding IsInvoiceContentEnabled}">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Total:" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>

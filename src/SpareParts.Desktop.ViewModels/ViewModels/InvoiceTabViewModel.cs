@@ -110,6 +110,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(IsModifyMode));
                 OnPropertyChanged(nameof(SaleModeTitle));
                 OnPropertyChanged(nameof(SaleModeSubtitle));
+                OnPropertyChanged(nameof(IsInvoiceContentEnabled));
             }
         }
 
@@ -129,12 +130,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(IsEditEnabled));
                 OnPropertyChanged(nameof(IsSaveEnabled));
                 OnPropertyChanged(nameof(IsResetEnabled));
+                OnPropertyChanged(nameof(IsInvoiceContentEnabled));
             }
         }
 
         public bool IsEditEnabled => IsLoadedFromSearch && !IsInEditMode;
         public bool IsSaveEnabled => IsLoadedFromSearch && IsInEditMode;
         public bool IsResetEnabled => IsLoadedFromSearch && IsInEditMode;
+        public bool IsInvoiceContentEnabled => !IsLoadedFromSearch || IsInEditMode;
         public bool IsModifyMode => IsLoadedFromSearch;
         public string SaleModeTitle => IsModifyMode ? "Modify Sale" : "New Sale";
         public string SaleModeSubtitle => IsModifyMode
