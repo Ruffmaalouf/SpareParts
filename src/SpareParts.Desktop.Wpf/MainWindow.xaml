@@ -27,7 +27,7 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
             <Setter Property="Template">
@@ -493,29 +493,32 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <Button Content="&#xE70F;"
-                                            ToolTip="Edit Invoice"
+                                    <Button ToolTip="Edit Invoice"
                                             Command="{Binding EditInvoiceCommand}"
                                             IsEnabled="{Binding IsEditEnabled}"
                                             Style="{StaticResource InvoiceIconButtonStyle}"
                                             Width="52"
                                             Height="52"
-                                            Margin="0 0 8 0"/>
-                                    <Button Content="&#xE74E;"
-                                            ToolTip="Save Invoice"
+                                            Margin="0 0 8 0">
+                                        <TextBlock Text="✎" FontSize="24" FontWeight="SemiBold"/>
+                                    </Button>
+                                    <Button ToolTip="Save Invoice"
                                             Command="{Binding SaveInvoiceCommand}"
                                             IsEnabled="{Binding IsSaveEnabled}"
                                             Style="{StaticResource InvoiceIconButtonStyle}"
                                             Width="52"
                                             Height="52"
-                                            Margin="0 0 8 0"/>
-                                    <Button Content="&#xE72C;"
-                                            ToolTip="Reset Invoice"
+                                            Margin="0 0 8 0">
+                                        <TextBlock Text="💾" FontSize="20"/>
+                                    </Button>
+                                    <Button ToolTip="Reset Invoice"
                                             Command="{Binding ResetInvoiceCommand}"
                                             IsEnabled="{Binding IsResetEnabled}"
                                             Style="{StaticResource InvoiceIconButtonStyle}"
                                             Width="52"
-                                            Height="52"/>
+                                            Height="52">
+                                        <TextBlock Text="↺" FontSize="24" FontWeight="SemiBold"/>
+                                    </Button>
                                 </StackPanel>
                             </DockPanel>
 
