@@ -154,7 +154,7 @@
                              Background="Transparent" BorderThickness="0"
                              ItemsSource="{Binding FilteredWarehouses, ElementName=Root}"
                              ItemContainerStyle="{StaticResource WhRowStyle}"
-                             MouseDoubleClick="ResultItem_DoubleClick"
+                             PreviewMouseLeftButtonUp="ResultItem_Click"
                              KeyDown="ResultsList_KeyDown"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>

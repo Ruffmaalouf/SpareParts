@@ -129,7 +129,7 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private void ResultItem_DoubleClick(object sender, MouseButtonEventArgs e)
+        private void ResultItem_Click(object sender, MouseButtonEventArgs e)
         {
             _suppressClose = true;
             if (ResultsList.SelectedItem is WarehouseDto w) Select(w);
@@ -198,7 +198,7 @@ namespace SpareParts.Desktop.Wpf
             InputPill.BorderThickness = new Thickness(1);
             WarehouseSearchText       = string.Empty;
             SearchBox.Text            = string.Empty;
-            ShowPlaceholder();
+            HidePlaceholder();
             ClosePopup();
         }
 
