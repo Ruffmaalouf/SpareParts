@@ -70,7 +70,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void Calendar_SelectedDatesChanged(object? sender, SelectionChangedEventArgs e)
         {
-            if (sender is Calendar calendar)
+            if (sender is System.Windows.Controls.Calendar calendar)
             {
                 SelectedDate = calendar.SelectedDate;
             }
@@ -95,7 +95,7 @@ namespace SpareParts.Desktop.Wpf
         private void UpdateSelectedDateDisplayText()
         {
             SelectedDateDisplayText = SelectedDate.HasValue
-                ? SelectedDate.Value.ToString("dddd, dd MMM yyyy", CultureInfo.CurrentCulture)
+                ? SelectedDate.Value.ToString("dddd, dd MMM yyyy", System.Globalization.CultureInfo.CurrentCulture)
                 : "Select date";
         }
     }
