@@ -1,0 +1,6 @@
+D:\Ralph\SpareParts\src\SpareParts.Infrastructure.Interfaces\obj\Debug\net8.0\SpareParts.Infrastructure.Interfaces.csproj.AssemblyReference.cache
+D:\Ralph\SpareParts\src\SpareParts.Infrastructure.Interfaces\obj\Debug\net8.0\SpareParts.Infrastructure.Interfaces.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\src\SpareParts.Infrastructure.Interfaces\obj\Debug\net8.0\SpareParts.Infrastructure.Interfaces.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\src\SpareParts.Infrastructure.Interfaces\obj\Debug\net8.0\SpareParts.Infrastructure.Interfaces.AssemblyInfo.cs
+D:\Ralph\SpareParts\src\SpareParts.Infrastructure.Interfaces\obj\Debug\net8.0\SpareParts.Infrastructure.Interfaces.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\src\SpareParts.Infrastructure.Interfaces\obj\Debug\net8.0\SpareParts.Infrastructure.Interfaces.sourcelink.json

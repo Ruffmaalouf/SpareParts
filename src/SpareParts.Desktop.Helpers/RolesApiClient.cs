@@ -1,5 +1,7 @@
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Auth;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {

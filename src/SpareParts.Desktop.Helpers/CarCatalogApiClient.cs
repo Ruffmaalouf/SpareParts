@@ -1,5 +1,7 @@
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Cars;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf

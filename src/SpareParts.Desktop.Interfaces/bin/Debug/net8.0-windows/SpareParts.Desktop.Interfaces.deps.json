@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "SpareParts.Desktop.Interfaces/1.0.0": {
+        "dependencies": {
+          "SpareParts.Domain": "1.0.0"
+        },
+        "runtime": {
+          "SpareParts.Desktop.Interfaces.dll": {}
+        }
+      },
+      "SpareParts.Domain/1.0.0": {
+        "runtime": {
+          "SpareParts.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SpareParts.Desktop.Interfaces/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SpareParts.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

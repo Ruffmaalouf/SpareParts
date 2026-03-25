@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Sales;
+using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {

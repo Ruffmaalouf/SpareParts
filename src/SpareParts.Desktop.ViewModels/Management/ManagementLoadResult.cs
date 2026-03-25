@@ -1,6 +1,7 @@
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
+using System.Collections.Generic;
 
 namespace SpareParts.Desktop.Wpf.Management
 {

@@ -1,3 +1,5 @@
+using System;
+
 namespace SpareParts.Desktop.Wpf
 {
     public class ApiClientException : Exception

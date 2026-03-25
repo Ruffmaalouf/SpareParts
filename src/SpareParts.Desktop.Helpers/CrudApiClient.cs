@@ -1,4 +1,6 @@
 using SpareParts.Desktop.Wpf.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
