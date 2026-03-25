@@ -1,5 +1,7 @@
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf;
+using SpareParts.Domain.Auth;
 using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
@@ -21,8 +23,23 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
         private readonly ISalesApiClient _salesApi;
+        private readonly IRoleApiClient _rolesApi;
 
         public ManagementViewModel ManagementVm { get; }
+
+        private bool _canViewInvoiceSearch;
+        public bool CanViewInvoiceSearch
+        {
+            get => _canViewInvoiceSearch;
+            private set { _canViewInvoiceSearch = value; OnPropertyChanged(nameof(CanViewInvoiceSearch)); }
+        }
+
+        private bool _canViewManagementScreen;
+        public bool CanViewManagementScreen
+        {
+            get => _canViewManagementScreen;
+            private set { _canViewManagementScreen = value; OnPropertyChanged(nameof(CanViewManagementScreen)); }
+        }
 
         private bool _isManagementOpen;
         public bool IsManagementOpen
@@ -132,6 +149,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
             _partsApi = partsApi ?? new PartsApiClient();
             _salesApi = salesApi ?? new SalesApiClient();
+            _rolesApi = new RolesApiClient();
             ManagementVm = new ManagementViewModel(crudApi ?? new CrudApiClient(), _carCatalogApi);
 
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
@@ -165,6 +183,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             OpenManagementCommand = new RelayCommand(_ =>
             {
+                if (!CanViewManagementScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view the management screen.", false);
+                    return;
+                }
+
                 IsManagementOpen = !IsManagementOpen;
                 if (IsManagementOpen)
                     _ = ManagementVm.LoadAllAsync();
@@ -172,6 +196,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             OpenInvoiceSearchCommand = new RelayCommand(_ =>
             {
+                if (!CanViewInvoiceSearch)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view invoice search.", false);
+                    return;
+                }
+
                 IsInvoiceSearchOpen = !IsInvoiceSearchOpen;
                 if (IsInvoiceSearchOpen)
                 {
@@ -186,6 +216,39 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AddTab();
             RefreshInvoiceSearch();
             _ = LoadBrandsAsync();
+            _ = LoadRolePermissionsAsync();
+        }
+
+        private async Task LoadRolePermissionsAsync()
+        {
+            try
+            {
+                var roleName = SessionContext.CurrentUser?.Role;
+                if (string.IsNullOrWhiteSpace(roleName))
+                {
+                    ApplyPermissions(new RoleScreenPermissionsDto());
+                    return;
+                }
+
+                var permissions = await _rolesApi.GetRolePermissionsByNameAsync(roleName);
+                ApplyPermissions(permissions);
+            }
+            catch (Exception)
+            {
+                ApplyPermissions(new RoleScreenPermissionsDto());
+                AppNotificationCenter.Instance.Publish("✗ Could not load role permissions. Access is restricted.", false);
+            }
+        }
+
+        private void ApplyPermissions(RoleScreenPermissionsDto permissions)
+        {
+            CanViewInvoiceSearch = permissions.CanViewInvoiceSearch;
+            CanViewManagementScreen = permissions.CanViewManagementScreen;
+            ManagementVm.SetSupplierPermissions(
+                permissions.CanViewSupplierTab,
+                permissions.CanEditSupplier,
+                permissions.CanModifySupplier,
+                permissions.CanDeleteSupplier);
         }
 
 

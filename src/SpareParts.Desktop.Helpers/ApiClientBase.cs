@@ -61,6 +61,9 @@ namespace SpareParts.Desktop.Wpf
         public abstract Task PutAsync(string url, object payload);
         public abstract Task DeleteAsync(string url);
         public abstract Task<List<RoleDto>> GetRolesAsync();
+        public abstract Task<RoleScreenPermissionsDto> GetRolePermissionsAsync(int roleId);
+        public abstract Task<RoleScreenPermissionsDto> GetRolePermissionsByNameAsync(string roleName);
+        public abstract Task UpdateRolePermissionsAsync(int roleId, UpdateRoleScreenPermissionsRequest req);
         public abstract Task<RoleDto> CreateRoleAsync(CreateRoleRequest req);
         public abstract Task UpdateRoleAsync(int id, UpdateRoleRequest req);
         public abstract Task DeleteRoleAsync(int id);

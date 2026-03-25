@@ -167,7 +167,8 @@
                 </TabItem>
 
                 <!-- TAB 2 — SUPPLIERS -->
-                <TabItem Header="🏭  Suppliers">
+                <TabItem Header="🏭  Suppliers"
+                         Visibility="{Binding CanViewSupplierTab, Converter={StaticResource BoolToVis}}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -192,9 +193,11 @@
                                     <TextBox Text="{Binding NewSupplierBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
                                     <Button Content="＋  Save Supplier" Command="{Binding SaveSupplierCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
+                                            IsEnabled="{Binding CanSaveSupplier}"
                                             HorizontalAlignment="Stretch" Height="42"/>
                                     <Button Content="🗑  Delete Selected" Command="{Binding DeleteSupplierCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
+                                            IsEnabled="{Binding CanDeleteSupplier}"
                                             HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
                             </ScrollViewer>
