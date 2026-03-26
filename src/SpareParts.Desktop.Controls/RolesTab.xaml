@@ -290,14 +290,24 @@
 
                     <TextBlock Text="SCREEN PERMISSIONS" Style="{StaticResource FieldLabel}" Margin="0 18 0 8"/>
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12">
-                        <StackPanel>
-                            <CheckBox Content="Can View Invoice Search" IsChecked="{Binding CanViewInvoiceSearch}" Margin="0 0 0 6"/>
-                            <CheckBox Content="Can View Management Screen" IsChecked="{Binding CanViewManagementScreen}" Margin="0 0 0 6"/>
-                            <CheckBox Content="Can View Supplier Tab" IsChecked="{Binding CanViewSupplierTab}" Margin="0 0 0 6"/>
-                            <CheckBox Content="Can Edit Supplier (Create)" IsChecked="{Binding CanEditSupplier}" Margin="0 0 0 6"/>
-                            <CheckBox Content="Can Modify Supplier (Update)" IsChecked="{Binding CanModifySupplier}" Margin="0 0 0 6"/>
-                            <CheckBox Content="Can Delete Supplier" IsChecked="{Binding CanDeleteSupplier}"/>
-                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding MenuAccessItems}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="None"
+                                  BorderThickness="0"
+                                  IsReadOnly="False"
+                                  RowHeight="34"
+                                  ColumnHeaderHeight="30">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Menu" Binding="{Binding MenuName}" Width="*"
+                                                    IsReadOnly="True"/>
+                                <DataGridCheckBoxColumn Header="View" Binding="{Binding CanView, Mode=TwoWay}" Width="60"/>
+                                <DataGridCheckBoxColumn Header="Edit" Binding="{Binding CanEdit, Mode=TwoWay}" Width="60"/>
+                                <DataGridCheckBoxColumn Header="Modify" Binding="{Binding CanModify, Mode=TwoWay}" Width="70"/>
+                                <DataGridCheckBoxColumn Header="Delete" Binding="{Binding CanDelete, Mode=TwoWay}" Width="70"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </Border>
 
                     <!-- Buttons -->

@@ -49,6 +49,16 @@ namespace SpareParts.Desktop.Wpf
         public bool CanDeleteSupplier { get => _canDeleteSupplier; private set { _canDeleteSupplier = value; OnPropertyChanged(nameof(CanDeleteSupplier)); } }
         public bool CanSaveSupplier => CanViewSupplierTab && (SelectedSupplier == null ? CanEditSupplier : CanModifySupplier);
 
+        private bool _canViewSupplierTab;
+        public bool CanViewSupplierTab { get => _canViewSupplierTab; private set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
+        private bool _canEditSupplier;
+        public bool CanEditSupplier { get => _canEditSupplier; private set { _canEditSupplier = value; OnPropertyChanged(nameof(CanEditSupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
+        private bool _canModifySupplier;
+        public bool CanModifySupplier { get => _canModifySupplier; private set { _canModifySupplier = value; OnPropertyChanged(nameof(CanModifySupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
+        private bool _canDeleteSupplier;
+        public bool CanDeleteSupplier { get => _canDeleteSupplier; private set { _canDeleteSupplier = value; OnPropertyChanged(nameof(CanDeleteSupplier)); } }
+        public bool CanSaveSupplier => CanViewSupplierTab && (SelectedSupplier == null ? CanEditSupplier : CanModifySupplier);
+
         public CustomerDto? SelectedCustomer { get => CustomersFeature.SelectedCustomer; set { CustomersFeature.SelectedCustomer = value; OnPropertyChanged(nameof(SelectedCustomer)); if (value != null) { CustomersFeature.PopulateForm(value); RaiseCustomerProps(); } } }
         public SupplierDto? SelectedSupplier
         {
@@ -156,6 +166,14 @@ namespace SpareParts.Desktop.Wpf
             DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
             SaveWarehouseCommand = new RelayCommand(_ => _ = SaveWarehouseAsync());
             DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
+        }
+
+        public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
+        {
+            CanViewSupplierTab = canViewSupplierTab;
+            CanEditSupplier = canEditSupplier;
+            CanModifySupplier = canModifySupplier;
+            CanDeleteSupplier = canDeleteSupplier;
         }
 
         public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)

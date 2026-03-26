@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;
+using System.Linq;
 
 namespace SpareParts.Api.Controllers
 {
@@ -19,7 +20,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<RoleDto>> GetAll()
         {
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
             var rows = conn.Query<RoleDto>(
                 @"SELECT Id, Name, Description, BadgeColor, BadgeTextColor, IsSystem, IsActive
                   FROM   Roles
@@ -33,7 +34,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<RoleDto> GetById(int id)
         {
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
             var row = conn.QueryFirstOrDefault<RoleDto>(
                 "SELECT Id, Name, Description, BadgeColor, BadgeTextColor, IsSystem, IsActive FROM Roles WHERE Id = @Id",
                 new { Id = id });
@@ -49,7 +50,7 @@ namespace SpareParts.Api.Controllers
                 return BadRequest("Role name is required.");
 
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
 
             // Check uniqueness
             var exists = conn.ExecuteScalar<int>(
@@ -64,10 +65,10 @@ namespace SpareParts.Api.Controllers
                 new { req.Name, req.Description, req.BadgeColor, req.BadgeTextColor });
 
             conn.Execute(
-                @"INSERT INTO RoleScreenPermissions
-                    (RoleId, CanViewInvoiceSearch, CanViewManagementScreen, CanViewSupplierTab, CanEditSupplier, CanModifySupplier, CanDeleteSupplier)
-                  VALUES
-                    (@RoleId, 0, 0, 0, 0, 0, 0)",
+                @"INSERT INTO RoleMenuAccess (RoleId, MenuId, CanView, CanEdit, CanModify, CanDelete)
+                  SELECT @RoleId, m.Id, 0, 0, 0, 0
+                  FROM AppMenus m
+                  WHERE m.IsActive = 1;",
                 new { RoleId = id });
 
             var created = conn.QueryFirstOrDefault<RoleDto>(
@@ -83,7 +84,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult Update(int id, [FromBody] UpdateRoleRequest req)
         {
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
             var affected = conn.Execute(
                 @"UPDATE Roles
                   SET    Description    = @Description,
@@ -103,7 +104,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult Delete(int id)
         {
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
 
             var role = conn.QueryFirstOrDefault<(string Name, bool IsSystem)>(
                 "SELECT Name, IsSystem FROM Roles WHERE Id = @Id", new { Id = id });
@@ -123,34 +124,36 @@ namespace SpareParts.Api.Controllers
             return NoContent();
         }
 
-        // GET /api/roles/{id}/permissions
-        [HttpGet("{id:int}/permissions")]
-        public ActionResult<RoleScreenPermissionsDto> GetPermissionsByRoleId(int id)
+        // GET /api/roles/{id}/menu-access
+        [HttpGet("{id:int}/menu-access")]
+        public ActionResult<IEnumerable<RoleMenuAccessDto>> GetMenuAccessByRoleId(int id)
         {
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
 
             var exists = conn.ExecuteScalar<int>("SELECT COUNT(1) FROM Roles WHERE Id = @Id AND IsActive = 1", new { Id = id });
             if (exists == 0) return NotFound();
 
-            var row = conn.QueryFirstOrDefault<RoleScreenPermissionsDto>(
-                @"SELECT RoleId, CanViewInvoiceSearch, CanViewManagementScreen, CanViewSupplierTab, CanEditSupplier, CanModifySupplier, CanDeleteSupplier
-                  FROM RoleScreenPermissions
-                  WHERE RoleId = @RoleId",
-                new { RoleId = id });
+            var rows = conn.Query<RoleMenuAccessDto>(
+                @"SELECT m.Id AS MenuId, m.MenuKey, m.MenuName, a.CanView, a.CanEdit, a.CanModify, a.CanDelete
+                  FROM RoleMenuAccess a
+                  INNER JOIN AppMenus m ON m.Id = a.MenuId
+                  WHERE a.RoleId = @RoleId AND m.IsActive = 1
+                  ORDER BY m.SortOrder, m.Id",
+                new { RoleId = id }).ToList();
 
-            return row == null ? NotFound() : Ok(row);
+            return Ok(rows);
         }
 
-        // GET /api/roles/by-name/{roleName}/permissions
-        [HttpGet("by-name/{roleName}/permissions")]
-        public ActionResult<RoleScreenPermissionsDto> GetPermissionsByRoleName(string roleName)
+        // GET /api/roles/by-name/{roleName}/menu-access
+        [HttpGet("by-name/{roleName}/menu-access")]
+        public ActionResult<IEnumerable<RoleMenuAccessDto>> GetMenuAccessByRoleName(string roleName)
         {
             if (string.IsNullOrWhiteSpace(roleName))
                 return BadRequest("Role name is required.");
 
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
 
             var roleId = conn.QueryFirstOrDefault<int?>(
                 "SELECT Id FROM Roles WHERE Name = @Name AND IsActive = 1",
@@ -158,80 +161,113 @@ namespace SpareParts.Api.Controllers
 
             if (roleId == null) return NotFound();
 
-            var row = conn.QueryFirstOrDefault<RoleScreenPermissionsDto>(
-                @"SELECT RoleId, CanViewInvoiceSearch, CanViewManagementScreen, CanViewSupplierTab, CanEditSupplier, CanModifySupplier, CanDeleteSupplier
-                  FROM RoleScreenPermissions
-                  WHERE RoleId = @RoleId",
-                new { RoleId = roleId.Value });
+            var rows = conn.Query<RoleMenuAccessDto>(
+                @"SELECT m.Id AS MenuId, m.MenuKey, m.MenuName, a.CanView, a.CanEdit, a.CanModify, a.CanDelete
+                  FROM RoleMenuAccess a
+                  INNER JOIN AppMenus m ON m.Id = a.MenuId
+                  WHERE a.RoleId = @RoleId AND m.IsActive = 1
+                  ORDER BY m.SortOrder, m.Id",
+                new { RoleId = roleId.Value }).ToList();
 
-            return row == null ? NotFound() : Ok(row);
+            return Ok(rows);
         }
 
-        // PUT /api/roles/{id}/permissions
-        [HttpPut("{id:int}/permissions")]
+        // PUT /api/roles/{id}/menu-access
+        [HttpPut("{id:int}/menu-access")]
         [Authorize(Roles = "Admin")]
-        public ActionResult UpdatePermissions(int id, [FromBody] UpdateRoleScreenPermissionsRequest req)
+        public ActionResult UpdateMenuAccess(int id, [FromBody] UpdateRoleMenuAccessRequest req)
         {
             using var conn = _factory.CreateConnection();
-            EnsurePermissionsTable(conn);
+            EnsureMenuAccessTables(conn);
 
             var exists = conn.ExecuteScalar<int>("SELECT COUNT(1) FROM Roles WHERE Id = @Id AND IsActive = 1", new { Id = id });
             if (exists == 0) return NotFound();
 
-            conn.Execute(
-                @"UPDATE RoleScreenPermissions
-                  SET CanViewInvoiceSearch = @CanViewInvoiceSearch,
-                      CanViewManagementScreen = @CanViewManagementScreen,
-                      CanViewSupplierTab = @CanViewSupplierTab,
-                      CanEditSupplier = @CanEditSupplier,
-                      CanModifySupplier = @CanModifySupplier,
-                      CanDeleteSupplier = @CanDeleteSupplier,
-                      ModifiedAt = SYSUTCDATETIME()
-                  WHERE RoleId = @RoleId",
-                new
-                {
-                    RoleId = id,
-                    req.CanViewInvoiceSearch,
-                    req.CanViewManagementScreen,
-                    req.CanViewSupplierTab,
-                    req.CanEditSupplier,
-                    req.CanModifySupplier,
-                    req.CanDeleteSupplier
-                });
+            foreach (var item in req.Items)
+            {
+                conn.Execute(
+                    @"UPDATE RoleMenuAccess
+                      SET CanView = @CanView,
+                          CanEdit = @CanEdit,
+                          CanModify = @CanModify,
+                          CanDelete = @CanDelete,
+                          ModifiedAt = SYSUTCDATETIME()
+                      WHERE RoleId = @RoleId AND MenuId = @MenuId",
+                    new
+                    {
+                        RoleId = id,
+                        item.MenuId,
+                        item.CanView,
+                        item.CanEdit,
+                        item.CanModify,
+                        item.CanDelete
+                    });
+            }
 
             return NoContent();
         }
 
-        private static void EnsurePermissionsTable(System.Data.IDbConnection conn)
+        private static void EnsureMenuAccessTables(System.Data.IDbConnection conn)
         {
             conn.Execute(
                 @"
-IF OBJECT_ID('dbo.RoleScreenPermissions', 'U') IS NULL
+IF OBJECT_ID('dbo.AppMenus', 'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.RoleScreenPermissions
+    CREATE TABLE dbo.AppMenus
     (
-        RoleId INT NOT NULL PRIMARY KEY,
-        CanViewInvoiceSearch BIT NOT NULL CONSTRAINT DF_RSP_CanViewInvoiceSearch DEFAULT (0),
-        CanViewManagementScreen BIT NOT NULL CONSTRAINT DF_RSP_CanViewManagementScreen DEFAULT (0),
-        CanViewSupplierTab BIT NOT NULL CONSTRAINT DF_RSP_CanViewSupplierTab DEFAULT (0),
-        CanEditSupplier BIT NOT NULL CONSTRAINT DF_RSP_CanEditSupplier DEFAULT (0),
-        CanModifySupplier BIT NOT NULL CONSTRAINT DF_RSP_CanModifySupplier DEFAULT (0),
-        CanDeleteSupplier BIT NOT NULL CONSTRAINT DF_RSP_CanDeleteSupplier DEFAULT (0),
-        ModifiedAt DATETIME2 NULL,
-        CONSTRAINT FK_RoleScreenPermissions_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(Id) ON DELETE CASCADE
+        Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        MenuKey NVARCHAR(100) NOT NULL UNIQUE,
+        MenuName NVARCHAR(200) NOT NULL,
+        SortOrder INT NOT NULL CONSTRAINT DF_AppMenus_SortOrder DEFAULT (0),
+        IsActive BIT NOT NULL CONSTRAINT DF_AppMenus_IsActive DEFAULT (1),
+        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_AppMenus_CreatedAt DEFAULT SYSUTCDATETIME()
     );
 END;
 
-INSERT INTO dbo.RoleScreenPermissions (RoleId, CanViewInvoiceSearch, CanViewManagementScreen, CanViewSupplierTab, CanEditSupplier, CanModifySupplier, CanDeleteSupplier)
+IF OBJECT_ID('dbo.RoleMenuAccess', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.RoleMenuAccess
+    (
+        RoleId INT NOT NULL,
+        MenuId INT NOT NULL,
+        CanView BIT NOT NULL CONSTRAINT DF_RMA_CanView DEFAULT (0),
+        CanEdit BIT NOT NULL CONSTRAINT DF_RMA_CanEdit DEFAULT (0),
+        CanModify BIT NOT NULL CONSTRAINT DF_RMA_CanModify DEFAULT (0),
+        CanDelete BIT NOT NULL CONSTRAINT DF_RMA_CanDelete DEFAULT (0),
+        ModifiedAt DATETIME2 NULL,
+        CONSTRAINT PK_RoleMenuAccess PRIMARY KEY (RoleId, MenuId),
+        CONSTRAINT FK_RoleMenuAccess_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(Id) ON DELETE CASCADE,
+        CONSTRAINT FK_RoleMenuAccess_Menus FOREIGN KEY (MenuId) REFERENCES dbo.AppMenus(Id) ON DELETE CASCADE
+    );
+END;
+
+MERGE dbo.AppMenus AS target
+USING (VALUES
+    ('invoice_search', 'Invoice Search', 10),
+    ('management_screen', 'Management Screen', 20),
+    ('supplier_tab', 'Supplier Tab', 30)
+) AS source(MenuKey, MenuName, SortOrder)
+ON target.MenuKey = source.MenuKey
+WHEN MATCHED THEN
+    UPDATE SET MenuName = source.MenuName, SortOrder = source.SortOrder, IsActive = 1
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (MenuKey, MenuName, SortOrder, IsActive) VALUES (source.MenuKey, source.MenuName, source.SortOrder, 1);
+
+INSERT INTO dbo.RoleMenuAccess (RoleId, MenuId, CanView, CanEdit, CanModify, CanDelete)
 SELECT r.Id,
-       CASE WHEN r.Name IN ('Admin', 'Manager', 'Cashier') THEN 1 ELSE 0 END,
-       CASE WHEN r.Name IN ('Admin', 'Manager') THEN 1 ELSE 0 END,
-       CASE WHEN r.Name IN ('Admin', 'Manager') THEN 1 ELSE 0 END,
-       CASE WHEN r.Name IN ('Admin', 'Manager') THEN 1 ELSE 0 END,
-       CASE WHEN r.Name IN ('Admin', 'Manager') THEN 1 ELSE 0 END,
-       CASE WHEN r.Name = 'Admin' THEN 1 ELSE 0 END
+       m.Id,
+       CASE 
+         WHEN m.MenuKey = 'invoice_search' AND r.Name IN ('Admin','Manager','Cashier') THEN 1
+         WHEN m.MenuKey IN ('management_screen','supplier_tab') AND r.Name IN ('Admin','Manager') THEN 1
+         ELSE 0
+       END AS CanView,
+       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Name IN ('Admin','Manager') THEN 1 ELSE 0 END AS CanEdit,
+       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Name IN ('Admin','Manager') THEN 1 ELSE 0 END AS CanModify,
+       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Name = 'Admin' THEN 1 ELSE 0 END AS CanDelete
 FROM dbo.Roles r
-WHERE NOT EXISTS (SELECT 1 FROM dbo.RoleScreenPermissions p WHERE p.RoleId = r.Id);");
+CROSS JOIN dbo.AppMenus m
+WHERE m.IsActive = 1
+  AND NOT EXISTS (SELECT 1 FROM dbo.RoleMenuAccess a WHERE a.RoleId = r.Id AND a.MenuId = m.Id);");
         }
     }
 }

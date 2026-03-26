@@ -248,22 +248,22 @@ namespace SpareParts.Desktop.Wpf
                    ?? new List<RoleDto>();
         }
 
-        public override async Task<RoleScreenPermissionsDto> GetRolePermissionsAsync(int roleId)
+        public override async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId)
         {
-            return await Http.GetFromJsonAsync<RoleScreenPermissionsDto>($"api/roles/{roleId}/permissions")
-                   ?? new RoleScreenPermissionsDto { RoleId = roleId };
+            return await Http.GetFromJsonAsync<List<RoleMenuAccessDto>>($"api/roles/{roleId}/menu-access")
+                   ?? new List<RoleMenuAccessDto>();
         }
 
-        public override async Task<RoleScreenPermissionsDto> GetRolePermissionsByNameAsync(string roleName)
+        public override async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName)
         {
             var encodedRoleName = Uri.EscapeDataString(roleName ?? string.Empty);
-            return await Http.GetFromJsonAsync<RoleScreenPermissionsDto>($"api/roles/by-name/{encodedRoleName}/permissions")
-                   ?? new RoleScreenPermissionsDto();
+            return await Http.GetFromJsonAsync<List<RoleMenuAccessDto>>($"api/roles/by-name/{encodedRoleName}/menu-access")
+                   ?? new List<RoleMenuAccessDto>();
         }
 
-        public override async Task UpdateRolePermissionsAsync(int roleId, UpdateRoleScreenPermissionsRequest req)
+        public override async Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req)
         {
-            var resp = await Http.PutAsJsonAsync($"api/roles/{roleId}/permissions", req);
+            var resp = await Http.PutAsJsonAsync($"api/roles/{roleId}/menu-access", req);
             await EnsureSuccessAsync(resp, "Request failed.");
         }
 
