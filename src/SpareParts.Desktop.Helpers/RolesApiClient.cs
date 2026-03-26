@@ -15,6 +15,9 @@ namespace SpareParts.Desktop.Wpf
         }
 
         public Task<List<RoleDto>> GetRolesAsync() => _api.GetRolesAsync();
+        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId) => _api.GetRoleMenuAccessAsync(roleId);
+        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName) => _api.GetRoleMenuAccessByNameAsync(roleName);
+        public Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req) => _api.UpdateRoleMenuAccessAsync(roleId, req);
         public Task<RoleDto> CreateRoleAsync(CreateRoleRequest req) => _api.CreateRoleAsync(req);
         public Task UpdateRoleAsync(int id, UpdateRoleRequest req) => _api.UpdateRoleAsync(id, req);
         public Task DeleteRoleAsync(int id) => _api.DeleteRoleAsync(id);

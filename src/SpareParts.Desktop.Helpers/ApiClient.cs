@@ -248,6 +248,25 @@ namespace SpareParts.Desktop.Wpf
                    ?? new List<RoleDto>();
         }
 
+        public override async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId)
+        {
+            return await Http.GetFromJsonAsync<List<RoleMenuAccessDto>>($"api/roles/{roleId}/menu-access")
+                   ?? new List<RoleMenuAccessDto>();
+        }
+
+        public override async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName)
+        {
+            var encodedRoleName = Uri.EscapeDataString(roleName ?? string.Empty);
+            return await Http.GetFromJsonAsync<List<RoleMenuAccessDto>>($"api/roles/by-name/{encodedRoleName}/menu-access")
+                   ?? new List<RoleMenuAccessDto>();
+        }
+
+        public override async Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req)
+        {
+            var resp = await Http.PutAsJsonAsync($"api/roles/{roleId}/menu-access", req);
+            await EnsureSuccessAsync(resp, "Request failed.");
+        }
+
         public override async Task<RoleDto> CreateRoleAsync(CreateRoleRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/roles", req);

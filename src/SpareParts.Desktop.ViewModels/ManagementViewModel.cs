@@ -35,8 +35,28 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarModelDto> CarModels => CarModelsFeature.CarModels;
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
 
+        private bool _canViewSupplierTab;
+        public bool CanViewSupplierTab { get => _canViewSupplierTab; private set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
+        private bool _canEditSupplier;
+        public bool CanEditSupplier { get => _canEditSupplier; private set { _canEditSupplier = value; OnPropertyChanged(nameof(CanEditSupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
+        private bool _canModifySupplier;
+        public bool CanModifySupplier { get => _canModifySupplier; private set { _canModifySupplier = value; OnPropertyChanged(nameof(CanModifySupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
+        private bool _canDeleteSupplier;
+        public bool CanDeleteSupplier { get => _canDeleteSupplier; private set { _canDeleteSupplier = value; OnPropertyChanged(nameof(CanDeleteSupplier)); } }
+        public bool CanSaveSupplier => CanViewSupplierTab && (SelectedSupplier == null ? CanEditSupplier : CanModifySupplier);
+
         public CustomerDto? SelectedCustomer { get => CustomersFeature.SelectedCustomer; set { CustomersFeature.SelectedCustomer = value; OnPropertyChanged(nameof(SelectedCustomer)); if (value != null) { CustomersFeature.PopulateForm(value); RaiseCustomerProps(); } } }
-        public SupplierDto? SelectedSupplier { get => SuppliersFeature.SelectedSupplier; set { SuppliersFeature.SelectedSupplier = value; OnPropertyChanged(nameof(SelectedSupplier)); if (value != null) { SuppliersFeature.PopulateForm(value); RaiseSupplierProps(); } } }
+        public SupplierDto? SelectedSupplier
+        {
+            get => SuppliersFeature.SelectedSupplier;
+            set
+            {
+                SuppliersFeature.SelectedSupplier = value;
+                OnPropertyChanged(nameof(SelectedSupplier));
+                OnPropertyChanged(nameof(CanSaveSupplier));
+                if (value != null) { SuppliersFeature.PopulateForm(value); RaiseSupplierProps(); }
+            }
+        }
         public BrandDto? SelectedBrand { get => BrandsFeature.SelectedBrand; set { BrandsFeature.SelectedBrand = value; OnPropertyChanged(nameof(SelectedBrand)); if (value != null) { BrandsFeature.PopulateForm(value); RaiseAll(nameof(NewBrandName), nameof(NewBrandIsActive)); } } }
         public PartDto? SelectedPart { get => PartsFeature.SelectedPart; set { PartsFeature.SelectedPart = value; OnPropertyChanged(nameof(SelectedPart)); if (value != null) { PartsFeature.PopulateForm(value); RaisePartProps(); } } }
         public CarModelDto? SelectedCarModel { get => CarModelsFeature.SelectedCarModel; set { CarModelsFeature.SelectedCarModel = value; OnPropertyChanged(nameof(SelectedCarModel)); if (value != null) { CarModelsFeature.PopulateForm(value); RaiseCarModelProps(); } } }
@@ -94,8 +114,16 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SaveCarModelCommand { get; }
         public ICommand DeleteCarModelCommand { get; }
 
-        public ManagementViewModel(ICrudApiClient? crudApi = null, ICarCatalogApiClient? carCatalogApi = null)
+        public ManagementViewModel(
+            ICrudApiClient? crudApi = null,
+            ICarCatalogApiClient? carCatalogApi = null,
+            bool canViewSupplierTab = false,
+            bool canEditSupplier = false,
+            bool canModifySupplier = false,
+            bool canDeleteSupplier = false)
         {
+            SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
+
             _coordinator = new ManagementCoordinator(crudApi ?? new CrudApiClient(), carCatalogApi ?? new CarCatalogApiClient());
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
@@ -109,6 +137,14 @@ namespace SpareParts.Desktop.Wpf
             DeletePartCommand = new RelayCommand(_ => _ = DeletePartAsync());
             SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
             DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
+        }
+
+        public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
+        {
+            CanViewSupplierTab = canViewSupplierTab;
+            CanEditSupplier = canEditSupplier;
+            CanModifySupplier = canModifySupplier;
+            CanDeleteSupplier = canDeleteSupplier;
         }
 
         public async Task LoadAllAsync()
@@ -173,6 +209,25 @@ namespace SpareParts.Desktop.Wpf
 
         private async Task SaveSupplierAsync()
         {
+            if (!CanViewSupplierTab)
+            {
+                SetStatus("✗ You do not have permission to view the supplier tab.", false);
+                return;
+            }
+
+            var isEditing = SelectedSupplier != null;
+            if (!isEditing && !CanEditSupplier)
+            {
+                SetStatus("✗ You do not have permission to create suppliers.", false);
+                return;
+            }
+
+            if (isEditing && !CanModifySupplier)
+            {
+                SetStatus("✗ You do not have permission to modify suppliers.", false);
+                return;
+            }
+
             var result = await _coordinator.SaveSupplierAsync(SuppliersFeature);
             SetStatus(result.Message, result.Success);
             if (!result.Success) return;
@@ -180,10 +235,23 @@ namespace SpareParts.Desktop.Wpf
             await LoadAllAsync();
             SuppliersFeature.ClearForm();
             RaiseSupplierProps();
+            OnPropertyChanged(nameof(CanSaveSupplier));
         }
 
         private async Task DeleteSupplierAsync()
         {
+            if (!CanViewSupplierTab)
+            {
+                SetStatus("✗ You do not have permission to view the supplier tab.", false);
+                return;
+            }
+
+            if (!CanDeleteSupplier)
+            {
+                SetStatus("✗ You do not have permission to delete suppliers.", false);
+                return;
+            }
+
             var result = await _coordinator.DeleteSupplierAsync(SelectedSupplier);
             SetStatus(result.Message, result.Success);
             if (!result.Success) return;
@@ -191,6 +259,7 @@ namespace SpareParts.Desktop.Wpf
             await LoadAllAsync();
             SuppliersFeature.SelectedSupplier = null;
             OnPropertyChanged(nameof(SelectedSupplier));
+            OnPropertyChanged(nameof(CanSaveSupplier));
         }
 
         private async Task SaveBrandAsync()
