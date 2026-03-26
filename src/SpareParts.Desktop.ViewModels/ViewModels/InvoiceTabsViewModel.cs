@@ -124,6 +124,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand SelectThemeCommand { get; private set; } = null!;
 
         public ObservableCollection<InvoiceTabViewModel> Tabs { get; } = new();
+        public ObservableCollection<PurchaseDraftItemViewModel> PurchaseDraftItems { get; } = new();
+        public ObservableCollection<StockSnapshotViewModel> StockSnapshots { get; } = new();
 
         private InvoiceTabViewModel? _selectedTab;
         public InvoiceTabViewModel? SelectedTab
@@ -142,6 +144,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToHomeCommand          { get; }
         public ICommand OpenManagementCommand    { get; }
         public ICommand OpenInvoiceSearchCommand { get; }
+        public ICommand GoToPurchasesCommand     { get; }
+        public ICommand GoToStockManagementCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
 
         public InvoiceTabsViewModel(ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null, ISalesApiClient? salesApi = null, ICrudApiClient? crudApi = null)
@@ -209,10 +213,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 }
             });
 
+            GoToPurchasesCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.Purchases);
+            GoToStockManagementCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.StockManagement);
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
             AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
+            SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
             _ = LoadBrandsAsync();

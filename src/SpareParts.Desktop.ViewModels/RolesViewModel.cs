@@ -96,6 +96,10 @@ namespace SpareParts.Desktop.Wpf
                         });
                 });
                 SetStatus($"✓ {Roles.Count} role(s) loaded.", true);
+                if (SelectedRole == null)
+                {
+                    ClearPermissions();
+                }
             }
             catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
             catch (Exception) { SetStatus("✗ Unexpected error while loading roles.", false); }
