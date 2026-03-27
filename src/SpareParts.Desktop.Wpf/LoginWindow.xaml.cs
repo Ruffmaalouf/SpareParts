@@ -7,16 +7,18 @@ namespace SpareParts.Desktop.Wpf
     public partial class LoginWindow : Window
     {
         private readonly LoginViewModel _vm;
+        private readonly MainWindow _mainWindow;
 
-        public LoginWindow(LoginViewModel vm)
+        public LoginWindow(LoginViewModel vm, MainWindow mainWindow)
         {
             InitializeComponent();
             _vm = vm;
+            _mainWindow = mainWindow;
             DataContext = _vm;
 
             _vm.LoginSucceeded += _ =>
             {
-                ServiceLocator.Resolve<MainWindow>().Show();
+                _mainWindow.Show();
                 Close();
             };
 
