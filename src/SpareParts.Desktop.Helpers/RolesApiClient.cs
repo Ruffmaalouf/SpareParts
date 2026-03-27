@@ -8,7 +8,7 @@ namespace SpareParts.Desktop.Wpf
 {
     public sealed class RolesApiClient : FeatureApiClientBase, IRoleApiClient
     {
-        public RolesApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
+        public RolesApiClient() : base(AppSettings.ApiBaseUrl)
         {
         }
 
