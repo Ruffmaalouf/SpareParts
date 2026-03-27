@@ -111,6 +111,17 @@ namespace SpareParts.Desktop.Wpf
         public string Status => _statusCenter.Status;
         public ObservableCollection<StatusMessage> StatusMessages => _statusCenter.StatusMessages;
         public Brush StatusBrush => _statusCenter.StatusBrush;
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                if (_isLoading == value) return;
+                _isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+            }
+        }
 
         public ICommand LoadAllCommand { get; }
         public ICommand SaveCustomerCommand { get; }
@@ -169,6 +180,7 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task LoadAllAsync()
         {
+            IsLoading = true;
             SetStatus("Loading…", true);
             try
             {
@@ -194,6 +206,10 @@ namespace SpareParts.Desktop.Wpf
                     ? $"✗ API error ({apiException.Code}): {apiException.Message}"
                     : "✗ Load failed due to an unexpected error.";
                 SetStatus(message, false);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
