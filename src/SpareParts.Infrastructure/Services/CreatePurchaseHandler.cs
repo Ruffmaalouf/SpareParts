@@ -2,6 +2,7 @@ using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Data.Repositories;
 
 namespace SpareParts.Infrastructure.Services
 {
@@ -33,10 +34,12 @@ namespace SpareParts.Infrastructure.Services
         public CreatePurchaseResponse Handle(CreatePurchaseRequest request, int userId)
         {
             using var session = new DbSession(_factory);
-            var purchasesRepository = new PurchasesRepository(session);
-            var partsRepository = new PartsRepository(session);
-            var inventoryRepository = new InventoryRepository(session);
-            var journalRepository = new JournalRepository(session);
+            var repositories = RepositoryCatalog.For(session);
+
+            var purchasesRepository = repositories.Purchases.Invoices;
+            var partsRepository = repositories.MasterData.Parts;
+            var inventoryRepository = repositories.Inventory.Stock;
+            var journalRepository = repositories.Accounting.Journal;
 
             ValidateRequest(request);
             var parts = LoadParts(partsRepository, request);
