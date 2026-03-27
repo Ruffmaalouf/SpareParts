@@ -269,13 +269,13 @@
 
                 <!-- Brand groups -->
                 <Grid Grid.Row="2">
-                    <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding BrandGroups}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Expander Style="{StaticResource SectionExpanderStyle}"
                                               Header="{Binding RegionGroup}" IsExpanded="False">
-                                        <ScrollViewer VerticalScrollBarVisibility="Hidden" MaxHeight="220">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="220">
                                             <ItemsControl ItemsSource="{Binding Brands}">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
@@ -334,6 +334,7 @@
                                            Margin="4 2 4 10"/>
 
                                 <Button Command="{Binding OpenManagementCommand}"
+                                        Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}">
                                     <Button.Content>
@@ -360,16 +361,19 @@
                                 </Button>
 
                                 <Button Command="{Binding OpenInvoiceSearchCommand}"
+                                        Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
                                         Content="🔎  Search Invoices"/>
 
                                 <Button Command="{Binding GoToPurchasesCommand}"
+                                        Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
                                         Content="🧾  Purchases"/>
 
                                 <Button Command="{Binding GoToStockManagementCommand}"
+                                        Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                                         Content="📦  Stock Management"/>
