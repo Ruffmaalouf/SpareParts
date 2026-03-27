@@ -221,46 +221,86 @@
                     </ScrollViewer>
                 </Grid>
 
-                <!-- Bottom: management button + themes + date -->
+                <!-- Bottom: quick actions menu + themes + date -->
                 <StackPanel Grid.Row="3" Margin="0 0 0 10" VerticalAlignment="Bottom">
 
-                    <Button Command="{Binding OpenManagementCommand}"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10"
-                            Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}">
-                        <Button.Content>
-                            <TextBlock>
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="⚙  Management"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsManagementOpen}" Value="True">
-                                                <Setter Property="Text" Value="✕  Close Management"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Button.Content>
-                    </Button>
+                    <ToggleButton x:Name="QuickActionsToggle"
+                                  HorizontalAlignment="Stretch"
+                                  Height="38"
+                                  Margin="0 0 0 16"
+                                  Content="☰  Menu"
+                                  Background="{DynamicResource CardHighlightBrush}"
+                                  BorderBrush="{DynamicResource BorderBrush}"
+                                  Foreground="White"
+                                  FontWeight="SemiBold"
+                                  Cursor="Hand"/>
 
-                    <Button Command="{Binding OpenInvoiceSearchCommand}"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
-                            Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
-                            Content="🔎  Search Invoices"/>
+                    <Popup Placement="Top"
+                           PlacementTarget="{Binding ElementName=QuickActionsToggle}"
+                           IsOpen="{Binding IsChecked, ElementName=QuickActionsToggle}"
+                           StaysOpen="False"
+                           AllowsTransparency="True"
+                           PopupAnimation="Fade">
+                        <Border Background="{DynamicResource CardBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="10"
+                                Width="250">
+                            <StackPanel>
+                                <TextBlock Text="Quick Actions"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="4 0 4 8"/>
 
-                    <Button Command="{Binding GoToPurchasesCommand}"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10"
-                            Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
-                            Content="🧾  Purchases"/>
+                                <Button Command="{Binding OpenManagementCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Height="36"
+                                        Margin="0 0 0 8"
+                                        Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}">
+                                    <Button.Content>
+                                        <TextBlock>
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="⚙  Management"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsManagementOpen}" Value="True">
+                                                            <Setter Property="Text" Value="✕  Close Management"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Button.Content>
+                                </Button>
 
-                    <Button Command="{Binding GoToStockManagementCommand}"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
-                            Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
-                            Content="📦  Stock Management"/>
+                                <Button Command="{Binding OpenInvoiceSearchCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Height="36"
+                                        Margin="0 0 0 8"
+                                        Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
+                                        Content="🔎  Search Invoices"/>
+
+                                <Button Command="{Binding GoToPurchasesCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Height="36"
+                                        Margin="0 0 0 8"
+                                        Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="🧾  Purchases"/>
+
+                                <Button Command="{Binding GoToStockManagementCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Height="36"
+                                        Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="📦  Stock Management"/>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
 
                     <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
