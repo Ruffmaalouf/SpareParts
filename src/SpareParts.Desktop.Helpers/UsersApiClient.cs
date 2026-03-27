@@ -8,7 +8,7 @@ namespace SpareParts.Desktop.Wpf
     public sealed class UsersApiClient
         : CrudEntityApiClientBase<UserDto, CreateUserRequest, int, UpdateUserRequest, int>, IUserApiClient
     {
-        public UsersApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
+        public UsersApiClient() : base(AppSettings.ApiBaseUrl)
         {
         }
 

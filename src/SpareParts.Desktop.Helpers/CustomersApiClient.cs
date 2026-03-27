@@ -8,7 +8,7 @@ namespace SpareParts.Desktop.Wpf
 {
     public sealed class CustomersApiClient : FeatureApiClientBase, ICustomerApiClient
     {
-        public CustomersApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
+        public CustomersApiClient() : base(AppSettings.ApiBaseUrl)
         {
         }
 

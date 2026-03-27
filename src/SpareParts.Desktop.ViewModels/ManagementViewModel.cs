@@ -128,7 +128,6 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteWarehouseCommand { get; }
 
         public ManagementViewModel(
-            IApiClient? apiClient = null,
             ICrudApiClient? crudApi = null,
             ICarCatalogApiClient? carCatalogApi = null,
             bool canViewSupplierTab = false,
@@ -136,14 +135,13 @@ namespace SpareParts.Desktop.Wpf
             bool canModifySupplier = false,
             bool canDeleteSupplier = false)
         {
-            var sharedApiClient = apiClient ?? new ApiClient();
-            UsersVm = new UsersViewModel(sharedApiClient);
-            RolesVm = new RolesViewModel(sharedApiClient);
+            UsersVm = new UsersViewModel();
+            RolesVm = new RolesViewModel();
             SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
 
             _coordinator = new ManagementCoordinator(
-                crudApi ?? new CrudApiClient(sharedApiClient),
-                carCatalogApi ?? new CarCatalogApiClient(sharedApiClient));
+                crudApi ?? new CrudApiClient(),
+                carCatalogApi ?? new CarCatalogApiClient());
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
