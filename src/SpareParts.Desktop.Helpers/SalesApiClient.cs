@@ -1,23 +1,30 @@
+using RestSharp;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Sales;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class SalesApiClient : ISalesApiClient
+    public sealed class SalesApiClient : FeatureApiClientBase, ISalesApiClient
     {
-        private readonly IApiClient _api;
-
-        public SalesApiClient(IApiClient? api = null)
+        public SalesApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req) => _api.CreateSaleAsync(req);
+        public Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
+            => AddAsync<CreateSaleResponse>("api/sales", req, "Empty sale response.");
 
-        public Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query) => _api.SearchInvoicesAsync(query);
+        public Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query)
+            => RetrieveAsync<SalesInvoiceLookupDto>($"api/sales?search={Uri.EscapeDataString(query ?? string.Empty)}");
 
-        public Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId) => _api.GetInvoiceByIdAsync(invoiceId);
+        public async Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId)
+        {
+            var request = CreateRequest($"api/sales/{invoiceId}", Method.Get);
+            var response = await Client.ExecuteAsync<SalesInvoiceDetailsDto?>(request);
+            ApiClientBase.EnsureSuccess(response, $"GET api/sales/{invoiceId} failed.");
+            return response.Data;
+        }
     }
 }

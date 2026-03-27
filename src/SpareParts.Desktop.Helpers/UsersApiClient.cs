@@ -5,18 +5,27 @@ using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class UsersApiClient : IUserApiClient
+    public sealed class UsersApiClient
+        : CrudEntityApiClientBase<UserDto, CreateUserRequest, int, UpdateUserRequest, int>, IUserApiClient
     {
-        private readonly IApiClient _api;
-
-        public UsersApiClient(IApiClient? api = null)
+        public UsersApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<UserDto>> GetUsersAsync() => _api.GetUsersAsync();
-        public Task<int> CreateUserAsync(CreateUserRequest req) => _api.CreateUserAsync(req);
-        public Task UpdateUserAsync(int id, UpdateUserRequest req) => _api.UpdateUserAsync(id, req);
-        public Task DeleteUserAsync(int id) => _api.DeleteUserAsync(id);
+        public override Task<List<UserDto>> RetrieveAsync() => base.RetrieveAsync<UserDto>("api/users");
+
+        public override Task<int> AddAsync(CreateUserRequest request)
+            => base.AddAsync<int>("api/users", request, "Empty user id response.");
+
+        public override Task EditAsync(int id, UpdateUserRequest request)
+            => base.EditAsync($"api/users/{id}", request);
+
+        public override Task DeleteAsync(int id)
+            => base.DeleteResourceAsync($"api/users/{id}");
+
+        public Task<List<UserDto>> GetUsersAsync() => RetrieveAsync();
+        public Task<int> CreateUserAsync(CreateUserRequest req) => AddAsync(req);
+        public Task UpdateUserAsync(int id, UpdateUserRequest req) => EditAsync(id, req);
+        public Task DeleteUserAsync(int id) => DeleteAsync(id);
     }
 }

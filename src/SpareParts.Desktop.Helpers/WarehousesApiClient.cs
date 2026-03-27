@@ -5,15 +5,12 @@ using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class WarehousesApiClient : IWarehouseApiClient
+    public sealed class WarehousesApiClient : FeatureApiClientBase, IWarehouseApiClient
     {
-        private readonly IApiClient _api;
-
-        public WarehousesApiClient(IApiClient? api = null)
+        public WarehousesApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<WarehouseDto>> GetWarehousesAsync() => _api.GetWarehousesAsync();
+        public Task<List<WarehouseDto>> GetWarehousesAsync() => RetrieveAsync<WarehouseDto>("api/warehouses");
     }
 }
