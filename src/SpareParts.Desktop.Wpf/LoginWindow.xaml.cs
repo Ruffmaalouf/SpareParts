@@ -8,15 +8,15 @@ namespace SpareParts.Desktop.Wpf
     {
         private readonly LoginViewModel _vm;
 
-        public LoginWindow(LoginViewModel? vm = null)
+        public LoginWindow(LoginViewModel vm)
         {
             InitializeComponent();
-            _vm = vm ?? new LoginViewModel();
+            _vm = vm;
             DataContext = _vm;
 
             _vm.LoginSucceeded += _ =>
             {
-                new MainWindow(new InvoiceTabsViewModel()).Show();
+                ServiceLocator.Resolve<MainWindow>().Show();
                 Close();
             };
 

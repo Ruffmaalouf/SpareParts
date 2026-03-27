@@ -186,18 +186,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand ToggleFeedCommand        { get; }
 
         public InvoiceTabsViewModel(
-            ICarCatalogApiClient? carCatalogApi = null,
-            IPartsApiClient? partsApi = null,
-            ISalesApiClient? salesApi = null,
-            ICrudApiClient? crudApi = null)
+            ICarCatalogApiClient carCatalogApi,
+            IPartsApiClient partsApi,
+            ISalesApiClient salesApi,
+            IRoleApiClient rolesApi,
+            ManagementViewModel managementVm)
         {
-            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
-            _partsApi = partsApi ?? new PartsApiClient();
-            _salesApi = salesApi ?? new SalesApiClient();
-            _rolesApi = new RolesApiClient();
-            ManagementVm = new ManagementViewModel(
-                crudApi ?? new CrudApiClient(),
-                _carCatalogApi);
+            _carCatalogApi = carCatalogApi;
+            _partsApi = partsApi;
+            _salesApi = salesApi;
+            _rolesApi = rolesApi;
+            ManagementVm = managementVm;
 
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });

@@ -94,7 +94,7 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public PartSearchControl() : this(new PartsApiClient())
+        public PartSearchControl() : this(ServiceLocator.Resolve<IPartsApiClient>())
         {
         }
 

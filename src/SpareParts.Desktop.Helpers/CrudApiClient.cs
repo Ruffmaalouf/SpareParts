@@ -6,7 +6,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public sealed class CrudApiClient : FeatureApiClientBase, ICrudApiClient
     {
-        public CrudApiClient() : base(AppSettings.ApiBaseUrl)
+        public CrudApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
+            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
         {
         }
 

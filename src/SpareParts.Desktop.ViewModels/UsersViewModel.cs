@@ -76,9 +76,9 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SaveCommand       { get; }
         public ICommand DeactivateCommand { get; }
 
-        public UsersViewModel(IUserApiClient? usersApi = null)
+        public UsersViewModel(IUserApiClient usersApi)
         {
-            _usersApi = usersApi ?? new UsersApiClient();
+            _usersApi = usersApi;
 
             LoadCommand       = new RelayCommand(_ => _ = LoadAsync());
             NewCommand        = new RelayCommand(_ => ClearForm());

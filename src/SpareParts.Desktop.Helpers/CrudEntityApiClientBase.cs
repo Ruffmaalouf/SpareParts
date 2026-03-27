@@ -1,3 +1,4 @@
+using SpareParts.Desktop.Wpf.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,7 +7,8 @@ namespace SpareParts.Desktop.Wpf
     public abstract class CrudEntityApiClientBase<TReadDto, TCreateRequest, TCreateResponse, TUpdateRequest, TKey>
         : FeatureApiClientBase
     {
-        protected CrudEntityApiClientBase(string baseUrl) : base(baseUrl)
+        protected CrudEntityApiClientBase(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider, string baseUrl)
+            : base(restClientFactory, tokenProvider, baseUrl)
         {
         }
 

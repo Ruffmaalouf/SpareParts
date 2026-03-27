@@ -8,10 +8,10 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class MainWindow : Window
     {
-        public MainWindow(InvoiceTabsViewModel? vm = null)
+        public MainWindow(InvoiceTabsViewModel vm)
         {
             InitializeComponent();
-            DataContext = vm ?? new InvoiceTabsViewModel();
+            DataContext = vm;
         }
 
 

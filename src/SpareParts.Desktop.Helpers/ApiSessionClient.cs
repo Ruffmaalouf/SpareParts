@@ -4,7 +4,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public sealed class ApiSessionClient : FeatureApiClientBase, IApiSessionClient
     {
-        public ApiSessionClient() : base(AppSettings.ApiBaseUrl)
+        public ApiSessionClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
+            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
         {
         }
 

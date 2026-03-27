@@ -41,6 +41,7 @@
     <ProjectReference Include="..\SpareParts.Domain\SpareParts.Domain.csproj" />
     <ProjectReference Include="..\SpareParts.Desktop.Helpers\SpareParts.Desktop.Helpers.csproj" />
     <ProjectReference Include="..\SpareParts.Desktop.Controls\SpareParts.Desktop.Controls.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>
