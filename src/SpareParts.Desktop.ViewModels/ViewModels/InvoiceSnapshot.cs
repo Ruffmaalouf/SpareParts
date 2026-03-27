@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace SpareParts.Desktop.Wpf.ViewModels
 {
     internal sealed class InvoiceSnapshot

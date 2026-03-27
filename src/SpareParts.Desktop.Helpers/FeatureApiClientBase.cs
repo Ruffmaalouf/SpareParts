@@ -13,8 +13,7 @@ namespace SpareParts.Desktop.Wpf
         {
             Client = new RestClient(new RestClientOptions(baseUrl)
             {
-                ThrowOnAnyError = false,
-                MaxTimeout = 30000
+                ThrowOnAnyError = false 
             });
         }
 
