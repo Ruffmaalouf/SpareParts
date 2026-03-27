@@ -94,7 +94,7 @@ namespace SpareParts.Desktop.Wpf
             {
                 var result = await _authApi.LoginAsync(Username.Trim(), password);
 
-                // Store token in ApiClient — all future calls use it
+                // Store token in the shared API token store for future API calls
                 _sessionApi.SetToken(result.Token);
 
                 // Store session info globally
