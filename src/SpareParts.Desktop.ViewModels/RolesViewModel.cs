@@ -38,6 +38,7 @@ namespace SpareParts.Desktop.Wpf
         private bool _formIsActive = true;
         private string _accessPopupTitle = "Role Access";
         private bool _isAccessPopupOpen;
+        private int? _accessRoleId;
 
         public string FormName { get => _formName; set { _formName = value; OnPropertyChanged(nameof(FormName)); } }
         public string FormDescription { get => _formDescription; set { _formDescription = value; OnPropertyChanged(nameof(FormDescription)); } }
@@ -63,6 +64,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand ViewAccessCommand { get; }
+        public ICommand SaveAccessCommand { get; }
         public ICommand CloseAccessPopupCommand { get; }
 
         public RolesViewModel(IRoleApiClient? rolesApi = null)
@@ -74,6 +76,7 @@ namespace SpareParts.Desktop.Wpf
             SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(r => _ = DeleteAsync(r as RoleManagementDto));
             ViewAccessCommand = new RelayCommand(r => _ = OpenAccessPopupAsync(r as RoleManagementDto));
+            SaveAccessCommand = new RelayCommand(_ => _ = SaveAccessAsync());
             CloseAccessPopupCommand = new RelayCommand(_ => IsAccessPopupOpen = false);
         }
 
@@ -190,8 +193,38 @@ namespace SpareParts.Desktop.Wpf
             if (role == null) return;
 
             await LoadMenuAccessAsync(role.Id);
+            _accessRoleId = role.Id;
             AccessPopupTitle = $"{role.Name} Access";
             IsAccessPopupOpen = true;
+        }
+
+        private async Task SaveAccessAsync()
+        {
+            if (!_accessRoleId.HasValue) return;
+
+            IsBusy = true;
+            try
+            {
+                var request = new UpdateRoleMenuAccessRequest();
+                foreach (var item in MenuAccessItems)
+                {
+                    request.Items.Add(new RoleMenuAccessUpdateItem
+                    {
+                        MenuId = item.MenuId,
+                        CanView = item.CanView,
+                        CanEdit = item.CanEdit,
+                        CanModify = item.CanModify,
+                        CanDelete = item.CanDelete
+                    });
+                }
+
+                await _rolesApi.UpdateRoleMenuAccessAsync(_accessRoleId.Value, request);
+                SetStatus("✓ Role access updated.", true);
+                IsAccessPopupOpen = false;
+            }
+            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (Exception) { SetStatus("✗ Unexpected error while saving role access.", false); }
+            finally { IsBusy = false; }
         }
 
         private void SetStatus(string message, bool isSuccess)
@@ -218,6 +251,7 @@ namespace SpareParts.Desktop.Wpf
             FormBadgeTextColor = "#FFFFFF";
             FormIsActive = true;
             MenuAccessItems.Clear();
+            _accessRoleId = null;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

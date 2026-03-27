@@ -178,7 +178,7 @@
                     <DataGridTemplateColumn Header="ACCESS" Width="95">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="👁 View"
+                                <Button Content="✎ Manage"
                                         Command="{Binding DataContext.ViewAccessCommand,
                                                   RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
@@ -399,7 +399,7 @@
                                   HeadersVisibility="Column"
                                   GridLinesVisibility="None"
                                   BorderThickness="0"
-                                  IsReadOnly="True"
+                                  IsReadOnly="False"
                                   RowHeight="34"
                                   ColumnHeaderHeight="32">
                             <DataGrid.Columns>
@@ -411,14 +411,22 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <Button Grid.Row="2"
-                                Content="Close"
-                                Command="{Binding CloseAccessPopupCommand}"
-                                Style="{DynamicResource SecondaryButtonStyle}"
-                                Height="38"
-                                Width="120"
-                                HorizontalAlignment="Right"
-                                Margin="0 14 0 0"/>
+                        <StackPanel Grid.Row="2"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Margin="0 14 0 0">
+                            <Button Content="Close"
+                                    Command="{Binding CloseAccessPopupCommand}"
+                                    Style="{DynamicResource SecondaryButtonStyle}"
+                                    Height="38"
+                                    Width="120"
+                                    Margin="0 0 8 0"/>
+                            <Button Content="Save Access"
+                                    Command="{Binding SaveAccessCommand}"
+                                    Style="{DynamicResource PrimaryButtonStyle}"
+                                    Height="38"
+                                    Width="140"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
             </Grid>
