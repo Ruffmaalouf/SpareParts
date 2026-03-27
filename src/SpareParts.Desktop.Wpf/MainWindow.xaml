@@ -128,6 +128,90 @@
             </Setter>
         </Style>
 
+        <Style x:Key="QuickMenuToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="14 0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="ToggleRoot"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="☰"
+                                           FontSize="16"
+                                           Margin="0 0 10 0"
+                                           VerticalAlignment="Center"/>
+                                <ContentPresenter Grid.Column="1"
+                                                  VerticalAlignment="Center"/>
+                                <TextBlock x:Name="ChevronIcon"
+                                           Grid.Column="2"
+                                           Text="▴"
+                                           FontSize="13"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="ChevronIcon" Property="Text" Value="▾"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ToggleRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="ToggleRoot" Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="QuickActionMenuButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Padding" Value="12 0"/>
+            <Setter Property="Margin" Value="0 0 0 8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="MenuButtonRoot"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MenuButtonRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="MenuButtonRoot" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -226,14 +310,9 @@
 
                     <ToggleButton x:Name="QuickActionsToggle"
                                   HorizontalAlignment="Stretch"
-                                  Height="38"
                                   Margin="0 0 0 16"
-                                  Content="☰  Menu"
-                                  Background="{DynamicResource CardHighlightBrush}"
-                                  BorderBrush="{DynamicResource BorderBrush}"
-                                  Foreground="White"
-                                  FontWeight="SemiBold"
-                                  Cursor="Hand"/>
+                                  Content="Quick Menu"
+                                  Style="{StaticResource QuickMenuToggleStyle}"/>
 
                     <Popup Placement="Top"
                            PlacementTarget="{Binding ElementName=QuickActionsToggle}"
@@ -249,53 +328,49 @@
                                 Width="250">
                             <StackPanel>
                                 <TextBlock Text="Quick Actions"
-                                           FontSize="11"
+                                           FontSize="12"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Margin="4 0 4 8"/>
+                                           Margin="4 2 4 10"/>
 
                                 <Button Command="{Binding OpenManagementCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="36"
-                                        Margin="0 0 0 8"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}">
                                     <Button.Content>
-                                        <TextBlock>
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="⚙  Management"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsManagementOpen}" Value="True">
-                                                            <Setter Property="Text" Value="✕  Close Management"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="⚙" FontSize="16" Margin="0 0 12 0" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Management Center"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsManagementOpen}" Value="True">
+                                                                <Setter Property="Text" Value="Close Management Center"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
                                     </Button.Content>
                                 </Button>
 
                                 <Button Command="{Binding OpenInvoiceSearchCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="36"
-                                        Margin="0 0 0 8"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
                                         Content="🔎  Search Invoices"/>
 
                                 <Button Command="{Binding GoToPurchasesCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="36"
-                                        Margin="0 0 0 8"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
                                         Content="🧾  Purchases"/>
 
                                 <Button Command="{Binding GoToStockManagementCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        HorizontalAlignment="Stretch"
-                                        Height="36"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                                         Content="📦  Stock Management"/>
                             </StackPanel>
@@ -329,7 +404,8 @@
                                                                      VerticalAlignment="Center" Margin="0 0 8 0"/>
                                                             <StackPanel Grid.Column="1">
                                                                 <TextBlock Text="{Binding Name}" FontSize="12"
-                                                                           FontWeight="SemiBold" Foreground="White"/>
+                                                                           FontWeight="SemiBold"
+                                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                                                                 <TextBlock Text="{Binding SubTitle}" FontSize="10"
                                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                             </StackPanel>
