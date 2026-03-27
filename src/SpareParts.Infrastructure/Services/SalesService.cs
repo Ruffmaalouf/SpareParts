@@ -32,5 +32,14 @@ namespace SpareParts.Infrastructure.Services
             var salesRepository = new SalesRepository(session);
             return salesRepository.GetInvoiceById(invoiceId);
         }
+
+        public bool UpdateInvoice(int invoiceId, UpdateSaleRequest request, int userId)
+        {
+            using var session = new DbSession(_factory);
+            var salesRepository = new SalesRepository(session);
+            var updated = salesRepository.UpdateInvoice(invoiceId, request, userId);
+            session.Commit();
+            return updated;
+        }
     }
 }

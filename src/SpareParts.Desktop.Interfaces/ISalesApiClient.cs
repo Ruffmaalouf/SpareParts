@@ -15,5 +15,6 @@ namespace SpareParts.Desktop.Wpf.Interfaces
         Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req);
         Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query);
         Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId);
+        Task UpdateSaleAsync(int invoiceId, UpdateSaleRequest req);
     }
 }
