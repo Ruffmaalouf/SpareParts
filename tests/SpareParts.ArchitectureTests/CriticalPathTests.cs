@@ -67,7 +67,59 @@ public class CriticalPathTests
         var policy = new DefaultPaymentStatusPolicy();
         var status = policy.Resolve(totalAmount: 100m, paidAmount: 40m);
 
-        Assert.Equal(PaymentStatus.PartiallyPaid, status);
+        Assert.Equal("PartiallyPaid", status);
     }
 
+    [Fact]
+    public void FailurePath_SaleAccountingStrategy_ShouldThrowForNegativeTotals()
+    {
+        var strategy = new SaleAccountingStrategy(cashAccountId: 101, salesAccountId: 401, cogsAccountId: 501, inventoryAccountId: 301);
+        var invoice = new SalesInvoice
+        {
+            TotalAmount = -1m,
+            TotalCost = 10m
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => strategy.BuildJournalLines(invoice, userId: 5));
+
+        Assert.Equal("Sale journal lines cannot be generated from negative totals.", ex.Message);
+    }
+
+    [Fact]
+    public void Concurrency_InventoryAdjustments_ShouldPreserveExpectedQuantityAndMovementCount()
+    {
+        var repo = new ThreadSafeInventoryRepository();
+        var service = new InventoryService();
+        const int workerCount = 40;
+        const int iterationsPerWorker = 10;
+
+        Parallel.For(0, workerCount, _ =>
+        {
+            for (var i = 0; i < iterationsPerWorker; i++)
+            {
+                service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: 1, StockMovementType.Purchase, "Purchase", 500, 7m, userId: 12);
+                service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: -1, StockMovementType.Sale, "Sale", 501, 7m, userId: 12);
+            }
+        });
+
+        var stock = repo.GetStock(77, 2);
+        Assert.NotNull(stock);
+        Assert.Equal(0, stock!.Quantity);
+        Assert.Equal(workerCount * iterationsPerWorker * 2, repo.MovementCount);
+    }
+
+    [Fact]
+    public void Rollback_AdjustStock_ShouldCompensateQuantityWhenMovementInsertFails()
+    {
+        var repo = new ThrowOnMovementInsertInventoryRepository();
+        var service = new InventoryService();
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            service.AdjustStock(repo, partId: 10, warehouseId: 1, quantityChange: 5, StockMovementType.Purchase, "Purchase", 100, 3m, userId: 9));
+
+        Assert.Equal("Simulated movement insert failure.", exception.Message);
+        var stock = repo.GetStock(10, 1);
+        Assert.NotNull(stock);
+        Assert.Equal(0, stock!.Quantity);
+    }
 }
