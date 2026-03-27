@@ -11,7 +11,7 @@ namespace SpareParts.Desktop.Wpf
 
         public CustomersApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<List<CustomerDto>> SearchCustomersAsync(string query) => _api.SearchCustomersAsync(query);

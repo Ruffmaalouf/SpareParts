@@ -107,11 +107,16 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SubmitSaleCommand   { get; }
         public ICommand GoHomeCommand       { get; }
 
-        public PosViewModel(ISalesApiClient? salesApi = null, ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null)
+        public PosViewModel(
+            IApiClient? apiClient = null,
+            ISalesApiClient? salesApi = null,
+            ICarCatalogApiClient? carCatalogApi = null,
+            IPartsApiClient? partsApi = null)
         {
-            _salesApi = salesApi ?? new SalesApiClient();
-            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
-            _partsApi = partsApi ?? new PartsApiClient();
+            var sharedApiClient = apiClient ?? new ApiClient();
+            _salesApi = salesApi ?? new SalesApiClient(sharedApiClient);
+            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient(sharedApiClient);
+            _partsApi = partsApi ?? new PartsApiClient(sharedApiClient);
 
             SelectBrandCommand = new RelayCommand(SelectBrand);
             SelectCarCommand   = new RelayCommand(SelectCar);

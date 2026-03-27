@@ -12,7 +12,7 @@ namespace SpareParts.Desktop.Wpf
 
         public CarCatalogApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<List<CarBrandDto>> GetCarBrandsAsync() => _api.GetCarBrandsAsync();

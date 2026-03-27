@@ -67,9 +67,10 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SaveAccessCommand { get; }
         public ICommand CloseAccessPopupCommand { get; }
 
-        public RolesViewModel(IRoleApiClient? rolesApi = null)
+        public RolesViewModel(IApiClient? apiClient = null, IRoleApiClient? rolesApi = null)
         {
-            _rolesApi = rolesApi ?? new RolesApiClient();
+            var sharedApiClient = apiClient ?? new ApiClient();
+            _rolesApi = rolesApi ?? new RolesApiClient(sharedApiClient);
 
             LoadCommand = new RelayCommand(_ => _ = LoadAsync());
             NewCommand = new RelayCommand(_ => { SelectedRole = null; ClearForm(); });

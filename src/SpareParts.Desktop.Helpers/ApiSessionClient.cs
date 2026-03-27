@@ -8,7 +8,7 @@ namespace SpareParts.Desktop.Wpf
 
         public ApiSessionClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public void SetToken(string token) => _api.SetToken(token);

@@ -184,13 +184,22 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToStockManagementCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
 
-        public InvoiceTabsViewModel(ICarCatalogApiClient? carCatalogApi = null, IPartsApiClient? partsApi = null, ISalesApiClient? salesApi = null, ICrudApiClient? crudApi = null)
+        public InvoiceTabsViewModel(
+            IApiClient? apiClient = null,
+            ICarCatalogApiClient? carCatalogApi = null,
+            IPartsApiClient? partsApi = null,
+            ISalesApiClient? salesApi = null,
+            ICrudApiClient? crudApi = null)
         {
-            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
-            _partsApi = partsApi ?? new PartsApiClient();
-            _salesApi = salesApi ?? new SalesApiClient();
-            _rolesApi = new RolesApiClient();
-            ManagementVm = new ManagementViewModel(crudApi ?? new CrudApiClient(), _carCatalogApi);
+            var sharedApiClient = apiClient ?? new ApiClient();
+            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient(sharedApiClient);
+            _partsApi = partsApi ?? new PartsApiClient(sharedApiClient);
+            _salesApi = salesApi ?? new SalesApiClient(sharedApiClient);
+            _rolesApi = new RolesApiClient(sharedApiClient);
+            ManagementVm = new ManagementViewModel(
+                sharedApiClient,
+                crudApi ?? new CrudApiClient(sharedApiClient),
+                _carCatalogApi);
 
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });

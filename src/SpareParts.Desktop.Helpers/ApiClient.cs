@@ -18,11 +18,12 @@ namespace SpareParts.Desktop.Wpf
 {
     public class ApiClient : ApiClientBase
     {
-        // ── Singleton ─────────────────────────────────────────────────────────
-        public static IApiClient Instance { get; } = new ApiClient();
-
-        private ApiClient() : base(AppSettings.ApiBaseUrl)
+        public ApiClient() : base(AppSettings.ApiBaseUrl)
         {
+            if (!string.IsNullOrWhiteSpace(SessionContext.CurrentUser?.Token))
+            {
+                SetToken(SessionContext.CurrentUser.Token);
+            }
         }
 
         // ── Auth ──────────────────────────────────────────────────────────────

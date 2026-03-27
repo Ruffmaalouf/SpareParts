@@ -10,7 +10,7 @@ namespace SpareParts.Desktop.Wpf
 
         public CrudApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<List<T>> GetAllAsync<T>(string url) => _api.GetAllAsync<T>(url);

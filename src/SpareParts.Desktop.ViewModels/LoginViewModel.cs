@@ -69,10 +69,14 @@ namespace SpareParts.Desktop.Wpf
 
         public ICommand LoginCommand { get; }
 
-        public LoginViewModel(IAuthApiClient? authApi = null, IApiSessionClient? sessionApi = null)
+        public LoginViewModel(
+            IApiClient? apiClient = null,
+            IAuthApiClient? authApi = null,
+            IApiSessionClient? sessionApi = null)
         {
-            _authApi = authApi ?? new AuthApiClient();
-            _sessionApi = sessionApi ?? new ApiSessionClient();
+            var sharedApiClient = apiClient ?? new ApiClient();
+            _authApi = authApi ?? new AuthApiClient(sharedApiClient);
+            _sessionApi = sessionApi ?? new ApiSessionClient(sharedApiClient);
 
             LoginCommand = new RelayCommand(pwd => ExecuteLoginAsync(pwd as string ?? string.Empty));
             _ = CheckApiAsync();

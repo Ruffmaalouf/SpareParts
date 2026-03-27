@@ -11,7 +11,7 @@ namespace SpareParts.Desktop.Wpf
 
         public PartsApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<List<PartDto>> GetPartsAsync() => _api.GetPartsAsync();

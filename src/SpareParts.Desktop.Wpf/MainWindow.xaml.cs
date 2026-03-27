@@ -8,10 +8,10 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(InvoiceTabsViewModel? vm = null)
         {
             InitializeComponent();
-            DataContext = new InvoiceTabsViewModel();
+            DataContext = vm ?? new InvoiceTabsViewModel();
         }
 
         private async void InvoiceSearchResults_MouseDoubleClick(object sender, MouseButtonEventArgs e)
