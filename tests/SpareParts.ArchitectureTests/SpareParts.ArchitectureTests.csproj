@@ -12,7 +12,12 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\SpareParts.Infrastructure\SpareParts.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\SpareParts.Domain\SpareParts.Domain.csproj" />
+    <ProjectReference Include="..\..\src\SpareParts.Api\SpareParts.Api.csproj" />
+    <ProjectReference Include="..\..\src\SpareParts.Desktop.Helpers\SpareParts.Desktop.Helpers.csproj" />
   </ItemGroup>
 </Project>
