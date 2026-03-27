@@ -321,5 +321,10 @@ namespace SpareParts.Desktop.Wpf
         {
             Trace.TraceError($"[ApiClient] {message} Exception: {ex}");
         }
+
+        public Task UpdateSaleAsync(int invoiceId, UpdateSaleRequest req)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
