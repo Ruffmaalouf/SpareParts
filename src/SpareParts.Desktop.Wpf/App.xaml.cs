@@ -44,6 +44,7 @@ namespace SpareParts.Desktop.Wpf
             services.AddTransient<ManagementViewModel>();
             services.AddTransient<InvoiceTabsViewModel>();
             services.AddTransient<MainWindow>();
+            services.AddTransient<IMainWindowFactory, MainWindowFactory>();
             services.AddTransient<LoginWindow>();
             services.AddTransient<ManagementWindow>();
 
