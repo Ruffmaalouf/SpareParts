@@ -403,11 +403,43 @@
                                   RowHeight="34"
                                   ColumnHeaderHeight="32">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="App Screen" Binding="{Binding MenuName}" Width="*"/>
-                                <DataGridCheckBoxColumn Header="View" Binding="{Binding CanView}" Width="70"/>
-                                <DataGridCheckBoxColumn Header="Edit" Binding="{Binding CanEdit}" Width="70"/>
-                                <DataGridCheckBoxColumn Header="Modify" Binding="{Binding CanModify}" Width="80"/>
-                                <DataGridCheckBoxColumn Header="Delete" Binding="{Binding CanDelete}" Width="80"/>
+                                <DataGridTextColumn Header="Screen" Binding="{Binding MenuName}" Width="*"/>
+                                <DataGridTemplateColumn Header="View" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      IsChecked="{Binding CanView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Add" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      IsChecked="{Binding CanEdit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Modify" Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      IsChecked="{Binding CanModify, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Delete" Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      IsChecked="{Binding CanDelete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
 
