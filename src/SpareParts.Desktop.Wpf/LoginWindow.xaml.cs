@@ -7,18 +7,20 @@ namespace SpareParts.Desktop.Wpf
     public partial class LoginWindow : Window
     {
         private readonly LoginViewModel _vm;
-        private readonly MainWindow _mainWindow;
+        private readonly IMainWindowFactory _mainWindowFactory;
 
-        public LoginWindow(LoginViewModel vm, MainWindow mainWindow)
+        public LoginWindow(LoginViewModel vm, IMainWindowFactory mainWindowFactory)
         {
             InitializeComponent();
             _vm = vm;
-            _mainWindow = mainWindow;
+            _mainWindowFactory = mainWindowFactory;
             DataContext = _vm;
 
             _vm.LoginSucceeded += _ =>
             {
-                _mainWindow.Show();
+                var mainWindow = _mainWindowFactory.Create();
+                Application.Current.MainWindow = mainWindow;
+                mainWindow.Show();
                 Close();
             };
 
