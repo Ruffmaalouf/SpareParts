@@ -36,7 +36,7 @@ namespace SpareParts.Desktop.Wpf
         private string _formBadgeColor = "#22FFFFFF";
         private string _formBadgeTextColor = "#FFFFFF";
         private bool _formIsActive = true;
-        private string _accessPopupTitle = "Role Access";
+        private string _accessPopupTitle = "Role Screen Access";
         private bool _isAccessPopupOpen;
         private int? _accessRoleId;
 
@@ -194,7 +194,7 @@ namespace SpareParts.Desktop.Wpf
 
             await LoadMenuAccessAsync(role.Id);
             _accessRoleId = role.Id;
-            AccessPopupTitle = $"{role.Name} Access";
+            AccessPopupTitle = $"{role.Name} Screen Access";
             IsAccessPopupOpen = true;
         }
 

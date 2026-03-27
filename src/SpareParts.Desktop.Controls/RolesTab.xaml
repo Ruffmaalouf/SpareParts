@@ -403,7 +403,7 @@
                                   RowHeight="34"
                                   ColumnHeaderHeight="32">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Screen" Binding="{Binding MenuName}" Width="*"/>
+                                <DataGridTextColumn Header="App Screen" Binding="{Binding MenuName}" Width="*"/>
                                 <DataGridCheckBoxColumn Header="View" Binding="{Binding CanView}" Width="70"/>
                                 <DataGridCheckBoxColumn Header="Edit" Binding="{Binding CanEdit}" Width="70"/>
                                 <DataGridCheckBoxColumn Header="Modify" Binding="{Binding CanModify}" Width="80"/>

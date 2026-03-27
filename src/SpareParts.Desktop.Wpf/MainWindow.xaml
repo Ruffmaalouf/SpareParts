@@ -253,11 +253,13 @@
                     <Button Command="{Binding GoToPurchasesCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 10"
+                            Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
                             Content="🧾  Purchases"/>
 
                     <Button Command="{Binding GoToStockManagementCommand}"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"
+                            Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                             Content="📦  Stock Management"/>
 
                     <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
@@ -333,12 +335,15 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 30 0 0">
                         <Button Content="Start New Sale" Command="{Binding GoToPosCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
+                                Visibility="{Binding CanViewPosScreen, Converter={StaticResource BoolToVis}}"
                                 Width="200"/>
                         <Button Content="Open Purchases" Command="{Binding GoToPurchasesCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
                                 Width="200" Margin="12 0 0 0"/>
                         <Button Content="Open Stock" Command="{Binding GoToStockManagementCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                                 Width="200" Margin="12 0 0 0"/>
                     </StackPanel>
                 </StackPanel>

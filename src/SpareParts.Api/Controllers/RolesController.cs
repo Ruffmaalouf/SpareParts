@@ -177,6 +177,9 @@ namespace SpareParts.Api.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult UpdateMenuAccess(int id, [FromBody] UpdateRoleMenuAccessRequest req)
         {
+            if (req?.Items == null)
+                return BadRequest("Access items are required.");
+
             using var conn = _factory.CreateConnection();
             EnsureMenuAccessTables(conn);
 
@@ -186,13 +189,19 @@ namespace SpareParts.Api.Controllers
             foreach (var item in req.Items)
             {
                 conn.Execute(
-                    @"UPDATE RoleMenuAccess
-                      SET CanView = @CanView,
-                          CanEdit = @CanEdit,
-                          CanModify = @CanModify,
-                          CanDelete = @CanDelete,
-                          ModifiedAt = SYSUTCDATETIME()
-                      WHERE RoleId = @RoleId AND MenuId = @MenuId",
+                    @"MERGE dbo.RoleMenuAccess AS target
+                      USING (SELECT @RoleId AS RoleId, @MenuId AS MenuId) AS source
+                      ON target.RoleId = source.RoleId AND target.MenuId = source.MenuId
+                      WHEN MATCHED THEN
+                          UPDATE SET
+                              CanView = @CanView,
+                              CanEdit = @CanEdit,
+                              CanModify = @CanModify,
+                              CanDelete = @CanDelete,
+                              ModifiedAt = SYSUTCDATETIME()
+                      WHEN NOT MATCHED THEN
+                          INSERT (RoleId, MenuId, CanView, CanEdit, CanModify, CanDelete, ModifiedAt)
+                          VALUES (@RoleId, @MenuId, @CanView, @CanEdit, @CanModify, @CanDelete, SYSUTCDATETIME());",
                     new
                     {
                         RoleId = id,
@@ -243,7 +252,13 @@ END;
 
 MERGE dbo.AppMenus AS target
 USING (VALUES
+    ('home_screen', 'Home Screen', 5),
+    ('pos_screen', 'POS Screen', 8),
+    ('car_selection_screen', 'Car Selection Screen', 9),
+    ('part_selection_screen', 'Part Selection Screen', 9),
     ('invoice_search', 'Invoice Search', 10),
+    ('purchases_screen', 'Purchases Screen', 15),
+    ('stock_management_screen', 'Stock Management Screen', 18),
     ('management_screen', 'Management Screen', 20),
     ('supplier_tab', 'Supplier Tab', 30)
 ) AS source(MenuKey, MenuName, SortOrder)
@@ -257,7 +272,9 @@ INSERT INTO dbo.RoleMenuAccess (RoleId, MenuId, CanView, CanEdit, CanModify, Can
 SELECT r.Id,
        m.Id,
        CASE 
+         WHEN m.MenuKey IN ('home_screen','pos_screen','car_selection_screen','part_selection_screen') AND r.Name IN ('Admin','Manager','Cashier') THEN 1
          WHEN m.MenuKey = 'invoice_search' AND r.Name IN ('Admin','Manager','Cashier') THEN 1
+         WHEN m.MenuKey IN ('purchases_screen','stock_management_screen') AND r.Name IN ('Admin','Manager') THEN 1
          WHEN m.MenuKey IN ('management_screen','supplier_tab') AND r.Name IN ('Admin','Manager') THEN 1
          ELSE 0
        END AS CanView,
