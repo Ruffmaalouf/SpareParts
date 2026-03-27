@@ -5,21 +5,18 @@ using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class RolesApiClient : IRoleApiClient
+    public sealed class RolesApiClient : FeatureApiClientBase, IRoleApiClient
     {
-        private readonly IApiClient _api;
-
-        public RolesApiClient(IApiClient? api = null)
+        public RolesApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<RoleDto>> GetRolesAsync() => _api.GetRolesAsync();
-        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId) => _api.GetRoleMenuAccessAsync(roleId);
-        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName) => _api.GetRoleMenuAccessByNameAsync(roleName);
-        public Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req) => _api.UpdateRoleMenuAccessAsync(roleId, req);
-        public Task<RoleDto> CreateRoleAsync(CreateRoleRequest req) => _api.CreateRoleAsync(req);
-        public Task UpdateRoleAsync(int id, UpdateRoleRequest req) => _api.UpdateRoleAsync(id, req);
-        public Task DeleteRoleAsync(int id) => _api.DeleteRoleAsync(id);
+        public Task<List<RoleDto>> GetRolesAsync() => RetrieveAsync<RoleDto>("api/roles");
+        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId) => RetrieveAsync<RoleMenuAccessDto>($"api/roles/{roleId}/screens");
+        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName) => RetrieveAsync<RoleMenuAccessDto>($"api/roles/by-name/{roleName}/screens");
+        public Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req) => EditAsync($"api/roles/{roleId}/screens", req);
+        public Task<RoleDto> CreateRoleAsync(CreateRoleRequest req) => AddAsync<RoleDto>("api/roles", req, "Empty role response.");
+        public Task UpdateRoleAsync(int id, UpdateRoleRequest req) => EditAsync($"api/roles/{id}", req);
+        public Task DeleteRoleAsync(int id) => DeleteResourceAsync($"api/roles/{id}");
     }
 }

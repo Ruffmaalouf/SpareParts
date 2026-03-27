@@ -1,20 +1,36 @@
+using RestSharp;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Auth;
+using System;
 using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class AuthApiClient : IAuthApiClient
+    public sealed class AuthApiClient : FeatureApiClientBase, IAuthApiClient
     {
-        private readonly IApiClient _api;
-
-        public AuthApiClient(IApiClient? api = null)
+        public AuthApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<LoginResponse> LoginAsync(string username, string password) => _api.LoginAsync(username, password);
+        public Task<LoginResponse> LoginAsync(string username, string password)
+            => AddAsync<LoginResponse>(
+                "api/auth/login",
+                new LoginRequest { Username = username, Password = password },
+                "Empty login response.");
 
-        public Task<bool> PingAsync() => _api.PingAsync();
+        public async Task<bool> PingAsync()
+        {
+            try
+            {
+                var request = CreateRequest("api/health", Method.Get);
+                request.Timeout = TimeSpan.FromSeconds(4);
+                var response = await Client.ExecuteAsync(request);
+                return response.IsSuccessful;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
