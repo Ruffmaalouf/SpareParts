@@ -11,7 +11,7 @@ namespace SpareParts.Desktop.Wpf
 
         public WarehousesApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<List<WarehouseDto>> GetWarehousesAsync() => _api.GetWarehousesAsync();

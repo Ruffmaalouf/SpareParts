@@ -27,8 +27,8 @@ namespace SpareParts.Desktop.Wpf
         public CarModelManagementViewModel CarModelsFeature { get; } = new();
         public WarehouseManagementViewModel WarehousesFeature { get; } = new();
 
-        public UsersViewModel UsersVm { get; } = new();
-        public RolesViewModel RolesVm { get; } = new();
+        public UsersViewModel UsersVm { get; }
+        public RolesViewModel RolesVm { get; }
         public ObservableCollection<CategoryDto> Categories { get; } = new();
 
         public ObservableCollection<CustomerDto> Customers => CustomersFeature.Customers;
@@ -132,6 +132,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteWarehouseCommand { get; }
 
         public ManagementViewModel(
+            IApiClient? apiClient = null,
             ICrudApiClient? crudApi = null,
             ICarCatalogApiClient? carCatalogApi = null,
             bool canViewSupplierTab = false,
@@ -139,9 +140,14 @@ namespace SpareParts.Desktop.Wpf
             bool canModifySupplier = false,
             bool canDeleteSupplier = false)
         {
+            var sharedApiClient = apiClient ?? new ApiClient();
+            UsersVm = new UsersViewModel(sharedApiClient);
+            RolesVm = new RolesViewModel(sharedApiClient);
             SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
 
-            _coordinator = new ManagementCoordinator(crudApi ?? new CrudApiClient(), carCatalogApi ?? new CarCatalogApiClient());
+            _coordinator = new ManagementCoordinator(
+                crudApi ?? new CrudApiClient(sharedApiClient),
+                carCatalogApi ?? new CarCatalogApiClient(sharedApiClient));
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());

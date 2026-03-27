@@ -10,7 +10,7 @@ namespace SpareParts.Desktop.Wpf
 
         public AuthApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<LoginResponse> LoginAsync(string username, string password) => _api.LoginAsync(username, password);

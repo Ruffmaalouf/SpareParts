@@ -11,7 +11,7 @@ namespace SpareParts.Desktop.Wpf
 
         public SalesApiClient(IApiClient? api = null)
         {
-            _api = api ?? ApiClient.Instance;
+            _api = api ?? new ApiClient();
         }
 
         public Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req) => _api.CreateSaleAsync(req);
