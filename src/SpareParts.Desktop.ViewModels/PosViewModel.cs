@@ -161,7 +161,7 @@ namespace SpareParts.Desktop.Wpf
 
             try
             {
-                // Use the shared ApiClient (already has the Bearer token set)
+                // Use the sales API client (authorization token is read from shared token store)
                 var req = new CreateSaleRequest
                 {
                     InvoiceDate   = InvoiceDate,
