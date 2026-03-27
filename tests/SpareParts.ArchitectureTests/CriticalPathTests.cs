@@ -1,4 +1,5 @@
 using SpareParts.Domain.Accounting;
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Sales;
 using SpareParts.ArchitectureTests.TestDoubles;
@@ -32,7 +33,7 @@ public class CriticalPathTests
         var repo = new FakeInventoryRepository();
         var service = new InventoryService();
 
-        service.AdjustStock(repo, partId: 10, warehouseId: 3, quantityChange: 5, StockMovementType.Purchase, "Purchase", 101, 20m, userId: 7);
+        service.AdjustStock(repo, partId: 10, warehouseId: 3, quantityChange: 5, StockMovementType.Purchase, ReferenceTypes.Purchase, 101, 20m, userId: 7);
 
         Assert.Single(repo.StockRows);
         Assert.Single(repo.Movements);

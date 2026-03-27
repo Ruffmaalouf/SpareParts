@@ -1,4 +1,5 @@
 using SpareParts.Domain.Accounting;
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
@@ -165,7 +166,7 @@ namespace SpareParts.Infrastructure.Services
                     warehouseId: request.WarehouseId,
                     quantityChange: item.Quantity,
                     movementType: StockMovementType.Purchase,
-                    referenceType: "Purchase",
+                    referenceType: ReferenceTypes.Purchase,
                     referenceId: purchaseId,
                     unitCost: item.UnitCost,
                     userId: userId);
@@ -177,7 +178,7 @@ namespace SpareParts.Infrastructure.Services
             var entry = new JournalEntry
             {
                 EntryDate = purchase.PurchaseDate,
-                ReferenceType = "Purchase",
+                ReferenceType = ReferenceTypes.Purchase,
                 ReferenceId = purchaseId,
                 Description = $"Purchase {purchase.PurchaseNumber}",
                 CreatedAt = DateTime.UtcNow,
