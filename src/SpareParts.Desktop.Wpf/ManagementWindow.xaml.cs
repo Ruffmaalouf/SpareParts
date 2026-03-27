@@ -6,10 +6,10 @@ namespace SpareParts.Desktop.Wpf
     {
         private readonly ManagementViewModel _vm;
 
-        public ManagementWindow()
+        public ManagementWindow(ManagementViewModel vm)
         {
             InitializeComponent();
-            _vm         = new ManagementViewModel();
+            _vm = vm;
             DataContext = _vm;
 
             // Load data after the window is fully rendered

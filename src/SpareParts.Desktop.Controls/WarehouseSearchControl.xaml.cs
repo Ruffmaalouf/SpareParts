@@ -67,7 +67,7 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Constructor ───────────────────────────────────────────────────────
 
-        public WarehouseSearchControl() : this(new CrudApiClient())
+        public WarehouseSearchControl() : this(ServiceLocator.Resolve<ICrudApiClient>())
         {
         }
 

@@ -7,7 +7,8 @@ namespace SpareParts.Desktop.Wpf
 {
     public sealed class WarehousesApiClient : FeatureApiClientBase, IWarehouseApiClient
     {
-        public WarehousesApiClient() : base(AppSettings.ApiBaseUrl)
+        public WarehousesApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
+            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
         {
         }
 

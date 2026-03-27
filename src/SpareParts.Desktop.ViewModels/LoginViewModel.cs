@@ -70,11 +70,11 @@ namespace SpareParts.Desktop.Wpf
         public ICommand LoginCommand { get; }
 
         public LoginViewModel(
-            IAuthApiClient? authApi = null,
-            IApiSessionClient? sessionApi = null)
+            IAuthApiClient authApi,
+            IApiSessionClient sessionApi)
         {
-            _authApi = authApi ?? new AuthApiClient();
-            _sessionApi = sessionApi ?? new ApiSessionClient();
+            _authApi = authApi;
+            _sessionApi = sessionApi;
 
             LoginCommand = new RelayCommand(pwd => ExecuteLoginAsync(pwd as string ?? string.Empty));
             _ = CheckApiAsync();

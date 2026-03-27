@@ -155,9 +155,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand SaveInvoiceCommand  { get; }
         public ICommand ResetInvoiceCommand { get; }
 
-        public InvoiceTabViewModel(ISalesApiClient? salesApi = null)
+        public InvoiceTabViewModel(ISalesApiClient salesApi)
         {
-            _salesApi = salesApi ?? new SalesApiClient();
+            _salesApi = salesApi;
             AddItemCommand      = new RelayCommand(_ => AddItem());
             SubmitSaleCommand   = new RelayCommand(_ => _ = SubmitSaleAsync());
             EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());

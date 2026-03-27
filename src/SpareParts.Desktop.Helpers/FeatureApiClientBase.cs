@@ -1,4 +1,5 @@
 using RestSharp;
+using SpareParts.Desktop.Wpf.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,21 +9,20 @@ namespace SpareParts.Desktop.Wpf
     public abstract class FeatureApiClientBase
     {
         protected readonly RestClient Client;
+        private readonly IApiTokenProvider _tokenProvider;
 
-        protected FeatureApiClientBase(string baseUrl)
+        protected FeatureApiClientBase(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider, string baseUrl)
         {
-            Client = new RestClient(new RestClientOptions(baseUrl)
-            {
-                ThrowOnAnyError = false 
-            });
+            Client = restClientFactory.Create(baseUrl);
+            _tokenProvider = tokenProvider;
         }
 
         protected RestRequest CreateRequest(string resource, Method method)
         {
             var request = new RestRequest(resource, method);
-            if (!string.IsNullOrWhiteSpace(ApiClientTokenStore.Token))
+            if (!string.IsNullOrWhiteSpace(_tokenProvider.Token))
             {
-                request.AddOrUpdateHeader("Authorization", $"Bearer {ApiClientTokenStore.Token}");
+                request.AddOrUpdateHeader("Authorization", $"Bearer {_tokenProvider.Token}");
             }
 
             return request;
@@ -75,12 +75,12 @@ namespace SpareParts.Desktop.Wpf
 
         protected void SetTokenInternal(string token)
         {
-            ApiClientTokenStore.Token = token;
+            _tokenProvider.Token = token;
         }
 
         protected void ClearTokenInternal()
         {
-            ApiClientTokenStore.Token = null;
+            _tokenProvider.Clear();
         }
     }
 }
