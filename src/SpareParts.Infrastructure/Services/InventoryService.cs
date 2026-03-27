@@ -24,6 +24,8 @@ namespace SpareParts.Infrastructure.Services
             int userId)
         {
             var existing = inventoryRepository.GetStock(partId, warehouseId);
+            var stockId = existing?.Id ?? 0;
+
             if (existing == null)
             {
                 var stock = new Stock
@@ -35,11 +37,12 @@ namespace SpareParts.Infrastructure.Services
                     CreatedAt = DateTime.UtcNow,
                     CreatedByUserId = userId
                 };
-                inventoryRepository.InsertStock(stock);
+
+                stockId = inventoryRepository.InsertStock(stock);
             }
             else
             {
-                inventoryRepository.UpdateStockQuantity(existing.Id, quantityChange, userId);
+                inventoryRepository.UpdateStockQuantity(stockId, quantityChange, userId);
             }
 
             var movement = new StockMovement
@@ -54,7 +57,20 @@ namespace SpareParts.Infrastructure.Services
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId
             };
-            inventoryRepository.InsertStockMovement(movement);
+
+            try
+            {
+                inventoryRepository.InsertStockMovement(movement);
+            }
+            catch
+            {
+                if (stockId > 0 && quantityChange != 0)
+                {
+                    inventoryRepository.UpdateStockQuantity(stockId, -quantityChange, userId);
+                }
+
+                throw;
+            }
         }
     }
 }
