@@ -18,7 +18,7 @@ namespace SpareParts.Desktop.Wpf
             => new(new RestClientOptions(baseUrl)
             {
                 ThrowOnAnyError = false,
-                MaxTimeout = (int)RequestTimeout.TotalMilliseconds,
+                Timeout = RequestTimeout,
                 ConfigureMessageHandler = _ => new RetryHandler(
                     innerHandler: new HttpClientHandler(),
                     maxRetries: RetryCount,
