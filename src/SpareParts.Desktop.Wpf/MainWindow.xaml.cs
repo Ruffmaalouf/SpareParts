@@ -14,6 +14,12 @@ namespace SpareParts.Desktop.Wpf
             DataContext = vm ?? new InvoiceTabsViewModel();
         }
 
+
+        private void QuickActionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            QuickActionsToggle.IsChecked = false;
+        }
+
         private async void InvoiceSearchResults_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is not InvoiceTabsViewModel vm)
