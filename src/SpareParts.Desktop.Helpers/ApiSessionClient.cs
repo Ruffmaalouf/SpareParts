@@ -2,17 +2,14 @@ using SpareParts.Desktop.Wpf.Interfaces;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class ApiSessionClient : IApiSessionClient
+    public sealed class ApiSessionClient : FeatureApiClientBase, IApiSessionClient
     {
-        private readonly IApiClient _api;
-
-        public ApiSessionClient(IApiClient? api = null)
+        public ApiSessionClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public void SetToken(string token) => _api.SetToken(token);
+        public void SetToken(string token) => SetTokenInternal(token);
 
-        public void ClearToken() => _api.ClearToken();
+        public void ClearToken() => ClearTokenInternal();
     }
 }

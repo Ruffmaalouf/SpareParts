@@ -1,3 +1,4 @@
+using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Auth;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
@@ -16,42 +17,52 @@ using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public class ApiClient : ApiClientBase
+    public class ApiClient : IApiClient
     {
-        public ApiClient() : base(AppSettings.ApiBaseUrl)
+        private readonly HttpClient Http;
+
+        public ApiClient()
         {
+            Http = new HttpClient
+            {
+                BaseAddress = new Uri(AppSettings.ApiBaseUrl),
+                Timeout = TimeSpan.FromSeconds(30)
+            };
+            Http.DefaultRequestHeaders.Accept
+                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
             if (!string.IsNullOrWhiteSpace(ApiClientTokenStore.Token))
             {
                 SetToken(ApiClientTokenStore.Token);
             }
         }
 
-
-        public override void SetToken(string token)
+        public void SetToken(string token)
         {
             ApiClientTokenStore.Token = token;
-            base.SetToken(token);
+            Http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
 
-        public override void ClearToken()
+        public void ClearToken()
         {
             ApiClientTokenStore.Token = null;
-            base.ClearToken();
+            Http.DefaultRequestHeaders.Authorization = null;
         }
 
         // ── Auth ──────────────────────────────────────────────────────────────
-        public override async Task<LoginResponse> LoginAsync(string username, string password)
+        public async Task<LoginResponse> LoginAsync(string username, string password)
         {
             var resp = await Http.PostAsJsonAsync("api/auth/login",
                 new LoginRequest { Username = username, Password = password });
 
-            await EnsureSuccessAsync(resp, "Invalid credentials.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Invalid credentials.");
 
             return await resp.Content.ReadFromJsonAsync<LoginResponse>()
                    ?? throw new InvalidOperationException("Empty login response.");
         }
 
-        public override async Task<bool> PingAsync()
+        public async Task<bool> PingAsync()
         {
             try
             {
@@ -78,33 +89,33 @@ namespace SpareParts.Desktop.Wpf
         }
 
         // ── Users ─────────────────────────────────────────────────────────────
-        public override async Task<List<UserDto>> GetUsersAsync()
+        public async Task<List<UserDto>> GetUsersAsync()
         {
             return await Http.GetFromJsonAsync<List<UserDto>>("api/users")
                    ?? new List<UserDto>();
         }
 
-        public override async Task<int> CreateUserAsync(CreateUserRequest req)
+        public async Task<int> CreateUserAsync(CreateUserRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/users", req);
-            await EnsureSuccessAsync(resp, "Request failed.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Request failed.");
             return await resp.Content.ReadFromJsonAsync<int>();
         }
 
-        public override async Task UpdateUserAsync(int id, UpdateUserRequest req)
+        public async Task UpdateUserAsync(int id, UpdateUserRequest req)
         {
             var resp = await Http.PutAsJsonAsync($"api/users/{id}", req);
-            await EnsureSuccessAsync(resp, "Request failed.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Request failed.");
         }
 
-        public override async Task DeleteUserAsync(int id)
+        public async Task DeleteUserAsync(int id)
         {
             var resp = await Http.DeleteAsync($"api/users/{id}");
-            await EnsureSuccessAsync(resp, $"Deactivate failed: {resp.StatusCode}");
+            await ApiClientBase.EnsureSuccessAsync(resp, $"Deactivate failed: {resp.StatusCode}");
         }
 
         // ── Customers ─────────────────────────────────────────────────────────
-        public override async Task<List<CustomerDto>> SearchCustomersAsync(string query)
+        public async Task<List<CustomerDto>> SearchCustomersAsync(string query)
         {
             return await Http.GetFromJsonAsync<List<CustomerDto>>(
                        $"api/customers?search={Uri.EscapeDataString(query)}")
@@ -112,20 +123,20 @@ namespace SpareParts.Desktop.Wpf
         }
 
         // ── Warehouses ────────────────────────────────────────────────────────
-        public override async Task<List<WarehouseDto>> GetWarehousesAsync()
+        public async Task<List<WarehouseDto>> GetWarehousesAsync()
         {
             return await Http.GetFromJsonAsync<List<WarehouseDto>>("api/warehouses")
                    ?? new List<WarehouseDto>();
         }
 
         // ── Car Brands ────────────────────────────────────────────────────────
-        public override async Task<List<CarBrandDto>> GetCarBrandsAsync()
+        public async Task<List<CarBrandDto>> GetCarBrandsAsync()
         {
             return await Http.GetFromJsonAsync<List<CarBrandDto>>("api/carbrands")
                    ?? new List<CarBrandDto>();
         }
 
-        public override async Task<BitmapImage?> GetCarBrandLogoAsync(int brandId)
+        public async Task<BitmapImage?> GetCarBrandLogoAsync(int brandId)
         {
             try
             {
@@ -136,7 +147,7 @@ namespace SpareParts.Desktop.Wpf
                     return null;
                 }
 
-                return BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
+                return ApiClientBase.BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
             }
             catch (HttpRequestException ex)
             {
@@ -150,25 +161,25 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        public override async Task UploadCarBrandLogoAsync(int brandId, string filePath)
+        public async Task UploadCarBrandLogoAsync(int brandId, string filePath)
         {
             await using var fs = File.OpenRead(filePath);
             var content = new MultipartFormDataContent();
             var fileContent = new StreamContent(fs);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filePath));
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(ApiClientBase.GetMimeType(filePath));
             content.Add(fileContent, "image", Path.GetFileName(filePath));
             (await Http.PostAsync($"api/carbrands/{brandId}/logo", content)).EnsureSuccessStatusCode();
         }
 
         // ── Car Models ────────────────────────────────────────────────────────
-        public override async Task<List<CarModelDto>> GetCarModelsAsync(int brandId)
+        public async Task<List<CarModelDto>> GetCarModelsAsync(int brandId)
         {
             return await Http.GetFromJsonAsync<List<CarModelDto>>(
                        $"api/carmodels?brandId={brandId}")
                    ?? new List<CarModelDto>();
         }
 
-        public override async Task<BitmapImage?> GetCarModelImageAsync(int modelId)
+        public async Task<BitmapImage?> GetCarModelImageAsync(int modelId)
         {
             try
             {
@@ -179,7 +190,7 @@ namespace SpareParts.Desktop.Wpf
                     return null;
                 }
 
-                return BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
+                return ApiClientBase.BytesToBitmap(await resp.Content.ReadAsByteArrayAsync());
             }
             catch (HttpRequestException ex)
             {
@@ -193,112 +204,112 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        public override async Task UploadCarModelImageAsync(int modelId, string filePath)
+        public async Task UploadCarModelImageAsync(int modelId, string filePath)
         {
             await using var fs = File.OpenRead(filePath);
             var content = new MultipartFormDataContent();
             var fileContent = new StreamContent(fs);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue(GetMimeType(filePath));
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(ApiClientBase.GetMimeType(filePath));
             content.Add(fileContent, "image", Path.GetFileName(filePath));
             (await Http.PostAsync($"api/carmodels/{modelId}/image", content)).EnsureSuccessStatusCode();
         }
 
         // ── Parts ─────────────────────────────────────────────────────────────
-        public override async Task<List<PartDto>> GetPartsAsync()
+        public async Task<List<PartDto>> GetPartsAsync()
         {
             return await Http.GetFromJsonAsync<List<PartDto>>("api/parts")
                    ?? new List<PartDto>();
         }
 
         // ── Sales ─────────────────────────────────────────────────────────────
-        public override async Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
+        public async Task<CreateSaleResponse> CreateSaleAsync(CreateSaleRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/sales", req);
-            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
+            await ApiClientBase.EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
             return await resp.Content.ReadFromJsonAsync<CreateSaleResponse>()
                    ?? throw new InvalidOperationException("Empty sale response.");
         }
 
-        public override async Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query)
+        public async Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query)
         {
             return await Http.GetFromJsonAsync<List<SalesInvoiceLookupDto>>($"api/sales?search={Uri.EscapeDataString(query ?? string.Empty)}")
                    ?? new List<SalesInvoiceLookupDto>();
         }
 
-        public override Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId)
+        public Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId)
             => Http.GetFromJsonAsync<SalesInvoiceDetailsDto?>($"api/sales/{invoiceId}");
 
         // ── Generic helpers used by ManagementViewModel ───────────────────────
-        public override async Task<List<T>> GetAllAsync<T>(string url)
+        public async Task<List<T>> GetAllAsync<T>(string url)
         {
             var resp = await Http.GetAsync(url);
-            await EnsureSuccessAsync(resp, $"GET {url} failed: {resp.StatusCode}");
+            await ApiClientBase.EnsureSuccessAsync(resp, $"GET {url} failed: {resp.StatusCode}");
             return await resp.Content.ReadFromJsonAsync<List<T>>()
                    ?? new List<T>();
         }
 
-        public override async Task PostAsync(string url, object payload)
+        public async Task PostAsync(string url, object payload)
         {
             var resp = await Http.PostAsJsonAsync(url, payload);
-            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
+            await ApiClientBase.EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
         }
 
-        public override async Task PutAsync(string url, object payload)
+        public async Task PutAsync(string url, object payload)
         {
             var resp = await Http.PutAsJsonAsync(url, payload);
-            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
+            await ApiClientBase.EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
         }
 
-        public override async Task DeleteAsync(string url)
+        public async Task DeleteAsync(string url)
         {
             var resp = await Http.DeleteAsync(url);
-            await EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
+            await ApiClientBase.EnsureSuccessAsync(resp, $"Request failed: {resp.StatusCode}");
         }
 
         // ── Roles ─────────────────────────────────────────────────────────────────
-        public override async Task<List<RoleDto>> GetRolesAsync()
+        public async Task<List<RoleDto>> GetRolesAsync()
         {
             return await Http.GetFromJsonAsync<List<RoleDto>>("api/roles")
                    ?? new List<RoleDto>();
         }
 
-        public override async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId)
+        public async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId)
         {
             return await Http.GetFromJsonAsync<List<RoleMenuAccessDto>>($"api/roles/{roleId}/menu-access")
                    ?? new List<RoleMenuAccessDto>();
         }
 
-        public override async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName)
+        public async Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName)
         {
             var encodedRoleName = Uri.EscapeDataString(roleName ?? string.Empty);
             return await Http.GetFromJsonAsync<List<RoleMenuAccessDto>>($"api/roles/by-name/{encodedRoleName}/menu-access")
                    ?? new List<RoleMenuAccessDto>();
         }
 
-        public override async Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req)
+        public async Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req)
         {
             var resp = await Http.PutAsJsonAsync($"api/roles/{roleId}/menu-access", req);
-            await EnsureSuccessAsync(resp, "Request failed.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Request failed.");
         }
 
-        public override async Task<RoleDto> CreateRoleAsync(CreateRoleRequest req)
+        public async Task<RoleDto> CreateRoleAsync(CreateRoleRequest req)
         {
             var resp = await Http.PostAsJsonAsync("api/roles", req);
-            await EnsureSuccessAsync(resp, "Request failed.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Request failed.");
             return await resp.Content.ReadFromJsonAsync<RoleDto>()
                    ?? throw new InvalidOperationException("Empty role response.");
         }
 
-        public override async Task UpdateRoleAsync(int id, UpdateRoleRequest req)
+        public async Task UpdateRoleAsync(int id, UpdateRoleRequest req)
         {
             var resp = await Http.PutAsJsonAsync($"api/roles/{id}", req);
-            await EnsureSuccessAsync(resp, "Request failed.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Request failed.");
         }
 
-        public override async Task DeleteRoleAsync(int id)
+        public async Task DeleteRoleAsync(int id)
         {
             var resp = await Http.DeleteAsync($"api/roles/{id}");
-            await EnsureSuccessAsync(resp, "Request failed.");
+            await ApiClientBase.EnsureSuccessAsync(resp, "Request failed.");
         }
 
         private static void LogWarning(string message)

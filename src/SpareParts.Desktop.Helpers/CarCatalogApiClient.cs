@@ -1,3 +1,4 @@
+using RestSharp;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Cars;
 using System.Collections.Generic;
@@ -6,20 +7,57 @@ using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class CarCatalogApiClient : ICarCatalogApiClient
+    public sealed class CarCatalogApiClient : FeatureApiClientBase, ICarCatalogApiClient
     {
-        private readonly IApiClient _api;
-
-        public CarCatalogApiClient(IApiClient? api = null)
+        public CarCatalogApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<CarBrandDto>> GetCarBrandsAsync() => _api.GetCarBrandsAsync();
-        public Task<BitmapImage?> GetCarBrandLogoAsync(int brandId) => _api.GetCarBrandLogoAsync(brandId);
-        public Task UploadCarBrandLogoAsync(int brandId, string filePath) => _api.UploadCarBrandLogoAsync(brandId, filePath);
-        public Task<List<CarModelDto>> GetCarModelsAsync(int brandId) => _api.GetCarModelsAsync(brandId);
-        public Task<BitmapImage?> GetCarModelImageAsync(int modelId) => _api.GetCarModelImageAsync(modelId);
-        public Task UploadCarModelImageAsync(int modelId, string filePath) => _api.UploadCarModelImageAsync(modelId, filePath);
+        public Task<List<CarBrandDto>> GetCarBrandsAsync() => RetrieveAsync<CarBrandDto>("api/carbrands");
+
+        public async Task<BitmapImage?> GetCarBrandLogoAsync(int brandId)
+        {
+            var request = CreateRequest($"api/carbrands/{brandId}/logo", Method.Get);
+            var response = await Client.ExecuteAsync(request);
+            if (!response.IsSuccessful || response.RawBytes is null)
+            {
+                return null;
+            }
+
+            return ApiClientBase.BytesToBitmap(response.RawBytes);
+        }
+
+        public async Task UploadCarBrandLogoAsync(int brandId, string filePath)
+        {
+            var request = CreateRequest($"api/carbrands/{brandId}/logo", Method.Post);
+            request.AddFile("image", filePath, contentType: ApiClientBase.GetMimeType(filePath));
+
+            var response = await Client.ExecuteAsync(request);
+            ApiClientBase.EnsureSuccess(response, $"Upload brand logo failed for {brandId}.");
+        }
+
+        public Task<List<CarModelDto>> GetCarModelsAsync(int brandId)
+            => RetrieveAsync<CarModelDto>($"api/carmodels?brandId={brandId}");
+
+        public async Task<BitmapImage?> GetCarModelImageAsync(int modelId)
+        {
+            var request = CreateRequest($"api/carmodels/{modelId}/image", Method.Get);
+            var response = await Client.ExecuteAsync(request);
+            if (!response.IsSuccessful || response.RawBytes is null)
+            {
+                return null;
+            }
+
+            return ApiClientBase.BytesToBitmap(response.RawBytes);
+        }
+
+        public async Task UploadCarModelImageAsync(int modelId, string filePath)
+        {
+            var request = CreateRequest($"api/carmodels/{modelId}/image", Method.Post);
+            request.AddFile("image", filePath, contentType: ApiClientBase.GetMimeType(filePath));
+
+            var response = await Client.ExecuteAsync(request);
+            ApiClientBase.EnsureSuccess(response, $"Upload model image failed for {modelId}.");
+        }
     }
 }

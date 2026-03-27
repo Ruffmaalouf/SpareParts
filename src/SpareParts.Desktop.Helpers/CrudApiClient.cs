@@ -4,18 +4,15 @@ using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class CrudApiClient : ICrudApiClient
+    public sealed class CrudApiClient : FeatureApiClientBase, ICrudApiClient
     {
-        private readonly IApiClient _api;
-
-        public CrudApiClient(IApiClient? api = null)
+        public CrudApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<T>> GetAllAsync<T>(string url) => _api.GetAllAsync<T>(url);
-        public Task PostAsync(string url, object payload) => _api.PostAsync(url, payload);
-        public Task PutAsync(string url, object payload) => _api.PutAsync(url, payload);
-        public Task DeleteAsync(string url) => _api.DeleteAsync(url);
+        public Task<List<T>> GetAllAsync<T>(string url) => RetrieveAsync<T>(url);
+        public Task PostAsync(string url, object payload) => AddAsync(url, payload);
+        public Task PutAsync(string url, object payload) => EditAsync(url, payload);
+        public Task DeleteAsync(string url) => DeleteResourceAsync(url);
     }
 }

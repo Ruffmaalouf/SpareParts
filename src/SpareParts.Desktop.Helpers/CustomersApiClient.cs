@@ -1,19 +1,18 @@
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.BusinessPartners;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class CustomersApiClient : ICustomerApiClient
+    public sealed class CustomersApiClient : FeatureApiClientBase, ICustomerApiClient
     {
-        private readonly IApiClient _api;
-
-        public CustomersApiClient(IApiClient? api = null)
+        public CustomersApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<CustomerDto>> SearchCustomersAsync(string query) => _api.SearchCustomersAsync(query);
+        public Task<List<CustomerDto>> SearchCustomersAsync(string query)
+            => RetrieveAsync<CustomerDto>($"api/customers?search={Uri.EscapeDataString(query)}");
     }
 }

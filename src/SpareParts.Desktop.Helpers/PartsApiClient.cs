@@ -5,15 +5,12 @@ using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public sealed class PartsApiClient : IPartsApiClient
+    public sealed class PartsApiClient : FeatureApiClientBase, IPartsApiClient
     {
-        private readonly IApiClient _api;
-
-        public PartsApiClient(IApiClient? api = null)
+        public PartsApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
         {
-            _api = api ?? new ApiClient();
         }
 
-        public Task<List<PartDto>> GetPartsAsync() => _api.GetPartsAsync();
+        public Task<List<PartDto>> GetPartsAsync() => RetrieveAsync<PartDto>("api/parts");
     }
 }
