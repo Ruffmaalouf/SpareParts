@@ -1,4 +1,3 @@
-using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf.ViewModels;
 using System.Windows;
 using System.Windows.Input;
@@ -8,18 +7,16 @@ namespace SpareParts.Desktop.Wpf
     public partial class LoginWindow : Window
     {
         private readonly LoginViewModel _vm;
-        private readonly IApiClient _apiClient;
 
-        public LoginWindow(IApiClient? apiClient = null, LoginViewModel? vm = null)
+        public LoginWindow(LoginViewModel? vm = null)
         {
             InitializeComponent();
-            _apiClient = apiClient ?? new ApiClient();
-            _vm = vm ?? new LoginViewModel(_apiClient);
+            _vm = vm ?? new LoginViewModel();
             DataContext = _vm;
 
             _vm.LoginSucceeded += _ =>
             {
-                new MainWindow(new InvoiceTabsViewModel(_apiClient)).Show();
+                new MainWindow(new InvoiceTabsViewModel()).Show();
                 Close();
             };
 

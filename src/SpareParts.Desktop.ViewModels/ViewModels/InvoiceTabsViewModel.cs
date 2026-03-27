@@ -180,25 +180,23 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToHomeCommand          { get; }
         public ICommand OpenManagementCommand    { get; }
         public ICommand OpenInvoiceSearchCommand { get; }
+        public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToStockManagementCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
 
         public InvoiceTabsViewModel(
-            IApiClient? apiClient = null,
             ICarCatalogApiClient? carCatalogApi = null,
             IPartsApiClient? partsApi = null,
             ISalesApiClient? salesApi = null,
             ICrudApiClient? crudApi = null)
         {
-            var sharedApiClient = apiClient ?? new ApiClient();
-            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient(sharedApiClient);
-            _partsApi = partsApi ?? new PartsApiClient(sharedApiClient);
-            _salesApi = salesApi ?? new SalesApiClient(sharedApiClient);
-            _rolesApi = new RolesApiClient(sharedApiClient);
+            _carCatalogApi = carCatalogApi ?? new CarCatalogApiClient();
+            _partsApi = partsApi ?? new PartsApiClient();
+            _salesApi = salesApi ?? new SalesApiClient();
+            _rolesApi = new RolesApiClient();
             ManagementVm = new ManagementViewModel(
-                sharedApiClient,
-                crudApi ?? new CrudApiClient(sharedApiClient),
+                crudApi ?? new CrudApiClient(),
                 _carCatalogApi);
 
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
@@ -275,6 +273,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     RefreshInvoiceSearch();
                 }
             });
+            ReloadInvoiceSearchCommand = new RelayCommand(_ => RefreshInvoiceSearch());
 
             GoToPurchasesCommand = new RelayCommand(_ =>
             {

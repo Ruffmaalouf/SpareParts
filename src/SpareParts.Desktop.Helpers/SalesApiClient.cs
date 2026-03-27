@@ -9,7 +9,7 @@ namespace SpareParts.Desktop.Wpf
 {
     public sealed class SalesApiClient : FeatureApiClientBase, ISalesApiClient
     {
-        public SalesApiClient(IApiClient? api = null) : base(AppSettings.ApiBaseUrl)
+        public SalesApiClient() : base(AppSettings.ApiBaseUrl)
         {
         }
 
@@ -25,6 +25,11 @@ namespace SpareParts.Desktop.Wpf
             var response = await Client.ExecuteAsync<SalesInvoiceDetailsDto?>(request);
             ApiClientBase.EnsureSuccess(response, $"GET api/sales/{invoiceId} failed.");
             return response.Data;
+        }
+
+        public async Task UpdateSaleAsync(int invoiceId, UpdateSaleRequest req)
+        {
+            await EditAsync($"api/sales/{invoiceId}", req);
         }
     }
 }

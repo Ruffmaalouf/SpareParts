@@ -1,4 +1,5 @@
 using Dapper;
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Sales;
 
 using SpareParts.Infrastructure.Interfaces.Repositories;
@@ -99,6 +100,78 @@ namespace SpareParts.Infrastructure.Data
         {
             const string sql = "SELECT COUNT(1) FROM SalesInvoices WHERE InvoiceNumber = @InvoiceNumber";
             return _session.Connection.ExecuteScalar<int>(sql, new { InvoiceNumber = invoiceNumber }, _session.Transaction) > 0;
+        }
+
+        public bool UpdateInvoice(int invoiceId, UpdateSaleRequest request, int userId)
+        {
+            var subtotal = request.Items.Sum(i => i.Quantity * i.UnitPrice);
+            var discountAmount = request.Items.Sum(i => i.DiscountAmount);
+            var taxAmount = request.Items.Sum(i => (i.Quantity * i.UnitPrice - i.DiscountAmount) * (i.TaxRate / 100m));
+            var totalAmount = subtotal - discountAmount + taxAmount;
+
+            var paymentStatus = request.PaidAmount <= 0
+                ? PaymentStatus.Unpaid.ToString()
+                : request.PaidAmount >= totalAmount
+                    ? PaymentStatus.Paid.ToString()
+                    : PaymentStatus.PartiallyPaid.ToString();
+
+            const string updateInvoiceSql = @"UPDATE SalesInvoices
+                SET InvoiceDate = @InvoiceDate,
+                    CustomerId = @CustomerId,
+                    WarehouseId = @WarehouseId,
+                    Subtotal = @Subtotal,
+                    DiscountAmount = @DiscountAmount,
+                    TaxAmount = @TaxAmount,
+                    TotalAmount = @TotalAmount,
+                    PaidAmount = @PaidAmount,
+                    PaymentStatus = @PaymentStatus
+                WHERE Id = @InvoiceId;";
+
+            var updated = _session.Connection.Execute(updateInvoiceSql, new
+            {
+                InvoiceId = invoiceId,
+                request.InvoiceDate,
+                request.CustomerId,
+                request.WarehouseId,
+                Subtotal = subtotal,
+                DiscountAmount = discountAmount,
+                TaxAmount = taxAmount,
+                TotalAmount = totalAmount,
+                request.PaidAmount,
+                PaymentStatus = paymentStatus
+            }, _session.Transaction);
+
+            if (updated == 0)
+            {
+                return false;
+            }
+
+            const string deleteItemsSql = "DELETE FROM SalesInvoiceItems WHERE InvoiceId = @InvoiceId;";
+            _session.Connection.Execute(deleteItemsSql, new { InvoiceId = invoiceId }, _session.Transaction);
+
+            const string insertItemSql = @"INSERT INTO SalesInvoiceItems
+                (InvoiceId, PartId, Quantity, UnitPrice, DiscountAmount, TaxRate, LineTotal, CreatedAt, CreatedByUserId)
+                VALUES
+                (@InvoiceId, @PartId, @Quantity, @UnitPrice, @DiscountAmount, @TaxRate, @LineTotal, @CreatedAt, @CreatedByUserId);";
+
+            foreach (var item in request.Items)
+            {
+                var lineTotal = (item.Quantity * item.UnitPrice - item.DiscountAmount) * (1 + (item.TaxRate / 100m));
+                _session.Connection.Execute(insertItemSql, new
+                {
+                    InvoiceId = invoiceId,
+                    item.PartId,
+                    item.Quantity,
+                    item.UnitPrice,
+                    item.DiscountAmount,
+                    item.TaxRate,
+                    LineTotal = lineTotal,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedByUserId = userId
+                }, _session.Transaction);
+            }
+
+            return true;
         }
     }
 }
