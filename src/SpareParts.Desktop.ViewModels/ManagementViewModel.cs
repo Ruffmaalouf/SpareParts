@@ -19,6 +19,8 @@ namespace SpareParts.Desktop.Wpf
     {
         private readonly ManagementCoordinator _coordinator;
         private readonly ICrudApiClient _crudApi;
+        private readonly SupplierPermissionState _supplierPermissions = new();
+        private readonly ManagementStatusCenter _statusCenter = new();
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -39,16 +41,12 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
 
-     
-        private bool _canViewSupplierTab;
-        public bool CanViewSupplierTab { get => _canViewSupplierTab; private set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
-        private bool _canEditSupplier;
-        public bool CanEditSupplier { get => _canEditSupplier; private set { _canEditSupplier = value; OnPropertyChanged(nameof(CanEditSupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
-        private bool _canModifySupplier;
-        public bool CanModifySupplier { get => _canModifySupplier; private set { _canModifySupplier = value; OnPropertyChanged(nameof(CanModifySupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
-        private bool _canDeleteSupplier;
-        public bool CanDeleteSupplier { get => _canDeleteSupplier; private set { _canDeleteSupplier = value; OnPropertyChanged(nameof(CanDeleteSupplier)); } }
-        public bool CanSaveSupplier => CanViewSupplierTab && (SelectedSupplier == null ? CanEditSupplier : CanModifySupplier);
+
+        public bool CanViewSupplierTab => _supplierPermissions.CanViewSupplierTab;
+        public bool CanEditSupplier => _supplierPermissions.CanEditSupplier;
+        public bool CanModifySupplier => _supplierPermissions.CanModifySupplier;
+        public bool CanDeleteSupplier => _supplierPermissions.CanDeleteSupplier;
+        public bool CanSaveSupplier => _supplierPermissions.CanSaveSupplier;
 
         public CustomerDto? SelectedCustomer { get => CustomersFeature.SelectedCustomer; set { CustomersFeature.SelectedCustomer = value; OnPropertyChanged(nameof(SelectedCustomer)); if (value != null) { CustomersFeature.PopulateForm(value); RaiseCustomerProps(); } } }
         public SupplierDto? SelectedSupplier
@@ -57,6 +55,7 @@ namespace SpareParts.Desktop.Wpf
             set
             {
                 SuppliersFeature.SelectedSupplier = value;
+                _supplierPermissions.IsEditingSupplier = value != null;
                 OnPropertyChanged(nameof(SelectedSupplier));
                 OnPropertyChanged(nameof(CanSaveSupplier));
                 if (value != null) { SuppliersFeature.PopulateForm(value); RaiseSupplierProps(); }
@@ -109,12 +108,9 @@ namespace SpareParts.Desktop.Wpf
         public string NewWarehouseAddress { get => WarehousesFeature.NewWarehouseAddress; set { WarehousesFeature.NewWarehouseAddress = value; OnPropertyChanged(nameof(NewWarehouseAddress)); } }
         public bool NewWarehouseIsMain { get => WarehousesFeature.NewWarehouseIsMain; set { WarehousesFeature.NewWarehouseIsMain = value; OnPropertyChanged(nameof(NewWarehouseIsMain)); } }
 
-        private string _status = string.Empty;
-        public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(Status)); } }
-        public ObservableCollection<StatusMessage> StatusMessages { get; } = new();
-
-        private Brush _statusBrush = Brushes.DodgerBlue;
-        public Brush StatusBrush { get => _statusBrush; set { _statusBrush = value; OnPropertyChanged(nameof(StatusBrush)); } }
+        public string Status => _statusCenter.Status;
+        public ObservableCollection<StatusMessage> StatusMessages => _statusCenter.StatusMessages;
+        public Brush StatusBrush => _statusCenter.StatusBrush;
 
         public ICommand LoadAllCommand { get; }
         public ICommand SaveCustomerCommand { get; }
@@ -167,10 +163,7 @@ namespace SpareParts.Desktop.Wpf
 
         public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
         {
-            CanViewSupplierTab = canViewSupplierTab;
-            CanEditSupplier = canEditSupplier;
-            CanModifySupplier = canModifySupplier;
-            CanDeleteSupplier = canDeleteSupplier;
+            _supplierPermissions.Set(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
         }
  
 
@@ -286,6 +279,7 @@ namespace SpareParts.Desktop.Wpf
 
             await LoadAllAsync();
             SuppliersFeature.SelectedSupplier = null;
+            _supplierPermissions.IsEditingSupplier = false;
             OnPropertyChanged(nameof(SelectedSupplier));
             OnPropertyChanged(nameof(CanSaveSupplier));
         }
@@ -418,18 +412,7 @@ namespace SpareParts.Desktop.Wpf
         private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
         private void RaiseWarehouseProps() => RaiseAll(nameof(NewWarehouseName), nameof(NewWarehouseAddress), nameof(NewWarehouseIsMain));
-        private void SetStatus(string message, bool isSuccess)
-        {
-            Status = message;
-            StatusBrush = isSuccess ? Brushes.MediumSeaGreen : Brushes.IndianRed;
-            StatusMessages.Insert(0, new StatusMessage { Text = message, IsSuccess = isSuccess });
-            AppNotificationCenter.Instance.Publish(message, isSuccess);
-            const int maxMessages = 8;
-            while (StatusMessages.Count > maxMessages)
-            {
-                StatusMessages.RemoveAt(StatusMessages.Count - 1);
-            }
-        }
+        private void SetStatus(string message, bool isSuccess) => _statusCenter.SetStatus(message, isSuccess);
 
         private void RaiseAll(params string[] names) { foreach (var n in names) OnPropertyChanged(n); }
 
