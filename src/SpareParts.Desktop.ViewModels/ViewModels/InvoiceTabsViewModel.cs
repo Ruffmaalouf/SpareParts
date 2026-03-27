@@ -42,6 +42,41 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _canViewManagementScreen = value; OnPropertyChanged(nameof(CanViewManagementScreen)); }
         }
 
+        private bool _canViewPosScreen;
+        public bool CanViewPosScreen
+        {
+            get => _canViewPosScreen;
+            private set { _canViewPosScreen = value; OnPropertyChanged(nameof(CanViewPosScreen)); }
+        }
+
+        private bool _canViewPurchasesScreen;
+        public bool CanViewPurchasesScreen
+        {
+            get => _canViewPurchasesScreen;
+            private set { _canViewPurchasesScreen = value; OnPropertyChanged(nameof(CanViewPurchasesScreen)); }
+        }
+
+        private bool _canViewStockManagementScreen;
+        public bool CanViewStockManagementScreen
+        {
+            get => _canViewStockManagementScreen;
+            private set { _canViewStockManagementScreen = value; OnPropertyChanged(nameof(CanViewStockManagementScreen)); }
+        }
+
+        private bool _canViewCarSelectionScreen;
+        public bool CanViewCarSelectionScreen
+        {
+            get => _canViewCarSelectionScreen;
+            private set { _canViewCarSelectionScreen = value; OnPropertyChanged(nameof(CanViewCarSelectionScreen)); }
+        }
+
+        private bool _canViewPartSelectionScreen;
+        public bool CanViewPartSelectionScreen
+        {
+            get => _canViewPartSelectionScreen;
+            private set { _canViewPartSelectionScreen = value; OnPropertyChanged(nameof(CanViewPartSelectionScreen)); }
+        }
+
         private bool _isManagementOpen;
         public bool IsManagementOpen
         {
@@ -177,8 +212,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             SelectBrandCommand      = new RelayCommand(SelectBrand);
             SelectCarCommand        = new RelayCommand(SelectCar);
             SelectPartCommand       = new RelayCommand(SelectPart);
-            GoToPosCommand          = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.Pos);
-            GoToCarSelectionCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.CarSelection);
+            GoToPosCommand          = new RelayCommand(_ =>
+            {
+                if (!CanViewPosScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view the POS screen.", false);
+                    return;
+                }
+
+                ActiveScreen = PosViewModel.AppScreen.Pos;
+            });
+            GoToCarSelectionCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewCarSelectionScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view car selection.", false);
+                    return;
+                }
+
+                ActiveScreen = PosViewModel.AppScreen.CarSelection;
+            });
             GoToHomeCommand         = new RelayCommand(_ =>
             {
                 ActiveScreen  = PosViewModel.AppScreen.HomePage;
@@ -214,8 +267,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 }
             });
 
-            GoToPurchasesCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.Purchases);
-            GoToStockManagementCommand = new RelayCommand(_ => ActiveScreen = PosViewModel.AppScreen.StockManagement);
+            GoToPurchasesCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewPurchasesScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view the purchases screen.", false);
+                    return;
+                }
+
+                ActiveScreen = PosViewModel.AppScreen.Purchases;
+            });
+            GoToStockManagementCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewStockManagementScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view stock management.", false);
+                    return;
+                }
+
+                ActiveScreen = PosViewModel.AppScreen.StockManagement;
+            });
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
             AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
@@ -253,9 +324,19 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var invoiceSearch = GetMenuAccess(menuAccessItems, "invoice_search");
             var managementScreen = GetMenuAccess(menuAccessItems, "management_screen");
             var supplierTab = GetMenuAccess(menuAccessItems, "supplier_tab");
+            var posScreen = GetMenuAccess(menuAccessItems, "pos_screen");
+            var purchasesScreen = GetMenuAccess(menuAccessItems, "purchases_screen");
+            var stockManagementScreen = GetMenuAccess(menuAccessItems, "stock_management_screen");
+            var carSelectionScreen = GetMenuAccess(menuAccessItems, "car_selection_screen");
+            var partSelectionScreen = GetMenuAccess(menuAccessItems, "part_selection_screen");
 
             CanViewInvoiceSearch = invoiceSearch.CanView;
             CanViewManagementScreen = managementScreen.CanView;
+            CanViewPosScreen = posScreen.CanView;
+            CanViewPurchasesScreen = purchasesScreen.CanView;
+            CanViewStockManagementScreen = stockManagementScreen.CanView;
+            CanViewCarSelectionScreen = carSelectionScreen.CanView;
+            CanViewPartSelectionScreen = partSelectionScreen.CanView;
             ManagementVm.SetSupplierPermissions(
                 supplierTab.CanView,
                 supplierTab.CanEdit,
@@ -400,6 +481,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private void SelectBrand(object? parameter)
         {
             if (parameter is not CarBrandViewModel brand) return;
+            if (!CanViewCarSelectionScreen)
+            {
+                AppNotificationCenter.Instance.Publish("✗ You do not have permission to view car selection.", false);
+                return;
+            }
+
             SelectedBrand = brand;
             ActiveScreen  = PosViewModel.AppScreen.CarSelection;
             _ = LoadCarsAsync(brand.Id);
@@ -451,6 +538,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private void SelectCar(object? parameter)
         {
             if (parameter is not CarModelViewModel car) return;
+            if (!CanViewPartSelectionScreen)
+            {
+                AppNotificationCenter.Instance.Publish("✗ You do not have permission to view part selection.", false);
+                return;
+            }
+
             SelectedCar  = car;
             ActiveScreen = PosViewModel.AppScreen.PartSelection;
             _ = LoadPartsAsync();
