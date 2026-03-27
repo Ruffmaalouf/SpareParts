@@ -20,10 +20,23 @@ namespace SpareParts.Desktop.Wpf
     {
         public ApiClient() : base(AppSettings.ApiBaseUrl)
         {
-            if (!string.IsNullOrWhiteSpace(SessionContext.CurrentUser?.Token))
+            if (!string.IsNullOrWhiteSpace(ApiClientTokenStore.Token))
             {
-                SetToken(SessionContext.CurrentUser.Token);
+                SetToken(ApiClientTokenStore.Token);
             }
+        }
+
+
+        public override void SetToken(string token)
+        {
+            ApiClientTokenStore.Token = token;
+            base.SetToken(token);
+        }
+
+        public override void ClearToken()
+        {
+            ApiClientTokenStore.Token = null;
+            base.ClearToken();
         }
 
         // ── Auth ──────────────────────────────────────────────────────────────

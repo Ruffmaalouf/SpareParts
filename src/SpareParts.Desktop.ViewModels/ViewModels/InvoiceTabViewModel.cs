@@ -397,21 +397,5 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
 
-        private sealed class InvoiceSnapshot
-        {
-            public int? CustomerId { get; init; }
-            public int? WarehouseId { get; init; }
-            public decimal PaidAmount { get; init; }
-            public DateTime InvoiceDate { get; init; }
-            public List<InvoiceSnapshotLine> Items { get; init; } = new();
-        }
-
-        private sealed class InvoiceSnapshotLine
-        {
-            public int PartId { get; init; }
-            public string Description { get; init; } = string.Empty;
-            public int Quantity { get; init; }
-            public decimal UnitPrice { get; init; }
-        }
     }
 }

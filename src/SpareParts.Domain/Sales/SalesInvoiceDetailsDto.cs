@@ -11,12 +11,4 @@ namespace SpareParts.Domain.Sales
         public decimal PaidAmount { get; set; }
         public List<SalesInvoiceLineDto> Items { get; set; } = new();
     }
-
-    public class SalesInvoiceLineDto
-    {
-        public int PartId { get; set; }
-        public string Description { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-    }
 }
