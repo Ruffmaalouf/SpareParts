@@ -175,6 +175,20 @@
                     </DataGridTemplateColumn>
 
                     <!-- Delete button (hidden for system roles) -->
+                    <DataGridTemplateColumn Header="ACCESS" Width="95">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="👁 View"
+                                        Command="{Binding DataContext.ViewAccessCommand,
+                                                  RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{DynamicResource SecondaryButtonStyle}"
+                                        Padding="8 3"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Delete button (hidden for system roles) -->
                     <DataGridTemplateColumn Header="" Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -288,28 +302,6 @@
                                    VerticalAlignment="Center" FontSize="13"/>
                     </StackPanel>
 
-                    <TextBlock Text="SCREEN PERMISSIONS" Style="{StaticResource FieldLabel}" Margin="0 18 0 8"/>
-                    <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12">
-                        <DataGrid ItemsSource="{Binding MenuAccessItems}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  HeadersVisibility="Column"
-                                  GridLinesVisibility="None"
-                                  BorderThickness="0"
-                                  IsReadOnly="False"
-                                  RowHeight="34"
-                                  ColumnHeaderHeight="30">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Menu" Binding="{Binding MenuName}" Width="*"
-                                                    IsReadOnly="True"/>
-                                <DataGridCheckBoxColumn Header="View" Binding="{Binding CanView, Mode=TwoWay}" Width="60"/>
-                                <DataGridCheckBoxColumn Header="Edit" Binding="{Binding CanEdit, Mode=TwoWay}" Width="60"/>
-                                <DataGridCheckBoxColumn Header="Modify" Binding="{Binding CanModify, Mode=TwoWay}" Width="70"/>
-                                <DataGridCheckBoxColumn Header="Delete" Binding="{Binding CanDelete, Mode=TwoWay}" Width="70"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Border>
-
                     <!-- Buttons -->
                     <Grid Margin="0 24 0 0">
                         <Grid.ColumnDefinitions>
@@ -336,12 +328,6 @@
                             </Button.Style>
                         </Button>
                     </Grid>
-
-                    <Button Content="💾 Save Permissions"
-                            Command="{Binding SavePermissionsCommand}"
-                            Style="{DynamicResource SecondaryButtonStyle}"
-                            Margin="0 10 0 0"
-                            Height="38"/>
 
                     <!-- Color helper hints -->
                     <Border Background="{DynamicResource AppBackgroundBrush}"
@@ -379,6 +365,63 @@
 
                 </StackPanel>
             </ScrollViewer>
+        </Border>
+
+        <Border Grid.ColumnSpan="2"
+                Background="#AA000000"
+                Visibility="{Binding IsAccessPopupOpen, Converter={StaticResource BoolToVis}}">
+            <Grid>
+                <Border Width="760"
+                        MaxHeight="520"
+                        Padding="18"
+                        CornerRadius="10"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="{Binding AccessPopupTitle}"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Margin="0 0 0 12"/>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding MenuAccessItems}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="None"
+                                  BorderThickness="0"
+                                  IsReadOnly="True"
+                                  RowHeight="34"
+                                  ColumnHeaderHeight="32">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Screen" Binding="{Binding MenuName}" Width="*"/>
+                                <DataGridCheckBoxColumn Header="View" Binding="{Binding CanView}" Width="70"/>
+                                <DataGridCheckBoxColumn Header="Edit" Binding="{Binding CanEdit}" Width="70"/>
+                                <DataGridCheckBoxColumn Header="Modify" Binding="{Binding CanModify}" Width="80"/>
+                                <DataGridCheckBoxColumn Header="Delete" Binding="{Binding CanDelete}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Button Grid.Row="2"
+                                Content="Close"
+                                Command="{Binding CloseAccessPopupCommand}"
+                                Style="{DynamicResource SecondaryButtonStyle}"
+                                Height="38"
+                                Width="120"
+                                HorizontalAlignment="Right"
+                                Margin="0 14 0 0"/>
+                    </Grid>
+                </Border>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
