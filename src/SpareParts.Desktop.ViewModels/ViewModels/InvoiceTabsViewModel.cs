@@ -146,15 +146,82 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public bool IsLoadingInvoiceSearch
         {
             get => _isLoadingInvoiceSearch;
-            set { _isLoadingInvoiceSearch = value; OnPropertyChanged(nameof(IsLoadingInvoiceSearch)); }
+            set
+            {
+                _isLoadingInvoiceSearch = value;
+                OnPropertyChanged(nameof(IsLoadingInvoiceSearch));
+                OnPropertyChanged(nameof(IsGlobalLoading));
+            }
         }
 
         private bool _isLoadingBrands;
         public bool IsLoadingBrands
         {
             get => _isLoadingBrands;
-            set { _isLoadingBrands = value; OnPropertyChanged(nameof(IsLoadingBrands)); }
+            set
+            {
+                _isLoadingBrands = value;
+                OnPropertyChanged(nameof(IsLoadingBrands));
+                OnPropertyChanged(nameof(IsGlobalLoading));
+            }
         }
+
+        private bool _isLoadingCars;
+        public bool IsLoadingCars
+        {
+            get => _isLoadingCars;
+            set
+            {
+                _isLoadingCars = value;
+                OnPropertyChanged(nameof(IsLoadingCars));
+                OnPropertyChanged(nameof(IsGlobalLoading));
+            }
+        }
+
+        private bool _isLoadingParts;
+        public bool IsLoadingParts
+        {
+            get => _isLoadingParts;
+            set
+            {
+                _isLoadingParts = value;
+                OnPropertyChanged(nameof(IsLoadingParts));
+                OnPropertyChanged(nameof(IsGlobalLoading));
+            }
+        }
+
+        private bool _isLoadingRolePermissions;
+        public bool IsLoadingRolePermissions
+        {
+            get => _isLoadingRolePermissions;
+            set
+            {
+                _isLoadingRolePermissions = value;
+                OnPropertyChanged(nameof(IsLoadingRolePermissions));
+                OnPropertyChanged(nameof(IsGlobalLoading));
+            }
+        }
+
+        private bool _isLoadingInvoiceOpen;
+        public bool IsLoadingInvoiceOpen
+        {
+            get => _isLoadingInvoiceOpen;
+            set
+            {
+                _isLoadingInvoiceOpen = value;
+                OnPropertyChanged(nameof(IsLoadingInvoiceOpen));
+                OnPropertyChanged(nameof(IsGlobalLoading));
+            }
+        }
+
+        public bool IsGlobalLoading =>
+            IsLoadingBrands ||
+            IsLoadingCars ||
+            IsLoadingParts ||
+            IsLoadingRolePermissions ||
+            IsLoadingInvoiceSearch ||
+            IsLoadingInvoiceOpen ||
+            ManagementVm.IsLoading;
 
         public ObservableCollection<ThemeOption> Themes { get; } = new();
         public ICommand SelectThemeCommand { get; private set; } = null!;
@@ -197,6 +264,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _salesApi = salesApi;
             _rolesApi = rolesApi;
             ManagementVm = managementVm;
+            ManagementVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ManagementViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
 
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });
@@ -307,6 +381,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private async Task LoadRolePermissionsAsync()
         {
+            IsLoadingRolePermissions = true;
             try
             {
                 var roleName = SessionContext.CurrentUser?.Role;
@@ -323,6 +398,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 ApplyPermissions(new List<RoleMenuAccessDto>());
                 AppNotificationCenter.Instance.Publish("✗ Could not load role permissions. Access is restricted.", false);
+            }
+            finally
+            {
+                IsLoadingRolePermissions = false;
             }
         }
 
@@ -409,6 +488,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             try
             {
+                IsLoadingInvoiceOpen = true;
                 var invoice = await _salesApi.GetInvoiceByIdAsync(lookup.InvoiceId);
                 if (invoice == null)
                 {
@@ -431,6 +511,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             catch (Exception)
             {
                 AppNotificationCenter.Instance.Publish("✗ Unexpected error while opening invoice.", false);
+            }
+            finally
+            {
+                IsLoadingInvoiceOpen = false;
             }
         }
 
@@ -502,6 +586,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private async Task LoadCarsAsync(int brandId)
         {
             AvailableCars.Clear();
+            IsLoadingCars = true;
             try
             {
                 var dtos = await _carCatalogApi.GetCarModelsAsync(brandId);
@@ -533,6 +618,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading car models.", false);
             }
+            finally
+            {
+                IsLoadingCars = false;
+            }
         }
 
         private async Task LoadCarImageAsync(CarModelViewModel vm)
@@ -559,6 +648,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private async Task LoadPartsAsync()
         {
             AvailableParts.Clear();
+            IsLoadingParts = true;
             try
             {
                 var dtos = await _partsApi.GetPartsAsync();
@@ -582,6 +672,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             catch (Exception)
             {
                 AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading parts.", false);
+            }
+            finally
+            {
+                IsLoadingParts = false;
             }
         }
 
