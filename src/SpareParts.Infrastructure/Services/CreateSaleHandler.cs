@@ -1,4 +1,5 @@
 using SpareParts.Domain.Accounting;
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
@@ -57,7 +58,7 @@ namespace SpareParts.Infrastructure.Services
                 TotalAmount = totals.TotalAmount,
                 PaidAmount = request.PaidAmount,
                 PaymentMethod = request.PaymentMethod,
-                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount),
+                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount).ToString(),
                 Notes = request.Notes,
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId
@@ -182,7 +183,7 @@ namespace SpareParts.Infrastructure.Services
                     warehouseId: request.WarehouseId,
                     quantityChange: -item.Quantity,
                     movementType: StockMovementType.Sale,
-                    referenceType: "Sale",
+                    referenceType: DomainReferenceType.Sale,
                     referenceId: invoiceId,
                     unitCost: part.CostPrice,
                     userId: userId);
@@ -194,7 +195,7 @@ namespace SpareParts.Infrastructure.Services
             var entry = new JournalEntry
             {
                 EntryDate = invoice.InvoiceDate,
-                ReferenceType = "Sale",
+                ReferenceType = DomainReferenceType.Sale.ToString(),
                 ReferenceId = invoiceId,
                 Description = $"Sale {invoice.InvoiceNumber}",
                 CreatedAt = DateTime.UtcNow,

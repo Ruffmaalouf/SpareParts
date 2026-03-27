@@ -1,4 +1,5 @@
 using SpareParts.Domain.Accounting;
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
@@ -56,7 +57,7 @@ namespace SpareParts.Infrastructure.Services
                 TaxAmount = totals.TaxTotal,
                 TotalAmount = totals.TotalAmount,
                 PaidAmount = request.PaidAmount,
-                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount),
+                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount).ToString(),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId,
                 Items = purchaseItems
@@ -165,7 +166,7 @@ namespace SpareParts.Infrastructure.Services
                     warehouseId: request.WarehouseId,
                     quantityChange: item.Quantity,
                     movementType: StockMovementType.Purchase,
-                    referenceType: "Purchase",
+                    referenceType: DomainReferenceType.Purchase,
                     referenceId: purchaseId,
                     unitCost: item.UnitCost,
                     userId: userId);
@@ -177,7 +178,7 @@ namespace SpareParts.Infrastructure.Services
             var entry = new JournalEntry
             {
                 EntryDate = purchase.PurchaseDate,
-                ReferenceType = "Purchase",
+                ReferenceType = DomainReferenceType.Purchase.ToString(),
                 ReferenceId = purchaseId,
                 Description = $"Purchase {purchase.PurchaseNumber}",
                 CreatedAt = DateTime.UtcNow,
