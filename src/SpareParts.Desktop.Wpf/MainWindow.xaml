@@ -782,8 +782,7 @@
                                         <!-- Submit Invoice button -->
                                         <Button Grid.Column="8"
                                 Content="✔  Submit Invoice"
-                                Command="{Binding SubmitSaleCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding SubmitSaleCommand}" 
                                 Height="52"
                                 Margin="0,17,0,0"
                                 VerticalAlignment="Top">

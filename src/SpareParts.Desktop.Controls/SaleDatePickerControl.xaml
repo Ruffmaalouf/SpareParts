@@ -211,7 +211,7 @@
                 CornerRadius="10"
                 BorderThickness="1"
                 BorderBrush="{DynamicResource BorderBrush}"
-                Background="#FF1A1A22">
+                Background="#FF1A1A22" Margin="0,0,55,0">
             <Grid Margin="14 0 8 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

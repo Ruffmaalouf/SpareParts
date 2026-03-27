@@ -98,7 +98,7 @@ namespace SpareParts.Desktop.Wpf
                 SetStatus($"✓ {Roles.Count} role(s) loaded.", true);
                 if (SelectedRole == null)
                 {
-                    ClearPermissions();
+                   // ClearPermissions();
                 }
             }
             catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }

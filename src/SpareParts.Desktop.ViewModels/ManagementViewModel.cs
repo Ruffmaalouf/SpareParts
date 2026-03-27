@@ -39,16 +39,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
 
-        private bool _canViewSupplierTab;
-        public bool CanViewSupplierTab { get => _canViewSupplierTab; private set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
-        private bool _canEditSupplier;
-        public bool CanEditSupplier { get => _canEditSupplier; private set { _canEditSupplier = value; OnPropertyChanged(nameof(CanEditSupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
-        private bool _canModifySupplier;
-        public bool CanModifySupplier { get => _canModifySupplier; private set { _canModifySupplier = value; OnPropertyChanged(nameof(CanModifySupplier)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
-        private bool _canDeleteSupplier;
-        public bool CanDeleteSupplier { get => _canDeleteSupplier; private set { _canDeleteSupplier = value; OnPropertyChanged(nameof(CanDeleteSupplier)); } }
-        public bool CanSaveSupplier => CanViewSupplierTab && (SelectedSupplier == null ? CanEditSupplier : CanModifySupplier);
-
+     
         private bool _canViewSupplierTab;
         public bool CanViewSupplierTab { get => _canViewSupplierTab; private set { _canViewSupplierTab = value; OnPropertyChanged(nameof(CanViewSupplierTab)); OnPropertyChanged(nameof(CanSaveSupplier)); } }
         private bool _canEditSupplier;
@@ -175,14 +166,7 @@ namespace SpareParts.Desktop.Wpf
             CanModifySupplier = canModifySupplier;
             CanDeleteSupplier = canDeleteSupplier;
         }
-
-        public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
-        {
-            CanViewSupplierTab = canViewSupplierTab;
-            CanEditSupplier = canEditSupplier;
-            CanModifySupplier = canModifySupplier;
-            CanDeleteSupplier = canDeleteSupplier;
-        }
+ 
 
         public async Task LoadAllAsync()
         {
@@ -345,7 +329,7 @@ namespace SpareParts.Desktop.Wpf
         }
 
         private async Task SaveCarBrandAsync()
-        {
+        { 
             if (string.IsNullOrWhiteSpace(NewCarBrandName))
             {
                 SetStatus("✗ Car brand name is required.", false);
@@ -375,6 +359,7 @@ namespace SpareParts.Desktop.Wpf
                     : "✗ Unexpected error while saving Car Brand.";
                 SetStatus(message, false);
             }
+ 
         }
 
         private async Task SaveCarModelAsync()
@@ -401,24 +386,24 @@ namespace SpareParts.Desktop.Wpf
 
         private async Task SaveWarehouseAsync()
         {
-            var result = await _coordinator.SaveWarehouseAsync(WarehousesFeature);
-            SetStatus(result.Message, result.Success);
-            if (!result.Success) return;
+            //var result = await _coordinator.SaveWarehouseAsync(WarehousesFeature);
+            //SetStatus(result.Message, result.Success);
+            //if (!result.Success) return;
 
-            await LoadAllAsync();
-            WarehousesFeature.ClearForm();
-            RaiseWarehouseProps();
+            //await LoadAllAsync();
+            //WarehousesFeature.ClearForm();
+            //RaiseWarehouseProps();
         }
 
         private async Task DeleteWarehouseAsync()
         {
-            var result = await _coordinator.DeleteWarehouseAsync(SelectedWarehouse);
-            SetStatus(result.Message, result.Success);
-            if (!result.Success) return;
+            //var result = await _coordinator.DeleteWarehouseAsync(SelectedWarehouse);
+            //SetStatus(result.Message, result.Success);
+            //if (!result.Success) return;
 
-            await LoadAllAsync();
-            WarehousesFeature.SelectedWarehouse = null;
-            OnPropertyChanged(nameof(SelectedWarehouse));
+            //await LoadAllAsync();
+            //WarehousesFeature.SelectedWarehouse = null;
+            //OnPropertyChanged(nameof(SelectedWarehouse));
         }
 
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));

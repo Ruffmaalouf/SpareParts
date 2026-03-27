@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Collections.Generic;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
 {
@@ -219,7 +220,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
-            SeedPurchasesAndStock();
+           // SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
             _ = LoadBrandsAsync();
@@ -516,22 +517,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
 
 
-        private void RefreshInvoiceSearch()
-        {
-            var query = (InvoiceSearchText ?? string.Empty).Trim();
-            var matches = Tabs
-                .Where(t => string.IsNullOrWhiteSpace(query)
-                            || t.Header.Contains(query, StringComparison.OrdinalIgnoreCase)
-                            || t.Items.Any(i => i.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
-                            || t.Items.Any(i => i.PartId.ToString().Contains(query, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-
-            InvoiceSearchResults.Clear();
-            foreach (var tab in matches)
-            {
-                InvoiceSearchResults.Add(tab);
-            }
-        }
+       
 
         public void OpenInvoiceFromSearch(InvoiceTabViewModel? tab)
         {
