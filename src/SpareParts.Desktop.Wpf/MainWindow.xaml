@@ -1096,13 +1096,27 @@
                                     Height="34"/>
                         </DockPanel>
 
-                        <TextBox Grid.Row="1"
-                                 Text="{Binding InvoiceSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="40"
-                                 Margin="0 0 0 12"
-                                 FontSize="14"
-                                 Padding="10"
-                                 VerticalContentAlignment="Center"/>
+                        <Grid Grid.Row="1" Margin="0 0 0 12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding InvoiceSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="40"
+                                     FontSize="14"
+                                     Padding="10"
+                                     VerticalContentAlignment="Center"/>
+
+                            <Button Grid.Column="1"
+                                    Margin="8 0 0 0"
+                                    Width="110"
+                                    Height="40"
+                                    Content="↻ Reload"
+                                    Command="{Binding ReloadInvoiceSearchCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}"/>
+                        </Grid>
 
                         <DataGrid Grid.Row="2"
                                   Name="InvoiceSearchResultsGrid"

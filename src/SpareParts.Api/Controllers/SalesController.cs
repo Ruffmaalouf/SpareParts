@@ -44,6 +44,19 @@ namespace SpareParts.Api.Controllers
             return Ok(invoice);
         }
 
+        [HttpPut("{invoiceId:int}")]
+        public IActionResult UpdateSale(int invoiceId, [FromBody] UpdateSaleRequest request)
+        {
+            var userId = GetUserId();
+            var updated = _salesService.UpdateInvoice(invoiceId, request, userId);
+            if (!updated)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+
         private int GetUserId()
         {
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

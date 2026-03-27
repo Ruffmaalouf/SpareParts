@@ -26,5 +26,10 @@ namespace SpareParts.Desktop.Wpf
             ApiClientBase.EnsureSuccess(response, $"GET api/sales/{invoiceId} failed.");
             return response.Data;
         }
+
+        public async Task UpdateSaleAsync(int invoiceId, UpdateSaleRequest req)
+        {
+            await EditAsync($"api/sales/{invoiceId}", req);
+        }
     }
 }

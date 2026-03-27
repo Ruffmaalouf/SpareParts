@@ -161,7 +161,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AddItemCommand      = new RelayCommand(_ => AddItem());
             SubmitSaleCommand   = new RelayCommand(_ => _ = SubmitSaleAsync());
             EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());
-            SaveInvoiceCommand  = new RelayCommand(_ => SaveEdits());
+            SaveInvoiceCommand  = new RelayCommand(_ => _ = SaveEditsAsync());
             ResetInvoiceCommand = new RelayCommand(_ => ResetEdits());
 
             Items.CollectionChanged += (_, _) =>
@@ -263,7 +263,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AppNotificationCenter.Instance.Publish($"✎ {Header} is now editable.", true);
         }
 
-        private void SaveEdits()
+        private async Task SaveEditsAsync()
         {
             if (!IsLoadedFromSearch)
             {
@@ -275,9 +275,62 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 return;
             }
 
+            if (InvoiceId == null || InvoiceId <= 0)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Cannot save invoice: missing invoice id.", false);
+                return;
+            }
+
+            if (WarehouseId == null || WarehouseId <= 0)
+            {
+                CustomMessageBox.Show("Please select a warehouse.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Please select a warehouse.", false);
+                return;
+            }
+
+            if (Items.Count == 0)
+            {
+                CustomMessageBox.Show("Add at least one line before saving.", "Validation", "Warning");
+                AppNotificationCenter.Instance.Publish("✗ Add at least one line before saving.", false);
+                return;
+            }
+
+            try
+            {
+                var request = new UpdateSaleRequest
+                {
+                    InvoiceDate = InvoiceDate,
+                    CustomerId = CustomerId,
+                    WarehouseId = WarehouseId.Value,
+                    PaidAmount = PaidAmount,
+                    Items = Items.Select(i => new SaleItemDto
+                    {
+                        PartId = i.PartId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        DiscountAmount = 0,
+                        TaxRate = 0
+                    }).ToList()
+                };
+
+                await _salesApi.UpdateSaleAsync(InvoiceId.Value, request);
+            }
+            catch (ApiClientException ex)
+            {
+                CustomMessageBox.Show($"Error: {ex.Message}", "Error", "Error");
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+                return;
+            }
+            catch (Exception)
+            {
+                CustomMessageBox.Show("Unexpected error while saving invoice.", "Error", "Error");
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while saving invoice.", false);
+                return;
+            }
+
             _snapshot = CreateSnapshot();
             IsInEditMode = false;
-            AppNotificationCenter.Instance.Publish($"✓ Changes saved for {Header}.", true);
+            AppNotificationCenter.Instance.Publish($"✓ Changes saved to database for {Header}.", true);
         }
 
         private void ResetEdits()

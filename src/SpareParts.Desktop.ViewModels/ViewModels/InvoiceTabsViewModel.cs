@@ -180,6 +180,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToHomeCommand          { get; }
         public ICommand OpenManagementCommand    { get; }
         public ICommand OpenInvoiceSearchCommand { get; }
+        public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToStockManagementCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
@@ -275,6 +276,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     RefreshInvoiceSearch();
                 }
             });
+            ReloadInvoiceSearchCommand = new RelayCommand(_ => RefreshInvoiceSearch());
 
             GoToPurchasesCommand = new RelayCommand(_ =>
             {
