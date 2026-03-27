@@ -1,3 +1,4 @@
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Interfaces.Repositories;
@@ -18,7 +19,7 @@ namespace SpareParts.Infrastructure.Services
             int warehouseId,
             int quantityChange,
             StockMovementType movementType,
-            string referenceType,
+            DomainReferenceType referenceType,
             int? referenceId,
             decimal unitCost,
             int userId)
@@ -51,7 +52,7 @@ namespace SpareParts.Infrastructure.Services
                 WarehouseId = warehouseId,
                 Quantity = quantityChange,
                 MovementType = movementType,
-                ReferenceType = referenceType,
+                ReferenceType = referenceType.ToString(),
                 ReferenceId = referenceId,
                 UnitCost = unitCost,
                 CreatedAt = DateTime.UtcNow,

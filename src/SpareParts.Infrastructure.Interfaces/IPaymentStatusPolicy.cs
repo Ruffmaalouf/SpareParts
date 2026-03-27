@@ -1,7 +1,9 @@
+using SpareParts.Domain.Common;
+
 namespace SpareParts.Infrastructure.Interfaces
 {
     public interface IPaymentStatusPolicy
     {
-        string Resolve(decimal totalAmount, decimal paidAmount);
+        PaymentStatus Resolve(decimal totalAmount, decimal paidAmount);
     }
 }

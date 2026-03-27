@@ -1,7 +1,9 @@
 using SpareParts.Domain.Accounting;
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Data.Repositories;
 
 namespace SpareParts.Infrastructure.Services
 {
@@ -33,10 +35,12 @@ namespace SpareParts.Infrastructure.Services
         public CreatePurchaseResponse Handle(CreatePurchaseRequest request, int userId)
         {
             using var session = new DbSession(_factory);
-            var purchasesRepository = new PurchasesRepository(session);
-            var partsRepository = new PartsRepository(session);
-            var inventoryRepository = new InventoryRepository(session);
-            var journalRepository = new JournalRepository(session);
+            var repositories = RepositoryCatalog.For(session);
+
+            var purchasesRepository = repositories.Purchases.Invoices;
+            var partsRepository = repositories.MasterData.Parts;
+            var inventoryRepository = repositories.Inventory.Stock;
+            var journalRepository = repositories.Accounting.Journal;
 
             ValidateRequest(request);
             var parts = LoadParts(partsRepository, request);
@@ -56,7 +60,7 @@ namespace SpareParts.Infrastructure.Services
                 TaxAmount = totals.TaxTotal,
                 TotalAmount = totals.TotalAmount,
                 PaidAmount = request.PaidAmount,
-                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount),
+                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount).ToString(),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId,
                 Items = purchaseItems
@@ -165,7 +169,7 @@ namespace SpareParts.Infrastructure.Services
                     warehouseId: request.WarehouseId,
                     quantityChange: item.Quantity,
                     movementType: StockMovementType.Purchase,
-                    referenceType: "Purchase",
+                    referenceType: DomainReferenceType.Purchase,
                     referenceId: purchaseId,
                     unitCost: item.UnitCost,
                     userId: userId);
@@ -177,7 +181,7 @@ namespace SpareParts.Infrastructure.Services
             var entry = new JournalEntry
             {
                 EntryDate = purchase.PurchaseDate,
-                ReferenceType = "Purchase",
+                ReferenceType = DomainReferenceType.Purchase.ToString(),
                 ReferenceId = purchaseId,
                 Description = $"Purchase {purchase.PurchaseNumber}",
                 CreatedAt = DateTime.UtcNow,
