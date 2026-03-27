@@ -1,3 +1,4 @@
+using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Infrastructure.Interfaces.Repositories;
 
@@ -13,7 +14,7 @@ namespace SpareParts.Infrastructure.Interfaces
             int warehouseId,
             int quantityChange,
             StockMovementType movementType,
-            string referenceType,
+            DomainReferenceType referenceType,
             int? referenceId,
             decimal unitCost,
             int userId);

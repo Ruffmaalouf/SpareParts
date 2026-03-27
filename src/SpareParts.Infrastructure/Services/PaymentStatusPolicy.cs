@@ -1,22 +1,23 @@
+using SpareParts.Domain.Common;
 using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
     public class DefaultPaymentStatusPolicy : IPaymentStatusPolicy
     {
-        public string Resolve(decimal totalAmount, decimal paidAmount)
+        public PaymentStatus Resolve(decimal totalAmount, decimal paidAmount)
         {
             if (paidAmount <= 0)
             {
-                return "Unpaid";
+                return PaymentStatus.Unpaid;
             }
 
             if (paidAmount >= totalAmount)
             {
-                return "Paid";
+                return PaymentStatus.Paid;
             }
 
-            return "PartiallyPaid";
+            return PaymentStatus.PartiallyPaid;
         }
     }
 }
