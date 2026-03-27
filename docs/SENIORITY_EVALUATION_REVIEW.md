@@ -1,13 +1,13 @@
 # SpareParts Seniority Assessment (Code-Based)
 
 ## Assessment Date
-- **March 24, 2026 (UTC)**
+- **March 27, 2026 (UTC)**
 
 ## What was evaluated
 This review is based on direct code inspection of representative backend, API composition, desktop client, and test files:
 - `src/SpareParts.Api/Program.cs`
 - `src/SpareParts.Infrastructure/Services/CreateSaleHandler.cs`
-- `src/SpareParts.Infrastructure/Data/Repositories.cs`
+- `src/SpareParts.Infrastructure/Data/Repositories/Sales/SalesRepository.cs`
 - `src/SpareParts.Desktop.Helpers/ApiClient.cs`
 - `src/SpareParts.Desktop.ViewModels/ManagementViewModel.cs`
 - `tests/SpareParts.ArchitectureTests/ArchitectureTests.cs`
@@ -18,7 +18,7 @@ This review is based on direct code inspection of representative backend, API co
 ## Executive Verdict
 **Current level: strong mid-level with targeted senior-level patterns.**
 
-The codebase demonstrates several senior behaviors (clear layering, dependency inversion in critical workflows, architecture tests, transaction-oriented orchestration), but still has maintainability bottlenecks that keep the overall implementation from being consistently senior across all layers.
+The codebase demonstrates senior behaviors in backend orchestration and architectural intent (layering, DI composition, critical-path testing), while desktop composition and test breadth still look more mid-level.
 
 ---
 
@@ -26,95 +26,88 @@ The codebase demonstrates several senior behaviors (clear layering, dependency i
 
 ### 1) Architecture & boundaries
 **Strengths**
-- Solution is separated into `Domain`, `Infrastructure`, `Api`, and desktop projects.
-- Composition root registers policy/strategy abstractions for accounting, totals, payment status, and use-case handlers, which is a strong separation of concerns signal.
+- Solution-level separation across API, Domain, Infrastructure, Desktop Helpers, Desktop ViewModels, and interfaces projects.
+- `Program.cs` acts as a clear composition root with explicit dependency registrations for core services and handlers.
 
 **Gaps**
-- Data access has many repository contracts and concrete repository implementations in a single file (`Repositories.cs`), which will become a merge/conflict and ownership hotspot as scope grows.
+- Repository responsibilities are spread across many concrete classes with uneven organization and discoverability.
+- Several UI-facing projects still expose broad classes with many responsibilities.
 
-**Assessment**: good architectural direction, but repository packaging and module ownership can be made more senior-grade.
+**Assessment**: good architectural direction with practical separation, but module-level ownership boundaries can be sharpened.
 
 ### 2) Use-case orchestration & correctness
 **Strengths**
-- `CreateSaleHandler` follows a coherent use-case flow:
-  1. validate request,
-  2. load and verify business inputs,
-  3. calculate totals,
-  4. generate unique invoice number,
-  5. persist invoice/items,
-  6. adjust inventory,
-  7. create journal entries,
-  8. commit transaction.
-- Explicit conflict paths for stock and invoice-number collisions indicate practical production thinking.
+- `CreateSaleHandler` follows a coherent transaction-oriented flow: validation, lookups, totals, invoice generation, persistence, stock movement, accounting, and commit.
+- Explicit conflict handling paths (e.g., duplicate invoice attempts / stock conditions) indicate real production awareness.
 
 **Gaps**
-- Some business constants (`"Sale"`, `"Purchase"`) remain stringly-typed and repeated; these are minor but common drift points at scale.
+- Some domain markers and identifiers remain string-based and could drift over time without stronger typing.
 
-**Assessment**: senior-leaning implementation on backend critical path.
+**Assessment**: senior-leaning implementation on a critical backend path.
 
 ### 3) Dependency inversion & extensibility
 **Strengths**
-- Backend handlers depend on interfaces (`IInventoryService`, `IInvoiceTotalsCalculator`, `IPaymentStatusPolicy`, strategy interfaces), enabling targeted testability and policy replacement.
-- API startup wires dependencies in one place with environment-aware guards for required secrets/settings.
+- Backend orchestration depends on interfaces and policies (`IInventoryService`, `IInvoiceTotalsCalculator`, `IPaymentStatusPolicy`, accounting strategies), enabling substitution and testability.
+- Composition is environment-aware with guarded startup configuration.
 
 **Gaps**
-- Desktop side still includes singleton/static style access (`ApiClient.Instance`) and broad API surface in one client class, which reduces composability and unit isolation.
+- Desktop client includes shared static/singleton access patterns in API plumbing, which can reduce isolation and independent testability.
 
-**Assessment**: backend DIP is strong; desktop DIP is mixed.
+**Assessment**: strong backend DIP, mixed desktop DI maturity.
 
 ### 4) Client architecture & maintainability
 **Strengths**
-- `ManagementViewModel` has been partially decomposed into feature view models (`CustomersFeature`, `SuppliersFeature`, etc.), indicating movement in the right direction.
+- `ManagementViewModel` includes feature-oriented decomposition patterns and command surfaces that map to business operations.
 
 **Gaps**
-- The same view model still owns a very broad state/command surface and orchestration responsibilities.
-- Property forwarding plus command/event coordination density is high, increasing change risk and regression probability.
+- The same view model remains very broad in state and command orchestration, increasing change risk.
+- Coordination logic and UI state management density suggest a need for further extraction into smaller units/coordinators.
 
-**Assessment**: currently mid-level maintainability profile on desktop layer.
+**Assessment**: mid-level maintainability profile on desktop layer.
 
 ### 5) Testing maturity
 **Strengths**
-- Architecture tests assert key boundary expectations.
-- Critical-path tests cover totals calculation, stock adjustment behavior, accounting balancing, and payment-policy behavior.
+- Architecture tests enforce important structural expectations.
+- Critical-path tests cover inventory/accounting behavior and transactional expectations.
 
 **Gaps**
-- Current tests are useful but still a thin slice; broader workflow and failure-path coverage (DB transaction rollback, API error envelope parity, race conditions) would strengthen senior-level confidence.
+- Failure-path, concurrency, and rollback coverage appears narrower than a full senior-level quality bar.
 
-**Assessment**: solid baseline; not yet comprehensive.
+**Assessment**: solid foundation, but not yet deep enough for consistently senior confidence.
 
 ---
 
 ## Seniority scorecard (1–5)
 - **Architecture boundaries:** 3.8
-- **Use-case orchestration:** 4.0
+- **Use-case orchestration:** 4.1
 - **SOLID / dependency inversion:** 3.8
 - **Desktop maintainability:** 3.1
-- **Testing depth:** 3.4
-- **Operational robustness:** 3.6
+- **Testing depth:** 3.5
+- **Operational robustness:** 3.7
 
-**Overall weighted assessment: 3.6 / 5**
+**Overall weighted assessment: 3.7 / 5**
 
 Interpretation:
-- This is **above mid-level** with **clear senior traits in backend service design**.
-- To confidently classify as **senior across the full stack**, the main upgrades should target desktop decomposition, repository modularization, and deeper automated coverage of failure and concurrency paths.
+- This is **above mid-level** with **clear senior traits on backend workflows**.
+- To classify as **consistently senior across the stack**, prioritize desktop decomposition, clearer repository module ownership, and deeper failure-path automation.
 
 ---
 
 ## High-ROI actions to reach a clear senior bar
-1. **Modularize `Repositories.cs` by aggregate/feature**
-   - Split interfaces + implementations into focused files/folders (inventory, sales, purchases, master data, accounting).
-2. **Further split `ManagementViewModel`**
-   - Move orchestration into coordinator services and keep feature VMs narrow and independently testable.
-3. **Unify desktop error handling contracts**
-   - Prefer typed domain/API exceptions over generic message-based throws.
-4. **Expand critical-path tests**
-   - Add transaction rollback tests, duplicate-number contention tests, and API-to-client error envelope contract tests.
-5. **Reduce stringly-typed domain markers**
-   - Introduce constants or small value objects for reference/movement types.
+1. **Further decompose desktop orchestration**
+   - Split `ManagementViewModel` responsibilities into narrower coordinators and feature-specific command handlers.
+2. **Strengthen repository/module discoverability**
+   - Align repository organization strictly by aggregate/business capability and enforce naming consistency.
+3. **Reduce stringly-typed domain markers**
+   - Introduce constants/enums/value objects where domain event/reference types are repeated.
+4. **Expand critical-path test depth**
+   - Add rollback/concurrency and API contract parity tests (error envelope mapping end-to-end).
+5. **Harden client-side error taxonomy**
+   - Prefer typed, structured failures over generic message-driven handling in desktop API layers.
 
 ---
 
 ## Final evaluation statement
-If this code is for a **seniority assessment**, the most accurate rating today is:
+If this code is being used for a seniority check today, the best-fit rating is:
 
-> **Strong Mid-Level Engineer (Senior-leaning), with senior-quality backend patterns but uneven maturity in desktop architecture and long-term maintainability controls.**
+> **Strong Mid-Level Engineer (Senior-leaning): senior-caliber backend decisions are present, but full-stack consistency is limited by desktop architecture breadth and test-depth gaps.**
