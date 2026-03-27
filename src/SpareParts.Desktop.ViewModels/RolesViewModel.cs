@@ -3,7 +3,6 @@ using SpareParts.Domain.Auth;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -37,13 +36,16 @@ namespace SpareParts.Desktop.Wpf
         private string _formBadgeColor = "#22FFFFFF";
         private string _formBadgeTextColor = "#FFFFFF";
         private bool _formIsActive = true;
-        private int _permissionsRoleId;
+        private string _accessPopupTitle = "Role Access";
+        private bool _isAccessPopupOpen;
 
         public string FormName { get => _formName; set { _formName = value; OnPropertyChanged(nameof(FormName)); } }
         public string FormDescription { get => _formDescription; set { _formDescription = value; OnPropertyChanged(nameof(FormDescription)); } }
         public string FormBadgeColor { get => _formBadgeColor; set { _formBadgeColor = value; OnPropertyChanged(nameof(FormBadgeColor)); } }
         public string FormBadgeTextColor { get => _formBadgeTextColor; set { _formBadgeTextColor = value; OnPropertyChanged(nameof(FormBadgeTextColor)); } }
         public bool FormIsActive { get => _formIsActive; set { _formIsActive = value; OnPropertyChanged(nameof(FormIsActive)); } }
+        public string AccessPopupTitle { get => _accessPopupTitle; set { _accessPopupTitle = value; OnPropertyChanged(nameof(AccessPopupTitle)); } }
+        public bool IsAccessPopupOpen { get => _isAccessPopupOpen; set { _isAccessPopupOpen = value; OnPropertyChanged(nameof(IsAccessPopupOpen)); } }
 
         private string _status = string.Empty;
         public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(Status)); } }
@@ -60,7 +62,8 @@ namespace SpareParts.Desktop.Wpf
         public ICommand NewCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
-        public ICommand SavePermissionsCommand { get; }
+        public ICommand ViewAccessCommand { get; }
+        public ICommand CloseAccessPopupCommand { get; }
 
         public RolesViewModel(IRoleApiClient? rolesApi = null)
         {
@@ -70,7 +73,8 @@ namespace SpareParts.Desktop.Wpf
             NewCommand = new RelayCommand(_ => { SelectedRole = null; ClearForm(); });
             SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(r => _ = DeleteAsync(r as RoleManagementDto));
-            SavePermissionsCommand = new RelayCommand(_ => _ = SavePermissionsAsync());
+            ViewAccessCommand = new RelayCommand(r => _ = OpenAccessPopupAsync(r as RoleManagementDto));
+            CloseAccessPopupCommand = new RelayCommand(_ => IsAccessPopupOpen = false);
         }
 
         public async Task LoadAsync()
@@ -116,14 +120,13 @@ namespace SpareParts.Desktop.Wpf
             {
                 if (_selectedRole == null)
                 {
-                    var createdRole = await _rolesApi.CreateRoleAsync(new CreateRoleRequest
+                    await _rolesApi.CreateRoleAsync(new CreateRoleRequest
                     {
                         Name = FormName.Trim(),
                         Description = FormDescription.Trim(),
                         BadgeColor = FormBadgeColor.Trim(),
                         BadgeTextColor = FormBadgeTextColor.Trim()
                     });
-                    await _rolesApi.UpdateRoleMenuAccessAsync(createdRole.Id, BuildMenuAccessRequest());
                     SetStatus($"✓ Role '{FormName}' created.", true);
                 }
                 else
@@ -135,7 +138,6 @@ namespace SpareParts.Desktop.Wpf
                         BadgeTextColor = FormBadgeTextColor.Trim(),
                         IsActive = FormIsActive
                     });
-                    await _rolesApi.UpdateRoleMenuAccessAsync(_selectedRole.Id, BuildMenuAccessRequest());
                     SetStatus($"✓ Role '{_selectedRole.Name}' updated.", true);
                 }
 
@@ -170,7 +172,6 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 var items = await _rolesApi.GetRoleMenuAccessAsync(roleId);
-                _permissionsRoleId = roleId;
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     MenuAccessItems.Clear();
@@ -184,34 +185,14 @@ namespace SpareParts.Desktop.Wpf
             catch (Exception) { SetStatus("✗ Unexpected error while loading role menu access.", false); }
         }
 
-        private async Task SavePermissionsAsync()
+        private async Task OpenAccessPopupAsync(RoleManagementDto? role)
         {
-            if (_permissionsRoleId <= 0)
-            {
-                SetStatus("✗ Select a role first before saving permissions.", false);
-                return;
-            }
+            if (role == null) return;
 
-            try
-            {
-                await _rolesApi.UpdateRoleMenuAccessAsync(_permissionsRoleId, BuildMenuAccessRequest());
-                SetStatus("✓ Menu access updated.", true);
-            }
-            catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
-            catch (Exception) { SetStatus("✗ Unexpected error while saving role menu access.", false); }
+            await LoadMenuAccessAsync(role.Id);
+            AccessPopupTitle = $"{role.Name} Access";
+            IsAccessPopupOpen = true;
         }
-
-        private UpdateRoleMenuAccessRequest BuildMenuAccessRequest() => new()
-        {
-            Items = MenuAccessItems.Select(m => new RoleMenuAccessUpdateItem
-            {
-                MenuId = m.MenuId,
-                CanView = m.CanView,
-                CanEdit = m.CanEdit,
-                CanModify = m.CanModify,
-                CanDelete = m.CanDelete
-            }).ToList()
-        };
 
         private void SetStatus(string message, bool isSuccess)
         {
@@ -222,13 +203,11 @@ namespace SpareParts.Desktop.Wpf
 
         private void PopulateForm(RoleManagementDto r)
         {
-            _permissionsRoleId = r.Id;
             FormName = r.Name;
             FormDescription = r.Description ?? string.Empty;
             FormBadgeColor = r.BadgeColor;
             FormBadgeTextColor = r.BadgeTextColor;
             FormIsActive = r.IsActive;
-            _ = LoadMenuAccessAsync(r.Id);
         }
 
         private void ClearForm()
@@ -238,7 +217,6 @@ namespace SpareParts.Desktop.Wpf
             FormBadgeColor = "#22FFFFFF";
             FormBadgeTextColor = "#FFFFFF";
             FormIsActive = true;
-            _permissionsRoleId = 0;
             MenuAccessItems.Clear();
         }
 
