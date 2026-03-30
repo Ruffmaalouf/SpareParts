@@ -186,8 +186,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        private PosViewModel.AppScreen _activeScreen = PosViewModel.AppScreen.HomePage;
-        public PosViewModel.AppScreen ActiveScreen
+        private AppScreen _activeScreen = AppScreen.HomePage;
+        public AppScreen ActiveScreen
         {
             get => _activeScreen;
             set { if (_activeScreen != value) { _activeScreen = value; OnPropertyChanged(nameof(ActiveScreen)); } }
@@ -382,7 +382,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = PosViewModel.AppScreen.Pos;
+                ActiveScreen = AppScreen.Pos;
             });
             GoToCarSelectionCommand = new RelayCommand(_ =>
             {
@@ -392,11 +392,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = PosViewModel.AppScreen.CarSelection;
+                ActiveScreen = AppScreen.CarSelection;
             });
             GoToHomeCommand         = new RelayCommand(_ =>
             {
-                ActiveScreen  = PosViewModel.AppScreen.HomePage;
+                ActiveScreen  = AppScreen.HomePage;
                 SelectedBrand = null;
                 AvailableCars.Clear();
             });
@@ -438,7 +438,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = PosViewModel.AppScreen.Pos;
+                ActiveScreen = AppScreen.Pos;
                 SelectedTab?.SelectTransactionTypeByName("Purchases");
             });
             GoToStockManagementCommand = new RelayCommand(_ =>
@@ -449,7 +449,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = PosViewModel.AppScreen.StockManagement;
+                ActiveScreen = AppScreen.StockManagement;
             });
             GoToArCommand = new RelayCommand(_ =>
             {
@@ -459,7 +459,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = PosViewModel.AppScreen.ArExperience;
+                ActiveScreen = AppScreen.ArExperience;
             });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());
@@ -696,7 +696,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             if (existing != null)
             {
                 SelectedTab = existing;
-                ActiveScreen = PosViewModel.AppScreen.Pos;
+                ActiveScreen = AppScreen.Pos;
                 IsInvoiceSearchOpen = false;
                 return;
             }
@@ -715,7 +715,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 tab.LoadFromDatabase(invoice);
                 Tabs.Add(tab);
                 SelectedTab = tab;
-                ActiveScreen = PosViewModel.AppScreen.Pos;
+                ActiveScreen = AppScreen.Pos;
                 IsInvoiceSearchOpen = false;
                 AppNotificationCenter.Instance.Publish($"✓ Loaded invoice {invoice.InvoiceNumber} from database.", true);
             }
@@ -794,7 +794,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             SelectedBrand = brand;
-            ActiveScreen  = PosViewModel.AppScreen.CarSelection;
+            ActiveScreen  = AppScreen.CarSelection;
             _ = LoadCarsAsync(brand.Id);
         }
 
@@ -856,7 +856,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             SelectedCar  = car;
-            ActiveScreen = PosViewModel.AppScreen.PartSelection;
+            ActiveScreen = AppScreen.PartSelection;
             _ = LoadPartsAsync();
         }
 
@@ -904,7 +904,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 Quantity    = 1,
                 UnitPrice   = part.UnitPrice
             });
-            ActiveScreen = PosViewModel.AppScreen.Pos;
+            ActiveScreen = AppScreen.Pos;
         }
 
         private void AddTab()
@@ -936,7 +936,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             SelectedTab = tab;
-            ActiveScreen = PosViewModel.AppScreen.Pos;
+            ActiveScreen = AppScreen.Pos;
             tab.MarkOpenedFromSearch();
             IsInvoiceSearchOpen = false;
             AppNotificationCenter.Instance.Publish($"✓ Opened {tab.Header} for editing.", true);
