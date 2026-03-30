@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace SpareParts.Desktop.Wpf.Interfaces
 {
@@ -22,6 +23,7 @@ namespace SpareParts.Desktop.Wpf.Interfaces
         public double AnchorY { get; set; }
         public double Scale { get; set; }
         public string DiagnosticNote { get; set; } = string.Empty;
+        public IReadOnlyList<string> ReferenceImageUrls { get; set; } = new List<string>();
     }
 
     public interface IArRenderingService
