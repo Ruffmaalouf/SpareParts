@@ -377,6 +377,12 @@
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                                         Content="📦  Stock Management"/>
+
+                                <Button Command="{Binding GoToArCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewArScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="🕶️  AR Experience"/>
                             </StackPanel>
                         </Border>
                     </Popup>
@@ -464,6 +470,10 @@
                         <Button Content="Open Stock" Command="{Binding GoToStockManagementCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
+                                Width="200" Margin="12 0 0 0"/>
+                        <Button Content="Open AR" Command="{Binding GoToArCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewArScreen, Converter={StaticResource BoolToVis}}"
                                 Width="200" Margin="12 0 0 0"/>
                     </StackPanel>
                 </StackPanel>
@@ -558,6 +568,46 @@
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- ── AR Experience ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=ArExperience}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="AR Experience" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Launch augmented reality preview to visualize selected parts on a vehicle."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <Button DockPanel.Dock="Right"
+                            Content="⟵ Home"
+                            Command="{Binding GoToHomeCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Width="120"/>
+                </DockPanel>
+
+                <Border Grid.Row="1"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        CornerRadius="12"
+                        Padding="28">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="700">
+                        <TextBlock Text="AR module ready"
+                                   FontSize="26"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="This new screen is reserved for augmented reality workflows. Connect your AR rendering service or device bridge here to start a live part overlay session."
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Margin="0 14 0 0"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
                 </Border>
             </Grid>
 
