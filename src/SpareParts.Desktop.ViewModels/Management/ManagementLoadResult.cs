@@ -17,5 +17,6 @@ namespace SpareParts.Desktop.Wpf.Management
         public required IEnumerable<CarModelDto> CarModels { get; init; }
         public required IEnumerable<WarehouseDto> Warehouses { get; init; }
         public required IEnumerable<CurrencyRateDto> CurrencyRates { get; init; }
+        public required IEnumerable<TransactionTypeDto> TransactionTypes { get; init; }
     }
 }

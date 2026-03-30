@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf;
+using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Sales;
 using System;
 using System.Collections.ObjectModel;
@@ -23,6 +24,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public int? InvoiceId { get; private set; }
 
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
+        public ObservableCollection<TransactionTypeDto> TransactionTypes { get; } = new();
 
         // ── Invoice header ────────────────────────────────────────────────────
 
@@ -144,8 +146,36 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ? "Review and modify invoice details below"
             : "Enter invoice details below";
 
+        private int? _selectedTransactionTypeId;
+        public int? SelectedTransactionTypeId
+        {
+            get => _selectedTransactionTypeId;
+            set
+            {
+                if (_selectedTransactionTypeId == value) return;
+                _selectedTransactionTypeId = value;
+                OnPropertyChanged(nameof(SelectedTransactionTypeId));
+                ApplySelectedTransactionType();
+            }
+        }
+
+        private string _selectedCurrencyCode = "USD";
+        public string SelectedCurrencyCode
+        {
+            get => _selectedCurrencyCode;
+            private set { _selectedCurrencyCode = value; OnPropertyChanged(nameof(SelectedCurrencyCode)); }
+        }
+
+        private decimal _selectedCounterRate = 1m;
+        public decimal SelectedCounterRate
+        {
+            get => _selectedCounterRate;
+            private set { _selectedCounterRate = value; OnPropertyChanged(nameof(SelectedCounterRate)); }
+        }
+
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly ISalesApiClient _salesApi;
+        private readonly ICrudApiClient _crudApi;
         private bool _isSubmitting;
         private InvoiceSnapshot? _snapshot;
 
@@ -155,9 +185,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand SaveInvoiceCommand  { get; }
         public ICommand ResetInvoiceCommand { get; }
 
-        public InvoiceTabViewModel(ISalesApiClient salesApi)
+        public InvoiceTabViewModel(ISalesApiClient salesApi, ICrudApiClient crudApi)
         {
             _salesApi = salesApi;
+            _crudApi = crudApi;
             AddItemCommand      = new RelayCommand(_ => AddItem());
             SubmitSaleCommand   = new RelayCommand(_ => _ = SubmitSaleAsync());
             EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());
@@ -169,6 +200,19 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(TotalAmount));
                 OnPropertyChanged(nameof(RemainingAmount));
             };
+
+            _ = LoadTransactionTypesAsync();
+        }
+
+        public void SelectTransactionTypeByName(string transactionTypeName)
+        {
+            var selected = TransactionTypes.FirstOrDefault(t =>
+                string.Equals(t.Name, transactionTypeName, StringComparison.OrdinalIgnoreCase));
+
+            if (selected != null)
+            {
+                SelectedTransactionTypeId = selected.Id;
+            }
         }
 
         public void MarkOpenedFromSearch()
@@ -331,6 +375,43 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _snapshot = CreateSnapshot();
             IsInEditMode = false;
             AppNotificationCenter.Instance.Publish($"✓ Changes saved to database for {Header}.", true);
+        }
+
+        private async Task LoadTransactionTypesAsync()
+        {
+            try
+            {
+                var rows = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
+                TransactionTypes.Clear();
+                foreach (var row in rows.Where(t => t.IsActive))
+                {
+                    TransactionTypes.Add(row);
+                }
+
+                if (SelectedTransactionTypeId == null && TransactionTypes.Count > 0)
+                {
+                    var salesType = TransactionTypes.FirstOrDefault(t => string.Equals(t.Name, "Sales", StringComparison.OrdinalIgnoreCase));
+                    SelectedTransactionTypeId = salesType?.Id ?? TransactionTypes[0].Id;
+                }
+            }
+            catch
+            {
+                // Non-blocking for invoice operations.
+            }
+        }
+
+        private void ApplySelectedTransactionType()
+        {
+            var selected = TransactionTypes.FirstOrDefault(t => t.Id == SelectedTransactionTypeId);
+            if (selected == null)
+            {
+                SelectedCurrencyCode = "USD";
+                SelectedCounterRate = 1m;
+                return;
+            }
+
+            SelectedCurrencyCode = selected.CurrencyCode;
+            SelectedCounterRate = selected.CounterRate;
         }
 
         private void ResetEdits()

@@ -870,6 +870,8 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="16"/>
                                             <ColumnDefinition Width="260"/>
                                             <ColumnDefinition Width="16"/>
                                             <ColumnDefinition Width="190"/>
@@ -880,16 +882,51 @@
                             SelectedCustomerId="{Binding CustomerId, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
 
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                                            <TextBlock Text="TRANSACTION TYPE" FontSize="11" FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Margin="0 0 0 6"/>
+                                            <ComboBox ItemsSource="{Binding TransactionTypes}"
+                                                      DisplayMemberPath="Name"
+                                                      SelectedValuePath="Id"
+                                                      SelectedValue="{Binding SelectedTransactionTypeId, Mode=TwoWay}"
+                                                      Height="52"
+                                                      Padding="12 0"/>
+                                        </StackPanel>
+
                                         <controls:WarehouseSearchControl
-                            Grid.Column="2"
+                            Grid.Column="4"
                             SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
 
                                         <controls:SaleDatePickerControl
-                            Grid.Column="4"
+                            Grid.Column="6"
                             Label="DATE"
                             SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
+                                    </Grid>
+
+                                    <Grid Margin="0 0 0 16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="CURRENCY CODE" FontSize="11" FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
+                                            <Border Background="#FF1A1A22" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Height="52">
+                                                <TextBlock Text="{Binding SelectedCurrencyCode}" VerticalAlignment="Center" Margin="14 0" FontSize="15" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="COUNTER RATE" FontSize="11" FontWeight="Bold"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
+                                            <Border Background="#FF1A1A22" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Height="52">
+                                                <TextBlock Text="{Binding SelectedCounterRate, StringFormat={}{0:N6}}" VerticalAlignment="Center" Margin="14 0" FontSize="15" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </StackPanel>
                                     </Grid>
 
                                     <!-- Row 2: Part | Qty | Price | [Add] [Submit] -->
