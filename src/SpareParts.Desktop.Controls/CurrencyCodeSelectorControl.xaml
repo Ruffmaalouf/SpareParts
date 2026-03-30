@@ -1,0 +1,24 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.CurrencyCodeSelectorControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             MinWidth="220">
+    <StackPanel>
+        <TextBlock Text="{Binding Label, ElementName=Root}"
+                   FontSize="11"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   Margin="0 0 0 6"/>
+        <Border Background="#FF1A1A22"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Height="52">
+            <ComboBox ItemsSource="{Binding CurrencyCodes, ElementName=Root}"
+                      SelectedItem="{Binding SelectedCurrencyCode, ElementName=Root, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      Padding="12 0"/>
+        </Border>
+    </StackPanel>
+</UserControl>
