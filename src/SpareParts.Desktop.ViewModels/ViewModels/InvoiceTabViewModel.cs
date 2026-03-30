@@ -194,6 +194,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private bool _isSubmitting;
         private InvoiceSnapshot? _snapshot;
         private bool _isSynchronizingSelection;
+        private readonly Dictionary<string, decimal> _currencyRatesByCode = new(StringComparer.OrdinalIgnoreCase);
 
         public ICommand AddItemCommand      { get; }
         public ICommand SubmitSaleCommand   { get; }
@@ -397,18 +398,42 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             try
             {
-                var rows = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
+                var transactionTypeRows = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
                 TransactionTypes.Clear();
-                foreach (var row in rows.Where(t => t.IsActive))
+                foreach (var row in transactionTypeRows.Where(t => t.IsActive))
                 {
                     TransactionTypes.Add(row);
                 }
 
+                _currencyRatesByCode.Clear();
+                try
+                {
+                    var currencyRates = await _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
+                    foreach (var rate in currencyRates)
+                    {
+                        var code = (rate.Code ?? string.Empty).Trim().ToUpperInvariant();
+                        if (string.IsNullOrWhiteSpace(code))
+                        {
+                            continue;
+                        }
+
+                        _currencyRatesByCode[code] = rate.RateToUsd;
+                    }
+                }
+                catch
+                {
+                    // Keep transaction type fallback if currency endpoint is unavailable.
+                }
+
                 CurrencyCodes.Clear();
-                foreach (var code in TransactionTypes
-                    .Select(t => (t.CurrencyCode ?? string.Empty).Trim().ToUpperInvariant())
+                var allCurrencyCodes = _currencyRatesByCode.Keys
+                    .Concat(TransactionTypes.Select(t => (t.CurrencyCode ?? string.Empty).Trim().ToUpperInvariant()))
                     .Where(code => !string.IsNullOrWhiteSpace(code))
-                    .Distinct(StringComparer.OrdinalIgnoreCase))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                foreach (var code in allCurrencyCodes)
                 {
                     CurrencyCodes.Add(code);
                 }
@@ -417,6 +442,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 {
                     var salesType = TransactionTypes.FirstOrDefault(t => string.Equals(t.Name, "Sales", StringComparison.OrdinalIgnoreCase));
                     SelectedTransactionTypeId = salesType?.Id ?? TransactionTypes[0].Id;
+                }
+                else if (!CurrencyCodes.Contains(SelectedCurrencyCode, StringComparer.OrdinalIgnoreCase) && CurrencyCodes.Count > 0)
+                {
+                    SelectedCurrencyCode = CurrencyCodes[0];
                 }
             }
             catch
@@ -449,19 +478,25 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var selected = TransactionTypes.FirstOrDefault(t =>
                 string.Equals(t.CurrencyCode, SelectedCurrencyCode, StringComparison.OrdinalIgnoreCase));
 
-            if (selected == null)
+            if (selected != null)
             {
-                SelectedCounterRate = 1m;
+                if (SelectedTransactionTypeId != selected.Id)
+                {
+                    SelectedTransactionTypeId = selected.Id;
+                    return;
+                }
+
+                SelectedCounterRate = selected.CounterRate;
                 return;
             }
 
-            if (SelectedTransactionTypeId != selected.Id)
+            if (_currencyRatesByCode.TryGetValue(SelectedCurrencyCode, out var rateToUsd) && rateToUsd > 0)
             {
-                SelectedTransactionTypeId = selected.Id;
+                SelectedCounterRate = rateToUsd;
                 return;
             }
 
-            SelectedCounterRate = selected.CounterRate;
+            SelectedCounterRate = 1m;
         }
 
         private void ResetEdits()
