@@ -77,6 +77,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _canViewPartSelectionScreen = value; OnPropertyChanged(nameof(CanViewPartSelectionScreen)); }
         }
 
+        private bool _canViewArScreen = true;
+        public bool CanViewArScreen
+        {
+            get => _canViewArScreen;
+            private set { _canViewArScreen = value; OnPropertyChanged(nameof(CanViewArScreen)); }
+        }
+
         private bool _isManagementOpen;
         public bool IsManagementOpen
         {
@@ -250,6 +257,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToStockManagementCommand { get; }
+        public ICommand GoToArCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
 
         public InvoiceTabsViewModel(
@@ -368,6 +376,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 ActiveScreen = PosViewModel.AppScreen.StockManagement;
             });
+            GoToArCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewArScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view AR.", false);
+                    return;
+                }
+
+                ActiveScreen = PosViewModel.AppScreen.ArExperience;
+            });
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
             AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
@@ -415,6 +433,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var stockManagementScreen = GetMenuAccess(menuAccessItems, "stock_management_screen");
             var carSelectionScreen = GetMenuAccess(menuAccessItems, "car_selection_screen");
             var partSelectionScreen = GetMenuAccess(menuAccessItems, "part_selection_screen");
+            var arScreen = menuAccessItems.FirstOrDefault(i => string.Equals(i.MenuKey, "ar_screen", StringComparison.OrdinalIgnoreCase));
 
             CanViewInvoiceSearch = invoiceSearch.CanView;
             CanViewManagementScreen = managementScreen.CanView;
@@ -423,6 +442,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CanViewStockManagementScreen = stockManagementScreen.CanView;
             CanViewCarSelectionScreen = carSelectionScreen.CanView;
             CanViewPartSelectionScreen = partSelectionScreen.CanView;
+            CanViewArScreen = arScreen?.CanView ?? true;
             ManagementVm.SetSupplierPermissions(
                 supplierTab.CanView,
                 supplierTab.CanEdit,
