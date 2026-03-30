@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Collections.Generic;
+using System.Windows.Media.Imaging;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
 {
@@ -122,18 +123,58 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _arStatusMessage = value; OnPropertyChanged(nameof(ArStatusMessage)); }
         }
 
+        private string _arOverlayTitle = "No overlay yet.";
+        public string ArOverlayTitle
+        {
+            get => _arOverlayTitle;
+            private set { _arOverlayTitle = value; OnPropertyChanged(nameof(ArOverlayTitle)); }
+        }
+
+        private string _arOverlayDiagnostic = string.Empty;
+        public string ArOverlayDiagnostic
+        {
+            get => _arOverlayDiagnostic;
+            private set { _arOverlayDiagnostic = value; OnPropertyChanged(nameof(ArOverlayDiagnostic)); }
+        }
+
+        private double _arOverlayLeft = 80;
+        public double ArOverlayLeft
+        {
+            get => _arOverlayLeft;
+            private set { _arOverlayLeft = value; OnPropertyChanged(nameof(ArOverlayLeft)); }
+        }
+
+        private double _arOverlayTop = 80;
+        public double ArOverlayTop
+        {
+            get => _arOverlayTop;
+            private set { _arOverlayTop = value; OnPropertyChanged(nameof(ArOverlayTop)); }
+        }
+
+        public BitmapImage? ArPreviewImage => SelectedCar?.Image ?? SelectedBrand?.Logo;
+
         private CarBrandViewModel? _selectedBrand;
         public CarBrandViewModel? SelectedBrand
         {
             get => _selectedBrand;
-            set { _selectedBrand = value; OnPropertyChanged(nameof(SelectedBrand)); }
+            set
+            {
+                _selectedBrand = value;
+                OnPropertyChanged(nameof(SelectedBrand));
+                OnPropertyChanged(nameof(ArPreviewImage));
+            }
         }
 
         private CarModelViewModel? _selectedCar;
         public CarModelViewModel? SelectedCar
         {
             get => _selectedCar;
-            set { _selectedCar = value; OnPropertyChanged(nameof(SelectedCar)); }
+            set
+            {
+                _selectedCar = value;
+                OnPropertyChanged(nameof(SelectedCar));
+                OnPropertyChanged(nameof(ArPreviewImage));
+            }
         }
 
         private PosViewModel.AppScreen _activeScreen = PosViewModel.AppScreen.HomePage;
@@ -495,12 +536,25 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                var carName = SelectedCar?.Name ?? "Generic Car";
-                var partName = AvailableParts.FirstOrDefault()?.Description ?? "Selected Part";
-                var overlay = await _arRenderingService.RenderOverlayAsync(carName, partName);
+                var selectedLine = SelectedTab?.Items.FirstOrDefault();
+                var selectedPart = AvailableParts.FirstOrDefault();
+                var request = new ArRenderRequest
+                {
+                    CarName = SelectedCar?.Name ?? "Generic Car",
+                    CarYear = SelectedCar?.Year ?? string.Empty,
+                    EngineType = SelectedCar?.EngineType ?? string.Empty,
+                    PartCode = selectedPart?.Code ?? selectedLine?.PartId.ToString() ?? "N/A",
+                    PartDescription = selectedLine?.Description ?? selectedPart?.Description ?? "Selected Part",
+                    UnitPrice = selectedLine?.UnitPrice ?? selectedPart?.UnitPrice ?? 0m
+                };
+                var overlay = await _arRenderingService.RenderOverlayAsync(request);
                 await _arDeviceBridge.PushOverlayFrameAsync(overlay);
 
                 IsArSessionActive = true;
+                ArOverlayTitle = $"{overlay.CarLabel} → {overlay.PartLabel}";
+                ArOverlayDiagnostic = overlay.DiagnosticNote;
+                ArOverlayLeft = overlay.AnchorX * 540;
+                ArOverlayTop = overlay.AnchorY * 320;
                 ArStatusMessage = $"AR running. {_arDeviceBridge.LastConnectionDetails}";
                 AppNotificationCenter.Instance.Publish("✓ AR session started.", true);
             }
@@ -524,6 +578,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 await _arDeviceBridge.DisconnectAsync();
                 IsArSessionActive = false;
                 ArStatusMessage = "AR session stopped.";
+                ArOverlayDiagnostic = "Disconnected.";
                 AppNotificationCenter.Instance.Publish("✓ AR session stopped.", true);
             }
             catch (Exception)

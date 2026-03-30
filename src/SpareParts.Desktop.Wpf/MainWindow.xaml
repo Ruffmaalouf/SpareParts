@@ -597,7 +597,7 @@
                         Background="{DynamicResource CardBackgroundBrush}"
                         CornerRadius="12"
                         Padding="28">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="700">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="760">
                         <TextBlock Text="AR module ready"
                                    FontSize="26"
                                    FontWeight="SemiBold"
@@ -612,6 +612,26 @@
                                    TextAlignment="Center"
                                    Margin="0 18 0 0"
                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Grid Width="620" Height="360" Margin="0 16 0 0">
+                            <Border Background="#11000000" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10"/>
+                            <Image Source="{Binding ArPreviewImage}" Stretch="UniformToFill" Margin="8" Opacity="0.92"/>
+                            <Canvas Margin="8">
+                                <Border Background="#E61A1A1A"
+                                        BorderBrush="{DynamicResource AccentBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="10"
+                                        Width="230"
+                                        Canvas.Left="{Binding ArOverlayLeft}"
+                                        Canvas.Top="{Binding ArOverlayTop}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ArOverlayTitle}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding ArOverlayDiagnostic}" FontSize="11" Margin="0 6 0 0"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </Canvas>
+                        </Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 20 0 0">
                             <Button Content="Start AR Session"
                                     Command="{Binding StartArSessionCommand}"

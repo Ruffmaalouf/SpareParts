@@ -7,8 +7,9 @@ namespace SpareParts.Desktop.Wpf.Interfaces
     {
         Task<bool> ConnectAsync(CancellationToken cancellationToken = default);
         Task DisconnectAsync(CancellationToken cancellationToken = default);
-        Task PushOverlayFrameAsync(string payload, CancellationToken cancellationToken = default);
+        Task PushOverlayFrameAsync(ArOverlayFrame payload, CancellationToken cancellationToken = default);
         bool IsConnected { get; }
         string LastConnectionDetails { get; }
+        string? LastFramePath { get; }
     }
 }
