@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using RestSharp;
@@ -15,15 +16,38 @@ namespace SpareParts.Desktop.Wpf
         private const int RetryCount = 3;
 
         public RestClient Create(string baseUrl)
-            => new(new RestClientOptions(baseUrl)
+        {
+            var options = new RestClientOptions(baseUrl)
             {
                 ThrowOnAnyError = false,
-                MaxTimeout = (int)RequestTimeout.TotalMilliseconds,
                 ConfigureMessageHandler = _ => new RetryHandler(
                     innerHandler: new HttpClientHandler(),
                     maxRetries: RetryCount,
                     baseDelay: RetryBaseDelay)
-            });
+            };
+
+            ApplyTimeout(options);
+
+            return new RestClient(options);
+        }
+
+        private static void ApplyTimeout(RestClientOptions options)
+        {
+            var optionsType = options.GetType();
+
+            var timeoutProperty = optionsType.GetProperty("Timeout", BindingFlags.Public | BindingFlags.Instance);
+            if (timeoutProperty is not null && timeoutProperty.CanWrite && timeoutProperty.PropertyType == typeof(TimeSpan?))
+            {
+                timeoutProperty.SetValue(options, RequestTimeout);
+                return;
+            }
+
+            var maxTimeoutProperty = optionsType.GetProperty("MaxTimeout", BindingFlags.Public | BindingFlags.Instance);
+            if (maxTimeoutProperty is not null && maxTimeoutProperty.CanWrite && maxTimeoutProperty.PropertyType == typeof(int))
+            {
+                maxTimeoutProperty.SetValue(options, (int)RequestTimeout.TotalMilliseconds);
+            }
+        }
 
         private sealed class RetryHandler(HttpMessageHandler innerHandler, int maxRetries, TimeSpan baseDelay)
             : DelegatingHandler(innerHandler)
