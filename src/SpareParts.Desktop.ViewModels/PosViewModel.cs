@@ -41,8 +41,6 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarModelUi>  AvailableCars  { get; } = new();
         public ObservableCollection<CarPartModel> AvailableParts { get; } = new();
 
-        public enum AppScreen { HomePage, CarSelection, PartSelection, Pos, Purchases, StockManagement, ArExperience }
-
         private AppScreen _activeScreen = AppScreen.HomePage;
         public AppScreen ActiveScreen
         {
