@@ -14,6 +14,9 @@
     <SolidColorBrush x:Key="TextPrimaryBrush">#F0F0F2</SolidColorBrush>
     <SolidColorBrush x:Key="TextSecondaryBrush">#8888A0</SolidColorBrush>
     <SolidColorBrush x:Key="BorderBrush">#28C8C8D0</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderOverlayBrush">#AA111114</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderCardBrush">#1A1A1E</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderBorderBrush">#C8C8D0</SolidColorBrush>
     <Color x:Key="ColorSportOrange">#C8C8D0</Color>
     <Color x:Key="ColorMatteBlack">#111114</Color>
     <Color x:Key="ColorGunmetal">#1A1A1E</Color>
@@ -23,6 +26,7 @@
 
     <Style TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe UI"/>
+
         <Setter Property="Foreground" Value="#F0F0F2"/>
     </Style>
 

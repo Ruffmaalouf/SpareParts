@@ -15,10 +15,14 @@
     <SolidColorBrush x:Key="TextPrimaryBrush"    Color="{DynamicResource ColorChrome}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush"  Color="{DynamicResource ColorMuted}"/>
     <SolidColorBrush x:Key="BorderBrush"         Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="PreloaderOverlayBrush">#AA121212</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderCardBrush">#1E1E24</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderBorderBrush">#FF5722</SolidColorBrush>
     <SolidColorBrush x:Key="CardBorderBrush"     Color="#22FFFFFF"/>
     <SolidColorBrush x:Key="CardBgBrush"         Color="{DynamicResource ColorGunmetal}"/>
     <SolidColorBrush x:Key="CardBgSoftBrush"     Color="{DynamicResource ColorSlate}"/>
     <SolidColorBrush x:Key="AccentBlueBrush"     Color="#FF42A5F5"/>
+
 
     <Style TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe UI"/>
