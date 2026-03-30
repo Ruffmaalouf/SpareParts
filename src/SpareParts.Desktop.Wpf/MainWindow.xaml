@@ -1309,23 +1309,39 @@
                 </Style>
             </Grid.Style>
 
-            <Border Background="#88000000"/>
+            <Border Background="{DynamicResource PreloaderOverlayBrush}"/>
 
-            <Border Width="260"
-                    Padding="20"
+            <Border Width="320"
+                    Padding="24"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12">
+                    Background="{DynamicResource PreloaderCardBrush}"
+                    BorderBrush="{DynamicResource PreloaderBorderBrush}"
+                    BorderThickness="1.5"
+                    CornerRadius="16">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24"
+                                      ShadowDepth="0"
+                                      Opacity="0.35"
+                                      Color="#FF000000"/>
+                </Border.Effect>
                 <StackPanel>
-                    <ProgressBar IsIndeterminate="True" Height="8"/>
-                    <TextBlock Text="Loading data..."
+                    <TextBlock Text="Syncing dashboard"
+                               HorizontalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <ProgressBar IsIndeterminate="True"
+                                 Height="10"
+                                 Margin="0 16 0 0"
+                                 Foreground="{DynamicResource AccentBrush}"
+                                 Background="#22000000"/>
+                    <TextBlock Text="Fetching latest inventory, pricing, and customer data..."
                                Margin="0 14 0 0"
                                HorizontalAlignment="Center"
-                               FontSize="14"
-                               FontWeight="SemiBold"/>
+                               TextAlignment="Center"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
             </Border>
         </Grid>
