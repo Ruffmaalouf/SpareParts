@@ -2,13 +2,6 @@ using SpareParts.Domain.Common;
 
 namespace SpareParts.Domain.Inventory
 {
-    public enum PartCondition
-    {
-        New = 1,
-        Used = 2,
-        Rebuilt = 3
-    }
-
     public class Part : AuditableEntity
     {
         public string InternalCode { get; set; } = string.Empty;

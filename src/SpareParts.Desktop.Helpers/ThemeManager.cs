@@ -39,6 +39,4 @@ namespace SpareParts.Desktop.Wpf
             CurrentTheme = theme;
         }
     }
-
-    public enum AppTheme { Default, MPower, NeonGlow, AMG, PorscheRS, LamborghiniSC }
 }

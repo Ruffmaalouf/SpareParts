@@ -2,15 +2,6 @@ using SpareParts.Domain.Common;
 
 namespace SpareParts.Domain.Accounting
 {
-    public enum AccountType
-    {
-        Asset,
-        Liability,
-        Equity,
-        Income,
-        Expense
-    }
-
     public class Account : AuditableEntity
     {
         public string Code { get; set; } = string.Empty;
