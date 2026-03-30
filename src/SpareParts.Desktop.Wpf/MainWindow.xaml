@@ -632,6 +632,15 @@
                                 </Border>
                             </Canvas>
                         </Grid>
+                        <TextBlock Text="Reference images"
+                                   FontWeight="SemiBold"
+                                   Margin="0 14 0 0"/>
+                        <TextBlock Text="{Binding ArReferenceImages}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   MaxWidth="620"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 20 0 0">
                             <Button Content="Start AR Session"
                                     Command="{Binding StartArSessionCommand}"
