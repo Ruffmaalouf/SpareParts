@@ -158,7 +158,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _arOverlayTop = value; OnPropertyChanged(nameof(ArOverlayTop)); }
         }
 
-        public BitmapImage? ArPreviewImage => SelectedCar?.Image ?? SelectedBrand?.Logo;
+        private BitmapImage? _arOverlayPreviewImage;
+        public BitmapImage? ArPreviewImage => SelectedCar?.Image ?? SelectedBrand?.Logo ?? _arOverlayPreviewImage;
 
         private CarBrandViewModel? _selectedBrand;
         public CarBrandViewModel? SelectedBrand
@@ -547,12 +548,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 var selectedPart = AvailableParts.FirstOrDefault();
                 var request = new ArRenderRequest
                 {
-                    CarName = SelectedCar?.Name ?? "Generic Car",
-                    CarYear = SelectedCar?.Year ?? string.Empty,
-                    EngineType = SelectedCar?.EngineType ?? string.Empty,
-                    PartCode = selectedPart?.Code ?? selectedLine?.PartId.ToString() ?? "N/A",
-                    PartDescription = selectedLine?.Description ?? selectedPart?.Description ?? "Selected Part",
-                    UnitPrice = selectedLine?.UnitPrice ?? selectedPart?.UnitPrice ?? 0m
+                    CarName = SelectedCar?.Name ?? "BMW M3 E92",
+                    CarYear = SelectedCar?.Year ?? "2010",
+                    EngineType = SelectedCar?.EngineType ?? "S65B40 V8",
+                    PartCode = selectedPart?.Code ?? selectedLine?.PartId.ToString() ?? "S65B40",
+                    PartDescription = selectedLine?.Description ?? selectedPart?.Description ?? "Complete Engine Assembly",
+                    UnitPrice = selectedLine?.UnitPrice ?? selectedPart?.UnitPrice ?? 12000m
                 };
                 var overlay = await _arRenderingService.RenderOverlayAsync(request);
                 await _arDeviceBridge.PushOverlayFrameAsync(overlay);
@@ -563,6 +564,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ArReferenceImages = overlay.ReferenceImageUrls.Count == 0
                     ? "No reference images available for this selection."
                     : string.Join(Environment.NewLine, overlay.ReferenceImageUrls);
+                _arOverlayPreviewImage = TryCreateBitmapFromOverlay(overlay.ReferenceImageUrls)
+                    ?? TryCreateBitmapFromUri("pack://application:,,,/Assets/Logos/bmw.png");
+                OnPropertyChanged(nameof(ArPreviewImage));
                 ArOverlayLeft = overlay.AnchorX * 540;
                 ArOverlayTop = overlay.AnchorY * 320;
                 ArStatusMessage = $"AR running. {_arDeviceBridge.LastConnectionDetails}";
@@ -590,11 +594,50 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ArStatusMessage = "AR session stopped.";
                 ArOverlayDiagnostic = "Disconnected.";
                 ArReferenceImages = "No reference images yet.";
+                _arOverlayPreviewImage = null;
+                OnPropertyChanged(nameof(ArPreviewImage));
                 AppNotificationCenter.Instance.Publish("✓ AR session stopped.", true);
             }
             catch (Exception)
             {
                 AppNotificationCenter.Instance.Publish("✗ Failed to stop AR session.", false);
+            }
+        }
+
+        private static BitmapImage? TryCreateBitmapFromOverlay(IReadOnlyList<string> imageUrls)
+        {
+            foreach (var imageUrl in imageUrls)
+            {
+                var image = TryCreateBitmapFromUri(imageUrl);
+                if (image != null)
+                {
+                    return image;
+                }
+            }
+
+            return null;
+        }
+
+        private static BitmapImage? TryCreateBitmapFromUri(string? uriValue)
+        {
+            if (string.IsNullOrWhiteSpace(uriValue))
+            {
+                return null;
+            }
+
+            try
+            {
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.UriSource = new Uri(uriValue, UriKind.Absolute);
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.EndInit();
+                image.Freeze();
+                return image;
+            }
+            catch
+            {
+                return null;
             }
         }
 

@@ -33,14 +33,13 @@ namespace SpareParts.Desktop.Wpf
 
         private static IReadOnlyList<string> BuildReferenceImageUrls(string normalizedCar, string carYear, string normalizedPart)
         {
-            if (normalizedCar.Contains("E92", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(carYear, "2010", StringComparison.OrdinalIgnoreCase))
+            if (IsTargetE92M3(normalizedCar, carYear))
             {
                 return new[]
                 {
-                    "https://commons.wikimedia.org/wiki/Category:BMW_M3_(E92)",
-                    "https://commons.wikimedia.org/wiki/Category:BMW_S65_engine",
-                    "https://commons.wikimedia.org/wiki/File:BMW_S65_engine,_front_right.jpg"
+                    "https://commons.wikimedia.org/wiki/Special:FilePath/BMW_M3_E92_coupe_front.jpg",
+                    "https://commons.wikimedia.org/wiki/Special:FilePath/BMW_S65_engine%2C_front_right.jpg",
+                    "https://commons.wikimedia.org/wiki/Special:FilePath/BMW_S65_engine%2C_front.jpg"
                 };
             }
 
@@ -54,8 +53,7 @@ namespace SpareParts.Desktop.Wpf
 
         private static string BuildRecommendedPartLabel(string normalizedCar, string carYear, string normalizedPart, string partCode)
         {
-            if (normalizedCar.Contains("E92", StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(carYear, "2010", StringComparison.OrdinalIgnoreCase))
+            if (IsTargetE92M3(normalizedCar, carYear))
             {
                 return "S65B40 · Complete Engine Assembly";
             }
@@ -63,6 +61,16 @@ namespace SpareParts.Desktop.Wpf
             return string.IsNullOrWhiteSpace(partCode)
                 ? normalizedPart
                 : $"{partCode} · {normalizedPart}";
+        }
+
+        private static bool IsTargetE92M3(string normalizedCar, string carYear)
+        {
+            var isE92 = normalizedCar.Contains("E92", StringComparison.OrdinalIgnoreCase);
+            var isM3 = normalizedCar.Contains("M3", StringComparison.OrdinalIgnoreCase);
+            var isBmw = normalizedCar.Contains("BMW", StringComparison.OrdinalIgnoreCase);
+            var is2010 = string.Equals(carYear, "2010", StringComparison.OrdinalIgnoreCase);
+
+            return (isE92 || (isM3 && isBmw)) && is2010;
         }
     }
 }
