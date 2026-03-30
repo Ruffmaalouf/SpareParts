@@ -26,6 +26,8 @@ namespace SpareParts.Desktop.Wpf
 
             services.AddSingleton<IApiTokenProvider, ApiTokenProvider>();
             services.AddSingleton<IRestClientFactory, RestClientFactory>();
+            services.AddSingleton<IArRenderingService, ArRenderingService>();
+            services.AddSingleton<IArDeviceBridge, ArDeviceBridge>();
 
             services.AddTransient<IAuthApiClient, AuthApiClient>();
             services.AddTransient<IApiSessionClient, ApiSessionClient>();
