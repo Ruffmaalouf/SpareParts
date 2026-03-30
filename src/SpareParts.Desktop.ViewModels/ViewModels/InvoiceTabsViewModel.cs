@@ -137,6 +137,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _arOverlayDiagnostic = value; OnPropertyChanged(nameof(ArOverlayDiagnostic)); }
         }
 
+        private string _arReferenceImages = "No reference images yet.";
+        public string ArReferenceImages
+        {
+            get => _arReferenceImages;
+            private set { _arReferenceImages = value; OnPropertyChanged(nameof(ArReferenceImages)); }
+        }
+
         private double _arOverlayLeft = 80;
         public double ArOverlayLeft
         {
@@ -553,6 +560,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 IsArSessionActive = true;
                 ArOverlayTitle = $"{overlay.CarLabel} → {overlay.PartLabel}";
                 ArOverlayDiagnostic = overlay.DiagnosticNote;
+                ArReferenceImages = overlay.ReferenceImageUrls.Count == 0
+                    ? "No reference images available for this selection."
+                    : string.Join(Environment.NewLine, overlay.ReferenceImageUrls);
                 ArOverlayLeft = overlay.AnchorX * 540;
                 ArOverlayTop = overlay.AnchorY * 320;
                 ArStatusMessage = $"AR running. {_arDeviceBridge.LastConnectionDetails}";
@@ -579,6 +589,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 IsArSessionActive = false;
                 ArStatusMessage = "AR session stopped.";
                 ArOverlayDiagnostic = "Disconnected.";
+                ArReferenceImages = "No reference images yet.";
                 AppNotificationCenter.Instance.Publish("✓ AR session stopped.", true);
             }
             catch (Exception)
