@@ -25,6 +25,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private readonly IPartsApiClient _partsApi;
         private readonly ISalesApiClient _salesApi;
         private readonly IRoleApiClient _rolesApi;
+        private readonly IArRenderingService _arRenderingService;
+        private readonly IArDeviceBridge _arDeviceBridge;
 
         public ManagementViewModel ManagementVm { get; }
 
@@ -105,6 +107,20 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         }
 
         public string FeedToggleText => IsFeedVisible ? "Hide" : "Show";
+
+        private bool _isArSessionActive;
+        public bool IsArSessionActive
+        {
+            get => _isArSessionActive;
+            private set { _isArSessionActive = value; OnPropertyChanged(nameof(IsArSessionActive)); }
+        }
+
+        private string _arStatusMessage = "AR service idle.";
+        public string ArStatusMessage
+        {
+            get => _arStatusMessage;
+            private set { _arStatusMessage = value; OnPropertyChanged(nameof(ArStatusMessage)); }
+        }
 
         private CarBrandViewModel? _selectedBrand;
         public CarBrandViewModel? SelectedBrand
@@ -258,6 +274,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToStockManagementCommand { get; }
         public ICommand GoToArCommand { get; }
+        public ICommand StartArSessionCommand { get; }
+        public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
 
         public InvoiceTabsViewModel(
@@ -265,12 +283,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IPartsApiClient partsApi,
             ISalesApiClient salesApi,
             IRoleApiClient rolesApi,
+            IArRenderingService arRenderingService,
+            IArDeviceBridge arDeviceBridge,
             ManagementViewModel managementVm)
         {
             _carCatalogApi = carCatalogApi;
             _partsApi = partsApi;
             _salesApi = salesApi;
             _rolesApi = rolesApi;
+            _arRenderingService = arRenderingService;
+            _arDeviceBridge = arDeviceBridge;
             ManagementVm = managementVm;
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -386,6 +408,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 ActiveScreen = PosViewModel.AppScreen.ArExperience;
             });
+            StartArSessionCommand = new RelayCommand(_ => StartArSession());
+            StopArSessionCommand = new RelayCommand(_ => StopArSession());
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
             AddTabCommand = new RelayCommand(_ => AddTab());
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
@@ -453,6 +477,60 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private static RoleMenuAccessDto GetMenuAccess(IEnumerable<RoleMenuAccessDto> menuAccessItems, string menuKey)
             => menuAccessItems.FirstOrDefault(i => string.Equals(i.MenuKey, menuKey, StringComparison.OrdinalIgnoreCase))
                ?? new RoleMenuAccessDto { MenuKey = menuKey };
+
+        private void StartArSession()
+        {
+            _ = StartArSessionAsync();
+        }
+
+        private async Task StartArSessionAsync()
+        {
+            try
+            {
+                var isConnected = await _arDeviceBridge.ConnectAsync();
+                if (!isConnected)
+                {
+                    ArStatusMessage = "Could not connect to AR bridge.";
+                    AppNotificationCenter.Instance.Publish("✗ Could not connect to AR bridge.", false);
+                    return;
+                }
+
+                var carName = SelectedCar?.Name ?? "Generic Car";
+                var partName = AvailableParts.FirstOrDefault()?.Description ?? "Selected Part";
+                var overlay = await _arRenderingService.RenderOverlayAsync(carName, partName);
+                await _arDeviceBridge.PushOverlayFrameAsync(overlay);
+
+                IsArSessionActive = true;
+                ArStatusMessage = $"AR running. {_arDeviceBridge.LastConnectionDetails}";
+                AppNotificationCenter.Instance.Publish("✓ AR session started.", true);
+            }
+            catch (Exception)
+            {
+                IsArSessionActive = false;
+                ArStatusMessage = "AR startup failed.";
+                AppNotificationCenter.Instance.Publish("✗ Failed to start AR session.", false);
+            }
+        }
+
+        private void StopArSession()
+        {
+            _ = StopArSessionAsync();
+        }
+
+        private async Task StopArSessionAsync()
+        {
+            try
+            {
+                await _arDeviceBridge.DisconnectAsync();
+                IsArSessionActive = false;
+                ArStatusMessage = "AR session stopped.";
+                AppNotificationCenter.Instance.Publish("✓ AR session stopped.", true);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Failed to stop AR session.", false);
+            }
+        }
 
 
         private void RefreshInvoiceSearch()
