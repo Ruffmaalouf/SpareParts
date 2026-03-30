@@ -25,6 +25,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
         public ObservableCollection<TransactionTypeDto> TransactionTypes { get; } = new();
+        public ObservableCollection<string> CurrencyCodes { get; } = new();
 
         // ── Invoice header ────────────────────────────────────────────────────
 
@@ -163,7 +164,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public string SelectedCurrencyCode
         {
             get => _selectedCurrencyCode;
-            private set { _selectedCurrencyCode = value; OnPropertyChanged(nameof(SelectedCurrencyCode)); }
+            set
+            {
+                if (string.Equals(_selectedCurrencyCode, value, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _selectedCurrencyCode = value;
+                OnPropertyChanged(nameof(SelectedCurrencyCode));
+
+                if (!_isSynchronizingSelection)
+                {
+                    ApplySelectedCurrencyCode();
+                }
+            }
         }
 
         private decimal _selectedCounterRate = 1m;
@@ -178,6 +193,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private readonly ICrudApiClient _crudApi;
         private bool _isSubmitting;
         private InvoiceSnapshot? _snapshot;
+        private bool _isSynchronizingSelection;
 
         public ICommand AddItemCommand      { get; }
         public ICommand SubmitSaleCommand   { get; }
@@ -388,6 +404,15 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     TransactionTypes.Add(row);
                 }
 
+                CurrencyCodes.Clear();
+                foreach (var code in TransactionTypes
+                    .Select(t => (t.CurrencyCode ?? string.Empty).Trim().ToUpperInvariant())
+                    .Where(code => !string.IsNullOrWhiteSpace(code))
+                    .Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    CurrencyCodes.Add(code);
+                }
+
                 if (SelectedTransactionTypeId == null && TransactionTypes.Count > 0)
                 {
                     var salesType = TransactionTypes.FirstOrDefault(t => string.Equals(t.Name, "Sales", StringComparison.OrdinalIgnoreCase));
@@ -403,14 +428,39 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private void ApplySelectedTransactionType()
         {
             var selected = TransactionTypes.FirstOrDefault(t => t.Id == SelectedTransactionTypeId);
+            _isSynchronizingSelection = true;
             if (selected == null)
             {
-                SelectedCurrencyCode = "USD";
+                _selectedCurrencyCode = "USD";
+                OnPropertyChanged(nameof(SelectedCurrencyCode));
+                SelectedCounterRate = 1m;
+                _isSynchronizingSelection = false;
+                return;
+            }
+
+            _selectedCurrencyCode = selected.CurrencyCode;
+            OnPropertyChanged(nameof(SelectedCurrencyCode));
+            SelectedCounterRate = selected.CounterRate;
+            _isSynchronizingSelection = false;
+        }
+
+        private void ApplySelectedCurrencyCode()
+        {
+            var selected = TransactionTypes.FirstOrDefault(t =>
+                string.Equals(t.CurrencyCode, SelectedCurrencyCode, StringComparison.OrdinalIgnoreCase));
+
+            if (selected == null)
+            {
                 SelectedCounterRate = 1m;
                 return;
             }
 
-            SelectedCurrencyCode = selected.CurrencyCode;
+            if (SelectedTransactionTypeId != selected.Id)
+            {
+                SelectedTransactionTypeId = selected.Id;
+                return;
+            }
+
             SelectedCounterRate = selected.CounterRate;
         }
 
