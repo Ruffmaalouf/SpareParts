@@ -501,6 +501,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var invoiceSearch = GetMenuAccess(menuAccessItems, "invoice_search");
             var managementScreen = GetMenuAccess(menuAccessItems, "management_screen");
             var supplierTab = GetMenuAccess(menuAccessItems, "supplier_tab");
+            var currencyTab = GetMenuAccess(menuAccessItems, "currency_tab");
             var posScreen = GetMenuAccess(menuAccessItems, "pos_screen");
             var purchasesScreen = GetMenuAccess(menuAccessItems, "purchases_screen");
             var stockManagementScreen = GetMenuAccess(menuAccessItems, "stock_management_screen");
@@ -516,11 +517,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CanViewCarSelectionScreen = carSelectionScreen.CanView;
             CanViewPartSelectionScreen = partSelectionScreen.CanView;
             CanViewArScreen = arScreen?.CanView ?? true;
-            ManagementVm.SetSupplierPermissions(
+            ManagementVm.SetTabPermissions(
                 supplierTab.CanView,
                 supplierTab.CanEdit,
                 supplierTab.CanModify,
-                supplierTab.CanDelete);
+                supplierTab.CanDelete,
+                currencyTab.CanView);
         }
 
         private static RoleMenuAccessDto GetMenuAccess(IEnumerable<RoleMenuAccessDto> menuAccessItems, string menuKey)

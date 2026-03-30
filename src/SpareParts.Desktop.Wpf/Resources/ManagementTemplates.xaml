@@ -476,7 +476,40 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 7 — USERS (UsersVm sub-binding) -->
+                <!-- TAB 7 — CURRENCY RATES -->
+                <TabItem Header="💱  Currency Rates"
+                         Visibility="{Binding CanViewCurrencyTab, Converter={StaticResource BoolToVis}}">
+                    <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20" Margin="10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                <TextBlock Text="Currency Rates (Base USD)" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                            </DockPanel>
+                            <DataGrid Grid.Row="1"
+                                      ItemsSource="{Binding CurrencyRates}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      HeadersVisibility="Column"
+                                      BorderThickness="0"
+                                      GridLinesVisibility="None"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="90"/>
+                                    <DataGridTextColumn Header="Rate to USD" Binding="{Binding RateToUsd, StringFormat={}{0:N6}}" Width="140"/>
+                                    <DataGridTextColumn Header="Base" Binding="{Binding BaseCode}" Width="100"/>
+                                    <DataGridTextColumn Header="Snapshot (UTC)" Binding="{Binding SnapshotUtc, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="220"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </TabItem>
+
+                <!-- TAB 8 — USERS (UsersVm sub-binding) -->
                 <TabItem Header="👥  Users" DataContext="{Binding UsersVm}">
                     <controls:UsersTab/>
                 </TabItem>

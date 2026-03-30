@@ -40,9 +40,20 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarModelDto> CarModels => CarModelsFeature.CarModels;
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
+        public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
 
 
         public bool CanViewSupplierTab => _supplierPermissions.CanViewSupplierTab;
+        public bool CanViewCurrencyTab
+        {
+            get => _canViewCurrencyTab;
+            private set
+            {
+                if (_canViewCurrencyTab == value) return;
+                _canViewCurrencyTab = value;
+                OnPropertyChanged(nameof(CanViewCurrencyTab));
+            }
+        }
         public bool CanEditSupplier => _supplierPermissions.CanEditSupplier;
         public bool CanModifySupplier => _supplierPermissions.CanModifySupplier;
         public bool CanDeleteSupplier => _supplierPermissions.CanDeleteSupplier;
@@ -112,6 +123,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<StatusMessage> StatusMessages => _statusCenter.StatusMessages;
         public Brush StatusBrush => _statusCenter.StatusBrush;
         private bool _isLoading;
+        private bool _canViewCurrencyTab;
         public bool IsLoading
         {
             get => _isLoading;
@@ -172,9 +184,15 @@ namespace SpareParts.Desktop.Wpf
             DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
         }
 
-        public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
+        public void SetTabPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier, bool canViewCurrencyTab)
         {
             _supplierPermissions.Set(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
+            CanViewCurrencyTab = canViewCurrencyTab;
+        }
+
+        public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
+        {
+            SetTabPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier, CanViewCurrencyTab);
         }
  
 
@@ -196,6 +214,7 @@ namespace SpareParts.Desktop.Wpf
                     Replace(Parts, loadResult.Parts);
                     Replace(CarModels, loadResult.CarModels);
                     Replace(Warehouses, loadResult.Warehouses);
+                    Replace(CurrencyRates, loadResult.CurrencyRates);
                 });
 
                 SetStatus("✓ Data loaded.", true);
