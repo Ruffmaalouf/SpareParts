@@ -25,6 +25,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
         private readonly ISalesApiClient _salesApi;
+        private readonly ICrudApiClient _crudApi;
         private readonly IRoleApiClient _rolesApi;
         private readonly IArRenderingService _arRenderingService;
         private readonly IArDeviceBridge _arDeviceBridge;
@@ -331,6 +332,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ICarCatalogApiClient carCatalogApi,
             IPartsApiClient partsApi,
             ISalesApiClient salesApi,
+            ICrudApiClient crudApi,
             IRoleApiClient rolesApi,
             IArRenderingService arRenderingService,
             IArDeviceBridge arDeviceBridge,
@@ -339,6 +341,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _carCatalogApi = carCatalogApi;
             _partsApi = partsApi;
             _salesApi = salesApi;
+            _crudApi = crudApi;
             _rolesApi = rolesApi;
             _arRenderingService = arRenderingService;
             _arDeviceBridge = arDeviceBridge;
@@ -435,7 +438,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = PosViewModel.AppScreen.Purchases;
+                ActiveScreen = PosViewModel.AppScreen.Pos;
+                SelectedTab?.SelectTransactionTypeByName("Purchases");
             });
             GoToStockManagementCommand = new RelayCommand(_ =>
             {
@@ -502,6 +506,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var managementScreen = GetMenuAccess(menuAccessItems, "management_screen");
             var supplierTab = GetMenuAccess(menuAccessItems, "supplier_tab");
             var currencyTab = GetMenuAccess(menuAccessItems, "currency_tab");
+            var transactionTypesTab = GetMenuAccess(menuAccessItems, "transaction_types_tab");
             var posScreen = GetMenuAccess(menuAccessItems, "pos_screen");
             var purchasesScreen = GetMenuAccess(menuAccessItems, "purchases_screen");
             var stockManagementScreen = GetMenuAccess(menuAccessItems, "stock_management_screen");
@@ -522,7 +527,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 supplierTab.CanEdit,
                 supplierTab.CanModify,
                 supplierTab.CanDelete,
-                currencyTab.CanView);
+                currencyTab.CanView,
+                transactionTypesTab.CanView);
         }
 
         private static RoleMenuAccessDto GetMenuAccess(IEnumerable<RoleMenuAccessDto> menuAccessItems, string menuKey)
@@ -705,7 +711,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                var tab = new InvoiceTabViewModel(_salesApi);
+                var tab = new InvoiceTabViewModel(_salesApi, _crudApi);
                 tab.LoadFromDatabase(invoice);
                 Tabs.Add(tab);
                 SelectedTab = tab;
@@ -903,7 +909,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void AddTab()
         {
-            var tab = new InvoiceTabViewModel(_salesApi);
+            var tab = new InvoiceTabViewModel(_salesApi, _crudApi);
             Tabs.Add(tab);
             SelectedTab = tab;
             RefreshInvoiceSearch();

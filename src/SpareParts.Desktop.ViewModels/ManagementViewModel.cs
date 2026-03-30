@@ -28,6 +28,7 @@ namespace SpareParts.Desktop.Wpf
         public PartManagementViewModel PartsFeature { get; } = new();
         public CarModelManagementViewModel CarModelsFeature { get; } = new();
         public WarehouseManagementViewModel WarehousesFeature { get; } = new();
+        public TransactionTypeManagementViewModel TransactionTypesFeature { get; } = new();
 
         public UsersViewModel UsersVm { get; }
         public RolesViewModel RolesVm { get; }
@@ -41,6 +42,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
         public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
+        public ObservableCollection<TransactionTypeDto> TransactionTypes => TransactionTypesFeature.TransactionTypes;
 
 
         public bool CanViewSupplierTab => _supplierPermissions.CanViewSupplierTab;
@@ -52,6 +54,16 @@ namespace SpareParts.Desktop.Wpf
                 if (_canViewCurrencyTab == value) return;
                 _canViewCurrencyTab = value;
                 OnPropertyChanged(nameof(CanViewCurrencyTab));
+            }
+        }
+        public bool CanViewTransactionTypesTab
+        {
+            get => _canViewTransactionTypesTab;
+            private set
+            {
+                if (_canViewTransactionTypesTab == value) return;
+                _canViewTransactionTypesTab = value;
+                OnPropertyChanged(nameof(CanViewTransactionTypesTab));
             }
         }
         public bool CanEditSupplier => _supplierPermissions.CanEditSupplier;
@@ -76,6 +88,20 @@ namespace SpareParts.Desktop.Wpf
         public PartDto? SelectedPart { get => PartsFeature.SelectedPart; set { PartsFeature.SelectedPart = value; OnPropertyChanged(nameof(SelectedPart)); if (value != null) { PartsFeature.PopulateForm(value); RaisePartProps(); } } }
         public CarModelDto? SelectedCarModel { get => CarModelsFeature.SelectedCarModel; set { CarModelsFeature.SelectedCarModel = value; OnPropertyChanged(nameof(SelectedCarModel)); if (value != null) { CarModelsFeature.PopulateForm(value); RaiseCarModelProps(); } } }
         public WarehouseDto? SelectedWarehouse { get => WarehousesFeature.SelectedWarehouse; set { WarehousesFeature.SelectedWarehouse = value; OnPropertyChanged(nameof(SelectedWarehouse)); if (value != null) { WarehousesFeature.PopulateForm(value); RaiseWarehouseProps(); } } }
+        public TransactionTypeDto? SelectedTransactionType
+        {
+            get => TransactionTypesFeature.SelectedTransactionType;
+            set
+            {
+                TransactionTypesFeature.SelectedTransactionType = value;
+                OnPropertyChanged(nameof(SelectedTransactionType));
+                if (value != null)
+                {
+                    TransactionTypesFeature.PopulateForm(value);
+                    RaiseTransactionTypeProps();
+                }
+            }
+        }
 
         public string NewCustomerName { get => CustomersFeature.NewCustomerName; set { CustomersFeature.NewCustomerName = value; OnPropertyChanged(nameof(NewCustomerName)); } }
         public string NewCustomerPhone { get => CustomersFeature.NewCustomerPhone; set { CustomersFeature.NewCustomerPhone = value; OnPropertyChanged(nameof(NewCustomerPhone)); } }
@@ -118,12 +144,17 @@ namespace SpareParts.Desktop.Wpf
         public string NewWarehouseName { get => WarehousesFeature.NewWarehouseName; set { WarehousesFeature.NewWarehouseName = value; OnPropertyChanged(nameof(NewWarehouseName)); } }
         public string NewWarehouseAddress { get => WarehousesFeature.NewWarehouseAddress; set { WarehousesFeature.NewWarehouseAddress = value; OnPropertyChanged(nameof(NewWarehouseAddress)); } }
         public bool NewWarehouseIsMain { get => WarehousesFeature.NewWarehouseIsMain; set { WarehousesFeature.NewWarehouseIsMain = value; OnPropertyChanged(nameof(NewWarehouseIsMain)); } }
+        public string NewTransactionTypeName { get => TransactionTypesFeature.NewTransactionTypeName; set { TransactionTypesFeature.NewTransactionTypeName = value; OnPropertyChanged(nameof(NewTransactionTypeName)); } }
+        public string NewTransactionCurrencyCode { get => TransactionTypesFeature.NewTransactionCurrencyCode; set { TransactionTypesFeature.NewTransactionCurrencyCode = value; OnPropertyChanged(nameof(NewTransactionCurrencyCode)); } }
+        public decimal NewTransactionCounterRate { get => TransactionTypesFeature.NewTransactionCounterRate; set { TransactionTypesFeature.NewTransactionCounterRate = value; OnPropertyChanged(nameof(NewTransactionCounterRate)); } }
+        public bool NewTransactionIsActive { get => TransactionTypesFeature.NewTransactionIsActive; set { TransactionTypesFeature.NewTransactionIsActive = value; OnPropertyChanged(nameof(NewTransactionIsActive)); } }
 
         public string Status => _statusCenter.Status;
         public ObservableCollection<StatusMessage> StatusMessages => _statusCenter.StatusMessages;
         public Brush StatusBrush => _statusCenter.StatusBrush;
         private bool _isLoading;
         private bool _canViewCurrencyTab;
+        private bool _canViewTransactionTypesTab;
         public bool IsLoading
         {
             get => _isLoading;
@@ -149,6 +180,8 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteCarModelCommand { get; }
         public ICommand SaveWarehouseCommand { get; }
         public ICommand DeleteWarehouseCommand { get; }
+        public ICommand SaveTransactionTypeCommand { get; }
+        public ICommand DeleteTransactionTypeCommand { get; }
 
         public ManagementViewModel(
             ICrudApiClient crudApi,
@@ -182,17 +215,20 @@ namespace SpareParts.Desktop.Wpf
             DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
             SaveWarehouseCommand = new RelayCommand(_ => _ = SaveWarehouseAsync());
             DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
+            SaveTransactionTypeCommand = new RelayCommand(_ => _ = SaveTransactionTypeAsync());
+            DeleteTransactionTypeCommand = new RelayCommand(_ => _ = DeleteTransactionTypeAsync());
         }
 
-        public void SetTabPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier, bool canViewCurrencyTab)
+        public void SetTabPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier, bool canViewCurrencyTab, bool canViewTransactionTypesTab)
         {
             _supplierPermissions.Set(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
             CanViewCurrencyTab = canViewCurrencyTab;
+            CanViewTransactionTypesTab = canViewTransactionTypesTab;
         }
 
         public void SetSupplierPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
         {
-            SetTabPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier, CanViewCurrencyTab);
+            SetTabPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier, CanViewCurrencyTab, CanViewTransactionTypesTab);
         }
  
 
@@ -215,6 +251,7 @@ namespace SpareParts.Desktop.Wpf
                     Replace(CarModels, loadResult.CarModels);
                     Replace(Warehouses, loadResult.Warehouses);
                     Replace(CurrencyRates, loadResult.CurrencyRates);
+                    Replace(TransactionTypes, loadResult.TransactionTypes);
                 });
 
                 SetStatus("✓ Data loaded.", true);
@@ -441,12 +478,35 @@ namespace SpareParts.Desktop.Wpf
             //OnPropertyChanged(nameof(SelectedWarehouse));
         }
 
+        private async Task SaveTransactionTypeAsync()
+        {
+            var result = await _coordinator.SaveTransactionTypeAsync(TransactionTypesFeature);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            TransactionTypesFeature.ClearForm();
+            RaiseTransactionTypeProps();
+        }
+
+        private async Task DeleteTransactionTypeAsync()
+        {
+            var result = await _coordinator.DeleteTransactionTypeAsync(SelectedTransactionType);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            TransactionTypesFeature.SelectedTransactionType = null;
+            OnPropertyChanged(nameof(SelectedTransactionType));
+        }
+
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
         private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
         private void RaiseWarehouseProps() => RaiseAll(nameof(NewWarehouseName), nameof(NewWarehouseAddress), nameof(NewWarehouseIsMain));
+        private void RaiseTransactionTypeProps() => RaiseAll(nameof(NewTransactionTypeName), nameof(NewTransactionCurrencyCode), nameof(NewTransactionCounterRate), nameof(NewTransactionIsActive));
         private void SetStatus(string message, bool isSuccess) => _statusCenter.SetStatus(message, isSuccess);
 
         private void RaiseAll(params string[] names) { foreach (var n in names) OnPropertyChanged(n); }

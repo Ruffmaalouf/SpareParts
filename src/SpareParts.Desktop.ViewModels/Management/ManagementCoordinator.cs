@@ -31,6 +31,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
             var warehouses = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
             var currencyRates = await _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
+            var transactionTypes = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
             await rolesVm.LoadAsync();
 
             return new ManagementLoadResult
@@ -43,7 +44,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 Parts = parts,
                 CarModels = carModels,
                 Warehouses = warehouses,
-                CurrencyRates = currencyRates
+                CurrencyRates = currencyRates,
+                TransactionTypes = transactionTypes
             };
         }
 
@@ -244,6 +246,44 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             return DeleteAsync($"api/carmodels/{selected.Id}", "Car model");
+        }
+
+        public Task<ManagementOperationResult> SaveTransactionTypeAsync(TransactionTypeManagementViewModel feature)
+        {
+            if (string.IsNullOrWhiteSpace(feature.NewTransactionTypeName))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Transaction type name is required.", "transaction_type_required"), "saving Transaction type"));
+            }
+
+            if (feature.NewTransactionCounterRate <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Counter rate must be greater than zero.", "transaction_counter_rate_invalid"), "saving Transaction type"));
+            }
+
+            var payload = new CreateTransactionTypeRequest
+            {
+                Name = feature.NewTransactionTypeName.Trim(),
+                CurrencyCode = (feature.NewTransactionCurrencyCode ?? string.Empty).Trim().ToUpperInvariant(),
+                CounterRate = feature.NewTransactionCounterRate,
+                IsActive = feature.NewTransactionIsActive
+            };
+
+            return SaveAsync(
+                feature.SelectedTransactionType is { Id: > 0 },
+                feature.SelectedTransactionType?.Id,
+                "api/transactiontypes",
+                payload,
+                "Transaction type");
+        }
+
+        public Task<ManagementOperationResult> DeleteTransactionTypeAsync(TransactionTypeDto? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a transaction type to delete.", "transaction_type_selection_required"), "deleting Transaction type"));
+            }
+
+            return DeleteAsync($"api/transactiontypes/{selected.Id}", "Transaction type");
         }
 
         private async Task<ManagementOperationResult> SaveAsync(bool isEditing, int? selectedId, string baseUrl, object payload, string entityName)
