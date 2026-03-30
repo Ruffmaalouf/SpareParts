@@ -1,26 +1,24 @@
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.MasterData;
+using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TransactionTypesController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly ISqlConnectionFactory _factory;
 
-        public TransactionTypesController(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+        public TransactionTypesController(ISqlConnectionFactory factory) => _factory = factory;
 
         [HttpGet]
         public ActionResult<IEnumerable<TransactionTypeDto>> GetAll()
         {
-            using var conn = new Microsoft.Data.SqlClient.SqlConnection(
-                _configuration.GetConnectionString("Default"));
-
+            using var conn = _factory.CreateConnection();
             EnsureTransactionTypesTable(conn);
 
             var rows = conn.Query<TransactionTypeDto>(
@@ -51,8 +49,7 @@ namespace SpareParts.Api.Controllers
                 return BadRequest(new { message = "Counter rate must be greater than zero." });
             }
 
-            using var conn = new Microsoft.Data.SqlClient.SqlConnection(
-                _configuration.GetConnectionString("Default"));
+            using var conn = _factory.CreateConnection();
             EnsureTransactionTypesTable(conn);
 
             conn.Execute(
@@ -60,7 +57,7 @@ namespace SpareParts.Api.Controllers
                   VALUES (@Name, @CurrencyCode, @CounterRate, @IsActive);",
                 new { Name = name, CurrencyCode = currencyCode, req.CounterRate, req.IsActive });
 
-            return Ok();
+            return NoContent();
         }
 
         [HttpPut("{id:int}")]
@@ -88,8 +85,7 @@ namespace SpareParts.Api.Controllers
                 return BadRequest(new { message = "Counter rate must be greater than zero." });
             }
 
-            using var conn = new Microsoft.Data.SqlClient.SqlConnection(
-                _configuration.GetConnectionString("Default"));
+            using var conn = _factory.CreateConnection();
             EnsureTransactionTypesTable(conn);
 
             var affected = conn.Execute(
@@ -106,14 +102,13 @@ namespace SpareParts.Api.Controllers
                 return NotFound();
             }
 
-            return Ok();
+            return NoContent();
         }
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
-            using var conn = new Microsoft.Data.SqlClient.SqlConnection(
-                _configuration.GetConnectionString("Default"));
+            using var conn = _factory.CreateConnection();
             EnsureTransactionTypesTable(conn);
 
             var affected = conn.Execute("DELETE FROM TransactionTypes WHERE Id = @Id;", new { Id = id });
@@ -122,7 +117,7 @@ namespace SpareParts.Api.Controllers
                 return NotFound();
             }
 
-            return Ok();
+            return NoContent();
         }
 
         private static void EnsureTransactionTypesTable(System.Data.IDbConnection conn)
