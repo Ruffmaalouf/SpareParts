@@ -14,8 +14,11 @@ namespace SpareParts.Api.Controllers
         public CustomersController(ISqlConnectionFactory factory) => _factory = factory;
 
         [HttpGet]
-        public ActionResult<IEnumerable<CustomerDto>> GetAll([FromQuery] string? search = null)
+        public ActionResult<IEnumerable<CustomerDto>> GetAll([FromQuery] string? search = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 500);
+
             using var session = new DbSession(_factory);
             var customersRepository = new CustomersRepository(session);
             var all = customersRepository.GetAll();
@@ -24,7 +27,7 @@ namespace SpareParts.Api.Controllers
                 all = all.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
             }
 
-            return Ok(all.Select(c => new CustomerDto
+            var projected = all.Select(c => new CustomerDto
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -33,7 +36,12 @@ namespace SpareParts.Api.Controllers
                 Address = c.Address,
                 TaxNumber = c.TaxNumber,
                 OpeningBalance = c.OpeningBalance
-            }));
+            });
+
+            Response.Headers["X-Page"] = page.ToString();
+            Response.Headers["X-Page-Size"] = pageSize.ToString();
+            Response.Headers["X-Total-Count"] = projected.Count().ToString();
+            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
         }
 
         [HttpPost]

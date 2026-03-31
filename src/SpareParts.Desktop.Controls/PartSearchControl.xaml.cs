@@ -103,8 +103,40 @@ namespace SpareParts.Desktop.Wpf
             InitializeComponent();
             _partsApi = partsApi;
             FilteredParts = new ObservableCollection<PartDto>();
-            Loaded += async (_, _) => await EnsureLoadedAsync();
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            await EnsureLoadedAsync();
+            AttachMainWindowHandler();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            DetachMainWindowHandler();
+        }
+
+        private void AttachMainWindowHandler()
+        {
+            if (Application.Current?.MainWindow == null)
+            {
+                return;
+            }
+
+            Application.Current.MainWindow.PreviewMouseDown -= MainWindow_PreviewMouseDown;
             Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;
+        }
+
+        private void DetachMainWindowHandler()
+        {
+            if (Application.Current?.MainWindow == null)
+            {
+                return;
+            }
+
+            Application.Current.MainWindow.PreviewMouseDown -= MainWindow_PreviewMouseDown;
         }
 
         private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)

@@ -86,10 +86,40 @@ namespace SpareParts.Desktop.Wpf
             InitializeComponent();
             _crudApi = crudApi;
             FilteredCustomers = new ObservableCollection<CustomerDto>();
-            Loaded += async (_, _) => await EnsureLoadedAsync();
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
 
-            // Global mouse-down handler to close popup on outside click
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            await EnsureLoadedAsync();
+            AttachMainWindowHandler();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            DetachMainWindowHandler();
+        }
+
+        private void AttachMainWindowHandler()
+        {
+            if (Application.Current?.MainWindow == null)
+            {
+                return;
+            }
+
+            Application.Current.MainWindow.PreviewMouseDown -= MainWindow_PreviewMouseDown;
             Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;
+        }
+
+        private void DetachMainWindowHandler()
+        {
+            if (Application.Current?.MainWindow == null)
+            {
+                return;
+            }
+
+            Application.Current.MainWindow.PreviewMouseDown -= MainWindow_PreviewMouseDown;
         }
 
         private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)

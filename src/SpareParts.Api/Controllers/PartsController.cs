@@ -14,11 +14,14 @@ namespace SpareParts.Api.Controllers
         public PartsController(ISqlConnectionFactory factory) => _factory = factory;
 
         [HttpGet]
-        public ActionResult<IEnumerable<PartDto>> GetAll()
+        public ActionResult<IEnumerable<PartDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 500);
+
             using var session = new DbSession(_factory);
             var partsRepository = new PartsRepository(session);
-            return Ok(partsRepository.GetAllActive().Select(p => new PartDto
+            var projected = partsRepository.GetAllActive().Select(p => new PartDto
             {
                 Id = p.Id,
                 InternalCode = p.InternalCode,
@@ -34,7 +37,12 @@ namespace SpareParts.Api.Controllers
                 MinStock = p.MinStock,
                 Notes = p.Notes,
                 IsActive = p.IsActive
-            }));
+            });
+
+            Response.Headers["X-Page"] = page.ToString();
+            Response.Headers["X-Page-Size"] = pageSize.ToString();
+            Response.Headers["X-Total-Count"] = projected.Count().ToString();
+            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
         }
 
         [HttpPost]

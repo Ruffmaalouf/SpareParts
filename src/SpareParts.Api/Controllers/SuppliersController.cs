@@ -14,11 +14,14 @@ namespace SpareParts.Api.Controllers
         public SuppliersController(ISqlConnectionFactory factory) => _factory = factory;
 
         [HttpGet]
-        public ActionResult<IEnumerable<SupplierDto>> GetAll()
+        public ActionResult<IEnumerable<SupplierDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 500);
+
             using var session = new DbSession(_factory);
             var suppliersRepository = new SuppliersRepository(session);
-            return Ok(suppliersRepository.GetAll().Select(s => new SupplierDto
+            var projected = suppliersRepository.GetAll().Select(s => new SupplierDto
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -27,7 +30,12 @@ namespace SpareParts.Api.Controllers
                 Address = s.Address,
                 TaxNumber = s.TaxNumber,
                 OpeningBalance = s.OpeningBalance
-            }));
+            });
+
+            Response.Headers["X-Page"] = page.ToString();
+            Response.Headers["X-Page-Size"] = pageSize.ToString();
+            Response.Headers["X-Total-Count"] = projected.Count().ToString();
+            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
         }
 
         [HttpPost]
