@@ -58,14 +58,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 _paidAmount = value;
                 OnPropertyChanged(nameof(PaidAmount));
-                OnPropertyChanged(nameof(RemainingAmount));
+                OnPropertyChanged(nameof(PaidAmountBase));
+                OnPropertyChanged(nameof(RemainingAmountUsd));
+                OnPropertyChanged(nameof(RemainingAmountBase));
             }
         }
 
         public decimal TotalAmount => Items.Sum(i => i.LineTotal);
         public decimal BaseAmountTotal => Items.Sum(i => i.BaseAmount);
-        public decimal InvoiceTotal => TotalAmount + BaseAmountTotal;
-        public decimal RemainingAmount => InvoiceTotal - PaidAmount;
+        public decimal PaidAmountBase => PaidAmount * SelectedCounterRate;
+        public decimal RemainingAmountUsd => TotalAmount - PaidAmount;
+        public decimal RemainingAmountBase => BaseAmountTotal - PaidAmountBase;
 
         // ── New-line entry fields (bound from PartSearchControl + manual) ─────
 
@@ -629,8 +632,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             OnPropertyChanged(nameof(TotalAmount));
             OnPropertyChanged(nameof(BaseAmountTotal));
-            OnPropertyChanged(nameof(InvoiceTotal));
-            OnPropertyChanged(nameof(RemainingAmount));
+            OnPropertyChanged(nameof(PaidAmountBase));
+            OnPropertyChanged(nameof(RemainingAmountUsd));
+            OnPropertyChanged(nameof(RemainingAmountBase));
         }
 
         private void RecalculateBaseAmounts()

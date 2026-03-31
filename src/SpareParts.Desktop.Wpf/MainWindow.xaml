@@ -874,7 +874,7 @@
                                             <ColumnDefinition Width="16"/>
                                             <ColumnDefinition Width="260"/>
                                             <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="270"/>
                                         </Grid.ColumnDefinitions>
 
                                         <controls:CustomerSearchControl
@@ -1090,10 +1090,10 @@
                             <!-- ── Footer totals ─────────────────────────────────────────── -->
                             <Border Grid.Row="3" Margin="20,10,20,20" Padding="16 12"
                                     IsEnabled="{Binding IsInvoiceContentEnabled}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Total:" FontSize="14"
+                                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Total (USD):" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding InvoiceTotal, StringFormat={}{0:N0}}"
+                                    <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
                                FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
 
                                     <TextBlock Text="Base Amount:" FontSize="14"
@@ -1101,18 +1101,28 @@
                                     <TextBlock Text="{Binding BaseAmountTotal, StringFormat={}{0:N0}}"
                                FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
 
-                                    <TextBlock Text="Paid:" FontSize="14"
+                                    <TextBlock Text="Paid (USD):" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
                                     <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
                              Width="150" FontSize="14" FontWeight="SemiBold"
                              Background="Transparent" BorderThickness="0 0 0 1"
                              Margin="0 0 30 0"/>
 
-                                    <TextBlock Text="Remaining:" FontSize="14"
+                                    <TextBlock Text="Paid (Base):" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding RemainingAmount, StringFormat={}{0:N0}}"
+                                    <TextBlock Text="{Binding PaidAmountBase, StringFormat={}{0:N0}}"
+                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
+
+                                    <TextBlock Text="Remaining (USD):" FontSize="14"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
+                                    <TextBlock Text="{Binding RemainingAmountUsd, StringFormat={}{0:N0}}"
+                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
+
+                                    <TextBlock Text="Remaining (Base):" FontSize="14"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
+                                    <TextBlock Text="{Binding RemainingAmountBase, StringFormat={}{0:N0}}"
                                FontSize="14" FontWeight="SemiBold"/>
-                                </StackPanel>
+                                </WrapPanel>
                             </Border>
 
                         </Grid>
