@@ -37,7 +37,7 @@ namespace SpareParts.Api.Controllers
                 IsActive = p.IsActive
             });
 
-            if (!page.HasValue && !pageSize.HasValue)
+            if (!pageSize.HasValue)
             {
                 return Ok(projected);
             }
