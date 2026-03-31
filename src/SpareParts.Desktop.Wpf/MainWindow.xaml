@@ -882,12 +882,6 @@
                             SelectedCustomerId="{Binding CustomerId, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
 
-                                        <controls:CurrencyCodeSelectorControl
-                            Grid.Column="2"
-                            CurrencyCodes="{Binding CurrencyCodes}"
-                            SelectedCurrencyCode="{Binding SelectedCurrencyCode, Mode=TwoWay}"
-                            VerticalAlignment="Top"/>
-
                                         <controls:WarehouseSearchControl
                             Grid.Column="4"
                             SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"
@@ -902,16 +896,28 @@
 
                                     <Grid Margin="0 0 0 16">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="320"/>
+                                            <ColumnDefinition Width="16"/>
                                             <ColumnDefinition Width="220"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="BASE AMOUNT" FontSize="11" FontWeight="Bold"
+                                            <TextBlock Text="BASE RATE" FontSize="11" FontWeight="Bold"
                                                        Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
-                                            <Border Background="#FF1A1A22" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Height="52">
-                                                <TextBlock Text="{Binding SelectedCounterRate, StringFormat={}{0:N6}}" VerticalAlignment="Center" Margin="14 0" FontSize="15" FontWeight="SemiBold"/>
+                                            <Border Background="#FF1A1A22" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Height="52" Padding="14 0">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding SelectedCounterRate, StringFormat={}{0:N6}}" FontSize="15" FontWeight="SemiBold"/>
+                                                    <TextBlock Text=" " FontSize="15"/>
+                                                    <TextBlock Text="{Binding SelectedCurrencyCode}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </StackPanel>
                                             </Border>
                                         </StackPanel>
+
+                                        <controls:CurrencyCodeSelectorControl
+                                            Grid.Column="2"
+                                            CurrencyCodes="{Binding CurrencyCodes}"
+                                            SelectedCurrencyCode="{Binding SelectedCurrencyCode, Mode=TwoWay}"
+                                            VerticalAlignment="Top"/>
                                     </Grid>
 
                                     <!-- Row 2: Part | Qty | Price | [Add] [Submit] -->
@@ -1074,6 +1080,9 @@
                                             Binding="{Binding LineTotal, StringFormat={}{0:N0}}"
                                             Width="110"
                                             FontWeight="Bold"/>
+                                        <DataGridTextColumn Header="Base Amount"
+                                            Binding="{Binding BaseAmount, StringFormat={}{0:N0}}"
+                                            Width="130"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Border>
@@ -1084,7 +1093,12 @@
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="Total:" FontSize="14"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
+                                    <TextBlock Text="{Binding InvoiceTotal, StringFormat={}{0:N0}}"
+                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
+
+                                    <TextBlock Text="Base Amount:" FontSize="14"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
+                                    <TextBlock Text="{Binding BaseAmountTotal, StringFormat={}{0:N0}}"
                                FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
 
                                     <TextBlock Text="Paid:" FontSize="14"

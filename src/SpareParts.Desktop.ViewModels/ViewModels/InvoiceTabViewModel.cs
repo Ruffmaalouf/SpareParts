@@ -62,8 +62,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        public decimal TotalAmount     => Items.Sum(i => i.LineTotal);
-        public decimal RemainingAmount => TotalAmount - PaidAmount;
+        public decimal TotalAmount => Items.Sum(i => i.LineTotal);
+        public decimal BaseAmountTotal => Items.Sum(i => i.BaseAmount);
+        public decimal InvoiceTotal => TotalAmount + BaseAmountTotal;
+        public decimal RemainingAmount => InvoiceTotal - PaidAmount;
 
         // ── New-line entry fields (bound from PartSearchControl + manual) ─────
 
@@ -214,8 +216,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             Items.CollectionChanged += (_, _) =>
             {
-                OnPropertyChanged(nameof(TotalAmount));
-                OnPropertyChanged(nameof(RemainingAmount));
+                RecalculateBaseAmounts();
+                RaiseTotalsChanged();
             };
 
             _ = LoadTransactionTypesAsync();
@@ -265,7 +267,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     PartId = line.PartId,
                     Description = line.Description,
                     Quantity = line.Quantity,
-                    UnitPrice = line.UnitPrice
+                    UnitPrice = line.UnitPrice,
+                    BaseAmount = line.Quantity * line.UnitPrice * SelectedCounterRate
                 });
             }
 
@@ -300,7 +303,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 PartId      = NewPartId.Value,
                 Description = NewPartDescription,
                 Quantity    = NewQuantity,
-                UnitPrice   = NewUnitPrice
+                UnitPrice   = NewUnitPrice,
+                BaseAmount  = NewQuantity * NewUnitPrice * SelectedCounterRate
             });
 
             NewPartId          = null;
@@ -308,8 +312,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             NewUnitPrice       = 0;
             NewPartDescription = string.Empty;
 
-            OnPropertyChanged(nameof(TotalAmount));
-            OnPropertyChanged(nameof(RemainingAmount));
+            RaiseTotalsChanged();
         }
 
         private void BeginEditMode()
@@ -463,6 +466,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 _selectedCurrencyCode = "USD";
                 OnPropertyChanged(nameof(SelectedCurrencyCode));
                 SelectedCounterRate = 1m;
+                RecalculateBaseAmounts();
+                RaiseTotalsChanged();
                 _isSynchronizingSelection = false;
                 return;
             }
@@ -470,6 +475,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _selectedCurrencyCode = selected.CurrencyCode;
             OnPropertyChanged(nameof(SelectedCurrencyCode));
             SelectedCounterRate = selected.CounterRate;
+            RecalculateBaseAmounts();
+            RaiseTotalsChanged();
             _isSynchronizingSelection = false;
         }
 
@@ -487,16 +494,22 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 }
 
                 SelectedCounterRate = selected.CounterRate;
+                RecalculateBaseAmounts();
+                RaiseTotalsChanged();
                 return;
             }
 
             if (_currencyRatesByCode.TryGetValue(SelectedCurrencyCode, out var rateToUsd) && rateToUsd > 0)
             {
                 SelectedCounterRate = rateToUsd;
+                RecalculateBaseAmounts();
+                RaiseTotalsChanged();
                 return;
             }
 
             SelectedCounterRate = 1m;
+            RecalculateBaseAmounts();
+            RaiseTotalsChanged();
         }
 
         private void ResetEdits()
@@ -519,7 +532,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     PartId = line.PartId,
                     Description = line.Description,
                     Quantity = line.Quantity,
-                    UnitPrice = line.UnitPrice
+                    UnitPrice = line.UnitPrice,
+                    BaseAmount = line.Quantity * line.UnitPrice * SelectedCounterRate
                 });
             }
 
@@ -593,8 +607,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 Items.Clear();
                 PaidAmount = 0;
-                OnPropertyChanged(nameof(TotalAmount));
-                OnPropertyChanged(nameof(RemainingAmount));
+                RaiseTotalsChanged();
             }
             catch (ApiClientException ex)
             {
@@ -609,6 +622,22 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             finally
             {
                 _isSubmitting = false;
+            }
+        }
+
+        private void RaiseTotalsChanged()
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+            OnPropertyChanged(nameof(BaseAmountTotal));
+            OnPropertyChanged(nameof(InvoiceTotal));
+            OnPropertyChanged(nameof(RemainingAmount));
+        }
+
+        private void RecalculateBaseAmounts()
+        {
+            foreach (var item in Items)
+            {
+                item.BaseAmount = item.LineTotal * SelectedCounterRate;
             }
         }
 

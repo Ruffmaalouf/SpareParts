@@ -13,6 +13,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public string Description { get; set; } = string.Empty;   // ← ADDED
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public decimal BaseAmount { get; set; }
         public decimal LineTotal => Quantity * UnitPrice;
 
         public event PropertyChangedEventHandler? PropertyChanged;
