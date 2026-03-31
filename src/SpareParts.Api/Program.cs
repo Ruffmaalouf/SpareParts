@@ -79,6 +79,7 @@ builder.Services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
 builder.Services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
 builder.Services.AddScoped<SalesService>();
 builder.Services.AddScoped<PurchaseService>();
+builder.Services.AddScoped<TransactionTypesService>();
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
 builder.Services
@@ -119,6 +120,7 @@ var app = builder.Build();
 
 var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
 MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
+TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 app.UseCors();
