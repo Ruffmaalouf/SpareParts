@@ -114,11 +114,11 @@ namespace SpareParts.Desktop.Wpf
             _carCatalogApi = carCatalogApi;
             _partsApi = partsApi;
 
-            SelectBrandCommand = new RelayCommand(SelectBrand);
-            SelectCarCommand   = new RelayCommand(SelectCar);
+            SelectBrandCommand = new RelayCommand(p => SelectBrandAsync(p).SafeFireAndForget(HandleBackgroundException));
+            SelectCarCommand   = new RelayCommand(p => SelectCarAsync(p).SafeFireAndForget(HandleBackgroundException));
             SelectPartCommand  = new RelayCommand(SelectPart);
             AddItemCommand     = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand  = new RelayCommand(_ => SubmitSaleAsync());
+            SubmitSaleCommand  = new RelayCommand(_ => SubmitSaleAsync().SafeFireAndForget(HandleBackgroundException));
             GoHomeCommand      = new RelayCommand(_ => ActiveScreen = AppScreen.HomePage);
 
             SeedBrands();
@@ -148,7 +148,7 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(RemainingAmount));
         }
 
-        private async void SubmitSaleAsync()
+        private async Task SubmitSaleAsync()
         {
             if (Items.Count == 0)
             {
@@ -206,7 +206,7 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private async void SelectBrand(object? parameter)
+        private async Task SelectBrandAsync(object? parameter)
         {
             if (parameter is not CarBrandUi brand) return;
             SelectedBrand = brand;
@@ -215,7 +215,7 @@ namespace SpareParts.Desktop.Wpf
             ActiveScreen = AppScreen.CarSelection;
         }
 
-        private async void SelectCar(object? parameter)
+        private async Task SelectCarAsync(object? parameter)
         {
             if (parameter is not CarModelUi car) return;
             SelectedCar = car;
@@ -305,5 +305,11 @@ namespace SpareParts.Desktop.Wpf
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+
+        private void HandleBackgroundException(Exception ex)
+        {
+            CustomMessageBox.Show($"Unexpected error: {ex.Message}", "Error", "Warning");
+            AppNotificationCenter.Instance.Publish($"✗ Unexpected error: {ex.Message}", false);
+        }
     }
 }

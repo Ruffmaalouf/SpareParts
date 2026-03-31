@@ -7,7 +7,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
     {
         public string RegionGroup { get; set; } = string.Empty;
         public ObservableCollection<CarBrandViewModel> Brands { get; } = new();
-        public string GroupName { get; internal set; }
     }
   
 }

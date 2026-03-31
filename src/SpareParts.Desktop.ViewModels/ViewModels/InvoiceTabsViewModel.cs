@@ -411,7 +411,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 IsManagementOpen = !IsManagementOpen;
                 if (IsManagementOpen)
-                    _ = ManagementVm.LoadAllAsync();
+                    ManagementVm.LoadAllAsync().SafeFireAndForget(HandleBackgroundException);
             });
 
             OpenInvoiceSearchCommand = new RelayCommand(_ =>
@@ -470,8 +470,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
            // SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
-            _ = LoadBrandsAsync();
-            _ = LoadRolePermissionsAsync();
+            LoadBrandsAsync().SafeFireAndForget(HandleBackgroundException);
+            LoadRolePermissionsAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
         private async Task LoadRolePermissionsAsync()
@@ -537,7 +537,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void StartArSession()
         {
-            _ = StartArSessionAsync();
+            StartArSessionAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
         private async Task StartArSessionAsync()
@@ -590,7 +590,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void StopArSession()
         {
-            _ = StopArSessionAsync();
+            StopArSessionAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
         private async Task StopArSessionAsync()
@@ -652,7 +652,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void RefreshInvoiceSearch()
         {
-            _ = RefreshInvoiceSearchAsync();
+            RefreshInvoiceSearchAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
         private async Task RefreshInvoiceSearchAsync()
@@ -760,7 +760,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                                 RegionGroup = b.RegionGroup
                             };
                             groupVm.Brands.Add(bvm);
-                            if (b.HasLogo) _ = LoadLogoAsync(bvm);
+                            if (b.HasLogo) LoadLogoAsync(bvm).SafeFireAndForget(HandleBackgroundException);
                         }
                         BrandGroups.Add(groupVm);
                     }
@@ -795,7 +795,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             SelectedBrand = brand;
             ActiveScreen  = AppScreen.CarSelection;
-            _ = LoadCarsAsync(brand.Id);
+            LoadCarsAsync(brand.Id).SafeFireAndForget(HandleBackgroundException);
         }
 
         private async Task LoadCarsAsync(int brandId)
@@ -821,7 +821,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                             HasImage   = dto.HasImage
                         };
                         AvailableCars.Add(vm);
-                        if (dto.HasImage) _ = LoadCarImageAsync(vm);
+                        if (dto.HasImage) LoadCarImageAsync(vm).SafeFireAndForget(HandleBackgroundException);
                     }
                 });
             }
@@ -857,7 +857,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             SelectedCar  = car;
             ActiveScreen = AppScreen.PartSelection;
-            _ = LoadPartsAsync();
+            LoadPartsAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
         private async Task LoadPartsAsync()
@@ -946,5 +946,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+
+        private void HandleBackgroundException(Exception ex)
+            => AppNotificationCenter.Instance.Publish($"✗ Background task failed: {ex.Message}", false);
     }
 }

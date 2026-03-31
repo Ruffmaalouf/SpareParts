@@ -15,16 +15,24 @@ namespace SpareParts.Api.Controllers
         public BrandsController(ISqlConnectionFactory factory) => _factory = factory;
 
         [HttpGet]
-        public ActionResult<IEnumerable<BrandDto>> GetAll()
+        public ActionResult<IEnumerable<BrandDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 500);
+
             using var session = new DbSession(_factory);
             var brandsRepository = new BrandsRepository(session);
-            return Ok(brandsRepository.GetAll().Select(b => new BrandDto
+            var projected = brandsRepository.GetAll().Select(b => new BrandDto
             {
                 Id = b.Id,
                 Name = b.Name,
                 IsActive = b.IsActive
-            }));
+            });
+
+            Response.Headers["X-Page"] = page.ToString();
+            Response.Headers["X-Page-Size"] = pageSize.ToString();
+            Response.Headers["X-Total-Count"] = projected.Count().ToString();
+            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
         }
 
         [HttpPost]

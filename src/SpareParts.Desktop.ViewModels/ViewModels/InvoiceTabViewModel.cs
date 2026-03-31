@@ -212,9 +212,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _salesApi = salesApi;
             _crudApi = crudApi;
             AddItemCommand      = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand   = new RelayCommand(_ => _ = SubmitSaleAsync());
+            SubmitSaleCommand   = new RelayCommand(_ => SubmitSaleAsync().SafeFireAndForget(HandleBackgroundException));
             EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());
-            SaveInvoiceCommand  = new RelayCommand(_ => _ = SaveEditsAsync());
+            SaveInvoiceCommand  = new RelayCommand(_ => SaveEditsAsync().SafeFireAndForget(HandleBackgroundException));
             ResetInvoiceCommand = new RelayCommand(_ => ResetEdits());
 
             Items.CollectionChanged += (_, _) =>
@@ -223,7 +223,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 RaiseTotalsChanged();
             };
 
-            _ = LoadTransactionTypesAsync();
+            LoadTransactionTypesAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
         public void SelectTransactionTypeByName(string transactionTypeName)
@@ -648,6 +648,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string n) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+
+        private void HandleBackgroundException(Exception ex)
+        {
+            CustomMessageBox.Show($"Unexpected error: {ex.Message}", "Error", "Error");
+            AppNotificationCenter.Instance.Publish($"✗ Unexpected error: {ex.Message}", false);
+        }
 
     }
 }
