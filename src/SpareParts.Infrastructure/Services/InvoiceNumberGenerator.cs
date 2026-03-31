@@ -1,23 +1,26 @@
+using Dapper;
 using SpareParts.Infrastructure.Interfaces;
-using System.Security.Cryptography;
-using System.Threading;
 
 namespace SpareParts.Infrastructure.Services
 {
     public class UtcInvoiceNumberGenerator : IInvoiceNumberGenerator
     {
-        private static long _counter;
+        private readonly ISqlConnectionFactory _factory;
 
-        public string NextSalesNumber() => Next("INV");
-
-        public string NextPurchaseNumber() => Next("PUR");
-
-        private static string Next(string prefix)
+        public UtcInvoiceNumberGenerator(ISqlConnectionFactory factory)
         {
-            var now = DateTime.UtcNow;
-            var sequence = Interlocked.Increment(ref _counter) % 1_000_000;
-            var random = RandomNumberGenerator.GetInt32(0, 1_000_000);
-            return $"{prefix}-{now:yyyyMMddHHmmssfffffff}-{sequence:D6}-{random:D6}";
+            _factory = factory;
+        }
+
+        public string NextSalesNumber() => Next("INV", "dbo.SalesInvoiceNumberSequence");
+
+        public string NextPurchaseNumber() => Next("PUR", "dbo.PurchaseInvoiceNumberSequence");
+
+        private string Next(string prefix, string sequenceName)
+        {
+            using var connection = _factory.CreateConnection();
+            var sequenceValue = connection.ExecuteScalar<long>($"SELECT NEXT VALUE FOR {sequenceName};");
+            return $"{prefix}-{DateTime.UtcNow:yyyyMMdd}-{sequenceValue:D8}";
         }
     }
 }
