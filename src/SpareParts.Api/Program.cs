@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Errors;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Purchases;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
@@ -115,6 +116,9 @@ builder.Services.AddCors(opt =>
     }));
 
 var app = builder.Build();
+
+var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
+MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 app.UseCors();
