@@ -47,7 +47,7 @@ namespace SpareParts.Infrastructure.Services
 
             var (purchaseItems, _) = BuildPurchaseItems(request.Items, parts, userId);
             var totals = _totalsCalculator.CalculatePurchase(request.Items);
-            var purchaseNumber = GenerateUniquePurchaseNumber(purchasesRepository);
+            var purchaseNumber = _invoiceNumberGenerator.NextPurchaseNumber();
 
             var purchase = new PurchaseInvoice
             {
@@ -81,20 +81,6 @@ namespace SpareParts.Infrastructure.Services
                 TotalAmount = totals.TotalAmount,
                 PaymentStatus = purchase.PaymentStatus
             };
-        }
-
-        private string GenerateUniquePurchaseNumber(IPurchasesRepository purchasesRepository)
-        {
-            for (var attempt = 0; attempt < 5; attempt++)
-            {
-                var candidate = _invoiceNumberGenerator.NextPurchaseNumber();
-                if (!purchasesRepository.PurchaseNumberExists(candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            throw new ConflictException("Failed to generate a unique purchase number after multiple attempts.");
         }
 
         private static void ValidateRequest(CreatePurchaseRequest request)

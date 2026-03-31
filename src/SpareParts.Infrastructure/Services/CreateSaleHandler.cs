@@ -47,7 +47,7 @@ namespace SpareParts.Infrastructure.Services
             EnsureStockAvailability(inventoryRepository, request, parts);
 
             var totals = _totalsCalculator.CalculateSales(request.Items);
-            var invoiceNumber = GenerateUniqueSalesNumber(salesRepository);
+            var invoiceNumber = _invoiceNumberGenerator.NextSalesNumber();
 
             var invoice = new SalesInvoice
             {
@@ -85,20 +85,6 @@ namespace SpareParts.Infrastructure.Services
                 TotalAmount = totals.TotalAmount,
                 PaymentStatus = invoice.PaymentStatus
             };
-        }
-
-        private string GenerateUniqueSalesNumber(ISalesRepository salesRepository)
-        {
-            for (var attempt = 0; attempt < 5; attempt++)
-            {
-                var candidate = _invoiceNumberGenerator.NextSalesNumber();
-                if (!salesRepository.InvoiceNumberExists(candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            throw new ConflictException("Failed to generate a unique sales invoice number after multiple attempts.");
         }
 
         private static void ValidateRequest(CreateSaleRequest request)

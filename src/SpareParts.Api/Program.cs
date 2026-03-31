@@ -121,6 +121,7 @@ var app = builder.Build();
 var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
 MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
 TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
+InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 app.UseCors();
