@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
              x:Name="Root"
-             MinWidth="240">
+             MinWidth="300">
     <UserControl.Resources>
         <Style x:Key="PickerIconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -211,7 +211,7 @@
                 CornerRadius="10"
                 BorderThickness="1"
                 BorderBrush="{DynamicResource BorderBrush}"
-                Background="#FF1A1A22" Margin="0,0,55,0">
+                Background="#FF1A1A22">
             <Grid Margin="14 0 8 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
