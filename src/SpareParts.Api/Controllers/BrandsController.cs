@@ -15,10 +15,8 @@ namespace SpareParts.Api.Controllers
         public BrandsController(ISqlConnectionFactory factory) => _factory = factory;
 
         [HttpGet]
-        public ActionResult<IEnumerable<BrandDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+        public ActionResult<IEnumerable<BrandDto>> GetAll([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, 1, 500);
 
             using var session = new DbSession(_factory);
             var brandsRepository = new BrandsRepository(session);
@@ -29,10 +27,19 @@ namespace SpareParts.Api.Controllers
                 IsActive = b.IsActive
             });
 
-            Response.Headers["X-Page"] = page.ToString();
-            Response.Headers["X-Page-Size"] = pageSize.ToString();
-            Response.Headers["X-Total-Count"] = projected.Count().ToString();
-            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
+            if (!page.HasValue && !pageSize.HasValue)
+            {
+                return Ok(projected);
+            }
+
+            var resolvedPage = Math.Max(1, page ?? 1);
+            var resolvedPageSize = Math.Clamp(pageSize ?? 100, 1, 500);
+            var totalCount = projected.Count();
+
+            Response.Headers["X-Page"] = resolvedPage.ToString();
+            Response.Headers["X-Page-Size"] = resolvedPageSize.ToString();
+            Response.Headers["X-Total-Count"] = totalCount.ToString();
+            return Ok(projected.Skip((resolvedPage - 1) * resolvedPageSize).Take(resolvedPageSize));
         }
 
         [HttpPost]
