@@ -1,8 +1,7 @@
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Cars;
-using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
 {
@@ -11,37 +10,22 @@ namespace SpareParts.Api.Controllers
     [Authorize]
     public class CarBrandsController : ControllerBase
     {
-        private readonly ISqlConnectionFactory _factory;
-        public CarBrandsController(ISqlConnectionFactory factory) => _factory = factory;
+        private readonly CarBrandsService _service;
+
+        public CarBrandsController(CarBrandsService service)
+        {
+            _service = service;
+        }
 
         [HttpGet]
-        public ActionResult<IEnumerable<CarBrandDto>> GetAll()
-        {
-            using var conn = _factory.CreateConnection();
-            var rows = conn.Query<CarBrandDto>(
-                @"SELECT Id, Name, Country, RegionGroup, IsActive, SortOrder,
-                         CAST(CASE WHEN LogoData IS NOT NULL THEN 1 ELSE 0 END AS BIT) AS HasLogo
-                  FROM   CarBrands
-                  WHERE  IsActive = 1
-                  ORDER  BY SortOrder, Name");
-            return Ok(rows);
-        }
+        public ActionResult<IEnumerable<CarBrandDto>> GetAll() => Ok(_service.GetAll());
 
         [HttpGet("{id:int}/logo")]
         [AllowAnonymous]
         public ActionResult GetLogo(int id)
         {
-            using var conn = _factory.CreateConnection();
-            var row = conn.QueryFirstOrDefault(
-                "SELECT LogoData, LogoMimeType FROM CarBrands WHERE Id = @Id",
-                new { Id = id });
-
-            if (row == null || row.LogoData == null)
-            {
-                return NotFound();
-            }
-
-            return File((byte[])row.LogoData, (string)row.LogoMimeType);
+            var logo = _service.GetLogo(id);
+            return File(logo.Data, logo.MimeType);
         }
 
         [HttpPost("{id:int}/logo")]
@@ -61,36 +45,14 @@ namespace SpareParts.Api.Controllers
             using var ms = new MemoryStream();
             await image.CopyToAsync(ms);
 
-            using var conn = _factory.CreateConnection();
-            int updated = conn.Execute(
-                @"UPDATE CarBrands
-                  SET    LogoData = @Data, LogoMimeType = @Mime, ModifiedAt = @Now
-                  WHERE  Id = @Id",
-                new { Data = ms.ToArray(), Mime = image.ContentType, Now = DateTime.UtcNow, Id = id });
-
-            if (updated == 0) return NotFound();
+            _service.UploadLogo(id, ms.ToArray(), image.ContentType);
             return NoContent();
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
         public ActionResult<int> Create([FromBody] CreateCarBrandRequest req)
-        {
-            using var conn = _factory.CreateConnection();
-            var id = conn.ExecuteScalar<int>(
-                @"INSERT INTO CarBrands (Name, Country, RegionGroup, SortOrder, CreatedByUserId)
-                  VALUES (@Name, @Country, @RegionGroup, @SortOrder, @UserId);
-                  SELECT CAST(SCOPE_IDENTITY() AS INT);",
-                new
-                {
-                    req.Name,
-                    req.Country,
-                    req.RegionGroup,
-                    req.SortOrder,
-                    UserId = GetUserId()
-                });
-            return Ok(id);
-        }
+            => Ok(_service.Create(req, GetUserId()));
 
         private int GetUserId()
         {

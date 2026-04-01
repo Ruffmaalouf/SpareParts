@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Inventory;
-using SpareParts.Domain.MasterData;
-using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
 {
@@ -11,8 +10,12 @@ namespace SpareParts.Api.Controllers
     [Authorize]
     public class BrandsController : ControllerBase
     {
-        private readonly ISqlConnectionFactory _factory;
-        public BrandsController(ISqlConnectionFactory factory) => _factory = factory;
+        private readonly BrandsService _service;
+
+        public BrandsController(BrandsService service)
+        {
+            _service = service;
+        }
 
         [HttpGet]
         public ActionResult<IEnumerable<BrandDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
@@ -20,55 +23,28 @@ namespace SpareParts.Api.Controllers
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 500);
 
-            using var session = new DbSession(_factory);
-            var brandsRepository = new BrandsRepository(session);
-            var projected = brandsRepository.GetAll().Select(b => new BrandDto
-            {
-                Id = b.Id,
-                Name = b.Name,
-                IsActive = b.IsActive
-            });
-
+            var result = _service.GetAll(page, pageSize);
             Response.Headers["X-Page"] = page.ToString();
             Response.Headers["X-Page-Size"] = pageSize.ToString();
-            Response.Headers["X-Total-Count"] = projected.Count().ToString();
-            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            return Ok(result.Items);
         }
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateBrandRequest req)
-        {
-            using var session = new DbSession(_factory);
-            var brandsRepository = new BrandsRepository(session);
-            var brand = new Domain.MasterData.Brand
-            {
-                Name = req.Name,
-                IsActive = req.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                CreatedByUserId = GetUserId()
-            };
-            var id = brandsRepository.Insert(brand);
-            session.Commit();
-            return Ok(id);
-        }
+            => Ok(_service.Create(req, GetUserId()));
 
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] CreateBrandRequest req)
         {
-            using var session = new DbSession(_factory);
-            var brandsRepository = new BrandsRepository(session);
-            if (!brandsRepository.Update(id, req.Name, req.IsActive, GetUserId())) return NotFound();
-            session.Commit();
+            _service.Update(id, req, GetUserId());
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
-            using var session = new DbSession(_factory);
-            var brandsRepository = new BrandsRepository(session);
-            if (!brandsRepository.Delete(id)) return NotFound();
-            session.Commit();
+            _service.Delete(id);
             return NoContent();
         }
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
-using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
 {
@@ -11,38 +11,19 @@ namespace SpareParts.Api.Controllers
     [Authorize]
     public class CategoriesController : ControllerBase
     {
-        private readonly ISqlConnectionFactory _factory;
-        public CategoriesController(ISqlConnectionFactory factory) => _factory = factory;
+        private readonly CategoriesService _service;
+
+        public CategoriesController(CategoriesService service)
+        {
+            _service = service;
+        }
 
         [HttpGet]
-        public ActionResult<IEnumerable<CategoryDto>> GetAll()
-        {
-            using var session = new DbSession(_factory);
-            var categoriesRepository = new CategoriesRepository(session);
-            return Ok(categoriesRepository.GetAll().Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                ParentId = c.ParentId
-            }));
-        }
+        public ActionResult<IEnumerable<CategoryDto>> GetAll() => Ok(_service.GetAll());
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateCategoryRequest req)
-        {
-            using var session = new DbSession(_factory);
-            var categoriesRepository = new CategoriesRepository(session);
-            var cat = new Domain.MasterData.Category
-            {
-                Name = req.Name,
-                ParentId = req.ParentId,
-                CreatedAt = DateTime.UtcNow,
-                CreatedByUserId = GetUserId()
-            };
-            var id = categoriesRepository.Insert(cat);
-            session.Commit();
-            return Ok(id);
-        }
+            => Ok(_service.Create(req, GetUserId()));
 
         private int GetUserId()
         {
