@@ -20,7 +20,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<BrandGroupViewModel> BrandGroups    { get; } = new();
         public ObservableCollection<CarModelViewModel>   AvailableCars  { get; } = new();
         public ObservableCollection<CarPartModel>        AvailableParts { get; } = new();
-        public ObservableCollection<StatusMessage> Notifications => AppNotificationCenter.Instance.Messages;
+        public ObservableCollection<StatusMessage> Notifications = AppNotificationCenter.Instance.Messages;
 
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
