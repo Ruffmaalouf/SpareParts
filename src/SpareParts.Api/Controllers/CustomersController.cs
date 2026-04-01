@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.BusinessPartners;
-using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
 {
@@ -10,8 +10,12 @@ namespace SpareParts.Api.Controllers
     [Authorize]
     public class CustomersController : ControllerBase
     {
-        private readonly ISqlConnectionFactory _factory;
-        public CustomersController(ISqlConnectionFactory factory) => _factory = factory;
+        private readonly CustomersService _service;
+
+        public CustomersController(CustomersService service)
+        {
+            _service = service;
+        }
 
         [HttpGet]
         public ActionResult<IEnumerable<CustomerDto>> GetAll([FromQuery] string? search = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
@@ -19,69 +23,28 @@ namespace SpareParts.Api.Controllers
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 500);
 
-            using var session = new DbSession(_factory);
-            var customersRepository = new CustomersRepository(session);
-            var all = customersRepository.GetAll();
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                all = all.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-            }
-
-            var projected = all.Select(c => new CustomerDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Phone = c.Phone,
-                Email = c.Email,
-                Address = c.Address,
-                TaxNumber = c.TaxNumber,
-                OpeningBalance = c.OpeningBalance
-            });
-
+            var result = _service.GetAll(search, page, pageSize);
             Response.Headers["X-Page"] = page.ToString();
             Response.Headers["X-Page-Size"] = pageSize.ToString();
-            Response.Headers["X-Total-Count"] = projected.Count().ToString();
-            return Ok(projected.Skip((page - 1) * pageSize).Take(pageSize));
+            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            return Ok(result.Items);
         }
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateCustomerRequest req)
-        {
-            using var session = new DbSession(_factory);
-            var customersRepository = new CustomersRepository(session);
-            var customer = new Customer
-            {
-                Name = req.Name,
-                Phone = req.Phone,
-                Email = req.Email,
-                Address = req.Address,
-                TaxNumber = req.TaxNumber,
-                OpeningBalance = req.OpeningBalance,
-                CreatedAt = DateTime.UtcNow,
-                CreatedByUserId = GetUserId()
-            };
-            var id = customersRepository.Insert(customer);
-            session.Commit();
-            return Ok(id);
-        }
+            => Ok(_service.Create(req, GetUserId()));
 
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] CreateCustomerRequest req)
         {
-            using var session = new DbSession(_factory);
-            var customersRepository = new CustomersRepository(session);
-            if (!customersRepository.Update(id, req, GetUserId())) return NotFound();
-            session.Commit();
+            _service.Update(id, req, GetUserId());
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
-            using var session = new DbSession(_factory);
-            var customersRepository = new CustomersRepository(session);
-            if (!customersRepository.Delete(id)) return NotFound();
-            session.Commit();
+            _service.Delete(id);
             return NoContent();
         }
 

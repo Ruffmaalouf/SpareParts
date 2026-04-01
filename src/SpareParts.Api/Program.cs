@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Errors;
 using SpareParts.Api.Infrastructure;
+using SpareParts.Api.Services;
 using SpareParts.Domain.Purchases;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
@@ -79,6 +80,19 @@ builder.Services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
 builder.Services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
 builder.Services.AddScoped<SalesService>();
 builder.Services.AddScoped<PurchaseService>();
+builder.Services.AddScoped<TransactionTypesService>();
+builder.Services.AddScoped<WarehousesService>();
+builder.Services.AddScoped<CurrenciesService>();
+builder.Services.AddScoped<UsersService>();
+builder.Services.AddScoped<RolesService>();
+builder.Services.AddScoped<CarBrandsService>();
+builder.Services.AddScoped<CarModelsService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<CustomersService>();
+builder.Services.AddScoped<BrandsService>();
+builder.Services.AddScoped<CategoriesService>();
+builder.Services.AddScoped<SuppliersService>();
+builder.Services.AddScoped<PartsService>();
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
 builder.Services
@@ -119,6 +133,8 @@ var app = builder.Build();
 
 var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
 MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
+TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
+CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 app.UseCors();
