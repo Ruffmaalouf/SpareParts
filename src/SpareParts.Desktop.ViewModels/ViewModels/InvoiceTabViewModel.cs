@@ -167,6 +167,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private string _selectedCurrencyCode = "USD";
         private string _defaultCurrencyCode = "USD";
+        private string _defaultCounterCurrencyCode = "USD";
         private decimal _defaultCounterRate = 1m;
         private string _defaultSalesTransactionTypeName = "Sales";
         public string SelectedCurrencyCode
@@ -473,11 +474,18 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 var constants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
                 var byKey = constants.ToDictionary(k => k.Key, v => v.Value, StringComparer.OrdinalIgnoreCase);
 
-                if (byKey.TryGetValue("DefaultCurrencyCode", out var currencyCode)
-                    && !string.IsNullOrWhiteSpace(currencyCode)
-                    && currencyCode.Trim().Length == 3)
+                var baseCurrencyCode = ResolveCurrencyCode(byKey, "BaseCurrencyCode")
+                    ?? ResolveCurrencyCode(byKey, "DefaultCurrencyCode");
+                if (!string.IsNullOrWhiteSpace(baseCurrencyCode))
                 {
-                    _defaultCurrencyCode = currencyCode.Trim().ToUpperInvariant();
+                    _defaultCurrencyCode = baseCurrencyCode;
+                }
+
+                var counterCurrencyCode = ResolveCurrencyCode(byKey, "CounterCurrencyCode")
+                    ?? _defaultCurrencyCode;
+                if (!string.IsNullOrWhiteSpace(counterCurrencyCode))
+                {
+                    _defaultCounterCurrencyCode = counterCurrencyCode;
                 }
 
                 if (byKey.TryGetValue("DefaultCounterRate", out var defaultCounterRate)
@@ -499,13 +507,25 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
+        private static string? ResolveCurrencyCode(IReadOnlyDictionary<string, string> constants, string key)
+        {
+            if (!constants.TryGetValue(key, out var value)
+                || string.IsNullOrWhiteSpace(value)
+                || value.Trim().Length != 3)
+            {
+                return null;
+            }
+
+            return value.Trim().ToUpperInvariant();
+        }
+
         private void ApplySelectedTransactionType()
         {
             var selected = TransactionTypes.FirstOrDefault(t => t.Id == SelectedTransactionTypeId);
             _isSynchronizingSelection = true;
             if (selected == null)
             {
-                _selectedCurrencyCode = _defaultCurrencyCode;
+                _selectedCurrencyCode = _defaultCounterCurrencyCode;
                 OnPropertyChanged(nameof(SelectedCurrencyCode));
                 SelectedCounterRate = _defaultCounterRate;
                 RecalculateBaseAmounts();

@@ -33,11 +33,11 @@ namespace SpareParts.Desktop.Wpf.Management
             NewPartNotes = p.Notes;
         }
 
-        public void ClearForm()
+        public void ClearForm(string defaultCurrencyCode = "USD")
         {
             NewPartCode = NewPartName = NewPartOEM = NewPartNotes = string.Empty;
             NewPartCostPrice = NewPartSalePrice = 0;
-            NewPartCurrency = "USD";
+            NewPartCurrency = defaultCurrencyCode;
             NewPartMinStock = 0;
             NewPartCategoryId = 1;
             NewPartBrandId = null;
