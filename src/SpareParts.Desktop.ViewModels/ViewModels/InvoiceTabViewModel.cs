@@ -166,6 +166,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         }
 
         private string _selectedCurrencyCode = "USD";
+        private string _defaultCurrencyCode = "USD";
+        private decimal _defaultCounterRate = 1m;
+        private string _defaultSalesTransactionTypeName = "Sales";
         public string SelectedCurrencyCode
         {
             get => _selectedCurrencyCode;
@@ -404,6 +407,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             try
             {
+                await LoadConstantsAsync();
+
                 var transactionTypeRows = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
                 TransactionTypes.Clear();
                 foreach (var row in transactionTypeRows.Where(t => t.IsActive))
@@ -446,7 +451,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 if (SelectedTransactionTypeId == null && TransactionTypes.Count > 0)
                 {
-                    var salesType = TransactionTypes.FirstOrDefault(t => string.Equals(t.Name, "Sales", StringComparison.OrdinalIgnoreCase));
+                    var salesType = TransactionTypes.FirstOrDefault(t =>
+                        string.Equals(t.Name, _defaultSalesTransactionTypeName, StringComparison.OrdinalIgnoreCase));
                     SelectedTransactionTypeId = salesType?.Id ?? TransactionTypes[0].Id;
                 }
                 else if (!CurrencyCodes.Contains(SelectedCurrencyCode, StringComparer.OrdinalIgnoreCase) && CurrencyCodes.Count > 0)
@@ -460,15 +466,48 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
+        private async Task LoadConstantsAsync()
+        {
+            try
+            {
+                var constants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
+                var byKey = constants.ToDictionary(k => k.Key, v => v.Value, StringComparer.OrdinalIgnoreCase);
+
+                if (byKey.TryGetValue("DefaultCurrencyCode", out var currencyCode)
+                    && !string.IsNullOrWhiteSpace(currencyCode)
+                    && currencyCode.Trim().Length == 3)
+                {
+                    _defaultCurrencyCode = currencyCode.Trim().ToUpperInvariant();
+                }
+
+                if (byKey.TryGetValue("DefaultCounterRate", out var defaultCounterRate)
+                    && decimal.TryParse(defaultCounterRate, out var parsedRate)
+                    && parsedRate > 0)
+                {
+                    _defaultCounterRate = parsedRate;
+                }
+
+                if (byKey.TryGetValue("DefaultSalesTransactionTypeName", out var transactionTypeName)
+                    && !string.IsNullOrWhiteSpace(transactionTypeName))
+                {
+                    _defaultSalesTransactionTypeName = transactionTypeName.Trim();
+                }
+            }
+            catch
+            {
+                // Non-blocking fallback to local defaults.
+            }
+        }
+
         private void ApplySelectedTransactionType()
         {
             var selected = TransactionTypes.FirstOrDefault(t => t.Id == SelectedTransactionTypeId);
             _isSynchronizingSelection = true;
             if (selected == null)
             {
-                _selectedCurrencyCode = "USD";
+                _selectedCurrencyCode = _defaultCurrencyCode;
                 OnPropertyChanged(nameof(SelectedCurrencyCode));
-                SelectedCounterRate = 1m;
+                SelectedCounterRate = _defaultCounterRate;
                 RecalculateBaseAmounts();
                 RaiseTotalsChanged();
                 _isSynchronizingSelection = false;
@@ -512,7 +551,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 return;
             }
 
-            SelectedCounterRate = 1m;
+            SelectedCounterRate = _defaultCounterRate;
             RecalculateBaseAmounts();
             RaiseTotalsChanged();
         }

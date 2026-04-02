@@ -3,6 +3,7 @@ using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf;
 using SpareParts.Domain.Auth;
 using SpareParts.Domain.Sales;
+using SpareParts.Domain.MasterData;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -739,13 +740,18 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             try
             {
                 var dtos = await _carCatalogApi.GetCarBrandsAsync();
+                var knownOrder = await LoadBrandRegionOrderAsync();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     BrandGroups.Clear();
-                    var knownOrder = new[] { "German", "Japanese", "Korean" };
                     var grouped = dtos
                         .GroupBy(d => d.RegionGroup)
-                        .OrderBy(g => { int i = Array.IndexOf(knownOrder, g.Key); return i >= 0 ? i : 99; });
+                        .OrderBy(g =>
+                        {
+                            var key = g.Key?.Trim() ?? string.Empty;
+                            var index = knownOrder.FindIndex(item => string.Equals(item, key, StringComparison.OrdinalIgnoreCase));
+                            return index >= 0 ? index : int.MaxValue;
+                        });
 
                     foreach (var grp in grouped)
                     {
@@ -775,6 +781,33 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading brands.", false);
             }
             finally { IsLoadingBrands = false; }
+        }
+
+        private async Task<List<string>> LoadBrandRegionOrderAsync()
+        {
+            try
+            {
+                var constants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
+                var value = constants
+                    .FirstOrDefault(c => string.Equals(c.Key, "BrandRegionOrder", StringComparison.OrdinalIgnoreCase))
+                    ?.Value;
+
+                var ordered = (value ?? string.Empty)
+                    .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (ordered.Count > 0)
+                {
+                    return ordered;
+                }
+            }
+            catch
+            {
+                // Non-blocking fallback to local defaults.
+            }
+
+            return new List<string> { "German", "Japanese", "Korean" };
         }
 
         private async Task LoadLogoAsync(CarBrandViewModel vm)
