@@ -9,7 +9,7 @@ namespace SpareParts.Desktop.Wpf
         : CrudEntityApiClientBase<UserDto, CreateUserRequest, int, UpdateUserRequest, int>, IUserApiClient
     {
         public UsersApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
-            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
+            : base(restClientFactory, tokenProvider, AppSettings.IdentityApiBaseUrl)
         {
         }
 

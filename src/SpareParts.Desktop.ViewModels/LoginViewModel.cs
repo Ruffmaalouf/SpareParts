@@ -1,7 +1,10 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Domain.Auth;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -41,6 +44,7 @@ namespace SpareParts.Desktop.Wpf
 
         private string _statusDot  = "●";
         private string _statusText = "Connecting to API…";
+        private string _serviceStatusText = string.Empty;
         private Brush  _statusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
 
         public string StatusDot
@@ -52,6 +56,12 @@ namespace SpareParts.Desktop.Wpf
         {
             get => _statusText;
             set { _statusText = value; OnPropertyChanged(nameof(StatusText)); }
+        }
+
+        public string ServiceStatusText
+        {
+            get => _serviceStatusText;
+            set { _serviceStatusText = value; OnPropertyChanged(nameof(ServiceStatusText)); }
         }
         /// <summary>Foreground brush for the status dot — bind directly to Foreground in XAML.</summary>
         public Brush StatusBrush
@@ -126,21 +136,68 @@ namespace SpareParts.Desktop.Wpf
         // ── Ping API health indicator ─────────────────────────────────────────
         private async Task CheckApiAsync()
         {
-            StatusText  = "Connecting to API…";
+            StatusText  = "Checking service endpoints…";
             StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
+            ServiceStatusText = string.Empty;
 
-            bool alive = await _authApi.PingAsync();
+            var statuses = await PingAllEndpointsAsync();
+            var onlineCount = statuses.Count(x => x.IsOnline);
 
-            if (alive)
+            ServiceStatusText = string.Join(Environment.NewLine, statuses.Select(status =>
+                $"{status.Label}: {(status.IsOnline ? "Online" : "Offline")} ({status.Url})"));
+
+            if (onlineCount == statuses.Count)
             {
-                StatusText  = "API online";
+                StatusText  = "All API endpoints are online";
                 StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x4C, 0xAF, 0x50)); // green
             }
             else
             {
-                StatusText  = "API offline — start SpareParts.Api";
+                StatusText  = $"{onlineCount}/{statuses.Count} API endpoints online";
                 StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xE5, 0x39, 0x35)); // red
             }
+        }
+
+        private static async Task<List<EndpointStatus>> PingAllEndpointsAsync()
+        {
+            var endpoints = new List<EndpointStatus>
+            {
+                new("Identity", AppSettings.IdentityApiBaseUrl),
+                new("Sales", AppSettings.SalesApiBaseUrl),
+                new("Purchases", AppSettings.PurchasesApiBaseUrl),
+                new("Inventory", AppSettings.InventoryApiBaseUrl),
+                new("Catalog", AppSettings.CatalogApiBaseUrl)
+            };
+
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+
+            foreach (var endpoint in endpoints)
+            {
+                endpoint.IsOnline = await PingHealthEndpointAsync(httpClient, endpoint.Url);
+            }
+
+            return endpoints;
+        }
+
+        private static async Task<bool> PingHealthEndpointAsync(HttpClient httpClient, string baseUrl)
+        {
+            try
+            {
+                var healthUrl = new Uri(new Uri(baseUrl), "api/health");
+                using var response = await httpClient.GetAsync(healthUrl);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private sealed class EndpointStatus(string label, string url)
+        {
+            public string Label { get; } = label;
+            public string Url { get; } = url;
+            public bool IsOnline { get; set; }
         }
 
         private void ClearError() => ErrorMessage = string.Empty;

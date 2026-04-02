@@ -8,7 +8,7 @@ namespace SpareParts.Desktop.Wpf
     public sealed class PartsApiClient : FeatureApiClientBase, IPartsApiClient
     {
         public PartsApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
-            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
+            : base(restClientFactory, tokenProvider, AppSettings.InventoryApiBaseUrl)
         {
         }
 

@@ -10,7 +10,7 @@ namespace SpareParts.Desktop.Wpf
     public sealed class CarCatalogApiClient : FeatureApiClientBase, ICarCatalogApiClient
     {
         public CarCatalogApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
-            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
+            : base(restClientFactory, tokenProvider, AppSettings.CatalogApiBaseUrl)
         {
         }
 

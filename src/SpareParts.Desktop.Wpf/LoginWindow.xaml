@@ -321,13 +321,22 @@
                     <!-- API status bar -->
                     <Border VerticalAlignment="Bottom" Padding="20 10"
                             CornerRadius="0 0 16 0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding StatusDot}" FontSize="9"
-                                       Foreground="{Binding StatusBrush}"
-                                       VerticalAlignment="Center" Margin="0 0 6 0"/>
-                            <TextBlock Text="{Binding StatusText}"
-                                       FontSize="11" Foreground="#FF6A6A7A"
-                                       VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding StatusDot}" FontSize="9"
+                                           Foreground="{Binding StatusBrush}"
+                                           VerticalAlignment="Center" Margin="0 0 6 0"/>
+                                <TextBlock Text="{Binding StatusText}"
+                                           FontSize="11" Foreground="#FF6A6A7A"
+                                           VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding ServiceStatusText}"
+                                       Margin="15 6 0 0"
+                                       FontSize="10"
+                                       Foreground="#FF5D5D6D"
+                                       TextWrapping="Wrap"
+                                       LineHeight="16"
+                                       FontFamily="Consolas"/>
                         </StackPanel>
                     </Border>
 
