@@ -502,7 +502,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 return;
             }
 
-            if (_currencyRatesByCode.TryGetValue(SelectedCurrencyCode, out var rateToUsd) && rateToUsd > 0)
+            if (!string.IsNullOrWhiteSpace(SelectedCurrencyCode)
+                && _currencyRatesByCode.TryGetValue(SelectedCurrencyCode, out var rateToUsd)
+                && rateToUsd > 0)
             {
                 SelectedCounterRate = rateToUsd;
                 RecalculateBaseAmounts();
