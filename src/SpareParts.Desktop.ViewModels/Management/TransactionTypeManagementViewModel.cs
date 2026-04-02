@@ -22,10 +22,10 @@ namespace SpareParts.Desktop.Wpf.Management
             NewTransactionIsActive = dto.IsActive;
         }
 
-        public void ClearForm()
+        public void ClearForm(string defaultCounterCurrencyCode = "USD")
         {
             NewTransactionTypeName = string.Empty;
-            NewTransactionCurrencyCode = "USD";
+            NewTransactionCurrencyCode = defaultCounterCurrencyCode;
             NewTransactionCounterRate = 1m;
             NewTransactionIsActive = true;
             SelectedTransactionType = null;

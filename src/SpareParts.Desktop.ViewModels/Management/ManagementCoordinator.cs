@@ -32,6 +32,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var warehouses = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
             var currencyRates = await _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
             var transactionTypes = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
+            var appConstants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
             await rolesVm.LoadAsync();
 
             return new ManagementLoadResult
@@ -45,7 +46,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 CarModels = carModels,
                 Warehouses = warehouses,
                 CurrencyRates = currencyRates,
-                TransactionTypes = transactionTypes
+                TransactionTypes = transactionTypes,
+                AppConstants = appConstants
             };
         }
 

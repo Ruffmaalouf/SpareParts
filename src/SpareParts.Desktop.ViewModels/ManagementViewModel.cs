@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -21,6 +22,8 @@ namespace SpareParts.Desktop.Wpf
         private readonly ICrudApiClient _crudApi;
         private readonly SupplierPermissionState _supplierPermissions = new();
         private readonly ManagementStatusCenter _statusCenter = new();
+        private string _baseCurrencyCode = "USD";
+        private string _counterCurrencyCode = "USD";
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -242,6 +245,7 @@ namespace SpareParts.Desktop.Wpf
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    ApplyCurrencyDefaults(loadResult.AppConstants);
                     Replace(Customers, loadResult.Customers);
                     Replace(Suppliers, loadResult.Suppliers);
                     Replace(Brands, loadResult.Brands);
@@ -276,6 +280,28 @@ namespace SpareParts.Desktop.Wpf
             {
                 target.Add(item);
             }
+        }
+
+        private void ApplyCurrencyDefaults(IEnumerable<AppConstantDto> constants)
+        {
+            var byKey = constants.ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+            _baseCurrencyCode = ResolveCurrencyCode(byKey, "BaseCurrencyCode")
+                ?? ResolveCurrencyCode(byKey, "DefaultCurrencyCode")
+                ?? "USD";
+            _counterCurrencyCode = ResolveCurrencyCode(byKey, "CounterCurrencyCode")
+                ?? _baseCurrencyCode;
+        }
+
+        private static string? ResolveCurrencyCode(IReadOnlyDictionary<string, string> constants, string key)
+        {
+            if (!constants.TryGetValue(key, out var value)
+                || string.IsNullOrWhiteSpace(value)
+                || value.Trim().Length != 3)
+            {
+                return null;
+            }
+
+            return value.Trim().ToUpperInvariant();
         }
 
         private async Task SaveCustomerAsync()
@@ -385,7 +411,7 @@ namespace SpareParts.Desktop.Wpf
             if (!result.Success) return;
 
             await LoadAllAsync();
-            PartsFeature.ClearForm();
+            PartsFeature.ClearForm(_baseCurrencyCode);
             RaisePartProps();
         }
 
@@ -485,7 +511,7 @@ namespace SpareParts.Desktop.Wpf
             if (!result.Success) return;
 
             await LoadAllAsync();
-            TransactionTypesFeature.ClearForm();
+            TransactionTypesFeature.ClearForm(_counterCurrencyCode);
             RaiseTransactionTypeProps();
         }
 

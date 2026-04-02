@@ -27,6 +27,18 @@ BEGIN
     VALUES ('BrandRegionOrder', 'German,Japanese,Korean', 'Display order for car brand region groups.');
 END;
 
+
+IF NOT EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = 'BaseCurrencyCode')
+BEGIN
+    INSERT INTO dbo.AppConstants ([Key], [Value], Description)
+    VALUES ('BaseCurrencyCode', 'USD', 'Application base currency code used for totals and conversions.');
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = 'CounterCurrencyCode')
+BEGIN
+    INSERT INTO dbo.AppConstants ([Key], [Value], Description)
+    VALUES ('CounterCurrencyCode', 'USD', 'Application counter/default transaction currency code.');
+END;
 IF NOT EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = 'DefaultCurrencyCode')
 BEGIN
     INSERT INTO dbo.AppConstants ([Key], [Value], Description)
