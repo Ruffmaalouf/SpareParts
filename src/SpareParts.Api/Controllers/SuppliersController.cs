@@ -30,7 +30,7 @@ namespace SpareParts.Api.Controllers
                 OpeningBalance = s.OpeningBalance
             });
 
-            if (!pageSize.HasValue)
+            if (!page.HasValue && !pageSize.HasValue)
             {
                 return Ok(projected);
             }
