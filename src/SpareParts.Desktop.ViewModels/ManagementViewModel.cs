@@ -46,6 +46,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
         public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
         public ObservableCollection<TransactionTypeDto> TransactionTypes => TransactionTypesFeature.TransactionTypes;
+        public ObservableCollection<UsedCarEntry> UsedCars { get; } = new();
 
 
         public bool CanViewSupplierTab => _supplierPermissions.CanViewSupplierTab;
@@ -106,6 +107,16 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
+        public UsedCarEntry? SelectedUsedCar
+        {
+            get => _selectedUsedCar;
+            set
+            {
+                _selectedUsedCar = value;
+                OnPropertyChanged(nameof(SelectedUsedCar));
+            }
+        }
+
         public string NewCustomerName { get => CustomersFeature.NewCustomerName; set { CustomersFeature.NewCustomerName = value; OnPropertyChanged(nameof(NewCustomerName)); } }
         public string NewCustomerPhone { get => CustomersFeature.NewCustomerPhone; set { CustomersFeature.NewCustomerPhone = value; OnPropertyChanged(nameof(NewCustomerPhone)); } }
         public string NewCustomerEmail { get => CustomersFeature.NewCustomerEmail; set { CustomersFeature.NewCustomerEmail = value; OnPropertyChanged(nameof(NewCustomerEmail)); } }
@@ -152,10 +163,22 @@ namespace SpareParts.Desktop.Wpf
         public decimal NewTransactionCounterRate { get => TransactionTypesFeature.NewTransactionCounterRate; set { TransactionTypesFeature.NewTransactionCounterRate = value; OnPropertyChanged(nameof(NewTransactionCounterRate)); } }
         public bool NewTransactionIsActive { get => TransactionTypesFeature.NewTransactionIsActive; set { TransactionTypesFeature.NewTransactionIsActive = value; OnPropertyChanged(nameof(NewTransactionIsActive)); } }
 
+        public string NewUsedCarName { get; set; } = string.Empty;
+        public int NewUsedCarModelYear { get; set; }
+        public string NewUsedCarPriceCurrency { get; set; } = "USD";
+        public decimal NewUsedCarPriceBase { get; set; }
+        public decimal NewUsedCarPriceCounter { get; set; }
+        public string NewUsedCarLocation { get; set; } = string.Empty;
+        public decimal NewUsedCarTransportation { get; set; }
+        public string NewUsedCarPartOut { get; set; } = string.Empty;
+        public decimal NewUsedCarShipping { get; set; }
+        public decimal NewUsedCarCustoms { get; set; }
+
         public string Status => _statusCenter.Status;
         public ObservableCollection<StatusMessage> StatusMessages => _statusCenter.StatusMessages;
         public Brush StatusBrush => _statusCenter.StatusBrush;
         private bool _isLoading;
+        private UsedCarEntry? _selectedUsedCar;
         private bool _canViewCurrencyTab;
         private bool _canViewTransactionTypesTab;
         public bool IsLoading
@@ -185,6 +208,8 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteWarehouseCommand { get; }
         public ICommand SaveTransactionTypeCommand { get; }
         public ICommand DeleteTransactionTypeCommand { get; }
+        public ICommand AddUsedCarCommand { get; }
+        public ICommand RemoveUsedCarCommand { get; }
 
         public ManagementViewModel(
             ICrudApiClient crudApi,
@@ -199,6 +224,7 @@ namespace SpareParts.Desktop.Wpf
             UsersVm = usersVm;
             RolesVm = rolesVm;
             SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
+            _crudApi = crudApi;
 
             _coordinator = new ManagementCoordinator(
                 crudApi,
@@ -220,6 +246,10 @@ namespace SpareParts.Desktop.Wpf
             DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
             SaveTransactionTypeCommand = new RelayCommand(_ => _ = SaveTransactionTypeAsync());
             DeleteTransactionTypeCommand = new RelayCommand(_ => _ = DeleteTransactionTypeAsync());
+            AddUsedCarCommand = new RelayCommand(_ => AddUsedCar());
+            RemoveUsedCarCommand = new RelayCommand(_ => RemoveSelectedUsedCar());
+
+            SeedUsedCars();
         }
 
         public void SetTabPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier, bool canViewCurrencyTab, bool canViewTransactionTypesTab)
@@ -526,6 +556,67 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedTransactionType));
         }
 
+        private void AddUsedCar()
+        {
+            if (string.IsNullOrWhiteSpace(NewUsedCarName) || NewUsedCarModelYear <= 0)
+            {
+                SetStatus("✗ Car and model year are required for used cars.", false);
+                return;
+            }
+
+            UsedCars.Add(new UsedCarEntry
+            {
+                Car = NewUsedCarName.Trim(),
+                ModelYear = NewUsedCarModelYear,
+                PriceCurrency = string.IsNullOrWhiteSpace(NewUsedCarPriceCurrency) ? "USD" : NewUsedCarPriceCurrency.Trim().ToUpperInvariant(),
+                PriceBase = NewUsedCarPriceBase,
+                PriceCounter = NewUsedCarPriceCounter,
+                Location = NewUsedCarLocation.Trim(),
+                Transportation = NewUsedCarTransportation,
+                PartOut = NewUsedCarPartOut.Trim(),
+                Shipping = NewUsedCarShipping,
+                Customs = NewUsedCarCustoms
+            });
+
+            NewUsedCarName = string.Empty;
+            NewUsedCarModelYear = 0;
+            NewUsedCarPriceCurrency = "USD";
+            NewUsedCarPriceBase = 0;
+            NewUsedCarPriceCounter = 0;
+            NewUsedCarLocation = string.Empty;
+            NewUsedCarTransportation = 0;
+            NewUsedCarPartOut = string.Empty;
+            NewUsedCarShipping = 0;
+            NewUsedCarCustoms = 0;
+            RaiseUsedCarProps();
+            SetStatus("✓ Used car entry added.", true);
+        }
+
+        private void RemoveSelectedUsedCar()
+        {
+            if (SelectedUsedCar == null)
+            {
+                SetStatus("✗ Select a used car row first.", false);
+                return;
+            }
+
+            UsedCars.Remove(SelectedUsedCar);
+            SelectedUsedCar = null;
+            SetStatus("✓ Used car entry removed.", true);
+        }
+
+        private void SeedUsedCars()
+        {
+            UsedCars.Clear();
+            UsedCars.Add(new UsedCarEntry { Car = "Bmw 335", ModelYear = 2009, PriceCurrency = "CAD", PriceBase = 2660m, PriceCounter = 1915.2m, Location = "CALGARY", Transportation = 200m });
+            UsedCars.Add(new UsedCarEntry { Car = "Bmw 535", ModelYear = 2010, PriceCurrency = "CAD", PriceBase = 1800m, PriceCounter = 1296m, Location = "CALGARY", Transportation = 200m });
+            UsedCars.Add(new UsedCarEntry { Car = "Bmw 650", ModelYear = 2009, PriceCurrency = "CAD", PriceBase = 1600m, PriceCounter = 1152m, Location = "CALGARY", Transportation = 200m });
+            UsedCars.Add(new UsedCarEntry { Car = "Bmw 750", ModelYear = 2012, PriceCurrency = "CAD", PriceBase = 3400m, PriceCounter = 2448m, Location = "EDMONTON", Transportation = 120m });
+            UsedCars.Add(new UsedCarEntry { Car = "Bmw X5 4.8", ModelYear = 2008, PriceCurrency = "CAD", PriceBase = 1400m, PriceCounter = 1008m, Location = "EDMONTON", Transportation = 120m });
+            UsedCars.Add(new UsedCarEntry { Car = "Mercedes C230", ModelYear = 2009, PriceCurrency = "CAD", PriceBase = 1400m, PriceCounter = 1008m, Location = "EDMONTON", Transportation = 120m });
+            UsedCars.Add(new UsedCarEntry { Car = "Audi Q7", ModelYear = 2008, PriceCurrency = "CAD", PriceBase = 2150m, PriceCounter = 1548m, Location = "EDMONTON", Transportation = 120m });
+        }
+
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
@@ -533,6 +624,7 @@ namespace SpareParts.Desktop.Wpf
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
         private void RaiseWarehouseProps() => RaiseAll(nameof(NewWarehouseName), nameof(NewWarehouseAddress), nameof(NewWarehouseIsMain));
         private void RaiseTransactionTypeProps() => RaiseAll(nameof(NewTransactionTypeName), nameof(NewTransactionCurrencyCode), nameof(NewTransactionCounterRate), nameof(NewTransactionIsActive));
+        private void RaiseUsedCarProps() => RaiseAll(nameof(NewUsedCarName), nameof(NewUsedCarModelYear), nameof(NewUsedCarPriceCurrency), nameof(NewUsedCarPriceBase), nameof(NewUsedCarPriceCounter), nameof(NewUsedCarLocation), nameof(NewUsedCarTransportation), nameof(NewUsedCarPartOut), nameof(NewUsedCarShipping), nameof(NewUsedCarCustoms));
         private void SetStatus(string message, bool isSuccess) => _statusCenter.SetStatus(message, isSuccess);
 
         private void RaiseAll(params string[] names) { foreach (var n in names) OnPropertyChanged(n); }
