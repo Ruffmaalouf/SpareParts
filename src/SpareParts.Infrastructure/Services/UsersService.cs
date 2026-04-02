@@ -1,3 +1,4 @@
+using BCrypt.Net;
 using Dapper;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;
