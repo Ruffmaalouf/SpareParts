@@ -9,7 +9,7 @@ namespace SpareParts.Desktop.Wpf
     public sealed class CustomersApiClient : FeatureApiClientBase, ICustomerApiClient
     {
         public CustomersApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
-            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
+            : base(restClientFactory, tokenProvider, AppSettings.SalesApiBaseUrl)
         {
         }
 

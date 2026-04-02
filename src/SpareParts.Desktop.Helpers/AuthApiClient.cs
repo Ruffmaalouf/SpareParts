@@ -9,7 +9,7 @@ namespace SpareParts.Desktop.Wpf
     public sealed class AuthApiClient : FeatureApiClientBase, IAuthApiClient
     {
         public AuthApiClient(IRestClientFactory restClientFactory, IApiTokenProvider tokenProvider)
-            : base(restClientFactory, tokenProvider, AppSettings.ApiBaseUrl)
+            : base(restClientFactory, tokenProvider, AppSettings.IdentityApiBaseUrl)
         {
         }
 

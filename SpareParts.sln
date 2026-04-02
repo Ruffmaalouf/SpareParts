@@ -20,6 +20,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Infrastructure.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Desktop.Interfaces", "src\SpareParts.Desktop.Interfaces\SpareParts.Desktop.Interfaces.csproj", "{99999999-9999-9999-9999-999999999999}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Sales.Api", "src\SpareParts.Sales.Api\SpareParts.Sales.Api.csproj", "{AAAAAAA1-1111-4111-8111-111111111111}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Purchases.Api", "src\SpareParts.Purchases.Api\SpareParts.Purchases.Api.csproj", "{AAAAAAA2-2222-4222-8222-222222222222}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Inventory.Api", "src\SpareParts.Inventory.Api\SpareParts.Inventory.Api.csproj", "{AAAAAAA3-3333-4333-8333-333333333333}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Identity.Api", "src\SpareParts.Identity.Api\SpareParts.Identity.Api.csproj", "{AAAAAAA4-4444-4444-8444-444444444444}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpareParts.Catalog.Api", "src\SpareParts.Catalog.Api\SpareParts.Catalog.Api.csproj", "{AAAAAAA5-5555-4555-8555-555555555555}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +72,26 @@ Global
 		{99999999-9999-9999-9999-999999999999}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99999999-9999-9999-9999-999999999999}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99999999-9999-9999-9999-999999999999}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAAAAA1-1111-4111-8111-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAAAAA1-1111-4111-8111-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAAAAA1-1111-4111-8111-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAAAAA1-1111-4111-8111-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAAAAA2-2222-4222-8222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAAAAA2-2222-4222-8222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAAAAA2-2222-4222-8222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAAAAA2-2222-4222-8222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAAAAA3-3333-4333-8333-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAAAAA3-3333-4333-8333-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAAAAA3-3333-4333-8333-333333333333}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAAAAA3-3333-4333-8333-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAAAAA4-4444-4444-8444-444444444444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAAAAA4-4444-4444-8444-444444444444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAAAAA4-4444-4444-8444-444444444444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAAAAA4-4444-4444-8444-444444444444}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAAAAA5-5555-4555-8555-555555555555}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAAAAA5-5555-4555-8555-555555555555}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAAAAA5-5555-4555-8555-555555555555}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAAAAA5-5555-4555-8555-555555555555}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
