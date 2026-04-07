@@ -429,7 +429,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                             continue;
                         }
 
-                        _currencyRatesByCode[code] = rate.RateToUsd;
+                        var baseRate = ResolveBaseRate(rate);
+                        if (baseRate <= 0)
+                        {
+                            continue;
+                        }
+
+                        _currencyRatesByCode[code] = baseRate;
                     }
                 }
                 catch
@@ -517,6 +523,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             return value.Trim().ToUpperInvariant();
+        }
+
+        private static decimal ResolveBaseRate(CurrencyRateDto rate)
+        {
+            var code = (rate.Code ?? string.Empty).Trim().ToUpperInvariant();
+            var baseCode = (rate.BaseCode ?? string.Empty).Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(code) || rate.RateToUsd <= 0)
+            {
+                return 0m;
+            }
+
+            // API snapshot stores units of <Code> for one unit of <BaseCode>.
+            // Invoice calculations need the base-rate multiplier that converts
+            // amounts in <Code> back to base currency.
+            if (string.Equals(code, baseCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return 1m;
+            }
+
+            return 1m / rate.RateToUsd;
         }
 
         private void ApplySelectedTransactionType()
