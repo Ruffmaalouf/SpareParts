@@ -435,6 +435,9 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
                         </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
                             <Setter Property="Foreground"                 Value="{DynamicResource AccentBrush}"/>

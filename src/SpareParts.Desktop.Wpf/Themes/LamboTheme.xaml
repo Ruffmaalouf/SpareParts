@@ -445,6 +445,9 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#131313"/>
                         </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#131313"/>
+                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#1E1E1E"/>
                             <Setter Property="Foreground"                 Value="#FFD600"/>
