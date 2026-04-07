@@ -72,8 +72,10 @@ public static class SparePartsApiComposition
             }));
     }
 
-    public static void AddCapabilities(this IServiceCollection services, params ServiceCapability[] capabilities)
+    public static void AddCapabilities(this IServiceCollection services, string serviceName, params ServiceCapability[] capabilities)
     {
+        services.AddSingleton(new ServiceProfile(serviceName, capabilities.Distinct().ToArray()));
+
         if (capabilities.Contains(ServiceCapability.Sales))
         {
             services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>

@@ -129,6 +129,19 @@ On API boot, the host:
    - `InvoiceNumberingMigration.EnsureApplied(...)`
 5. Enables middleware pipeline (`ApiExceptionMiddleware`, CORS, auth, endpoints).
 
+### Split-service API model ("mother API" decomposition)
+
+The original `SpareParts.Api` host remains available as the full-composition API, and the repo now also includes capability-focused API hosts:
+
+- `SpareParts.Identity.Api` → auth/users/roles + health
+- `SpareParts.Catalog.Api` → brands/categories/car catalog/currencies/app constants + health
+- `SpareParts.Inventory.Api` → parts/warehouses/transaction types + health
+- `SpareParts.Sales.Api` → sales/customers + health
+- `SpareParts.Purchases.Api` → purchases/suppliers + health
+
+Each split API uses the same shared composition root (`SpareParts.Api.Hosting`) and only enables a subset of controllers via capability filtering.
+`GET /api/health` now also reports the running service name and enabled capabilities so you can verify each API is not "empty".
+
 ---
 
 ## Technology stack
