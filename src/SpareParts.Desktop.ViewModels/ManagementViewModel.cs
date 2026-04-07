@@ -218,8 +218,15 @@ namespace SpareParts.Desktop.Wpf
             get => _newUsedCarPriceCurrency;
             set
             {
-                _newUsedCarPriceCurrency = value;
+                var normalized = NormalizeCurrencyCode(value) ?? _baseCurrencyCode;
+                if (string.Equals(_newUsedCarPriceCurrency, normalized, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _newUsedCarPriceCurrency = normalized;
                 OnPropertyChanged(nameof(NewUsedCarPriceCurrency));
+                RecalculateUsedCarPricesFromCurrencyChange();
             }
         }
 
@@ -468,7 +475,7 @@ namespace SpareParts.Desktop.Wpf
         private void ReplaceUsedCarCurrencyCodes()
         {
             var codes = CurrencyRates
-                .Select(rate => rate.CurrencyCode?.Trim().ToUpperInvariant())
+                .Select(rate => NormalizeCurrencyCode(rate.Code))
                 .Where(code => !string.IsNullOrWhiteSpace(code))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
@@ -485,6 +492,106 @@ namespace SpareParts.Desktop.Wpf
             }
 
             Replace(UsedCarCurrencyCodes, codes!);
+        }
+
+        private void RecalculateUsedCarPricesFromCurrencyChange()
+        {
+            var selectedCurrencyCode = NormalizeCurrencyCode(NewUsedCarPriceCurrency) ?? _baseCurrencyCode;
+            var amountInSelectedCurrency = ResolveAmountInSelectedCurrency(selectedCurrencyCode);
+            var selectedToBaseRate = ResolveRateToBaseCurrency(selectedCurrencyCode);
+            if (selectedToBaseRate <= 0)
+            {
+                return;
+            }
+
+            var counterToBaseRate = ResolveRateToBaseCurrency(_counterCurrencyCode);
+            if (counterToBaseRate <= 0)
+            {
+                counterToBaseRate = 1m;
+            }
+
+            var convertedBasePrice = decimal.Round(amountInSelectedCurrency * selectedToBaseRate, 2, MidpointRounding.AwayFromZero);
+            var convertedCounterPrice = decimal.Round(convertedBasePrice / counterToBaseRate, 2, MidpointRounding.AwayFromZero);
+
+            _newUsedCarPriceBase = convertedBasePrice;
+            _newUsedCarPriceCounter = convertedCounterPrice;
+            OnPropertyChanged(nameof(NewUsedCarPriceBase));
+            OnPropertyChanged(nameof(NewUsedCarPriceCounter));
+        }
+
+        private decimal ResolveAmountInSelectedCurrency(string selectedCurrencyCode)
+        {
+            if (string.Equals(selectedCurrencyCode, _baseCurrencyCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return NewUsedCarPriceBase;
+            }
+
+            if (string.Equals(selectedCurrencyCode, _counterCurrencyCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return NewUsedCarPriceCounter;
+            }
+
+            if (NewUsedCarPriceBase > 0)
+            {
+                var selectedToBaseRate = ResolveRateToBaseCurrency(selectedCurrencyCode);
+                if (selectedToBaseRate > 0)
+                {
+                    return NewUsedCarPriceBase / selectedToBaseRate;
+                }
+            }
+
+            if (NewUsedCarPriceCounter > 0)
+            {
+                var counterToBaseRate = ResolveRateToBaseCurrency(_counterCurrencyCode);
+                var selectedToBaseRate = ResolveRateToBaseCurrency(selectedCurrencyCode);
+                if (counterToBaseRate > 0 && selectedToBaseRate > 0)
+                {
+                    var baseAmount = NewUsedCarPriceCounter * counterToBaseRate;
+                    return baseAmount / selectedToBaseRate;
+                }
+            }
+
+            return 0m;
+        }
+
+        private decimal ResolveRateToBaseCurrency(string? currencyCode)
+        {
+            var normalizedCurrencyCode = NormalizeCurrencyCode(currencyCode);
+            if (normalizedCurrencyCode == null)
+            {
+                return 0m;
+            }
+
+            if (string.Equals(normalizedCurrencyCode, _baseCurrencyCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return 1m;
+            }
+
+            var currency = CurrencyRates.FirstOrDefault(rate =>
+                string.Equals(NormalizeCurrencyCode(rate.Code), normalizedCurrencyCode, StringComparison.OrdinalIgnoreCase));
+            if (currency == null || currency.RateToUsd <= 0)
+            {
+                return 0m;
+            }
+
+            var normalizedBaseCode = NormalizeCurrencyCode(currency.BaseCode) ?? _baseCurrencyCode;
+            if (string.Equals(normalizedCurrencyCode, normalizedBaseCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return 1m;
+            }
+
+            return 1m / currency.RateToUsd;
+        }
+
+        private static string? NormalizeCurrencyCode(string? currencyCode)
+        {
+            if (string.IsNullOrWhiteSpace(currencyCode))
+            {
+                return null;
+            }
+
+            var normalized = currencyCode.Trim().ToUpperInvariant();
+            return normalized.Length == 3 ? normalized : null;
         }
 
         private async Task SaveCustomerAsync()
