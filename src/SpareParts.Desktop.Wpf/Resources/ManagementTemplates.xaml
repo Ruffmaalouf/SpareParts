@@ -586,12 +586,20 @@
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
                                     <TextBlock Text="New Used Car" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
-                                    <TextBlock Text="Car *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <TextBlock Text="Car Model *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding CarModels}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              SelectedValue="{Binding NewUsedCarCarModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              Margin="0 0 0 8"/>
                                     <TextBlock Text="Model Year *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarModelYear, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="Price Currency" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarPriceCurrency, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <controls:CurrencyCodeSelectorControl Label=""
+                                                                          CurrencyCodes="{Binding UsedCarCurrencyCodes}"
+                                                                          SelectedCurrencyCode="{Binding NewUsedCarPriceCurrency, Mode=TwoWay}"
+                                                                          Margin="0 0 0 8"/>
                                     <TextBlock Text="Price Base" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarPriceBase, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="Price Counter" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -607,7 +615,7 @@
                                     <TextBlock Text="Customs" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarCustoms, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
 
-                                    <Button Content="＋  Add Used Car" Command="{Binding AddUsedCarCommand}"
+                                    <Button Content="💾  Save Used Car" Command="{Binding AddUsedCarCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Stretch" Height="42"/>
                                     <Button Content="🗑  Remove Selected" Command="{Binding RemoveUsedCarCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
