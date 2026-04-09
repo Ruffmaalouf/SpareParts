@@ -42,3 +42,18 @@ src/SpareParts.Infrastructure.Interfaces/bin/
 src/SpareParts.Infrastructure.Interfaces/obj/
 
 src/SpareParts.Desktop.Interfaces/bin/
+/src/SpareParts.Catalog.Api/bin/Debug/net8.0
+/src/SpareParts.Catalog.Api/obj/Debug/net8.0
+/src/SpareParts.Identity.Api/bin/Debug/net8.0
+/src/SpareParts.Identity.Api/obj/Debug/net8.0
+/tests/SpareParts.ArchitectureTests/bin/Debug/net8.0
+/tests/SpareParts.ArchitectureTests/obj
+/src/SpareParts.Catalog.Api/obj
+/src/SpareParts.Identity.Api/obj
+/src/SpareParts.Inventory.Api/bin/Debug/net8.0
+/src/SpareParts.Inventory.Api/obj/Debug/net8.0
+/src/SpareParts.Inventory.Api/obj
+/src/SpareParts.Purchases.Api/obj
+/src/SpareParts.Purchases.Api/bin/Debug/net8.0
+/src/SpareParts.Sales.Api/bin/Debug/net8.0
+/src/SpareParts.Sales.Api/obj
