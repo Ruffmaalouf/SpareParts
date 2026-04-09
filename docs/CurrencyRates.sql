@@ -1,6 +1,33 @@
--- Currency reference + exchange rates snapshot (base USD).
+-- Currency reference + exchange rates snapshot (source base USD).
+-- The application reads BaseCurrencyCode / CounterCurrencyCode from dbo.AppConstants
+-- and re-bases these raw rates for the management and invoice screens.
 -- Source: open.er-api.com, updated Mon, 30 Mar 2026 00:02:31 +0000.
 -- Generated on 2026-03-30 08:17:10 UTC.
+
+IF OBJECT_ID(N'[dbo].[AppConstants]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[AppConstants](
+        [Key]         NVARCHAR(120)  NOT NULL,
+        [Value]       NVARCHAR(4000) NOT NULL,
+        [Description] NVARCHAR(250)  NULL,
+        [UpdatedAt]   DATETIME2(0)   NOT NULL CONSTRAINT [DF_AppConstants_UpdatedAt] DEFAULT (SYSUTCDATETIME()),
+        CONSTRAINT [PK_AppConstants] PRIMARY KEY CLUSTERED ([Key] ASC)
+    );
+END
+GO
+
+MERGE [dbo].[AppConstants] AS [Target]
+USING (VALUES
+    (N'BaseCurrencyCode',    N'USD', N'Application base currency code used for totals and conversions.'),
+    (N'CounterCurrencyCode', N'USD', N'Application counter/default transaction currency code.'),
+    (N'DefaultCurrencyCode', N'USD', N'Fallback invoice currency code.'),
+    (N'DefaultCounterRate',  N'1',   N'Fallback base-per-counter rate when no currency mapping exists.')
+) AS [Source] ([Key], [Value], [Description])
+ON [Target].[Key] = [Source].[Key]
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT ([Key], [Value], [Description])
+    VALUES ([Source].[Key], [Source].[Value], [Source].[Description]);
+GO
 
 IF OBJECT_ID(N'[dbo].[CurrencyRates]', N'U') IS NULL
 BEGIN

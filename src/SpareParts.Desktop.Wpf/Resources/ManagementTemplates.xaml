@@ -506,12 +506,15 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <DockPanel Grid.Row="0" Margin="0 0 0 14">
-                                <TextBlock Text="Currency Rates (Base USD)" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
+                                    <TextBlock Text="Currency Rates" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding CurrencyRatesSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                </StackPanel>
                                 <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
                                         Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                             </DockPanel>
                             <DataGrid Grid.Row="1"
-                                      ItemsSource="{Binding CurrencyRates}"
+                                      ItemsSource="{Binding CurrencyRateRows}"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
                                       HeadersVisibility="Column"
@@ -520,8 +523,8 @@
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="90"/>
-                                    <DataGridTextColumn Header="Rate to USD" Binding="{Binding RateToUsd, StringFormat={}{0:N6}}" Width="140"/>
-                                    <DataGridTextColumn Header="Base" Binding="{Binding BaseCode}" Width="100"/>
+                                    <DataGridTextColumn Header="Rate To Base" Binding="{Binding BaseRate, StringFormat={}{0:N6}}" Width="140"/>
+                                    <DataGridTextColumn Header="Rate To Counter" Binding="{Binding CounterRate, StringFormat={}{0:N6}}" Width="150"/>
                                     <DataGridTextColumn Header="Snapshot (UTC)" Binding="{Binding SnapshotUtc, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="220"/>
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -601,12 +604,12 @@
                                 <StackPanel>
                                     <TextBlock Text="New Used Car" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
                                     <TextBlock Text="Car Model *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <ComboBox ItemsSource="{Binding CarModels}"
-                                              SelectedValuePath="Id"
-                                              DisplayMemberPath="Name"
-                                              SelectedValue="{Binding NewUsedCarCarModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              Style="{StaticResource ManagementComboBoxStyle}"
-                                              Margin="0 0 0 8"/>
+                                    <ComboBox ItemsSource="{Binding UsedCarModelOptions}"
+                                               SelectedValuePath="Id"
+                                               DisplayMemberPath="DisplayName"
+                                               SelectedValue="{Binding NewUsedCarCarModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                               Style="{StaticResource ManagementComboBoxStyle}"
+                                               Margin="0 0 0 8"/>
                                     <TextBlock Text="Model Year *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarModelYear, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="Price Currency" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -614,9 +617,9 @@
                                                                           CurrencyCodes="{Binding UsedCarCurrencyCodes}"
                                                                           SelectedCurrencyCode="{Binding NewUsedCarPriceCurrency, Mode=TwoWay}"
                                                                           Margin="0 0 0 8"/>
-                                    <TextBlock Text="Price Base" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBlock Text="{Binding UsedCarBasePriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarPriceBase, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
-                                    <TextBlock Text="Price Counter" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBlock Text="{Binding UsedCarCounterPriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarPriceCounter, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="Location" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarLocation, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>

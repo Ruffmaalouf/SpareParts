@@ -24,6 +24,7 @@ namespace SpareParts.Desktop.Wpf
         private readonly ManagementStatusCenter _statusCenter = new();
         private string _baseCurrencyCode = "USD";
         private string _counterCurrencyCode = "USD";
+        private decimal _defaultCounterRate = 1m;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
         public SupplierManagementViewModel SuppliersFeature { get; } = new();
@@ -45,6 +46,8 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
         public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
+        public ObservableCollection<CurrencyRateDisplayRow> CurrencyRateRows { get; } = new();
+        public ObservableCollection<UsedCarModelOption> UsedCarModelOptions { get; } = new();
         public ObservableCollection<string> UsedCarCurrencyCodes { get; } = new();
         public ObservableCollection<TransactionTypeDto> TransactionTypes => TransactionTypesFeature.TransactionTypes;
         public ObservableCollection<UsedCarEntry> UsedCars { get; } = new();
@@ -75,6 +78,11 @@ namespace SpareParts.Desktop.Wpf
         public bool CanModifySupplier => _supplierPermissions.CanModifySupplier;
         public bool CanDeleteSupplier => _supplierPermissions.CanDeleteSupplier;
         public bool CanSaveSupplier => _supplierPermissions.CanSaveSupplier;
+        public string BaseCurrencyCode => _baseCurrencyCode;
+        public string CounterCurrencyCode => _counterCurrencyCode;
+        public string CurrencyRatesSummary => $"Base {BaseCurrencyCode} | Counter {CounterCurrencyCode}";
+        public string UsedCarBasePriceLabel => $"Price Base ({BaseCurrencyCode})";
+        public string UsedCarCounterPriceLabel => $"Price Counter ({CounterCurrencyCode})";
 
         public CustomerDto? SelectedCustomer { get => CustomersFeature.SelectedCustomer; set { CustomersFeature.SelectedCustomer = value; OnPropertyChanged(nameof(SelectedCustomer)); if (value != null) { CustomersFeature.PopulateForm(value); RaiseCustomerProps(); } } }
         public SupplierDto? SelectedSupplier
@@ -117,6 +125,12 @@ namespace SpareParts.Desktop.Wpf
                 OnPropertyChanged(nameof(SelectedUsedCar));
                 if (value != null)
                 {
+                    NewUsedCarCarModelId = value.CarModelId
+                        ?? CarModels
+                            .FirstOrDefault(m =>
+                                string.Equals(m.Name, value.Car, StringComparison.OrdinalIgnoreCase)
+                                && int.TryParse(m.Year, out var modelYear)
+                                && modelYear == value.ModelYear)?.Id;
                     NewUsedCarName = value.Car;
                     NewUsedCarModelYear = value.ModelYear;
                     NewUsedCarPriceCurrency = value.PriceCurrency;
@@ -127,11 +141,6 @@ namespace SpareParts.Desktop.Wpf
                     NewUsedCarPartOut = value.PartOut;
                     NewUsedCarShipping = value.Shipping;
                     NewUsedCarCustoms = value.Customs;
-                    NewUsedCarCarModelId = CarModels
-                        .FirstOrDefault(m =>
-                            string.Equals(m.Name, value.Car, StringComparison.OrdinalIgnoreCase)
-                            && int.TryParse(m.Year, out var modelYear)
-                            && modelYear == value.ModelYear)?.Id;
                 }
             }
         }
@@ -385,8 +394,6 @@ namespace SpareParts.Desktop.Wpf
             DeleteTransactionTypeCommand = new RelayCommand(_ => _ = DeleteTransactionTypeAsync());
             AddUsedCarCommand = new RelayCommand(_ => AddUsedCar());
             RemoveUsedCarCommand = new RelayCommand(_ => RemoveSelectedUsedCar());
-
-            SeedUsedCars();
         }
 
         public void SetTabPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier, bool canViewCurrencyTab, bool canViewTransactionTypesTab)
@@ -420,9 +427,12 @@ namespace SpareParts.Desktop.Wpf
                     Replace(Categories, loadResult.Categories);
                     Replace(Parts, loadResult.Parts);
                     Replace(CarModels, loadResult.CarModels);
+                    ReplaceUsedCarModelOptions();
                     Replace(Warehouses, loadResult.Warehouses);
                     Replace(CurrencyRates, loadResult.CurrencyRates);
                     ReplaceUsedCarCurrencyCodes();
+                    ReplaceCurrencyRateRows();
+                    SyncUsedCarsFromCarModels();
                     Replace(TransactionTypes, loadResult.TransactionTypes);
                 });
 
@@ -458,6 +468,18 @@ namespace SpareParts.Desktop.Wpf
                 ?? "USD";
             _counterCurrencyCode = ResolveCurrencyCode(byKey, "CounterCurrencyCode")
                 ?? _baseCurrencyCode;
+            if (byKey.TryGetValue("DefaultCounterRate", out var defaultCounterRate)
+                && decimal.TryParse(defaultCounterRate, out var parsedRate)
+                && parsedRate > 0)
+            {
+                _defaultCounterRate = parsedRate;
+            }
+
+            OnPropertyChanged(nameof(BaseCurrencyCode));
+            OnPropertyChanged(nameof(CounterCurrencyCode));
+            OnPropertyChanged(nameof(CurrencyRatesSummary));
+            OnPropertyChanged(nameof(UsedCarBasePriceLabel));
+            OnPropertyChanged(nameof(UsedCarCounterPriceLabel));
         }
 
         private static string? ResolveCurrencyCode(IReadOnlyDictionary<string, string> constants, string key)
@@ -492,6 +514,103 @@ namespace SpareParts.Desktop.Wpf
             }
 
             Replace(UsedCarCurrencyCodes, codes);
+        }
+
+        private void ReplaceUsedCarModelOptions()
+        {
+            var options = CarModels
+                .OrderBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(model => model.Year, StringComparer.OrdinalIgnoreCase)
+                .Select(model => new UsedCarModelOption
+                {
+                    Id = model.Id,
+                    Name = model.Name,
+                    Year = model.Year,
+                    BasePrice = model.BasePrice
+                });
+
+            Replace(UsedCarModelOptions, options);
+        }
+
+        private void ReplaceCurrencyRateRows()
+        {
+            var codes = CurrencyRates
+                .Select(rate => NormalizeCurrencyCode(rate.Code))
+                .OfType<string>()
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (!codes.Contains(_baseCurrencyCode, StringComparer.OrdinalIgnoreCase))
+            {
+                codes.Insert(0, _baseCurrencyCode);
+            }
+
+            if (!codes.Contains(_counterCurrencyCode, StringComparer.OrdinalIgnoreCase))
+            {
+                codes.Add(_counterCurrencyCode);
+            }
+
+            var rows = codes.Select(code => new CurrencyRateDisplayRow
+            {
+                Code = code,
+                BaseRate = decimal.Round(ResolveRateToBaseCurrency(code), 6, MidpointRounding.AwayFromZero),
+                CounterRate = decimal.Round(ResolveRateToCounterCurrency(code), 6, MidpointRounding.AwayFromZero),
+                SnapshotUtc = CurrencyRates.FirstOrDefault(rate =>
+                    string.Equals(NormalizeCurrencyCode(rate.Code), code, StringComparison.OrdinalIgnoreCase))?.SnapshotUtc
+            });
+
+            Replace(CurrencyRateRows, rows);
+        }
+
+        private void SyncUsedCarsFromCarModels()
+        {
+            var existingRowsByCarModelId = UsedCars
+                .Where(entry => entry.CarModelId.HasValue)
+                .GroupBy(entry => entry.CarModelId!.Value)
+                .ToDictionary(group => group.Key, group => group.First());
+
+            var selectedCarModelId = SelectedUsedCar?.CarModelId;
+            var syncedRows = CarModels
+                .OrderBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(model => model.Year, StringComparer.OrdinalIgnoreCase)
+                .Select(model =>
+                {
+                    existingRowsByCarModelId.TryGetValue(model.Id, out var existingRow);
+                    return CreateUsedCarEntry(model, existingRow);
+                })
+                .ToList();
+
+            Replace(UsedCars, syncedRows);
+
+            if (selectedCarModelId.HasValue)
+            {
+                SelectedUsedCar = UsedCars.FirstOrDefault(entry => entry.CarModelId == selectedCarModelId.Value);
+            }
+        }
+
+        private UsedCarEntry CreateUsedCarEntry(CarModelDto model, UsedCarEntry? existingRow)
+        {
+            var basePrice = existingRow is { PriceBase: > 0 }
+                ? existingRow.PriceBase
+                : decimal.Round(model.BasePrice, 2, MidpointRounding.AwayFromZero);
+
+            return new UsedCarEntry
+            {
+                CarModelId = model.Id,
+                Car = model.Name,
+                ModelYear = int.TryParse(model.Year, out var modelYear) ? modelYear : 0,
+                PriceCurrency = NormalizeCurrencyCode(existingRow?.PriceCurrency) ?? _baseCurrencyCode,
+                PriceBase = basePrice,
+                PriceCounter = existingRow is { PriceCounter: > 0 }
+                    ? existingRow.PriceCounter
+                    : ConvertBasePriceToCounterPrice(basePrice),
+                Location = existingRow?.Location ?? string.Empty,
+                Transportation = existingRow?.Transportation ?? 0m,
+                PartOut = existingRow?.PartOut ?? string.Empty,
+                Shipping = existingRow?.Shipping ?? 0m,
+                Customs = existingRow?.Customs ?? 0m
+            };
         }
 
         private void RecalculateUsedCarPricesFromCurrencyChange()
@@ -571,7 +690,9 @@ namespace SpareParts.Desktop.Wpf
                 string.Equals(NormalizeCurrencyCode(rate.Code), normalizedCurrencyCode, StringComparison.OrdinalIgnoreCase));
             if (currency == null || currency.RateToUsd <= 0)
             {
-                return 0m;
+                return string.Equals(normalizedCurrencyCode, _counterCurrencyCode, StringComparison.OrdinalIgnoreCase)
+                    ? _defaultCounterRate
+                    : 0m;
             }
 
             var normalizedBaseCode = NormalizeCurrencyCode(currency.BaseCode) ?? _baseCurrencyCode;
@@ -581,6 +702,41 @@ namespace SpareParts.Desktop.Wpf
             }
 
             return 1m / currency.RateToUsd;
+        }
+
+        private decimal ResolveRateToCounterCurrency(string? currencyCode)
+        {
+            var rateToBaseCurrency = ResolveRateToBaseCurrency(currencyCode);
+            if (rateToBaseCurrency <= 0)
+            {
+                return 0m;
+            }
+
+            var counterRateToBaseCurrency = ResolveRateToBaseCurrency(_counterCurrencyCode);
+            if (counterRateToBaseCurrency <= 0)
+            {
+                counterRateToBaseCurrency = _defaultCounterRate;
+            }
+
+            if (counterRateToBaseCurrency <= 0)
+            {
+                return 0m;
+            }
+
+            return rateToBaseCurrency / counterRateToBaseCurrency;
+        }
+
+        private decimal ConvertBasePriceToCounterPrice(decimal basePrice)
+        {
+            var counterRateToBaseCurrency = ResolveRateToBaseCurrency(_counterCurrencyCode);
+            if (counterRateToBaseCurrency <= 0)
+            {
+                counterRateToBaseCurrency = _defaultCounterRate;
+            }
+
+            return counterRateToBaseCurrency > 0
+                ? decimal.Round(basePrice / counterRateToBaseCurrency, 2, MidpointRounding.AwayFromZero)
+                : decimal.Round(basePrice, 2, MidpointRounding.AwayFromZero);
         }
 
         private static string? NormalizeCurrencyCode(string? currencyCode)
@@ -808,27 +964,42 @@ namespace SpareParts.Desktop.Wpf
 
         private void AddUsedCar()
         {
-            if (string.IsNullOrWhiteSpace(NewUsedCarName) || NewUsedCarModelYear <= 0)
+            if (NewUsedCarCarModelId is not int carModelId)
             {
-                SetStatus("✗ Car and model year are required for used cars.", false);
+                SetStatus("✗ Select a car model from the Cars tab list first.", false);
                 return;
             }
-            if (SelectedUsedCar == null)
+
+            var selectedModel = CarModels.FirstOrDefault(model => model.Id == carModelId);
+            if (selectedModel == null)
             {
-                UsedCars.Add(new UsedCarEntry());
-                SelectedUsedCar = UsedCars[^1];
+                SetStatus("✗ The selected car model no longer exists.", false);
+                return;
             }
 
-            SelectedUsedCar.Car = NewUsedCarName.Trim();
-            SelectedUsedCar.ModelYear = NewUsedCarModelYear;
-            SelectedUsedCar.PriceCurrency = string.IsNullOrWhiteSpace(NewUsedCarPriceCurrency) ? "USD" : NewUsedCarPriceCurrency.Trim().ToUpperInvariant();
-            SelectedUsedCar.PriceBase = NewUsedCarPriceBase;
-            SelectedUsedCar.PriceCounter = NewUsedCarPriceCounter;
-            SelectedUsedCar.Location = NewUsedCarLocation.Trim();
-            SelectedUsedCar.Transportation = NewUsedCarTransportation;
-            SelectedUsedCar.PartOut = NewUsedCarPartOut.Trim();
-            SelectedUsedCar.Shipping = NewUsedCarShipping;
-            SelectedUsedCar.Customs = NewUsedCarCustoms;
+            var targetEntry = SelectedUsedCar?.CarModelId == carModelId
+                ? SelectedUsedCar
+                : UsedCars.FirstOrDefault(entry => entry.CarModelId == carModelId);
+
+            if (targetEntry == null)
+            {
+                targetEntry = CreateUsedCarEntry(selectedModel, null);
+                UsedCars.Add(targetEntry);
+            }
+
+            SelectedUsedCar = targetEntry;
+
+            targetEntry.CarModelId = carModelId;
+            targetEntry.Car = selectedModel.Name;
+            targetEntry.ModelYear = NewUsedCarModelYear;
+            targetEntry.PriceCurrency = string.IsNullOrWhiteSpace(NewUsedCarPriceCurrency) ? _baseCurrencyCode : NewUsedCarPriceCurrency.Trim().ToUpperInvariant();
+            targetEntry.PriceBase = NewUsedCarPriceBase;
+            targetEntry.PriceCounter = NewUsedCarPriceCounter;
+            targetEntry.Location = NewUsedCarLocation.Trim();
+            targetEntry.Transportation = NewUsedCarTransportation;
+            targetEntry.PartOut = NewUsedCarPartOut.Trim();
+            targetEntry.Shipping = NewUsedCarShipping;
+            targetEntry.Customs = NewUsedCarCustoms;
 
             SetStatus("✓ Used car entry saved.", true);
         }
@@ -880,18 +1051,31 @@ namespace SpareParts.Desktop.Wpf
             {
                 NewUsedCarModelYear = modelYear;
             }
+
+            if (selectedModel.BasePrice > 0)
+            {
+                ApplyUsedCarPricesFromBasePrice(selectedModel.BasePrice);
+            }
         }
 
-        private void SeedUsedCars()
+        private void ApplyUsedCarPricesFromBasePrice(decimal basePrice)
         {
-            UsedCars.Clear();
-            UsedCars.Add(new UsedCarEntry { Car = "Bmw 335", ModelYear = 2009, PriceCurrency = "CAD", PriceBase = 2660m, PriceCounter = 1915.2m, Location = "CALGARY", Transportation = 200m });
-            UsedCars.Add(new UsedCarEntry { Car = "Bmw 535", ModelYear = 2010, PriceCurrency = "CAD", PriceBase = 1800m, PriceCounter = 1296m, Location = "CALGARY", Transportation = 200m });
-            UsedCars.Add(new UsedCarEntry { Car = "Bmw 650", ModelYear = 2009, PriceCurrency = "CAD", PriceBase = 1600m, PriceCounter = 1152m, Location = "CALGARY", Transportation = 200m });
-            UsedCars.Add(new UsedCarEntry { Car = "Bmw 750", ModelYear = 2012, PriceCurrency = "CAD", PriceBase = 3400m, PriceCounter = 2448m, Location = "EDMONTON", Transportation = 120m });
-            UsedCars.Add(new UsedCarEntry { Car = "Bmw X5 4.8", ModelYear = 2008, PriceCurrency = "CAD", PriceBase = 1400m, PriceCounter = 1008m, Location = "EDMONTON", Transportation = 120m });
-            UsedCars.Add(new UsedCarEntry { Car = "Mercedes C230", ModelYear = 2009, PriceCurrency = "CAD", PriceBase = 1400m, PriceCounter = 1008m, Location = "EDMONTON", Transportation = 120m });
-            UsedCars.Add(new UsedCarEntry { Car = "Audi Q7", ModelYear = 2008, PriceCurrency = "CAD", PriceBase = 2150m, PriceCounter = 1548m, Location = "EDMONTON", Transportation = 120m });
+            var normalizedBasePrice = decimal.Round(basePrice, 2, MidpointRounding.AwayFromZero);
+            var counterRateToBaseCurrency = ResolveRateToBaseCurrency(_counterCurrencyCode);
+            if (counterRateToBaseCurrency <= 0)
+            {
+                counterRateToBaseCurrency = _defaultCounterRate;
+            }
+
+            _newUsedCarPriceCurrency = _baseCurrencyCode;
+            _newUsedCarPriceBase = normalizedBasePrice;
+            _newUsedCarPriceCounter = counterRateToBaseCurrency > 0
+                ? decimal.Round(normalizedBasePrice / counterRateToBaseCurrency, 2, MidpointRounding.AwayFromZero)
+                : normalizedBasePrice;
+
+            OnPropertyChanged(nameof(NewUsedCarPriceCurrency));
+            OnPropertyChanged(nameof(NewUsedCarPriceBase));
+            OnPropertyChanged(nameof(NewUsedCarPriceCounter));
         }
 
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));

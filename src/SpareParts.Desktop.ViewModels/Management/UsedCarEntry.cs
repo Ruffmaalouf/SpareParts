@@ -5,6 +5,7 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public class UsedCarEntry : INotifyPropertyChanged
     {
+        private int? _carModelId;
         private string _car = string.Empty;
         private int _modelYear;
         private string _priceCurrency = "USD";
@@ -15,6 +16,12 @@ namespace SpareParts.Desktop.Wpf.Management
         private string _partOut = string.Empty;
         private decimal _shipping;
         private decimal _customs;
+
+        public int? CarModelId
+        {
+            get => _carModelId;
+            set => SetField(ref _carModelId, value);
+        }
 
         public string Car
         {
