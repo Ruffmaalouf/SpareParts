@@ -6,5 +6,6 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
     {
         int InsertEntry(JournalEntry entry);
         void InsertLines(int journalEntryId, IList<JournalLine> lines);
+        void DeleteEntriesByReference(string referenceType, int referenceId);
     }
 }

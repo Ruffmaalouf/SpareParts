@@ -23,14 +23,14 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             NewPartCode = p.InternalCode;
             NewPartName = p.Name;
-            NewPartOEM = p.OEMNumber;
+            NewPartOEM = p.OEMNumber ?? string.Empty;
             NewPartCategoryId = p.CategoryId;
             NewPartBrandId = p.BrandId;
             NewPartCostPrice = p.CostPrice;
             NewPartSalePrice = p.SalePrice;
             NewPartCurrency = p.Currency;
             NewPartMinStock = p.MinStock;
-            NewPartNotes = p.Notes;
+            NewPartNotes = p.Notes ?? string.Empty;
         }
 
         public void ClearForm(string defaultCurrencyCode = "USD")

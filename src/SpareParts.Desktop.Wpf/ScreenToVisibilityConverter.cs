@@ -10,10 +10,16 @@ namespace SpareParts.Desktop.Wpf
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null || parameter == null)
+            {
                 return Visibility.Collapsed;
+            }
 
-            string current = value.ToString();
-            string target = parameter.ToString();
+            var current = value.ToString();
+            var target = parameter.ToString();
+            if (string.IsNullOrWhiteSpace(current) || string.IsNullOrWhiteSpace(target))
+            {
+                return Visibility.Collapsed;
+            }
 
             return string.Equals(current, target, StringComparison.OrdinalIgnoreCase)
                 ? Visibility.Visible
@@ -21,6 +27,6 @@ namespace SpareParts.Desktop.Wpf
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
+            => Binding.DoNothing;
     }
 }

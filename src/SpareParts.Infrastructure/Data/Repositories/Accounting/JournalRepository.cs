@@ -37,5 +37,20 @@ namespace SpareParts.Infrastructure.Data
                 _session.Connection.Execute(sql, line, _session.Transaction);
             }
         }
+
+        public void DeleteEntriesByReference(string referenceType, int referenceId)
+        {
+            const string deleteLinesSql = @"DELETE jl
+                FROM JournalLines jl
+                INNER JOIN JournalEntries je ON je.Id = jl.JournalEntryId
+                WHERE je.ReferenceType = @ReferenceType AND je.ReferenceId = @ReferenceId;";
+
+            const string deleteEntriesSql = @"DELETE FROM JournalEntries
+                WHERE ReferenceType = @ReferenceType AND ReferenceId = @ReferenceId;";
+
+            var args = new { ReferenceType = referenceType, ReferenceId = referenceId };
+            _session.Connection.Execute(deleteLinesSql, args, _session.Transaction);
+            _session.Connection.Execute(deleteEntriesSql, args, _session.Transaction);
+        }
     }
 }

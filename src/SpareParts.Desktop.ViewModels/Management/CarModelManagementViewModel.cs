@@ -24,8 +24,8 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             NewCarModelBrandId = m.CarBrandId;
             NewCarModelName = m.Name;
-            NewCarModelYear = m.Year;
-            NewCarModelEngine = m.EngineType;
+            NewCarModelYear = m.Year ?? string.Empty;
+            NewCarModelEngine = m.EngineType ?? string.Empty;
             NewCarModelBasePrice = m.BasePrice;
         }
 

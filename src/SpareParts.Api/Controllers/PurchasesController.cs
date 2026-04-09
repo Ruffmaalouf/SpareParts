@@ -8,7 +8,7 @@ namespace SpareParts.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class PurchasesController : ControllerBase
+    public class PurchasesController : SparePartsControllerBase
     {
         private readonly PurchaseService _purchaseService;
 
@@ -20,17 +20,8 @@ namespace SpareParts.Api.Controllers
         [HttpPost]
         public ActionResult<CreatePurchaseResponse> CreatePurchase([FromBody] CreatePurchaseRequest request)
         {
-            var userId = GetUserId();
-            var result = _purchaseService.CreatePurchase(request, userId);
+            var result = _purchaseService.CreatePurchase(request, CurrentUserId);
             return Ok(result);
-        }
-
-        private int GetUserId()
-        {
-            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (claim == null || !int.TryParse(claim.Value, out var userId))
-                throw new UnauthorizedAccessException("User identifier claim is missing.");
-            return userId;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace SpareParts.Desktop.Wpf
             };
         }
 
-        public new event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public void Notify(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

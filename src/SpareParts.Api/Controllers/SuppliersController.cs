@@ -8,7 +8,7 @@ namespace SpareParts.Api.Controllers
     [ApiController]
     [Route("api/suppliers")]
     [Authorize]
-    public class SuppliersController : ControllerBase
+    public class SuppliersController : SparePartsControllerBase
     {
         private readonly SuppliersService _service;
 
@@ -20,24 +20,21 @@ namespace SpareParts.Api.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<SupplierDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, 1, 500);
+            (page, pageSize) = NormalizePagination(page, pageSize);
 
             var result = _service.GetAll(page, pageSize);
-            Response.Headers["X-Page"] = page.ToString();
-            Response.Headers["X-Page-Size"] = pageSize.ToString();
-            Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
+            ApplyPaginationHeaders(page, pageSize, result.TotalCount);
             return Ok(result.Items);
         }
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateSupplierRequest req)
-            => Ok(_service.Create(req, GetUserId()));
+            => Ok(_service.Create(req, CurrentUserId));
 
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] CreateSupplierRequest req)
         {
-            _service.Update(id, req, GetUserId());
+            _service.Update(id, req, CurrentUserId);
             return NoContent();
         }
 
@@ -46,17 +43,6 @@ namespace SpareParts.Api.Controllers
         {
             _service.Delete(id);
             return NoContent();
-        }
-
-        private int GetUserId()
-        {
-            var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (c == null || !int.TryParse(c.Value, out var userId))
-            {
-                throw new UnauthorizedAccessException("User identifier claim is missing.");
-            }
-
-            return userId;
         }
     }
 }

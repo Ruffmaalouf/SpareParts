@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Windows.Media;
 
@@ -16,12 +17,11 @@ namespace SpareParts.Desktop.Wpf
             set
             {
                 _accentHex = value;
-                try
+                if (TryParseColor(value, out var accentColor))
                 {
-                    AccentColor = (Color)ColorConverter.ConvertFromString(value);
+                    AccentColor = accentColor;
                     AccentBrush = new SolidColorBrush(AccentColor);
                 }
-                catch { }
                 Notify(nameof(AccentHex));
                 Notify(nameof(AccentColor));
                 Notify(nameof(AccentBrush));
@@ -40,5 +40,27 @@ namespace SpareParts.Desktop.Wpf
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void Notify(string n) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+
+        private static bool TryParseColor(string value, out Color color)
+        {
+            try
+            {
+                var converted = ColorConverter.ConvertFromString(value);
+                if (converted is Color parsedColor)
+                {
+                    color = parsedColor;
+                    return true;
+                }
+            }
+            catch (FormatException)
+            {
+            }
+            catch (NotSupportedException)
+            {
+            }
+
+            color = default;
+            return false;
+        }
     }
 }

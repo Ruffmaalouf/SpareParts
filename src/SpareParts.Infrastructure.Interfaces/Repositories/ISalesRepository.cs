@@ -10,6 +10,6 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
         bool InvoiceNumberExists(string invoiceNumber);
         List<SalesInvoiceLookupDto> SearchInvoices(string? query);
         SalesInvoiceDetailsDto? GetInvoiceById(int invoiceId);
-        bool UpdateInvoice(int invoiceId, UpdateSaleRequest request, int userId);
+        bool UpdateInvoice(int invoiceId, SalesInvoice invoice, IList<SalesInvoiceItem> items, int userId);
     }
 }

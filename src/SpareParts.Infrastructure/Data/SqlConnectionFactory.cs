@@ -1,3 +1,4 @@
+using Microsoft.Data.SqlClient;
 using SpareParts.Infrastructure.Interfaces;
 using System.Data;
 
@@ -14,7 +15,7 @@ namespace SpareParts.Infrastructure.Data
 
         public IDbConnection CreateConnection()
         {
-            var conn = new System.Data.SqlClient.SqlConnection(_connectionString);
+            var conn = new SqlConnection(_connectionString);
             conn.Open();
             return conn;
         }

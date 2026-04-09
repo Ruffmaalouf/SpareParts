@@ -2,6 +2,7 @@ using RestSharp;
 using SpareParts.Desktop.Wpf.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf
@@ -37,11 +38,26 @@ namespace SpareParts.Desktop.Wpf
         }
 
         protected async Task<TResponse> RetrieveOneAsync<TResponse>(string resource, string emptyMessage)
+            where TResponse : notnull
         {
             var request = CreateRequest(resource, Method.Get);
             var response = await Client.ExecuteAsync<TResponse>(request);
             ApiClientBase.EnsureSuccess(response, $"GET {resource} failed.");
             return response.Data ?? throw new InvalidOperationException(emptyMessage);
+        }
+
+        protected async Task<TResponse?> RetrieveOptionalAsync<TResponse>(string resource)
+            where TResponse : class
+        {
+            var request = CreateRequest(resource, Method.Get);
+            var response = await Client.ExecuteAsync<TResponse>(request);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            ApiClientBase.EnsureSuccess(response, $"GET {resource} failed.");
+            return response.Data;
         }
 
         protected async Task AddAsync(string resource, object payload)
@@ -52,6 +68,7 @@ namespace SpareParts.Desktop.Wpf
         }
 
         protected async Task<TResponse> AddAsync<TResponse>(string resource, object payload, string emptyMessage)
+            where TResponse : notnull
         {
             var request = CreateRequest(resource, Method.Post).AddJsonBody(payload);
             var response = await Client.ExecuteAsync<TResponse>(request);

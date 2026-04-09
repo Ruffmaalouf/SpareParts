@@ -8,7 +8,7 @@ namespace SpareParts.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class SalesController : ControllerBase
+    public class SalesController : SparePartsControllerBase
     {
         private readonly SalesService _salesService;
 
@@ -20,8 +20,7 @@ namespace SpareParts.Api.Controllers
         [HttpPost]
         public ActionResult<CreateSaleResponse> CreateSale([FromBody] CreateSaleRequest request)
         {
-            var userId = GetUserId();
-            var result = _salesService.CreateSale(request, userId);
+            var result = _salesService.CreateSale(request, CurrentUserId);
             return Ok(result);
         }
 
@@ -47,22 +46,13 @@ namespace SpareParts.Api.Controllers
         [HttpPut("{invoiceId:int}")]
         public IActionResult UpdateSale(int invoiceId, [FromBody] UpdateSaleRequest request)
         {
-            var userId = GetUserId();
-            var updated = _salesService.UpdateInvoice(invoiceId, request, userId);
+            var updated = _salesService.UpdateInvoice(invoiceId, request, CurrentUserId);
             if (!updated)
             {
                 return NotFound();
             }
 
             return NoContent();
-        }
-
-        private int GetUserId()
-        {
-            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (claim == null || !int.TryParse(claim.Value, out var userId))
-                throw new UnauthorizedAccessException("User identifier claim is missing.");
-            return userId;
         }
     }
 }

@@ -24,7 +24,19 @@ namespace SpareParts.Infrastructure.Services
             decimal unitCost,
             int userId)
         {
+            if (quantityChange == 0)
+            {
+                return;
+            }
+
             var existing = inventoryRepository.GetStock(partId, warehouseId);
+            var resultingQuantity = (existing?.Quantity ?? 0) + quantityChange;
+
+            if (resultingQuantity < 0)
+            {
+                throw new ConflictException($"Cannot reduce stock below zero for part {partId} in warehouse {warehouseId}.");
+            }
+
             var stockId = existing?.Id ?? 0;
 
             if (existing == null)

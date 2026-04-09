@@ -23,8 +23,8 @@ public class CriticalPathTests
 
         Assert.Equal(250m, totals.Subtotal);
         Assert.Equal(10m, totals.DiscountTotal);
-        Assert.Equal(24.5m, totals.TaxTotal);
-        Assert.Equal(264.5m, totals.TotalAmount);
+        Assert.Equal(21.5m, totals.TaxTotal);
+        Assert.Equal(261.5m, totals.TotalAmount);
     }
 
     [Fact]
@@ -39,6 +39,20 @@ public class CriticalPathTests
         Assert.Single(repo.Movements);
         Assert.Equal(5, repo.StockRows.Single().Quantity);
         Assert.Equal(StockMovementType.Purchase, repo.Movements.Single().MovementType);
+    }
+
+    [Fact]
+    public void StockMovement_AdjustStock_ShouldRejectNegativeQuantity()
+    {
+        var repo = new FakeInventoryRepository();
+        var service = new InventoryService();
+
+        var exception = Assert.Throws<ConflictException>(() =>
+            service.AdjustStock(repo, partId: 10, warehouseId: 3, quantityChange: -1, StockMovementType.Sale, DomainReferenceType.Sale, 101, 20m, userId: 7));
+
+        Assert.Equal("Cannot reduce stock below zero for part 10 in warehouse 3.", exception.Message);
+        Assert.Empty(repo.StockRows);
+        Assert.Empty(repo.Movements);
     }
 
     [Fact]
@@ -67,7 +81,7 @@ public class CriticalPathTests
         var policy = new DefaultPaymentStatusPolicy();
         var status = policy.Resolve(totalAmount: 100m, paidAmount: 40m);
 
-        Assert.Equal("PartiallyPaid", status);
+        Assert.Equal(PaymentStatus.PartiallyPaid, status);
     }
 
     [Fact]
@@ -92,20 +106,23 @@ public class CriticalPathTests
         var service = new InventoryService();
         const int workerCount = 40;
         const int iterationsPerWorker = 10;
+        var seededQuantity = workerCount * iterationsPerWorker;
+
+        service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: seededQuantity, StockMovementType.Purchase, DomainReferenceType.Purchase, 499, 7m, userId: 12);
 
         Parallel.For(0, workerCount, _ =>
         {
             for (var i = 0; i < iterationsPerWorker; i++)
             {
-                service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: 1, StockMovementType.Purchase, "Purchase", 500, 7m, userId: 12);
-                service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: -1, StockMovementType.Sale, "Sale", 501, 7m, userId: 12);
+                service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: -1, StockMovementType.Sale, DomainReferenceType.Sale, 501, 7m, userId: 12);
+                service.AdjustStock(repo, partId: 77, warehouseId: 2, quantityChange: 1, StockMovementType.Purchase, DomainReferenceType.Purchase, 500, 7m, userId: 12);
             }
         });
 
         var stock = repo.GetStock(77, 2);
         Assert.NotNull(stock);
-        Assert.Equal(0, stock!.Quantity);
-        Assert.Equal(workerCount * iterationsPerWorker * 2, repo.MovementCount);
+        Assert.Equal(seededQuantity, stock!.Quantity);
+        Assert.Equal(workerCount * iterationsPerWorker * 2 + 1, repo.MovementCount);
     }
 
     [Fact]
@@ -115,11 +132,40 @@ public class CriticalPathTests
         var service = new InventoryService();
 
         var exception = Assert.Throws<InvalidOperationException>(() =>
-            service.AdjustStock(repo, partId: 10, warehouseId: 1, quantityChange: 5, StockMovementType.Purchase, "Purchase", 100, 3m, userId: 9));
+            service.AdjustStock(repo, partId: 10, warehouseId: 1, quantityChange: 5, StockMovementType.Purchase, DomainReferenceType.Purchase, 100, 3m, userId: 9));
 
         Assert.Equal("Simulated movement insert failure.", exception.Message);
         var stock = repo.GetStock(10, 1);
         Assert.NotNull(stock);
         Assert.Equal(0, stock!.Quantity);
+    }
+
+    [Fact]
+    public void Validation_SaleItems_ShouldRejectDiscountGreaterThanLineSubtotal()
+    {
+        var items = new List<SaleItemDto>
+        {
+            new() { PartId = 1, Quantity = 1, UnitPrice = 50m, DiscountAmount = 60m, TaxRate = 0m }
+        };
+
+        var exception = Assert.Throws<ValidationException>(() => InvoiceRequestValidator.ValidateSaleItems(items));
+
+        Assert.Equal("Sale line 1 discount cannot exceed the line subtotal.", exception.Message);
+    }
+
+    [Fact]
+    public void Validation_SaleItems_ShouldAggregateDuplicatePartQuantities()
+    {
+        var items = new List<SaleItemDto>
+        {
+            new() { PartId = 9, Quantity = 2, UnitPrice = 10m, DiscountAmount = 0m, TaxRate = 0m },
+            new() { PartId = 9, Quantity = 3, UnitPrice = 10m, DiscountAmount = 0m, TaxRate = 0m },
+            new() { PartId = 10, Quantity = 1, UnitPrice = 10m, DiscountAmount = 0m, TaxRate = 0m }
+        };
+
+        var quantities = InvoiceRequestValidator.AggregateSaleQuantities(items);
+
+        Assert.Equal(5, quantities[9]);
+        Assert.Equal(1, quantities[10]);
     }
 }

@@ -8,7 +8,7 @@ namespace SpareParts.Api.Controllers
     [ApiController]
     [Route("api/carbrands")]
     [Authorize]
-    public class CarBrandsController : ControllerBase
+    public class CarBrandsController : SparePartsControllerBase
     {
         private readonly CarBrandsService _service;
 
@@ -52,12 +52,6 @@ namespace SpareParts.Api.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
         public ActionResult<int> Create([FromBody] CreateCarBrandRequest req)
-            => Ok(_service.Create(req, GetUserId()));
-
-        private int GetUserId()
-        {
-            var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
-        }
+            => Ok(_service.Create(req, CurrentUserId));
     }
 }

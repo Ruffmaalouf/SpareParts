@@ -18,10 +18,10 @@ namespace SpareParts.Desktop.Wpf.Management
         public void PopulateForm(SupplierDto s)
         {
             NewSupplierName = s.Name;
-            NewSupplierPhone = s.Phone;
-            NewSupplierEmail = s.Email;
-            NewSupplierAddress = s.Address;
-            NewSupplierTax = s.TaxNumber;
+            NewSupplierPhone = s.Phone ?? string.Empty;
+            NewSupplierEmail = s.Email ?? string.Empty;
+            NewSupplierAddress = s.Address ?? string.Empty;
+            NewSupplierTax = s.TaxNumber ?? string.Empty;
             NewSupplierBalance = s.OpeningBalance;
         }
 

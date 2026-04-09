@@ -476,7 +476,7 @@ namespace SpareParts.Desktop.Wpf
         {
             var codes = CurrencyRates
                 .Select(rate => NormalizeCurrencyCode(rate.Code))
-                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .OfType<string>()
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
                 .ToList();
@@ -491,7 +491,7 @@ namespace SpareParts.Desktop.Wpf
                 codes.Add(_counterCurrencyCode);
             }
 
-            Replace(UsedCarCurrencyCodes, codes!);
+            Replace(UsedCarCurrencyCodes, codes);
         }
 
         private void RecalculateUsedCarPricesFromCurrencyChange()
@@ -772,26 +772,16 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedCarModel));
         }
 
-        private async Task SaveWarehouseAsync()
+        private Task SaveWarehouseAsync()
         {
-            //var result = await _coordinator.SaveWarehouseAsync(WarehousesFeature);
-            //SetStatus(result.Message, result.Success);
-            //if (!result.Success) return;
-
-            //await LoadAllAsync();
-            //WarehousesFeature.ClearForm();
-            //RaiseWarehouseProps();
+            SetStatus("✗ Warehouse save flow is not wired yet.", false);
+            return Task.CompletedTask;
         }
 
-        private async Task DeleteWarehouseAsync()
+        private Task DeleteWarehouseAsync()
         {
-            //var result = await _coordinator.DeleteWarehouseAsync(SelectedWarehouse);
-            //SetStatus(result.Message, result.Success);
-            //if (!result.Success) return;
-
-            //await LoadAllAsync();
-            //WarehousesFeature.SelectedWarehouse = null;
-            //OnPropertyChanged(nameof(SelectedWarehouse));
+            SetStatus("✗ Warehouse delete flow is not wired yet.", false);
+            return Task.CompletedTask;
         }
 
         private async Task SaveTransactionTypeAsync()

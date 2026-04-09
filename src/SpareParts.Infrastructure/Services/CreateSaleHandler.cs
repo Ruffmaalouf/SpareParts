@@ -89,10 +89,17 @@ namespace SpareParts.Infrastructure.Services
 
         private static void ValidateRequest(CreateSaleRequest request)
         {
-            if (request.Items == null || request.Items.Count == 0)
+            if (request.WarehouseId <= 0)
             {
-                throw new ValidationException("Invoice must have at least one item.");
+                throw new ValidationException("Warehouse is required.");
             }
+
+            if (request.PaidAmount < 0)
+            {
+                throw new ValidationException("Paid amount cannot be negative.");
+            }
+
+            InvoiceRequestValidator.ValidateSaleItems(request.Items);
         }
 
         private static Dictionary<int, Part> LoadParts(IPartsRepository repository, CreateSaleRequest request)
@@ -106,17 +113,19 @@ namespace SpareParts.Infrastructure.Services
             CreateSaleRequest request,
             IReadOnlyDictionary<int, Part> parts)
         {
-            foreach (var item in request.Items)
+            var requestedQuantities = InvoiceRequestValidator.AggregateSaleQuantities(request.Items);
+
+            foreach (var entry in requestedQuantities)
             {
-                if (!parts.ContainsKey(item.PartId))
+                if (!parts.ContainsKey(entry.Key))
                 {
-                    throw new NotFoundException($"Part {item.PartId} not found.");
+                    throw new NotFoundException($"Part {entry.Key} not found.");
                 }
 
-                var available = _inventoryService.GetAvailableStock(inventoryRepository, item.PartId, request.WarehouseId);
-                if (available < item.Quantity)
+                var available = _inventoryService.GetAvailableStock(inventoryRepository, entry.Key, request.WarehouseId);
+                if (available < entry.Value)
                 {
-                    throw new ConflictException($"Not enough stock for part {item.PartId}. Available: {available}");
+                    throw new ConflictException($"Not enough stock for part {entry.Key}. Available: {available}");
                 }
             }
         }

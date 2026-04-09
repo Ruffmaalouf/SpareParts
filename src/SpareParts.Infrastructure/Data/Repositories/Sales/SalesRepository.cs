@@ -1,5 +1,4 @@
 using Dapper;
-using SpareParts.Domain.Common;
 using SpareParts.Domain.Sales;
 
 using SpareParts.Infrastructure.Interfaces.Repositories;
@@ -102,19 +101,8 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.ExecuteScalar<int>(sql, new { InvoiceNumber = invoiceNumber }, _session.Transaction) > 0;
         }
 
-        public bool UpdateInvoice(int invoiceId, UpdateSaleRequest request, int userId)
+        public bool UpdateInvoice(int invoiceId, SalesInvoice invoice, IList<SalesInvoiceItem> items, int userId)
         {
-            var subtotal = request.Items.Sum(i => i.Quantity * i.UnitPrice);
-            var discountAmount = request.Items.Sum(i => i.DiscountAmount);
-            var taxAmount = request.Items.Sum(i => (i.Quantity * i.UnitPrice - i.DiscountAmount) * (i.TaxRate / 100m));
-            var totalAmount = subtotal - discountAmount + taxAmount;
-
-            var paymentStatus = request.PaidAmount <= 0
-                ? PaymentStatus.Unpaid.ToString()
-                : request.PaidAmount >= totalAmount
-                    ? PaymentStatus.Paid.ToString()
-                    : PaymentStatus.PartiallyPaid.ToString();
-
             const string updateInvoiceSql = @"UPDATE SalesInvoices
                 SET InvoiceDate = @InvoiceDate,
                     CustomerId = @CustomerId,
@@ -124,21 +112,27 @@ namespace SpareParts.Infrastructure.Data
                     TaxAmount = @TaxAmount,
                     TotalAmount = @TotalAmount,
                     PaidAmount = @PaidAmount,
-                    PaymentStatus = @PaymentStatus
+                    PaymentStatus = @PaymentStatus,
+                    TotalCost = @TotalCost,
+                    ModifiedAt = @ModifiedAt,
+                    ModifiedByUserId = @ModifiedByUserId
                 WHERE Id = @InvoiceId;";
 
             var updated = _session.Connection.Execute(updateInvoiceSql, new
             {
                 InvoiceId = invoiceId,
-                request.InvoiceDate,
-                request.CustomerId,
-                request.WarehouseId,
-                Subtotal = subtotal,
-                DiscountAmount = discountAmount,
-                TaxAmount = taxAmount,
-                TotalAmount = totalAmount,
-                request.PaidAmount,
-                PaymentStatus = paymentStatus
+                invoice.InvoiceDate,
+                invoice.CustomerId,
+                invoice.WarehouseId,
+                invoice.Subtotal,
+                invoice.DiscountAmount,
+                invoice.TaxAmount,
+                invoice.TotalAmount,
+                invoice.PaidAmount,
+                invoice.PaymentStatus,
+                invoice.TotalCost,
+                ModifiedAt = DateTime.UtcNow,
+                ModifiedByUserId = userId
             }, _session.Transaction);
 
             if (updated == 0)
@@ -154,9 +148,8 @@ namespace SpareParts.Infrastructure.Data
                 VALUES
                 (@InvoiceId, @PartId, @Quantity, @UnitPrice, @DiscountAmount, @TaxRate, @LineTotal, @CreatedAt, @CreatedByUserId);";
 
-            foreach (var item in request.Items)
+            foreach (var item in items)
             {
-                var lineTotal = (item.Quantity * item.UnitPrice - item.DiscountAmount) * (1 + (item.TaxRate / 100m));
                 _session.Connection.Execute(insertItemSql, new
                 {
                     InvoiceId = invoiceId,
@@ -165,7 +158,7 @@ namespace SpareParts.Infrastructure.Data
                     item.UnitPrice,
                     item.DiscountAmount,
                     item.TaxRate,
-                    LineTotal = lineTotal,
+                    item.LineTotal,
                     CreatedAt = DateTime.UtcNow,
                     CreatedByUserId = userId
                 }, _session.Transaction);

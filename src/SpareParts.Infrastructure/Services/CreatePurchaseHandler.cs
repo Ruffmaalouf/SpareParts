@@ -85,10 +85,22 @@ namespace SpareParts.Infrastructure.Services
 
         private static void ValidateRequest(CreatePurchaseRequest request)
         {
-            if (request.Items == null || request.Items.Count == 0)
+            if (request.SupplierId <= 0)
             {
-                throw new ValidationException("Purchase must have at least one item.");
+                throw new ValidationException("Supplier is required.");
             }
+
+            if (request.WarehouseId <= 0)
+            {
+                throw new ValidationException("Warehouse is required.");
+            }
+
+            if (request.PaidAmount < 0)
+            {
+                throw new ValidationException("Paid amount cannot be negative.");
+            }
+
+            InvoiceRequestValidator.ValidatePurchaseItems(request.Items);
         }
 
         private static Dictionary<int, Part> LoadParts(IPartsRepository repository, CreatePurchaseRequest request)

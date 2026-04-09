@@ -8,7 +8,7 @@ namespace SpareParts.Api.Controllers
     [ApiController]
     [Route("api/carmodels")]
     [Authorize]
-    public class CarModelsController : ControllerBase
+    public class CarModelsController : SparePartsControllerBase
     {
         private readonly CarModelsService _service;
 
@@ -46,7 +46,7 @@ namespace SpareParts.Api.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
         public ActionResult<int> Create([FromBody] CreateCarModelRequest req)
-            => Ok(_service.Create(req, GetUserId()));
+            => Ok(_service.Create(req, CurrentUserId));
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin,Manager")]
@@ -62,12 +62,6 @@ namespace SpareParts.Api.Controllers
         {
             _service.Delete(id);
             return NoContent();
-        }
-
-        private int GetUserId()
-        {
-            var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return c != null ? int.Parse(c.Value) : 1;
         }
     }
 }

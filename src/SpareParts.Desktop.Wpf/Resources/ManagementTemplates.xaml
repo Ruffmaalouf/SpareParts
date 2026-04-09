@@ -9,6 +9,21 @@
     <!-- ══════ Management DataTemplate ══════ -->
     <DataTemplate DataType="{x:Type ViewModels:ManagementViewModel}">
             <DataTemplate.Resources>
+                <Style x:Key="InvisibleComboOverlayButtonStyle" TargetType="ToggleButton">
+                    <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="OverridesDefaultStyle" Value="True"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ToggleButton">
+                                <Border Background="Transparent"/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
                 <Style x:Key="ManagementComboBoxStyle" TargetType="ComboBox">
                     <Setter Property="Height" Value="52"/>
                     <Setter Property="Padding" Value="14 0"/>
@@ -38,6 +53,7 @@
                                                               Margin="{TemplateBinding Padding}"
                                                               VerticalAlignment="Center"
                                                               HorizontalAlignment="Left"
+                                                              TextElement.Foreground="{TemplateBinding Foreground}"
                                                               Content="{TemplateBinding SelectionBoxItem}"
                                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
@@ -78,9 +94,7 @@
                                         </Border>
                                     </Popup>
 
-                                    <ToggleButton Background="Transparent"
-                                                  BorderThickness="0"
-                                                  Focusable="False"
+                                    <ToggleButton Style="{StaticResource InvisibleComboOverlayButtonStyle}"
                                                   IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>

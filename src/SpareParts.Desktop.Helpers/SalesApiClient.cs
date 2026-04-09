@@ -20,13 +20,8 @@ namespace SpareParts.Desktop.Wpf
         public Task<List<SalesInvoiceLookupDto>> SearchInvoicesAsync(string query)
             => RetrieveAsync<SalesInvoiceLookupDto>($"api/sales?search={Uri.EscapeDataString(query ?? string.Empty)}");
 
-        public async Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId)
-        {
-            var request = CreateRequest($"api/sales/{invoiceId}", Method.Get);
-            var response = await Client.ExecuteAsync<SalesInvoiceDetailsDto?>(request);
-            ApiClientBase.EnsureSuccess(response, $"GET api/sales/{invoiceId} failed.");
-            return response.Data;
-        }
+        public Task<SalesInvoiceDetailsDto?> GetInvoiceByIdAsync(int invoiceId)
+            => RetrieveOptionalAsync<SalesInvoiceDetailsDto>($"api/sales/{invoiceId}");
 
         public async Task UpdateSaleAsync(int invoiceId, UpdateSaleRequest req)
         {

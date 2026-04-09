@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
 using SpareParts.Api.Errors;
@@ -26,6 +27,18 @@ public static class SparePartsApiComposition
         [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(CurrenciesController), nameof(AppConstantsController)],
         [ServiceCapability.Health] = [nameof(HealthController)]
     };
+
+    static SparePartsApiComposition()
+    {
+        var unmappedCapabilities = Enum.GetValues<ServiceCapability>()
+            .Except(ControllerMap.Keys)
+            .ToArray();
+
+        if (unmappedCapabilities.Length > 0)
+        {
+            throw new InvalidOperationException($"Missing controller mappings for capabilities: {string.Join(", ", unmappedCapabilities)}");
+        }
+    }
 
     public static void AddSparePartsApiCore(this WebApplicationBuilder builder)
     {
@@ -74,9 +87,11 @@ public static class SparePartsApiComposition
 
     public static void AddCapabilities(this IServiceCollection services, string serviceName, params ServiceCapability[] capabilities)
     {
-        services.AddSingleton(new ServiceProfile(serviceName, capabilities.Distinct().ToArray()));
+        var distinctCapabilities = capabilities.Distinct().ToArray();
 
-        if (capabilities.Contains(ServiceCapability.Sales))
+        services.AddSingleton(new ServiceProfile(serviceName, distinctCapabilities));
+
+        if (distinctCapabilities.Contains(ServiceCapability.Sales))
         {
             services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>
             {
@@ -90,14 +105,11 @@ public static class SparePartsApiComposition
 
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
             services.AddScoped<SalesService>();
-            services.AddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator>();
-            services.AddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
-            services.AddSingleton<IInvoiceTotalsCalculator, InvoiceTotalsCalculator>();
-            services.AddScoped<IInventoryService, InventoryService>();
+            RegisterSharedInvoiceServices(services);
             services.AddScoped<CustomersService>();
         }
 
-        if (capabilities.Contains(ServiceCapability.Purchases))
+        if (distinctCapabilities.Contains(ServiceCapability.Purchases))
         {
             services.AddScoped<IAccountingStrategy<PurchaseInvoice>>(sp =>
             {
@@ -109,28 +121,25 @@ public static class SparePartsApiComposition
 
             services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
             services.AddScoped<PurchaseService>();
-            services.AddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator>();
-            services.AddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
-            services.AddSingleton<IInvoiceTotalsCalculator, InvoiceTotalsCalculator>();
-            services.AddScoped<IInventoryService, InventoryService>();
+            RegisterSharedInvoiceServices(services);
             services.AddScoped<SuppliersService>();
         }
 
-        if (capabilities.Contains(ServiceCapability.Inventory))
+        if (distinctCapabilities.Contains(ServiceCapability.Inventory))
         {
             services.AddScoped<PartsService>();
             services.AddScoped<WarehousesService>();
             services.AddScoped<TransactionTypesService>();
         }
 
-        if (capabilities.Contains(ServiceCapability.Identity))
+        if (distinctCapabilities.Contains(ServiceCapability.Identity))
         {
             services.AddScoped<AuthService>();
             services.AddScoped<UsersService>();
             services.AddScoped<RolesService>();
         }
 
-        if (capabilities.Contains(ServiceCapability.Catalog))
+        if (distinctCapabilities.Contains(ServiceCapability.Catalog))
         {
             services.AddScoped<BrandsService>();
             services.AddScoped<CategoriesService>();
@@ -143,7 +152,9 @@ public static class SparePartsApiComposition
 
     public static IMvcBuilder AddCapabilityControllers(this IServiceCollection services, params ServiceCapability[] capabilities)
     {
-        var allowedControllers = capabilities
+        var distinctCapabilities = capabilities.Distinct().ToArray();
+
+        var allowedControllers = distinctCapabilities
             .SelectMany(capability => ControllerMap[capability])
             .ToHashSet(StringComparer.Ordinal);
 
@@ -153,6 +164,14 @@ public static class SparePartsApiComposition
             {
                 manager.FeatureProviders.Add(new CapabilityControllerFeatureProvider(allowedControllers));
             });
+    }
+
+    private static void RegisterSharedInvoiceServices(IServiceCollection services)
+    {
+        services.TryAddSingleton<IInvoiceNumberGenerator, UtcInvoiceNumberGenerator>();
+        services.TryAddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
+        services.TryAddSingleton<IInvoiceTotalsCalculator, InvoiceTotalsCalculator>();
+        services.TryAddScoped<IInventoryService, InventoryService>();
     }
 
     public static void UseSparePartsApiPipeline(this WebApplication app)

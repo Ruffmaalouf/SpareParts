@@ -9,7 +9,7 @@ namespace SpareParts.Api.Controllers
     [ApiController]
     [Route("api/categories")]
     [Authorize]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController : SparePartsControllerBase
     {
         private readonly CategoriesService _service;
 
@@ -23,17 +23,6 @@ namespace SpareParts.Api.Controllers
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateCategoryRequest req)
-            => Ok(_service.Create(req, GetUserId()));
-
-        private int GetUserId()
-        {
-            var c = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (c == null || !int.TryParse(c.Value, out var userId))
-            {
-                throw new UnauthorizedAccessException("User identifier claim is missing.");
-            }
-
-            return userId;
-        }
+            => Ok(_service.Create(req, CurrentUserId));
     }
 }
