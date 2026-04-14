@@ -60,5 +60,20 @@ namespace SpareParts.Desktop.Wpf
             var response = await Client.ExecuteAsync(request);
             ApiClientBase.EnsureSuccess(response, $"Upload model image failed for {modelId}.");
         }
+
+        public Task<List<UsedCarImageDto>> GetUsedCarImagesAsync(int usedCarId)
+            => RetrieveAsync<UsedCarImageDto>($"api/usedcars/{usedCarId}/images");
+
+        public async Task UploadUsedCarImageAsync(int usedCarId, string filePath)
+        {
+            var request = CreateRequest($"api/usedcars/{usedCarId}/images", Method.Post);
+            request.AddFile("image", filePath, contentType: ApiClientBase.GetMimeType(filePath));
+
+            var response = await Client.ExecuteAsync(request);
+            ApiClientBase.EnsureSuccess(response, $"Upload used car image failed for {usedCarId}.");
+        }
+
+        public Task DeleteUsedCarImageAsync(int imageId)
+            => DeleteResourceAsync($"api/usedcars/images/{imageId}");
     }
 }

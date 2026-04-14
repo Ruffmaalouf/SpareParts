@@ -18,5 +18,8 @@ namespace SpareParts.Desktop.Wpf.Interfaces
         Task<List<CarModelDto>> GetCarModelsAsync(int brandId);
         Task<BitmapImage?> GetCarModelImageAsync(int modelId);
         Task UploadCarModelImageAsync(int modelId, string filePath);
+        Task<List<UsedCarImageDto>> GetUsedCarImagesAsync(int usedCarId);
+        Task UploadUsedCarImageAsync(int usedCarId, string filePath);
+        Task DeleteUsedCarImageAsync(int imageId);
     }
 }

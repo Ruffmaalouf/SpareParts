@@ -484,6 +484,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SaveTransactionTypeCommand { get; }
         public ICommand DeleteTransactionTypeCommand { get; }
         public ICommand StartNewManagementItemCommand { get; }
+        public ICommand OpenUsedCarGalleryCommand { get; }
         public ICommand AddUsedCarCommand { get; }
         public ICommand RemoveUsedCarCommand { get; }
 
@@ -526,6 +527,7 @@ namespace SpareParts.Desktop.Wpf
             SaveTransactionTypeCommand = new RelayCommand(_ => _ = SaveTransactionTypeAsync());
             DeleteTransactionTypeCommand = new RelayCommand(_ => _ = DeleteTransactionTypeAsync());
             StartNewManagementItemCommand = new RelayCommand(StartNewManagementItem);
+            OpenUsedCarGalleryCommand = new RelayCommand(_ => OpenUsedCarGallery());
             AddUsedCarCommand = new RelayCommand(_ => _ = SaveUsedCarAsync());
             RemoveUsedCarCommand = new RelayCommand(_ => _ = RemoveSelectedUsedCarAsync());
         }
@@ -1289,6 +1291,28 @@ namespace SpareParts.Desktop.Wpf
             await LoadAllAsync();
             SelectedUsedCar = null;
             ClearUsedCarForm();
+        }
+
+        private void OpenUsedCarGallery()
+        {
+            if (SelectedUsedCar is not { Id: > 0 } usedCar)
+            {
+                CustomMessageBox.Show("Select a used car row first, then open the gallery.", "Gallery", "Warning");
+                return;
+            }
+
+            var galleryWindow = new UsedCarGalleryWindow(_coordinator, usedCar);
+            var owner = Application.Current?.Windows
+                .OfType<Window>()
+                .FirstOrDefault(window => window.IsActive);
+
+            if (owner != null && owner != galleryWindow)
+            {
+                galleryWindow.Owner = owner;
+                galleryWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            }
+
+            galleryWindow.ShowDialog();
         }
 
         private void ClearUsedCarForm()

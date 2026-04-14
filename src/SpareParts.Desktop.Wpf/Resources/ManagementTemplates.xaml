@@ -743,6 +743,8 @@
                                     <TextBlock Text="New Used Car" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
                                     <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="UsedCar"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
+                                    <Button Content="🖼  View Gallery" Command="{Binding OpenUsedCarGalleryCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Car Model *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding UsedCarModelOptions}"
                                                SelectedValuePath="Id"

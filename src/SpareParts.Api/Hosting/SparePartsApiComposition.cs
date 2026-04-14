@@ -147,6 +147,7 @@ public static class SparePartsApiComposition
             services.AddScoped<CarModelsService>();
             services.AddScoped<LocationsService>();
             services.AddScoped<UsedCarsService>();
+            services.AddScoped<UsedCarImagesService>();
             services.AddScoped<CurrenciesService>();
             services.AddScoped<AppConstantsService>();
         }
@@ -186,6 +187,7 @@ public static class SparePartsApiComposition
         CarModelsMigration.EnsureApplied(sqlConnectionFactory);
         LocationsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
+        UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
 
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();

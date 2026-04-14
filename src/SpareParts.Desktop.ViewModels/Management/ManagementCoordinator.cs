@@ -360,6 +360,15 @@ namespace SpareParts.Desktop.Wpf.Management
             return DeleteAsync($"api/usedcars/{selected.Id}", "Used car");
         }
 
+        public Task<List<UsedCarImageDto>> GetUsedCarImagesAsync(int usedCarId)
+            => _carCatalogApi.GetUsedCarImagesAsync(usedCarId);
+
+        public Task UploadUsedCarImageAsync(int usedCarId, string filePath)
+            => _carCatalogApi.UploadUsedCarImageAsync(usedCarId, filePath);
+
+        public Task DeleteUsedCarImageAsync(int imageId)
+            => _carCatalogApi.DeleteUsedCarImageAsync(imageId);
+
         public Task<ManagementOperationResult> SaveTransactionTypeAsync(TransactionTypeManagementViewModel feature)
         {
             if (string.IsNullOrWhiteSpace(feature.NewTransactionTypeName))
