@@ -10,7 +10,7 @@
     <Window.Resources>
         <Style x:Key="GalleryThumbItemStyle" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0 0 14 14"/>
+            <Setter Property="Margin" Value="0 0 10 10"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Stretch"/>
             <Setter Property="Template">
@@ -151,16 +151,19 @@
                                  BorderThickness="0"
                                  Background="Transparent"
                                  HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.CanContentScroll="False"
                                  ItemContainerStyle="{StaticResource GalleryThumbItemStyle}">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel/>
+                                    <WrapPanel Orientation="Horizontal"/>
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Width="145">
-                                        <Border Height="110"
+                                    <StackPanel Width="112">
+                                        <Border Height="90"
                                                 CornerRadius="10"
                                                 Background="#11000000"
                                                 BorderBrush="{DynamicResource BorderBrush}"

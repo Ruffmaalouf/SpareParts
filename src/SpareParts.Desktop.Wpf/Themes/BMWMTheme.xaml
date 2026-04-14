@@ -265,10 +265,9 @@
     </Style>
 
     <Style x:Key="NeonScrollArrowStyle" TargetType="RepeatButton">
-        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Height"          Value="16"/>
-        <Setter Property="Focusable"       Value="False"/>
+        <Setter Property="Focusable" Value="False"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RepeatButton">
@@ -282,56 +281,106 @@
 
     <Style x:Key="NeonScrollBar" TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Width"      Value="8"/>
+        <Setter Property="Width" Value="12"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
-                    <Grid>
+                    <Grid Background="{TemplateBinding Background}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <RepeatButton Grid.Row="0" Command="ScrollBar.LineUpCommand"
-                                      Background="Transparent" BorderThickness="0"
-                                      Height="14" Focusable="False">
-                            <RepeatButton.Template>
-                                <ControlTemplate TargetType="RepeatButton">
-                                    <Border Background="Transparent">
-                                        <Path Data="M 5 0 L 0 5 L 10 5 Z" Fill="#1C69D4"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </RepeatButton.Template>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <RepeatButton x:Name="DecreaseButton"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      Width="10"
+                                      Height="10"
+                                      Command="ScrollBar.LineUpCommand"
+                                      Style="{StaticResource NeonScrollArrowStyle}">
+                            <Path x:Name="DecreaseArrow"
+                                  Data="M 5 0 L 0 5 L 10 5 Z"
+                                  Fill="{DynamicResource AccentBrush}"
+                                  Stretch="None"/>
                         </RepeatButton>
-                        <Track x:Name="PART_Track" Grid.Row="1">
+
+                        <Track x:Name="PART_Track"
+                               Grid.Row="1"
+                               Grid.Column="1"
+                               IsDirectionReversed="True">
                             <Track.Thumb>
-                                <Thumb Width="8" Height="30">
+                                <Thumb x:Name="ScrollThumb"
+                                       Width="12"
+                                       Height="52"
+                                       MinWidth="12"
+                                       MinHeight="52">
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Border CornerRadius="4" Background="#1E1E2C"
-                                                    BorderBrush="#1C69D4" BorderThickness="1"/>
+                                            <Border CornerRadius="6"
+                                                    Background="{DynamicResource CardHighlightBrush}"
+                                                    BorderBrush="{DynamicResource AccentBrush}"
+                                                    BorderThickness="1"/>
                                         </ControlTemplate>
                                     </Thumb.Template>
                                 </Thumb>
                             </Track.Thumb>
                         </Track>
-                        <RepeatButton Grid.Row="2" Command="ScrollBar.LineDownCommand"
-                                      Background="Transparent" BorderThickness="0"
-                                      Height="14" Focusable="False">
-                            <RepeatButton.Template>
-                                <ControlTemplate TargetType="RepeatButton">
-                                    <Border Background="Transparent">
-                                        <Path Data="M 0 0 L 10 0 L 5 5 Z" Fill="#1C69D4"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </RepeatButton.Template>
+
+                        <RepeatButton x:Name="IncreaseButton"
+                                      Grid.Row="2"
+                                      Grid.Column="1"
+                                      Width="10"
+                                      Height="10"
+                                      Command="ScrollBar.LineDownCommand"
+                                      Style="{StaticResource NeonScrollArrowStyle}">
+                            <Path x:Name="IncreaseArrow"
+                                  Data="M 0 0 L 10 0 L 5 5 Z"
+                                  Fill="{DynamicResource AccentBrush}"
+                                  Stretch="None"/>
                         </RepeatButton>
                     </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter TargetName="DecreaseButton" Property="Grid.Row" Value="1"/>
+                            <Setter TargetName="DecreaseButton" Property="Grid.Column" Value="0"/>
+                            <Setter TargetName="DecreaseButton" Property="Command" Value="ScrollBar.LineLeftCommand"/>
+                            <Setter TargetName="DecreaseArrow" Property="Data" Value="M 0 5 L 10 0 L 10 10 Z"/>
+
+                            <Setter TargetName="PART_Track" Property="Grid.Row" Value="1"/>
+                            <Setter TargetName="PART_Track" Property="Grid.Column" Value="1"/>
+                            <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False"/>
+
+                            <Setter TargetName="ScrollThumb" Property="Width" Value="52"/>
+                            <Setter TargetName="ScrollThumb" Property="Height" Value="12"/>
+                            <Setter TargetName="ScrollThumb" Property="MinWidth" Value="52"/>
+                            <Setter TargetName="ScrollThumb" Property="MinHeight" Value="12"/>
+
+                            <Setter TargetName="IncreaseButton" Property="Grid.Row" Value="1"/>
+                            <Setter TargetName="IncreaseButton" Property="Grid.Column" Value="2"/>
+                            <Setter TargetName="IncreaseButton" Property="Command" Value="ScrollBar.LineRightCommand"/>
+                            <Setter TargetName="IncreaseArrow" Property="Data" Value="M 0 0 L 10 5 L 0 10 Z"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="Height" Value="12"/>
+            </Trigger>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Width" Value="12"/>
+                <Setter Property="Height" Value="Auto"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="SectionExpanderStyle" TargetType="Expander">
