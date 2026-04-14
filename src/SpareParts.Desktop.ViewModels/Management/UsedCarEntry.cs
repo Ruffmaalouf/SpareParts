@@ -5,17 +5,31 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public class UsedCarEntry : INotifyPropertyChanged
     {
+        private int _id;
         private int? _carModelId;
+        private int? _locationId;
         private string _car = string.Empty;
         private int _modelYear;
         private string _priceCurrency = "USD";
+        private decimal _price;
         private decimal _priceBase;
         private decimal _priceCounter;
         private string _location = string.Empty;
         private decimal _transportation;
+        private bool _isReceived;
+        private bool _isShipped;
         private string _partOut = string.Empty;
         private decimal _shipping;
         private decimal _customs;
+        private decimal _totalBeforeShipping;
+        private decimal _grandTotalBase;
+        private decimal _grandTotalCounter;
+
+        public int Id
+        {
+            get => _id;
+            set => SetField(ref _id, value);
+        }
 
         public int? CarModelId
         {
@@ -27,6 +41,12 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             get => _car;
             set => SetField(ref _car, value);
+        }
+
+        public int? LocationId
+        {
+            get => _locationId;
+            set => SetField(ref _locationId, value);
         }
 
         public int ModelYear
@@ -41,6 +61,12 @@ namespace SpareParts.Desktop.Wpf.Management
             set => SetField(ref _priceCurrency, value);
         }
 
+        public decimal Price
+        {
+            get => _price;
+            set => SetField(ref _price, value);
+        }
+
         public decimal PriceBase
         {
             get => _priceBase;
@@ -50,13 +76,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public decimal PriceCounter
         {
             get => _priceCounter;
-            set
-            {
-                if (SetField(ref _priceCounter, value))
-                {
-                    OnPropertyChanged(nameof(TotalBeforeShipping));
-                }
-            }
+            set => SetField(ref _priceCounter, value);
         }
 
         public string Location
@@ -68,16 +88,26 @@ namespace SpareParts.Desktop.Wpf.Management
         public decimal Transportation
         {
             get => _transportation;
-            set
-            {
-                if (SetField(ref _transportation, value))
-                {
-                    OnPropertyChanged(nameof(TotalBeforeShipping));
-                }
-            }
+            set => SetField(ref _transportation, value);
         }
 
-        public decimal TotalBeforeShipping => PriceCounter + Transportation;
+        public bool IsReceived
+        {
+            get => _isReceived;
+            set => SetField(ref _isReceived, value);
+        }
+
+        public bool IsShipped
+        {
+            get => _isShipped;
+            set => SetField(ref _isShipped, value);
+        }
+
+        public decimal TotalBeforeShipping
+        {
+            get => _totalBeforeShipping;
+            set => SetField(ref _totalBeforeShipping, value);
+        }
 
         public string PartOut
         {
@@ -95,6 +125,18 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             get => _customs;
             set => SetField(ref _customs, value);
+        }
+
+        public decimal GrandTotalBase
+        {
+            get => _grandTotalBase;
+            set => SetField(ref _grandTotalBase, value);
+        }
+
+        public decimal GrandTotalCounter
+        {
+            get => _grandTotalCounter;
+            set => SetField(ref _grandTotalCounter, value);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

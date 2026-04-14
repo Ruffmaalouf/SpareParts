@@ -4,8 +4,8 @@ namespace SpareParts.Domain.MasterData
 {
     public class Location : AuditableEntity
     {
-        public int WarehouseId { get; set; }
-        public string Code { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal ShippingFees { get; set; }
+        public string ShippingFeesCurrencyCode { get; set; } = "USD";
     }
 }

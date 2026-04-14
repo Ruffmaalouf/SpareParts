@@ -697,10 +697,7 @@
                                                    Stretch="UniformToFill"
                                                    RenderOptions.BitmapScalingMode="HighQuality"/>
                                             <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Margin="0 8 0 0"/>
-                                            <TextBlock Text="{Binding Year}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding EngineType}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding BasePrice, StringFormat='Price: {0:N0}'}"
-                                                       FontSize="14" FontWeight="Bold" Margin="0 4 0 0"/>
+                                            <TextBlock Text="{Binding BrandName}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </StackPanel>
                                     </Border>
                                 </Button>
@@ -723,7 +720,7 @@
                     <StackPanel>
                         <TextBlock Text="{Binding SelectedCar.Name, TargetNullValue='Select a car'}"
                                    FontSize="22" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding SelectedCar.Year}" FontSize="12"
+                        <TextBlock Text="{Binding SelectedCar.BrandName}" FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                 </StackPanel>

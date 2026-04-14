@@ -84,6 +84,8 @@ namespace SpareParts.Desktop.Wpf
                 || route.StartsWith("api/categories")
                 || route.StartsWith("api/carbrands")
                 || route.StartsWith("api/carmodels")
+                || route.StartsWith("api/locations")
+                || route.StartsWith("api/usedcars")
                 || route.StartsWith("api/currencies")
                 || route.StartsWith("api/appconstants"))
                 return AppSettings.CatalogApiBaseUrl;

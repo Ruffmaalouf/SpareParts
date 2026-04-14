@@ -19,7 +19,7 @@ public class ApiCompositionTests
             { [ServiceCapability.Purchases, ServiceCapability.Health], [nameof(PurchasesController), nameof(SuppliersController), nameof(HealthController)] },
             { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(HealthController)] },
             { [ServiceCapability.Identity, ServiceCapability.Health], [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(HealthController)] },
-            { [ServiceCapability.Catalog, ServiceCapability.Health], [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(HealthController)] }
+            { [ServiceCapability.Catalog, ServiceCapability.Health], [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(HealthController)] }
         };
 
     [Theory]

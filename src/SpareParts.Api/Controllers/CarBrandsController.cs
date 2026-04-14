@@ -53,5 +53,21 @@ namespace SpareParts.Api.Controllers
         [Authorize(Roles = "Admin,Manager")]
         public ActionResult<int> Create([FromBody] CreateCarBrandRequest req)
             => Ok(_service.Create(req, CurrentUserId));
+
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin,Manager")]
+        public IActionResult Update(int id, [FromBody] CreateCarBrandRequest req)
+        {
+            _service.Update(id, req);
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin,Manager")]
+        public IActionResult Delete(int id)
+        {
+            _service.Delete(id);
+            return NoContent();
+        }
     }
 }

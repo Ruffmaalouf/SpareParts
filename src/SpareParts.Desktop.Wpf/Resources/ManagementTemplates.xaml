@@ -115,6 +115,7 @@
                         </Setter.Value>
                     </Setter>
                 </Style>
+
             </DataTemplate.Resources>
             <TabControl Background="Transparent" BorderThickness="0" Margin="0">
 
@@ -129,7 +130,9 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <TextBlock Text="New Customer" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="New Customer" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Customer"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Phone" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -166,7 +169,8 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Customers}"
                                           SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
@@ -194,7 +198,9 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <TextBlock Text="New Supplier" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="New Supplier" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Supplier"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewSupplierName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Phone" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -231,7 +237,8 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Suppliers}"
                                           SelectedItem="{Binding SelectedSupplier, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
@@ -256,7 +263,9 @@
                         <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
-                                <TextBlock Text="New Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="New Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Brand"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewBrandName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
                                 <Button Content="＋  Save Brand" Command="{Binding SaveBrandCommand}"
@@ -280,7 +289,8 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Brands}"
                                           SelectedItem="{Binding SelectedBrand, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
@@ -305,7 +315,9 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <TextBlock Text="New Part" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="New Part" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Part"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Internal Code *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartCode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -360,7 +372,8 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Parts}"
                                           SelectedItem="{Binding SelectedPart, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
@@ -378,7 +391,67 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 5 — CAR MODELS -->
+                <!-- TAB 5 — CAR BRANDS -->
+                <TabItem Header="🚘  Car Brands">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <StackPanel>
+                                <TextBlock Text="Car Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="CarBrand"
+                                        Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
+                                <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarBrandName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Country" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarBrandCountry, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Region Group" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarBrandRegionGroup, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Sort Order" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarBrandSortOrder, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                <Button Content="＋  Save Car Brand" Command="{Binding SaveCarBrandCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42"/>
+                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteCarBrandCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Car Brands" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding CarBrands}"
+                                          SelectedItem="{Binding SelectedCarBrand, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID"          Binding="{Binding Id}"              Width="50"/>
+                                        <DataGridTextColumn Header="Name"        Binding="{Binding Name}"            Width="*"/>
+                                        <DataGridTextColumn Header="Country"     Binding="{Binding Country}"         Width="120"/>
+                                        <DataGridTextColumn Header="Region"      Binding="{Binding RegionGroup}"     Width="120"/>
+                                        <DataGridTextColumn Header="Sort Order"  Binding="{Binding SortOrder}"       Width="90"/>
+                                        <DataGridCheckBoxColumn Header="Active"  Binding="{Binding IsActive}"        Width="70"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 6 — CAR MODELS -->
                 <TabItem Header="🚗  Car Models">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
@@ -388,7 +461,9 @@
                         <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
-                                <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="CarModel"
+                                        Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Car Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <ComboBox ItemsSource="{Binding CarBrands}"
                                           Style="{StaticResource ManagementComboBoxStyle}"
@@ -398,12 +473,8 @@
                                           />
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
-                                <TextBlock Text="Year" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                <TextBox Text="{Binding NewCarModelYear, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
-                                <TextBlock Text="Engine Type" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                <TextBox Text="{Binding NewCarModelEngine, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
-                                <TextBlock Text="Base Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                <TextBox Text="{Binding NewCarModelBasePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                <TextBlock Text="Body Type" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewCarModelBodyType, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
                                 <Button Content="＋  Save Car Model" Command="{Binding SaveCarModelCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
@@ -425,16 +496,15 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding CarModels}"
                                           SelectedItem="{Binding SelectedCarModel, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="ID"         Binding="{Binding Id}"                                 Width="50"/>
-                                        <DataGridTextColumn Header="Brand ID"   Binding="{Binding CarBrandId}"                         Width="80"/>
+                                        <DataGridTextColumn Header="Brand"      Binding="{Binding CarBrandName}"                       Width="140"/>
                                         <DataGridTextColumn Header="Name"       Binding="{Binding Name}"                               Width="*"/>
-                                        <DataGridTextColumn Header="Year"       Binding="{Binding Year}"                               Width="70"/>
-                                        <DataGridTextColumn Header="Engine"     Binding="{Binding EngineType}"                         Width="100"/>
-                                        <DataGridTextColumn Header="Base Price" Binding="{Binding BasePrice, StringFormat={}{0:N0}}"   Width="90"/>
+                                        <DataGridTextColumn Header="Body Type"  Binding="{Binding BodyType}"                           Width="120"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -442,7 +512,7 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 6 — WAREHOUSES -->
+                <!-- TAB 7 — WAREHOUSES -->
                 <TabItem Header="🏬  Warehouses">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
@@ -452,7 +522,9 @@
                         <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
-                                <TextBlock Text="New Warehouse" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                <TextBlock Text="New Warehouse" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Warehouse"
+                                        Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewWarehouseName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -481,7 +553,8 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Warehouses}"
                                           SelectedItem="{Binding SelectedWarehouse, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
@@ -496,7 +569,64 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 7 — CURRENCY RATES -->
+                <TabItem Header="📍  Locations">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="320"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <StackPanel>
+                                <TextBlock Text="Location" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Location"
+                                        Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
+                                <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewLocationName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Shipping Fees" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <controls:CurrencyCodeSelectorControl Label=""
+                                                                      CurrencyCodes="{Binding LocationCurrencyCodes}"
+                                                                      SelectedCurrencyCode="{Binding NewLocationShippingFeesCurrencyCode, Mode=TwoWay}"
+                                                                      Margin="0 0 0 8"/>
+                                <TextBox Text="{Binding NewLocationShippingFees, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                <Button Content="＋  Save Location" Command="{Binding SaveLocationCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42"/>
+                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteLocationCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <TextBlock Text="All Locations" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Locations}"
+                                          SelectedItem="{Binding SelectedLocation, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID" Binding="{Binding LocationId}" Width="50"/>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="Currency" Binding="{Binding ShippingFeesCurrencyCode}" Width="100"/>
+                                        <DataGridTextColumn Header="Shipping Fees" Binding="{Binding ShippingFees, StringFormat={}{0:N2}}" Width="140"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- TAB 8 — CURRENCY RATES -->
                 <TabItem Header="💱  Currency Rates"
                          Visibility="{Binding CanViewCurrencyTab, Converter={StaticResource BoolToVis}}">
                     <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20" Margin="10">
@@ -517,6 +647,11 @@
                                       ItemsSource="{Binding CurrencyRateRows}"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
+                                      CanUserDeleteRows="False"
+                                      CanUserResizeRows="False"
+                                      IsReadOnly="True"
+                                      SelectionMode="Single"
+                                      SelectionUnit="FullRow"
                                       HeadersVisibility="Column"
                                       BorderThickness="0"
                                       GridLinesVisibility="None"
@@ -532,7 +667,7 @@
                     </Border>
                 </TabItem>
 
-                <!-- TAB 8 — TRANSACTION TYPES -->
+                <!-- TAB 9 — TRANSACTION TYPES -->
                 <TabItem Header="🔁  Transaction Types"
                          Visibility="{Binding CanViewTransactionTypesTab, Converter={StaticResource BoolToVis}}">
                     <Grid Margin="10">
@@ -543,7 +678,9 @@
                         <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
-                                <TextBlock Text="Transaction Type" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                <TextBlock Text="Transaction Type" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="TransactionType"
+                                        Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewTransactionTypeName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Currency Code *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -574,7 +711,8 @@
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding TransactionTypes}"
                                           SelectedItem="{Binding SelectedTransactionType, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
@@ -602,7 +740,9 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <TextBlock Text="New Used Car" FontSize="18" FontWeight="Bold" Margin="0 0 0 16"/>
+                                    <TextBlock Text="New Used Car" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="UsedCar"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Car Model *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding UsedCarModelOptions}"
                                                SelectedValuePath="Id"
@@ -617,20 +757,39 @@
                                                                           CurrencyCodes="{Binding UsedCarCurrencyCodes}"
                                                                           SelectedCurrencyCode="{Binding NewUsedCarPriceCurrency, Mode=TwoWay}"
                                                                           Margin="0 0 0 8"/>
+                                    <TextBlock Text="{Binding UsedCarPriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarBasePriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarPriceBase, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarPriceBase}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarCounterPriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarPriceCounter, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
-                                    <TextBlock Text="Location" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarLocation, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
-                                    <TextBlock Text="Transportation" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarTransportation, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarPriceCounter}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBlock Text="Location *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Locations}"
+                                               SelectedValuePath="LocationId"
+                                               DisplayMemberPath="Name"
+                                               SelectedValue="{Binding NewUsedCarLocationId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                               Style="{StaticResource ManagementComboBoxStyle}"
+                                               Margin="0 0 0 8"/>
+                                    <TextBlock Text="{Binding UsedCarTransportationLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarTransportation}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <CheckBox Content="Is Received"
+                                              IsChecked="{Binding NewUsedCarIsReceived, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0 0 0 8"/>
+                                    <CheckBox Content="Is Shipped"
+                                              IsChecked="{Binding NewUsedCarIsShipped, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0 0 0 8"/>
                                     <TextBlock Text="PartOut" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarPartOut, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
-                                    <TextBlock Text="Shipping" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBlock Text="{Binding UsedCarShippingLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarShipping, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
-                                    <TextBlock Text="Customs" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarCustoms, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
+                                    <TextBlock Text="{Binding UsedCarCustomsLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarCustoms, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <TextBlock Text="{Binding UsedCarTotalBeforeShippingLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarTotalBeforeShipping}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBlock Text="{Binding UsedCarGrandTotalBaseLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarGrandTotalBase}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBlock Text="{Binding UsedCarGrandTotalCounterLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarGrandTotalCounter}" IsReadOnly="True" Margin="0 0 0 20"/>
 
                                     <Button Content="💾  Save Used Car" Command="{Binding AddUsedCarCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Stretch" Height="42"/>
@@ -646,22 +805,51 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="Used Cars" FontSize="18" FontWeight="Bold" Margin="0 0 0 14"/>
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
+                                        <TextBlock Text="Used Cars" FontSize="18" FontWeight="Bold"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0 6 0 0">
+                                            <TextBlock Text="{Binding UsedCarsTotalBaseLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding UsedCarsTotalBaseAmount, StringFormat={} {0:N2}}" FontSize="11" FontWeight="SemiBold" Margin="6 0 16 0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding UsedCarsTotalCounterLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding UsedCarsTotalCounterAmount, StringFormat={} {0:N2}}" FontSize="11" FontWeight="SemiBold" Margin="6 0 0 0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding UsedCars}" SelectedItem="{Binding SelectedUsedCar, Mode=TwoWay}"
-                                          AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column"
                                           BorderThickness="0" GridLinesVisibility="All" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.RowStyle>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="Foreground" Value="#C62828"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsReceived}" Value="True">
+                                                    <Setter Property="Foreground" Value="#2E7D32"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.RowStyle>
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Car" Binding="{Binding Car}" Width="150"/>
                                         <DataGridTextColumn Header="Model" Binding="{Binding ModelYear}" Width="70"/>
                                         <DataGridTextColumn Header="Price Currency" Binding="{Binding PriceCurrency}" Width="95"/>
+                                        <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat={}{0:N1}}" Width="90"/>
                                         <DataGridTextColumn Header="Price Base" Binding="{Binding PriceBase, StringFormat={}{0:N1}}" Width="90"/>
                                         <DataGridTextColumn Header="Price Counter" Binding="{Binding PriceCounter, StringFormat={}{0:N1}}" Width="100"/>
                                         <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="100"/>
                                         <DataGridTextColumn Header="Transportation" Binding="{Binding Transportation, StringFormat={}{0:N0}}" Width="110"/>
+                                        <DataGridCheckBoxColumn Header="Received" Binding="{Binding IsReceived}" Width="80"/>
+                                        <DataGridCheckBoxColumn Header="Shipped" Binding="{Binding IsShipped}" Width="80"/>
                                         <DataGridTextColumn Header="Total before Shipping" Binding="{Binding TotalBeforeShipping, StringFormat={}{0:N1}}" Width="150"/>
                                         <DataGridTextColumn Header="PartOut" Binding="{Binding PartOut}" Width="90"/>
                                         <DataGridTextColumn Header="Shipping" Binding="{Binding Shipping, StringFormat={}{0:N0}}" Width="90"/>
                                         <DataGridTextColumn Header="Customs" Binding="{Binding Customs, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Grand Total Base" Binding="{Binding GrandTotalBase, StringFormat={}{0:N1}}" Width="120"/>
+                                        <DataGridTextColumn Header="Grand Total Counter" Binding="{Binding GrandTotalCounter, StringFormat={}{0:N1}}" Width="140"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>

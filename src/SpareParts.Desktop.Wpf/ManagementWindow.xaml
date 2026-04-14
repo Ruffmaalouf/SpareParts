@@ -462,20 +462,13 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="YEAR" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewCarModelYear, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
                                     <TextBlock Text="BRAND ID" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewCarModelBrandId, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
                             </Grid>
 
-                            <TextBlock Text="ENGINE TYPE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                            <TextBox Text="{Binding NewCarModelEngine, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
-
-                            <TextBlock Text="BASE PRICE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                            <TextBox Text="{Binding NewCarModelBasePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 24"/>
+                            <TextBlock Text="NAME" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                            <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 24"/>
 
                             <Button Content="＋  Save Car Model"
                                     Command="{Binding SaveCarModelCommand}"
@@ -507,10 +500,8 @@
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID"         Binding="{Binding Id}"         Width="50"/>
+                                    <DataGridTextColumn Header="Brand"      Binding="{Binding CarBrandName}" Width="140"/>
                                     <DataGridTextColumn Header="Name"       Binding="{Binding Name}"       Width="*"/>
-                                    <DataGridTextColumn Header="Year"       Binding="{Binding Year}"       Width="80"/>
-                                    <DataGridTextColumn Header="Engine"     Binding="{Binding EngineType}" Width="140"/>
-                                    <DataGridTextColumn Header="Base Price" Binding="{Binding BasePrice, StringFormat={}{0:N0}}" Width="110"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>

@@ -24,7 +24,7 @@ public static class SparePartsApiComposition
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(WarehousesController), nameof(TransactionTypesController)],
         [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController)],
-        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(CurrenciesController), nameof(AppConstantsController)],
+        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController)],
         [ServiceCapability.Health] = [nameof(HealthController)]
     };
 
@@ -145,6 +145,8 @@ public static class SparePartsApiComposition
             services.AddScoped<CategoriesService>();
             services.AddScoped<CarBrandsService>();
             services.AddScoped<CarModelsService>();
+            services.AddScoped<LocationsService>();
+            services.AddScoped<UsedCarsService>();
             services.AddScoped<CurrenciesService>();
             services.AddScoped<AppConstantsService>();
         }
@@ -181,6 +183,9 @@ public static class SparePartsApiComposition
         TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
         CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);
         AppConstantsMigration.EnsureApplied(sqlConnectionFactory);
+        CarModelsMigration.EnsureApplied(sqlConnectionFactory);
+        LocationsMigration.EnsureApplied(sqlConnectionFactory);
+        UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
 
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();

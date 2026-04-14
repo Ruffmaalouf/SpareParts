@@ -14,19 +14,24 @@ namespace SpareParts.Desktop.Wpf.Management
         public int NewCarBrandSortOrder { get; set; }
 
         public string NewCarModelName { get; set; } = string.Empty;
-        public string NewCarModelYear { get; set; } = string.Empty;
-        public string NewCarModelEngine { get; set; } = string.Empty;
-        public decimal NewCarModelBasePrice { get; set; }
+        public string NewCarModelBodyType { get; set; } = string.Empty;
         public int NewCarModelBrandId { get; set; }
+        public CarBrandDto? SelectedCarBrand { get; set; }
         public CarModelDto? SelectedCarModel { get; set; }
+
+        public void PopulateCarBrandForm(CarBrandDto brand)
+        {
+            NewCarBrandName = brand.Name;
+            NewCarBrandCountry = brand.Country;
+            NewCarBrandRegionGroup = brand.RegionGroup;
+            NewCarBrandSortOrder = brand.SortOrder;
+        }
 
         public void PopulateForm(CarModelDto m)
         {
             NewCarModelBrandId = m.CarBrandId;
             NewCarModelName = m.Name;
-            NewCarModelYear = m.Year ?? string.Empty;
-            NewCarModelEngine = m.EngineType ?? string.Empty;
-            NewCarModelBasePrice = m.BasePrice;
+            NewCarModelBodyType = m.BodyType;
         }
 
         public void ClearCarBrandForm()
@@ -35,12 +40,13 @@ namespace SpareParts.Desktop.Wpf.Management
             NewCarBrandCountry = string.Empty;
             NewCarBrandRegionGroup = string.Empty;
             NewCarBrandSortOrder = 0;
+            SelectedCarBrand = null;
         }
 
         public void ClearForm()
         {
-            NewCarModelName = NewCarModelYear = NewCarModelEngine = string.Empty;
-            NewCarModelBasePrice = 0;
+            NewCarModelName = string.Empty;
+            NewCarModelBodyType = string.Empty;
             NewCarModelBrandId = 0;
             SelectedCarModel = null;
         }

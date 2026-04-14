@@ -257,7 +257,7 @@ namespace SpareParts.Desktop.Wpf
                 {
                     Id = model.Id,
                     Name = model.Name,
-                    Year = model.Year ?? string.Empty
+                    BrandName = model.CarBrandName
                 });
             }
         }

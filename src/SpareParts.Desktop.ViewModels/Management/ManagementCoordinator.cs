@@ -29,6 +29,8 @@ namespace SpareParts.Desktop.Wpf.Management
             var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
             var parts = await _crudApi.GetAllAsync<PartDto>("api/parts");
             var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
+            var locations = await _crudApi.GetAllAsync<LocationDto>("api/locations");
+            var usedCars = await _crudApi.GetAllAsync<UsedCarDto>("api/usedcars");
             var warehouses = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
             var currencyRates = await _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
             var transactionTypes = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
@@ -44,6 +46,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 Categories = categories,
                 Parts = parts,
                 CarModels = carModels,
+                Locations = locations,
+                UsedCars = usedCars,
                 Warehouses = warehouses,
                 CurrencyRates = currencyRates,
                 TransactionTypes = transactionTypes,
@@ -197,27 +201,42 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             if (string.IsNullOrWhiteSpace(feature.NewCarBrandName))
             {
-                return Task.FromResult(ToFailure(new DomainValidationException("Car brand name is required.", "car_brand_name_required"), "saving Car Brand"));
+                return Task.FromResult(ToFailure(new DomainValidationException("Car brand name is required.", "car_brand_name_required"), "saving Car brand"));
             }
 
             var payload = new CreateCarBrandRequest
             {
-                Name = feature.NewCarBrandName,
-                Country = feature.NewCarBrandCountry,
-                RegionGroup = feature.NewCarBrandRegionGroup,
+                Name = feature.NewCarBrandName.Trim(),
+                Country = feature.NewCarBrandCountry.Trim(),
+                RegionGroup = feature.NewCarBrandRegionGroup.Trim(),
                 SortOrder = feature.NewCarBrandSortOrder
             };
 
             return SaveAsync(
-                false,
-                null,
+                feature.SelectedCarBrand is { Id: > 0 },
+                feature.SelectedCarBrand?.Id,
                 "api/carbrands",
                 payload,
-                "Car Brand");
+                "Car brand");
+        }
+
+        public Task<ManagementOperationResult> DeleteCarBrandAsync(CarBrandDto? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a car brand to delete.", "car_brand_selection_required"), "deleting Car brand"));
+            }
+
+            return DeleteAsync($"api/carbrands/{selected.Id}", "Car brand");
         }
 
         public Task<ManagementOperationResult> SaveCarModelAsync(CarModelManagementViewModel feature)
         {
+            if (feature.NewCarModelBrandId <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Car brand is required.", "car_model_brand_required"), "saving Car Model"));
+            }
+
             if (string.IsNullOrWhiteSpace(feature.NewCarModelName))
             {
                 return Task.FromResult(ToFailure(new DomainValidationException("Car model name is required.", "car_model_name_required"), "saving Car Model"));
@@ -225,10 +244,8 @@ namespace SpareParts.Desktop.Wpf.Management
 
             var payload = new CreateCarModelRequest
             {
-                Name = feature.NewCarModelName,
-                Year = feature.NewCarModelYear,
-                EngineType = feature.NewCarModelEngine,
-                BasePrice = feature.NewCarModelBasePrice,
+                Name = feature.NewCarModelName.Trim(),
+                BodyType = feature.NewCarModelBodyType.Trim(),
                 CarBrandId = feature.NewCarModelBrandId
             };
 
@@ -248,6 +265,99 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             return DeleteAsync($"api/carmodels/{selected.Id}", "Car model");
+        }
+
+        public Task<ManagementOperationResult> SaveLocationAsync(LocationManagementViewModel feature)
+        {
+            if (string.IsNullOrWhiteSpace(feature.NewLocationName))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Location name is required.", "location_name_required"), "saving Location"));
+            }
+
+            if (feature.NewLocationShippingFees < 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Shipping fees cannot be negative.", "location_shipping_invalid"), "saving Location"));
+            }
+
+            if (string.IsNullOrWhiteSpace(feature.NewLocationShippingFeesCurrencyCode)
+                || feature.NewLocationShippingFeesCurrencyCode.Trim().Length != 3)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Shipping fees currency is required.", "location_shipping_currency_required"), "saving Location"));
+            }
+
+            var payload = new CreateLocationRequest
+            {
+                Name = feature.NewLocationName.Trim(),
+                ShippingFees = feature.NewLocationShippingFees,
+                ShippingFeesCurrencyCode = feature.NewLocationShippingFeesCurrencyCode.Trim().ToUpperInvariant()
+            };
+
+            return SaveAsync(
+                feature.SelectedLocation is { LocationId: > 0 },
+                feature.SelectedLocation?.LocationId,
+                "api/locations",
+                payload,
+                "Location");
+        }
+
+        public Task<ManagementOperationResult> DeleteLocationAsync(LocationDto? selected)
+        {
+            if (selected is not { LocationId: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a location to delete.", "location_selection_required"), "deleting Location"));
+            }
+
+            return DeleteAsync($"api/locations/{selected.LocationId}", "Location");
+        }
+
+        public Task<ManagementOperationResult> SaveUsedCarAsync(CreateUsedCarRequest request, UsedCarEntry? selected)
+        {
+            if (request.CarModelId <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Car model is required.", "used_car_model_required"), "saving Used car"));
+            }
+
+            if (request.ModelYear <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Model year is required.", "used_car_model_year_required"), "saving Used car"));
+            }
+
+            if (request.Price <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Price must be greater than zero.", "used_car_price_invalid"), "saving Used car"));
+            }
+
+            if (request.LocationId <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Location is required.", "used_car_location_required"), "saving Used car"));
+            }
+
+            if (request.Shipping < 0 || request.Customs < 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Expense values cannot be negative.", "used_car_expenses_invalid"), "saving Used car"));
+            }
+
+            if (request.IsReceived && request.Customs <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Customs should be different than 0 when the car is marked as received.", "used_car_customs_required_when_received"), "saving Used car"));
+            }
+
+            return SaveAsync(
+                selected is { Id: > 0 },
+                selected?.Id,
+                "api/usedcars",
+                request,
+                "Used car");
+        }
+
+        public Task<ManagementOperationResult> DeleteUsedCarAsync(UsedCarEntry? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a used car row to delete.", "used_car_selection_required"), "deleting Used car"));
+            }
+
+            return DeleteAsync($"api/usedcars/{selected.Id}", "Used car");
         }
 
         public Task<ManagementOperationResult> SaveTransactionTypeAsync(TransactionTypeManagementViewModel feature)

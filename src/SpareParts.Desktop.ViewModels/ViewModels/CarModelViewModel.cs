@@ -12,10 +12,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
     {
         public int Id { get; set; }
         public int CarBrandId { get; set; }
+        public string CarBrandName { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string? Year { get; set; }
         public string? EngineType { get; set; }
-        public decimal BasePrice { get; set; }
+        public decimal? BasePrice { get; set; }
         public bool HasImage { get; set; }
 
         private BitmapImage? _image;

@@ -22,9 +22,7 @@ namespace SpareParts.Desktop.Wpf
     {
         public int     ModelId    { get; set; }
         public string  Name       { get; set; } = string.Empty;
-        public string  Year       { get; set; } = string.Empty;
-        public string  EngineType { get; set; } = string.Empty;
-        public decimal BasePrice  { get; set; }
+        public string  BrandName  { get; set; } = string.Empty;
         public string  ImagePath  { get; set; } = string.Empty;
         public int Id { get;  set; }
     }

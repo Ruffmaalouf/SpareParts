@@ -847,10 +847,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                         {
                             Id         = dto.Id,
                             CarBrandId = dto.CarBrandId,
-                            Name       = dto.Name,
-                            Year       = dto.Year,
-                            EngineType = dto.EngineType,
-                            BasePrice  = dto.BasePrice,
+                            CarBrandName = dto.CarBrandName,
+                            Name       = string.IsNullOrWhiteSpace(dto.CarBrandName)
+                                ? dto.Name
+                                : $"{dto.CarBrandName} {dto.Name}",
                             HasImage   = dto.HasImage
                         };
                         AvailableCars.Add(vm);

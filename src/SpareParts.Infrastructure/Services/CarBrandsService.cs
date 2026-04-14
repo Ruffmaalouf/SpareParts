@@ -1,6 +1,7 @@
 using Dapper;
 using SpareParts.Domain.Cars;
 using SpareParts.Infrastructure.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -72,5 +73,50 @@ public sealed class CarBrandsService
                 request.SortOrder,
                 UserId = userId
             });
+    }
+
+    public void Update(int id, CreateCarBrandRequest request)
+    {
+        using var conn = _factory.CreateConnection();
+        var updated = conn.Execute(
+            @"UPDATE CarBrands
+              SET Name = @Name,
+                  Country = @Country,
+                  RegionGroup = @RegionGroup,
+                  SortOrder = @SortOrder,
+                  ModifiedAt = @Now
+              WHERE Id = @Id",
+            new
+            {
+                Id = id,
+                request.Name,
+                request.Country,
+                request.RegionGroup,
+                request.SortOrder,
+                Now = DateTime.UtcNow
+            });
+
+        if (updated == 0)
+        {
+            throw new NotFoundException("Car brand not found.");
+        }
+    }
+
+    public void Delete(int id)
+    {
+        using var conn = _factory.CreateConnection();
+        var linkedCarModels = conn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM CarModels WHERE CarBrandId = @Id",
+            new { Id = id });
+        if (linkedCarModels > 0)
+        {
+            throw new ValidationException("Car brand cannot be deleted while car models still reference it.");
+        }
+
+        var deleted = conn.Execute("DELETE FROM CarBrands WHERE Id = @Id", new { Id = id });
+        if (deleted == 0)
+        {
+            throw new NotFoundException("Car brand not found.");
+        }
     }
 }

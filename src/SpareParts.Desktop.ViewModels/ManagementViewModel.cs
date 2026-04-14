@@ -7,6 +7,7 @@ using SpareParts.Domain.MasterData;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +20,6 @@ namespace SpareParts.Desktop.Wpf
     public class ManagementViewModel : INotifyPropertyChanged
     {
         private readonly ManagementCoordinator _coordinator;
-        private readonly ICrudApiClient _crudApi;
         private readonly SupplierPermissionState _supplierPermissions = new();
         private readonly ManagementStatusCenter _statusCenter = new();
         private string _baseCurrencyCode = "USD";
@@ -31,6 +31,7 @@ namespace SpareParts.Desktop.Wpf
         public BrandManagementViewModel BrandsFeature { get; } = new();
         public PartManagementViewModel PartsFeature { get; } = new();
         public CarModelManagementViewModel CarModelsFeature { get; } = new();
+        public LocationManagementViewModel LocationsFeature { get; } = new();
         public WarehouseManagementViewModel WarehousesFeature { get; } = new();
         public TransactionTypeManagementViewModel TransactionTypesFeature { get; } = new();
 
@@ -44,11 +45,13 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<PartDto> Parts => PartsFeature.Parts;
         public ObservableCollection<CarModelDto> CarModels => CarModelsFeature.CarModels;
         public ObservableCollection<CarBrandDto> CarBrands => CarModelsFeature.CarBrands;
+        public ObservableCollection<LocationDto> Locations => LocationsFeature.Locations;
         public ObservableCollection<WarehouseDto> Warehouses => WarehousesFeature.Warehouses;
         public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
         public ObservableCollection<CurrencyRateDisplayRow> CurrencyRateRows { get; } = new();
         public ObservableCollection<UsedCarModelOption> UsedCarModelOptions { get; } = new();
         public ObservableCollection<string> UsedCarCurrencyCodes { get; } = new();
+        public ObservableCollection<string> LocationCurrencyCodes => UsedCarCurrencyCodes;
         public ObservableCollection<TransactionTypeDto> TransactionTypes => TransactionTypesFeature.TransactionTypes;
         public ObservableCollection<UsedCarEntry> UsedCars { get; } = new();
 
@@ -81,8 +84,19 @@ namespace SpareParts.Desktop.Wpf
         public string BaseCurrencyCode => _baseCurrencyCode;
         public string CounterCurrencyCode => _counterCurrencyCode;
         public string CurrencyRatesSummary => $"Base {BaseCurrencyCode} | Counter {CounterCurrencyCode}";
+        public string UsedCarPriceLabel => $"Price ({NormalizeCurrencyCode(NewUsedCarPriceCurrency) ?? _baseCurrencyCode})";
         public string UsedCarBasePriceLabel => $"Price Base ({BaseCurrencyCode})";
         public string UsedCarCounterPriceLabel => $"Price Counter ({CounterCurrencyCode})";
+        public string UsedCarTransportationLabel => $"Transportation ({CounterCurrencyCode})";
+        public string UsedCarShippingLabel => $"Shipping ({CounterCurrencyCode})";
+        public string UsedCarCustomsLabel => $"Customs ({CounterCurrencyCode})";
+        public string UsedCarTotalBeforeShippingLabel => $"Total Before Shipping ({CounterCurrencyCode})";
+        public string UsedCarGrandTotalBaseLabel => $"Grand Total Base ({BaseCurrencyCode})";
+        public string UsedCarGrandTotalCounterLabel => $"Grand Total Counter ({CounterCurrencyCode})";
+        public string UsedCarsTotalBaseLabel => $"Total Base Amount ({BaseCurrencyCode})";
+        public string UsedCarsTotalCounterLabel => $"Total Counter Amount ({CounterCurrencyCode})";
+        public decimal UsedCarsTotalBaseAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalBase), 2, MidpointRounding.AwayFromZero);
+        public decimal UsedCarsTotalCounterAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalCounter), 2, MidpointRounding.AwayFromZero);
 
         public CustomerDto? SelectedCustomer { get => CustomersFeature.SelectedCustomer; set { CustomersFeature.SelectedCustomer = value; OnPropertyChanged(nameof(SelectedCustomer)); if (value != null) { CustomersFeature.PopulateForm(value); RaiseCustomerProps(); } } }
         public SupplierDto? SelectedSupplier
@@ -99,7 +113,35 @@ namespace SpareParts.Desktop.Wpf
         }
         public BrandDto? SelectedBrand { get => BrandsFeature.SelectedBrand; set { BrandsFeature.SelectedBrand = value; OnPropertyChanged(nameof(SelectedBrand)); if (value != null) { BrandsFeature.PopulateForm(value); RaiseAll(nameof(NewBrandName), nameof(NewBrandIsActive)); } } }
         public PartDto? SelectedPart { get => PartsFeature.SelectedPart; set { PartsFeature.SelectedPart = value; OnPropertyChanged(nameof(SelectedPart)); if (value != null) { PartsFeature.PopulateForm(value); RaisePartProps(); } } }
+        public CarBrandDto? SelectedCarBrand
+        {
+            get => CarModelsFeature.SelectedCarBrand;
+            set
+            {
+                CarModelsFeature.SelectedCarBrand = value;
+                OnPropertyChanged(nameof(SelectedCarBrand));
+                if (value != null)
+                {
+                    CarModelsFeature.PopulateCarBrandForm(value);
+                    RaiseCarBrandProps();
+                }
+            }
+        }
         public CarModelDto? SelectedCarModel { get => CarModelsFeature.SelectedCarModel; set { CarModelsFeature.SelectedCarModel = value; OnPropertyChanged(nameof(SelectedCarModel)); if (value != null) { CarModelsFeature.PopulateForm(value); RaiseCarModelProps(); } } }
+        public LocationDto? SelectedLocation
+        {
+            get => LocationsFeature.SelectedLocation;
+            set
+            {
+                LocationsFeature.SelectedLocation = value;
+                OnPropertyChanged(nameof(SelectedLocation));
+                if (value != null)
+                {
+                    LocationsFeature.PopulateForm(value);
+                    RaiseLocationProps();
+                }
+            }
+        }
         public WarehouseDto? SelectedWarehouse { get => WarehousesFeature.SelectedWarehouse; set { WarehousesFeature.SelectedWarehouse = value; OnPropertyChanged(nameof(SelectedWarehouse)); if (value != null) { WarehousesFeature.PopulateForm(value); RaiseWarehouseProps(); } } }
         public TransactionTypeDto? SelectedTransactionType
         {
@@ -123,25 +165,36 @@ namespace SpareParts.Desktop.Wpf
             {
                 _selectedUsedCar = value;
                 OnPropertyChanged(nameof(SelectedUsedCar));
-                if (value != null)
+                if (value == null)
                 {
-                    NewUsedCarCarModelId = value.CarModelId
-                        ?? CarModels
-                            .FirstOrDefault(m =>
-                                string.Equals(m.Name, value.Car, StringComparison.OrdinalIgnoreCase)
-                                && int.TryParse(m.Year, out var modelYear)
-                                && modelYear == value.ModelYear)?.Id;
-                    NewUsedCarName = value.Car;
-                    NewUsedCarModelYear = value.ModelYear;
-                    NewUsedCarPriceCurrency = value.PriceCurrency;
-                    NewUsedCarPriceBase = value.PriceBase;
-                    NewUsedCarPriceCounter = value.PriceCounter;
-                    NewUsedCarLocation = value.Location;
-                    NewUsedCarTransportation = value.Transportation;
-                    NewUsedCarPartOut = value.PartOut;
-                    NewUsedCarShipping = value.Shipping;
-                    NewUsedCarCustoms = value.Customs;
+                    return;
                 }
+
+                _newUsedCarCarModelId = value.CarModelId
+                    ?? CarModels
+                        .FirstOrDefault(m =>
+                            string.Equals(m.Name, value.Car, StringComparison.OrdinalIgnoreCase))?.Id;
+                _newUsedCarName = value.Car;
+                _newUsedCarModelYear = value.ModelYear;
+                _newUsedCarPriceCurrency = NormalizeCurrencyCode(value.PriceCurrency) ?? _baseCurrencyCode;
+                _newUsedCarPrice = value.Price;
+                _newUsedCarPriceBase = value.PriceBase;
+                _newUsedCarPriceCounter = value.PriceCounter;
+                _newUsedCarLocationId = value.LocationId
+                    ?? Locations.FirstOrDefault(location =>
+                        string.Equals(location.Name, value.Location, StringComparison.OrdinalIgnoreCase))?.LocationId;
+                _newUsedCarTransportation = value.Transportation;
+                _newUsedCarIsReceived = value.IsReceived;
+                _newUsedCarIsShipped = value.IsShipped;
+                _newUsedCarPartOut = value.PartOut;
+                _newUsedCarShipping = value.Shipping;
+                _newUsedCarCustoms = value.Customs;
+                _newUsedCarTotalBeforeShipping = value.TotalBeforeShipping;
+                _newUsedCarGrandTotalBase = value.GrandTotalBase;
+                _newUsedCarGrandTotalCounter = value.GrandTotalCounter;
+
+                RaiseUsedCarProps();
+                OnPropertyChanged(nameof(UsedCarPriceLabel));
             }
         }
 
@@ -179,10 +232,11 @@ namespace SpareParts.Desktop.Wpf
         public int NewCarBrandSortOrder { get => CarModelsFeature.NewCarBrandSortOrder; set { CarModelsFeature.NewCarBrandSortOrder = value; OnPropertyChanged(nameof(NewCarBrandSortOrder)); } }
 
         public string NewCarModelName { get => CarModelsFeature.NewCarModelName; set { CarModelsFeature.NewCarModelName = value; OnPropertyChanged(nameof(NewCarModelName)); } }
-        public string NewCarModelYear { get => CarModelsFeature.NewCarModelYear; set { CarModelsFeature.NewCarModelYear = value; OnPropertyChanged(nameof(NewCarModelYear)); } }
-        public string NewCarModelEngine { get => CarModelsFeature.NewCarModelEngine; set { CarModelsFeature.NewCarModelEngine = value; OnPropertyChanged(nameof(NewCarModelEngine)); } }
-        public decimal NewCarModelBasePrice { get => CarModelsFeature.NewCarModelBasePrice; set { CarModelsFeature.NewCarModelBasePrice = value; OnPropertyChanged(nameof(NewCarModelBasePrice)); } }
+        public string NewCarModelBodyType { get => CarModelsFeature.NewCarModelBodyType; set { CarModelsFeature.NewCarModelBodyType = value; OnPropertyChanged(nameof(NewCarModelBodyType)); } }
         public int NewCarModelBrandId { get => CarModelsFeature.NewCarModelBrandId; set { CarModelsFeature.NewCarModelBrandId = value; OnPropertyChanged(nameof(NewCarModelBrandId)); } }
+        public string NewLocationName { get => LocationsFeature.NewLocationName; set { LocationsFeature.NewLocationName = value; OnPropertyChanged(nameof(NewLocationName)); } }
+        public decimal NewLocationShippingFees { get => LocationsFeature.NewLocationShippingFees; set { LocationsFeature.NewLocationShippingFees = value; OnPropertyChanged(nameof(NewLocationShippingFees)); } }
+        public string NewLocationShippingFeesCurrencyCode { get => LocationsFeature.NewLocationShippingFeesCurrencyCode; set { LocationsFeature.NewLocationShippingFeesCurrencyCode = NormalizeCurrencyCode(value) ?? _counterCurrencyCode; OnPropertyChanged(nameof(NewLocationShippingFeesCurrencyCode)); } }
         public string NewWarehouseName { get => WarehousesFeature.NewWarehouseName; set { WarehousesFeature.NewWarehouseName = value; OnPropertyChanged(nameof(NewWarehouseName)); } }
         public string NewWarehouseAddress { get => WarehousesFeature.NewWarehouseAddress; set { WarehousesFeature.NewWarehouseAddress = value; OnPropertyChanged(nameof(NewWarehouseAddress)); } }
         public bool NewWarehouseIsMain { get => WarehousesFeature.NewWarehouseIsMain; set { WarehousesFeature.NewWarehouseIsMain = value; OnPropertyChanged(nameof(NewWarehouseIsMain)); } }
@@ -222,6 +276,17 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
+        public decimal NewUsedCarPrice
+        {
+            get => _newUsedCarPrice;
+            set
+            {
+                _newUsedCarPrice = value;
+                OnPropertyChanged(nameof(NewUsedCarPrice));
+                RecalculateUsedCarPriceConversions();
+            }
+        }
+
         public string NewUsedCarPriceCurrency
         {
             get => _newUsedCarPriceCurrency;
@@ -235,7 +300,8 @@ namespace SpareParts.Desktop.Wpf
 
                 _newUsedCarPriceCurrency = normalized;
                 OnPropertyChanged(nameof(NewUsedCarPriceCurrency));
-                RecalculateUsedCarPricesFromCurrencyChange();
+                OnPropertyChanged(nameof(UsedCarPriceLabel));
+                RecalculateUsedCarPriceConversions();
             }
         }
 
@@ -259,13 +325,14 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        public string NewUsedCarLocation
+        public int? NewUsedCarLocationId
         {
-            get => _newUsedCarLocation;
+            get => _newUsedCarLocationId;
             set
             {
-                _newUsedCarLocation = value;
-                OnPropertyChanged(nameof(NewUsedCarLocation));
+                _newUsedCarLocationId = value;
+                OnPropertyChanged(nameof(NewUsedCarLocationId));
+                SyncUsedCarTransportationFromSelectedLocation();
             }
         }
 
@@ -276,6 +343,27 @@ namespace SpareParts.Desktop.Wpf
             {
                 _newUsedCarTransportation = value;
                 OnPropertyChanged(nameof(NewUsedCarTransportation));
+                RecalculateUsedCarTotals();
+            }
+        }
+
+        public bool NewUsedCarIsReceived
+        {
+            get => _newUsedCarIsReceived;
+            set
+            {
+                _newUsedCarIsReceived = value;
+                OnPropertyChanged(nameof(NewUsedCarIsReceived));
+            }
+        }
+
+        public bool NewUsedCarIsShipped
+        {
+            get => _newUsedCarIsShipped;
+            set
+            {
+                _newUsedCarIsShipped = value;
+                OnPropertyChanged(nameof(NewUsedCarIsShipped));
             }
         }
 
@@ -296,6 +384,7 @@ namespace SpareParts.Desktop.Wpf
             {
                 _newUsedCarShipping = value;
                 OnPropertyChanged(nameof(NewUsedCarShipping));
+                RecalculateUsedCarTotals();
             }
         }
 
@@ -306,6 +395,37 @@ namespace SpareParts.Desktop.Wpf
             {
                 _newUsedCarCustoms = value;
                 OnPropertyChanged(nameof(NewUsedCarCustoms));
+                RecalculateUsedCarTotals();
+            }
+        }
+
+        public decimal NewUsedCarTotalBeforeShipping
+        {
+            get => _newUsedCarTotalBeforeShipping;
+            set
+            {
+                _newUsedCarTotalBeforeShipping = value;
+                OnPropertyChanged(nameof(NewUsedCarTotalBeforeShipping));
+            }
+        }
+
+        public decimal NewUsedCarGrandTotalBase
+        {
+            get => _newUsedCarGrandTotalBase;
+            set
+            {
+                _newUsedCarGrandTotalBase = value;
+                OnPropertyChanged(nameof(NewUsedCarGrandTotalBase));
+            }
+        }
+
+        public decimal NewUsedCarGrandTotalCounter
+        {
+            get => _newUsedCarGrandTotalCounter;
+            set
+            {
+                _newUsedCarGrandTotalCounter = value;
+                OnPropertyChanged(nameof(NewUsedCarGrandTotalCounter));
             }
         }
 
@@ -318,13 +438,19 @@ namespace SpareParts.Desktop.Wpf
         private int _newUsedCarModelYear;
         private int? _newUsedCarCarModelId;
         private string _newUsedCarPriceCurrency = "USD";
+        private decimal _newUsedCarPrice;
         private decimal _newUsedCarPriceBase;
         private decimal _newUsedCarPriceCounter;
-        private string _newUsedCarLocation = string.Empty;
+        private int? _newUsedCarLocationId;
         private decimal _newUsedCarTransportation;
+        private bool _newUsedCarIsReceived;
+        private bool _newUsedCarIsShipped;
         private string _newUsedCarPartOut = string.Empty;
         private decimal _newUsedCarShipping;
         private decimal _newUsedCarCustoms;
+        private decimal _newUsedCarTotalBeforeShipping;
+        private decimal _newUsedCarGrandTotalBase;
+        private decimal _newUsedCarGrandTotalCounter;
         private bool _canViewCurrencyTab;
         private bool _canViewTransactionTypesTab;
         public bool IsLoading
@@ -348,12 +474,16 @@ namespace SpareParts.Desktop.Wpf
         public ICommand SavePartCommand { get; }
         public ICommand DeletePartCommand { get; }
         public ICommand SaveCarBrandCommand { get; }
+        public ICommand DeleteCarBrandCommand { get; }
         public ICommand SaveCarModelCommand { get; }
         public ICommand DeleteCarModelCommand { get; }
+        public ICommand SaveLocationCommand { get; }
+        public ICommand DeleteLocationCommand { get; }
         public ICommand SaveWarehouseCommand { get; }
         public ICommand DeleteWarehouseCommand { get; }
         public ICommand SaveTransactionTypeCommand { get; }
         public ICommand DeleteTransactionTypeCommand { get; }
+        public ICommand StartNewManagementItemCommand { get; }
         public ICommand AddUsedCarCommand { get; }
         public ICommand RemoveUsedCarCommand { get; }
 
@@ -370,11 +500,11 @@ namespace SpareParts.Desktop.Wpf
             UsersVm = usersVm;
             RolesVm = rolesVm;
             SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
-            _crudApi = crudApi;
 
             _coordinator = new ManagementCoordinator(
                 crudApi,
                 carCatalogApi);
+            UsedCars.CollectionChanged += UsedCars_CollectionChanged;
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
             SaveCustomerCommand = new RelayCommand(_ => _ = SaveCustomerAsync());
@@ -386,14 +516,18 @@ namespace SpareParts.Desktop.Wpf
             SavePartCommand = new RelayCommand(_ => _ = SavePartAsync());
             DeletePartCommand = new RelayCommand(_ => _ = DeletePartAsync());
             SaveCarBrandCommand = new RelayCommand(_ => _ = SaveCarBrandAsync());
+            DeleteCarBrandCommand = new RelayCommand(_ => _ = DeleteCarBrandAsync());
             SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
             DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
+            SaveLocationCommand = new RelayCommand(_ => _ = SaveLocationAsync());
+            DeleteLocationCommand = new RelayCommand(_ => _ = DeleteLocationAsync());
             SaveWarehouseCommand = new RelayCommand(_ => _ = SaveWarehouseAsync());
             DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
             SaveTransactionTypeCommand = new RelayCommand(_ => _ = SaveTransactionTypeAsync());
             DeleteTransactionTypeCommand = new RelayCommand(_ => _ = DeleteTransactionTypeAsync());
-            AddUsedCarCommand = new RelayCommand(_ => AddUsedCar());
-            RemoveUsedCarCommand = new RelayCommand(_ => RemoveSelectedUsedCar());
+            StartNewManagementItemCommand = new RelayCommand(StartNewManagementItem);
+            AddUsedCarCommand = new RelayCommand(_ => _ = SaveUsedCarAsync());
+            RemoveUsedCarCommand = new RelayCommand(_ => _ = RemoveSelectedUsedCarAsync());
         }
 
         public void SetTabPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier, bool canViewCurrencyTab, bool canViewTransactionTypesTab)
@@ -428,11 +562,14 @@ namespace SpareParts.Desktop.Wpf
                     Replace(Parts, loadResult.Parts);
                     Replace(CarModels, loadResult.CarModels);
                     ReplaceUsedCarModelOptions();
+                    Replace(Locations, loadResult.Locations);
                     Replace(Warehouses, loadResult.Warehouses);
                     Replace(CurrencyRates, loadResult.CurrencyRates);
                     ReplaceUsedCarCurrencyCodes();
+                    EnsureLocationFormCurrencySelection();
+                    SyncUsedCarTransportationFromSelectedLocation();
                     ReplaceCurrencyRateRows();
-                    SyncUsedCarsFromCarModels();
+                    ReplaceUsedCars(loadResult.UsedCars);
                     Replace(TransactionTypes, loadResult.TransactionTypes);
                 });
 
@@ -478,8 +615,18 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(BaseCurrencyCode));
             OnPropertyChanged(nameof(CounterCurrencyCode));
             OnPropertyChanged(nameof(CurrencyRatesSummary));
+            OnPropertyChanged(nameof(UsedCarPriceLabel));
             OnPropertyChanged(nameof(UsedCarBasePriceLabel));
             OnPropertyChanged(nameof(UsedCarCounterPriceLabel));
+            OnPropertyChanged(nameof(UsedCarTransportationLabel));
+            OnPropertyChanged(nameof(UsedCarShippingLabel));
+            OnPropertyChanged(nameof(UsedCarCustomsLabel));
+            OnPropertyChanged(nameof(UsedCarTotalBeforeShippingLabel));
+            OnPropertyChanged(nameof(UsedCarGrandTotalBaseLabel));
+            OnPropertyChanged(nameof(UsedCarGrandTotalCounterLabel));
+            OnPropertyChanged(nameof(UsedCarsTotalBaseLabel));
+            OnPropertyChanged(nameof(UsedCarsTotalCounterLabel));
+            EnsureLocationFormCurrencySelection();
         }
 
         private static string? ResolveCurrencyCode(IReadOnlyDictionary<string, string> constants, string key)
@@ -519,14 +666,14 @@ namespace SpareParts.Desktop.Wpf
         private void ReplaceUsedCarModelOptions()
         {
             var options = CarModels
-                .OrderBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(model => model.Year, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(model => model.CarBrandName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
                 .Select(model => new UsedCarModelOption
                 {
                     Id = model.Id,
+                    CarBrandName = model.CarBrandName,
                     Name = model.Name,
-                    Year = model.Year,
-                    BasePrice = model.BasePrice
+                    BodyType = model.BodyType
                 });
 
             Replace(UsedCarModelOptions, options);
@@ -563,114 +710,173 @@ namespace SpareParts.Desktop.Wpf
             Replace(CurrencyRateRows, rows);
         }
 
-        private void SyncUsedCarsFromCarModels()
+        private void ReplaceUsedCars(IEnumerable<UsedCarDto> usedCars)
         {
-            var existingRowsByCarModelId = UsedCars
-                .Where(entry => entry.CarModelId.HasValue)
-                .GroupBy(entry => entry.CarModelId!.Value)
-                .ToDictionary(group => group.Key, group => group.First());
-
-            var selectedCarModelId = SelectedUsedCar?.CarModelId;
-            var syncedRows = CarModels
-                .OrderBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(model => model.Year, StringComparer.OrdinalIgnoreCase)
-                .Select(model =>
-                {
-                    existingRowsByCarModelId.TryGetValue(model.Id, out var existingRow);
-                    return CreateUsedCarEntry(model, existingRow);
-                })
+            var selectedUsedCarId = SelectedUsedCar?.Id;
+            var rows = usedCars
+                .Select(MapUsedCar)
                 .ToList();
 
-            Replace(UsedCars, syncedRows);
+            Replace(UsedCars, rows);
 
-            if (selectedCarModelId.HasValue)
+            if (selectedUsedCarId.HasValue)
             {
-                SelectedUsedCar = UsedCars.FirstOrDefault(entry => entry.CarModelId == selectedCarModelId.Value);
+                SelectedUsedCar = UsedCars.FirstOrDefault(entry => entry.Id == selectedUsedCarId.Value);
+            }
+
+            RaiseUsedCarSummaryProps();
+        }
+
+        private void UsedCars_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+            {
+                foreach (var row in e.OldItems.OfType<UsedCarEntry>())
+                {
+                    row.PropertyChanged -= UsedCarEntryOnPropertyChanged;
+                }
+            }
+
+            if (e.NewItems != null)
+            {
+                foreach (var row in e.NewItems.OfType<UsedCarEntry>())
+                {
+                    row.PropertyChanged += UsedCarEntryOnPropertyChanged;
+                }
+            }
+
+            RaiseUsedCarSummaryProps();
+        }
+
+        private void UsedCarEntryOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(UsedCarEntry.GrandTotalBase) or nameof(UsedCarEntry.GrandTotalCounter))
+            {
+                RaiseUsedCarSummaryProps();
             }
         }
 
-        private UsedCarEntry CreateUsedCarEntry(CarModelDto model, UsedCarEntry? existingRow)
+        private static UsedCarEntry MapUsedCar(UsedCarDto usedCar)
         {
-            var basePrice = existingRow is { PriceBase: > 0 }
-                ? existingRow.PriceBase
-                : decimal.Round(model.BasePrice, 2, MidpointRounding.AwayFromZero);
-
             return new UsedCarEntry
             {
-                CarModelId = model.Id,
-                Car = model.Name,
-                ModelYear = int.TryParse(model.Year, out var modelYear) ? modelYear : 0,
-                PriceCurrency = NormalizeCurrencyCode(existingRow?.PriceCurrency) ?? _baseCurrencyCode,
-                PriceBase = basePrice,
-                PriceCounter = existingRow is { PriceCounter: > 0 }
-                    ? existingRow.PriceCounter
-                    : ConvertBasePriceToCounterPrice(basePrice),
-                Location = existingRow?.Location ?? string.Empty,
-                Transportation = existingRow?.Transportation ?? 0m,
-                PartOut = existingRow?.PartOut ?? string.Empty,
-                Shipping = existingRow?.Shipping ?? 0m,
-                Customs = existingRow?.Customs ?? 0m
+                Id = usedCar.Id,
+                CarModelId = usedCar.CarModelId,
+                LocationId = usedCar.LocationId,
+                Car = usedCar.Car,
+                ModelYear = usedCar.ModelYear,
+                PriceCurrency = usedCar.PriceCurrency,
+                Price = usedCar.Price,
+                PriceBase = usedCar.PriceBase,
+                PriceCounter = usedCar.PriceCounter,
+                Location = usedCar.Location,
+                Transportation = usedCar.Transportation,
+                IsReceived = usedCar.IsReceived,
+                IsShipped = usedCar.IsShipped,
+                PartOut = usedCar.PartOut,
+                Shipping = usedCar.Shipping,
+                Customs = usedCar.Customs,
+                TotalBeforeShipping = usedCar.TotalBeforeShipping,
+                GrandTotalBase = usedCar.GrandTotalBase,
+                GrandTotalCounter = usedCar.GrandTotalCounter
             };
         }
 
-        private void RecalculateUsedCarPricesFromCurrencyChange()
+        private void EnsureLocationFormCurrencySelection()
+        {
+            if (NormalizeCurrencyCode(LocationsFeature.NewLocationShippingFeesCurrencyCode) != null)
+            {
+                return;
+            }
+
+            LocationsFeature.NewLocationShippingFeesCurrencyCode = _counterCurrencyCode;
+            OnPropertyChanged(nameof(NewLocationShippingFeesCurrencyCode));
+        }
+
+        private void SyncUsedCarTransportationFromSelectedLocation()
+        {
+            if (NewUsedCarLocationId is not int locationId)
+            {
+                NewUsedCarTransportation = 0m;
+                return;
+            }
+
+            var selectedLocation = Locations.FirstOrDefault(location => location.LocationId == locationId);
+            if (selectedLocation == null)
+            {
+                NewUsedCarTransportation = 0m;
+                return;
+            }
+
+            var locationCurrencyCode = NormalizeCurrencyCode(selectedLocation.ShippingFeesCurrencyCode) ?? _counterCurrencyCode;
+            var rateToCounterCurrency = ResolveRateToCounterCurrency(locationCurrencyCode);
+            var convertedTransportation = rateToCounterCurrency > 0
+                ? decimal.Round(selectedLocation.ShippingFees * rateToCounterCurrency, 2, MidpointRounding.AwayFromZero)
+                : 0m;
+
+            NewUsedCarTransportation = convertedTransportation;
+        }
+
+        private void RecalculateUsedCarPriceConversions()
         {
             var selectedCurrencyCode = NormalizeCurrencyCode(NewUsedCarPriceCurrency) ?? _baseCurrencyCode;
-            var amountInSelectedCurrency = ResolveAmountInSelectedCurrency(selectedCurrencyCode);
             var selectedToBaseRate = ResolveRateToBaseCurrency(selectedCurrencyCode);
             if (selectedToBaseRate <= 0)
             {
+                _newUsedCarPriceBase = 0m;
+                _newUsedCarPriceCounter = 0m;
+                OnPropertyChanged(nameof(NewUsedCarPriceBase));
+                OnPropertyChanged(nameof(NewUsedCarPriceCounter));
+                RecalculateUsedCarTotals();
                 return;
             }
 
             var counterToBaseRate = ResolveRateToBaseCurrency(_counterCurrencyCode);
             if (counterToBaseRate <= 0)
             {
-                counterToBaseRate = 1m;
+                counterToBaseRate = _defaultCounterRate > 0 ? _defaultCounterRate : 1m;
             }
 
-            var convertedBasePrice = decimal.Round(amountInSelectedCurrency * selectedToBaseRate, 2, MidpointRounding.AwayFromZero);
-            var convertedCounterPrice = decimal.Round(convertedBasePrice / counterToBaseRate, 2, MidpointRounding.AwayFromZero);
+            var normalizedPrice = Math.Max(NewUsedCarPrice, 0m);
+            var convertedBasePrice = decimal.Round(normalizedPrice * selectedToBaseRate, 2, MidpointRounding.AwayFromZero);
+            var convertedCounterPrice = counterToBaseRate > 0
+                ? decimal.Round(convertedBasePrice / counterToBaseRate, 2, MidpointRounding.AwayFromZero)
+                : convertedBasePrice;
 
             _newUsedCarPriceBase = convertedBasePrice;
             _newUsedCarPriceCounter = convertedCounterPrice;
             OnPropertyChanged(nameof(NewUsedCarPriceBase));
             OnPropertyChanged(nameof(NewUsedCarPriceCounter));
+            RecalculateUsedCarTotals();
         }
 
-        private decimal ResolveAmountInSelectedCurrency(string selectedCurrencyCode)
+        private void RecalculateUsedCarTotals()
         {
-            if (string.Equals(selectedCurrencyCode, _baseCurrencyCode, StringComparison.OrdinalIgnoreCase))
+            var counterExpensesTotal = Math.Max(NewUsedCarTransportation, 0m)
+                + Math.Max(NewUsedCarShipping, 0m)
+                + Math.Max(NewUsedCarCustoms, 0m);
+            var counterToBaseRate = ResolveRateToBaseCurrency(_counterCurrencyCode);
+            if (counterToBaseRate <= 0)
             {
-                return NewUsedCarPriceBase;
+                counterToBaseRate = _defaultCounterRate > 0 ? _defaultCounterRate : 1m;
             }
 
-            if (string.Equals(selectedCurrencyCode, _counterCurrencyCode, StringComparison.OrdinalIgnoreCase))
-            {
-                return NewUsedCarPriceCounter;
-            }
+            _newUsedCarTotalBeforeShipping = decimal.Round(
+                NewUsedCarPriceCounter + Math.Max(NewUsedCarTransportation, 0m),
+                2,
+                MidpointRounding.AwayFromZero);
+            _newUsedCarGrandTotalCounter = decimal.Round(
+                NewUsedCarPriceCounter + counterExpensesTotal,
+                2,
+                MidpointRounding.AwayFromZero);
+            _newUsedCarGrandTotalBase = decimal.Round(
+                NewUsedCarPriceBase + (counterExpensesTotal * counterToBaseRate),
+                2,
+                MidpointRounding.AwayFromZero);
 
-            if (NewUsedCarPriceBase > 0)
-            {
-                var selectedToBaseRate = ResolveRateToBaseCurrency(selectedCurrencyCode);
-                if (selectedToBaseRate > 0)
-                {
-                    return NewUsedCarPriceBase / selectedToBaseRate;
-                }
-            }
-
-            if (NewUsedCarPriceCounter > 0)
-            {
-                var counterToBaseRate = ResolveRateToBaseCurrency(_counterCurrencyCode);
-                var selectedToBaseRate = ResolveRateToBaseCurrency(selectedCurrencyCode);
-                if (counterToBaseRate > 0 && selectedToBaseRate > 0)
-                {
-                    var baseAmount = NewUsedCarPriceCounter * counterToBaseRate;
-                    return baseAmount / selectedToBaseRate;
-                }
-            }
-
-            return 0m;
+            OnPropertyChanged(nameof(NewUsedCarTotalBeforeShipping));
+            OnPropertyChanged(nameof(NewUsedCarGrandTotalBase));
+            OnPropertyChanged(nameof(NewUsedCarGrandTotalCounter));
         }
 
         private decimal ResolveRateToBaseCurrency(string? currencyCode)
@@ -724,19 +930,6 @@ namespace SpareParts.Desktop.Wpf
             }
 
             return rateToBaseCurrency / counterRateToBaseCurrency;
-        }
-
-        private decimal ConvertBasePriceToCounterPrice(decimal basePrice)
-        {
-            var counterRateToBaseCurrency = ResolveRateToBaseCurrency(_counterCurrencyCode);
-            if (counterRateToBaseCurrency <= 0)
-            {
-                counterRateToBaseCurrency = _defaultCounterRate;
-            }
-
-            return counterRateToBaseCurrency > 0
-                ? decimal.Round(basePrice / counterRateToBaseCurrency, 2, MidpointRounding.AwayFromZero)
-                : decimal.Round(basePrice, 2, MidpointRounding.AwayFromZero);
         }
 
         private static string? NormalizeCurrencyCode(string? currencyCode)
@@ -873,37 +1066,30 @@ namespace SpareParts.Desktop.Wpf
         }
 
         private async Task SaveCarBrandAsync()
-        { 
-            if (string.IsNullOrWhiteSpace(NewCarBrandName))
-            {
-                SetStatus("✗ Car brand name is required.", false);
-                return;
-            }
+        {
+            var result = await _coordinator.SaveCarBrandAsync(CarModelsFeature);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
 
-            try
-            {
-                var payload = new CreateCarBrandRequest
-                {
-                    Name = NewCarBrandName,
-                    Country = NewCarBrandCountry,
-                    RegionGroup = NewCarBrandRegionGroup,
-                    SortOrder = NewCarBrandSortOrder
-                };
+            await LoadAllAsync();
+            CarModelsFeature.ClearCarBrandForm();
+            RaiseAll(
+                nameof(NewCarBrandName),
+                nameof(NewCarBrandCountry),
+                nameof(NewCarBrandRegionGroup),
+                nameof(NewCarBrandSortOrder),
+                nameof(SelectedCarBrand));
+        }
 
-                await _crudApi.PostAsync("api/carbrands", payload);
-                SetStatus("✓ Car Brand saved.", true);
-                await LoadAllAsync();
-                CarModelsFeature.ClearCarBrandForm();
-                RaiseCarBrandProps();
-            }
-            catch (Exception ex)
-            {
-                var message = ex is ApiClientException apiException
-                    ? $"✗ API error ({apiException.Code}): {apiException.Message}"
-                    : "✗ Unexpected error while saving Car Brand.";
-                SetStatus(message, false);
-            }
- 
+        private async Task DeleteCarBrandAsync()
+        {
+            var result = await _coordinator.DeleteCarBrandAsync(SelectedCarBrand);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            CarModelsFeature.ClearCarBrandForm();
+            OnPropertyChanged(nameof(SelectedCarBrand));
         }
 
         private async Task SaveCarModelAsync()
@@ -926,6 +1112,30 @@ namespace SpareParts.Desktop.Wpf
             await LoadAllAsync();
             CarModelsFeature.SelectedCarModel = null;
             OnPropertyChanged(nameof(SelectedCarModel));
+        }
+
+        private async Task SaveLocationAsync()
+        {
+            var result = await _coordinator.SaveLocationAsync(LocationsFeature);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            LocationsFeature.ClearForm(_counterCurrencyCode);
+            RaiseLocationProps();
+            OnPropertyChanged(nameof(SelectedLocation));
+        }
+
+        private async Task DeleteLocationAsync()
+        {
+            var result = await _coordinator.DeleteLocationAsync(SelectedLocation);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            LocationsFeature.ClearForm(_counterCurrencyCode);
+            OnPropertyChanged(nameof(SelectedLocation));
+            RaiseLocationProps();
         }
 
         private Task SaveWarehouseAsync()
@@ -962,7 +1172,65 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedTransactionType));
         }
 
-        private void AddUsedCar()
+        private void StartNewManagementItem(object? parameter)
+        {
+            switch (parameter as string)
+            {
+                case "Customer":
+                    CustomersFeature.ClearForm();
+                    OnPropertyChanged(nameof(SelectedCustomer));
+                    RaiseCustomerProps();
+                    break;
+                case "Supplier":
+                    SuppliersFeature.ClearForm();
+                    _supplierPermissions.IsEditingSupplier = false;
+                    OnPropertyChanged(nameof(SelectedSupplier));
+                    OnPropertyChanged(nameof(CanSaveSupplier));
+                    RaiseSupplierProps();
+                    break;
+                case "Brand":
+                    BrandsFeature.ClearForm();
+                    OnPropertyChanged(nameof(SelectedBrand));
+                    RaiseAll(nameof(NewBrandName), nameof(NewBrandIsActive));
+                    break;
+                case "Part":
+                    PartsFeature.ClearForm(_baseCurrencyCode);
+                    OnPropertyChanged(nameof(SelectedPart));
+                    RaisePartProps();
+                    break;
+                case "CarBrand":
+                    CarModelsFeature.ClearCarBrandForm();
+                    OnPropertyChanged(nameof(SelectedCarBrand));
+                    RaiseCarBrandProps();
+                    break;
+                case "CarModel":
+                    CarModelsFeature.ClearForm();
+                    OnPropertyChanged(nameof(SelectedCarModel));
+                    RaiseCarModelProps();
+                    break;
+                case "Location":
+                    LocationsFeature.ClearForm(_counterCurrencyCode);
+                    OnPropertyChanged(nameof(SelectedLocation));
+                    RaiseLocationProps();
+                    break;
+                case "Warehouse":
+                    WarehousesFeature.ClearForm();
+                    OnPropertyChanged(nameof(SelectedWarehouse));
+                    RaiseWarehouseProps();
+                    break;
+                case "TransactionType":
+                    TransactionTypesFeature.ClearForm(_counterCurrencyCode);
+                    OnPropertyChanged(nameof(SelectedTransactionType));
+                    RaiseTransactionTypeProps();
+                    break;
+                case "UsedCar":
+                    SelectedUsedCar = null;
+                    ClearUsedCarForm();
+                    break;
+            }
+        }
+
+        private async Task SaveUsedCarAsync()
         {
             if (NewUsedCarCarModelId is not int carModelId)
             {
@@ -977,45 +1245,50 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
-            var targetEntry = SelectedUsedCar?.CarModelId == carModelId
-                ? SelectedUsedCar
-                : UsedCars.FirstOrDefault(entry => entry.CarModelId == carModelId);
-
-            if (targetEntry == null)
+            if (NewUsedCarLocationId is not int locationId)
             {
-                targetEntry = CreateUsedCarEntry(selectedModel, null);
-                UsedCars.Add(targetEntry);
-            }
-
-            SelectedUsedCar = targetEntry;
-
-            targetEntry.CarModelId = carModelId;
-            targetEntry.Car = selectedModel.Name;
-            targetEntry.ModelYear = NewUsedCarModelYear;
-            targetEntry.PriceCurrency = string.IsNullOrWhiteSpace(NewUsedCarPriceCurrency) ? _baseCurrencyCode : NewUsedCarPriceCurrency.Trim().ToUpperInvariant();
-            targetEntry.PriceBase = NewUsedCarPriceBase;
-            targetEntry.PriceCounter = NewUsedCarPriceCounter;
-            targetEntry.Location = NewUsedCarLocation.Trim();
-            targetEntry.Transportation = NewUsedCarTransportation;
-            targetEntry.PartOut = NewUsedCarPartOut.Trim();
-            targetEntry.Shipping = NewUsedCarShipping;
-            targetEntry.Customs = NewUsedCarCustoms;
-
-            SetStatus("✓ Used car entry saved.", true);
-        }
-
-        private void RemoveSelectedUsedCar()
-        {
-            if (SelectedUsedCar == null)
-            {
-                SetStatus("✗ Select a used car row first.", false);
+                SetStatus("✗ Select a location from the Locations tab list first.", false);
                 return;
             }
 
-            UsedCars.Remove(SelectedUsedCar);
+            if (NewUsedCarIsReceived && NewUsedCarCustoms <= 0)
+            {
+                SetStatus("✗ Customs should be different than 0 when the car is marked as received.", false);
+                return;
+            }
+
+            var request = new CreateUsedCarRequest
+            {
+                CarModelId = carModelId,
+                ModelYear = NewUsedCarModelYear,
+                PriceCurrency = NormalizeCurrencyCode(NewUsedCarPriceCurrency) ?? _baseCurrencyCode,
+                Price = NewUsedCarPrice,
+                LocationId = locationId,
+                IsReceived = NewUsedCarIsReceived,
+                IsShipped = NewUsedCarIsShipped,
+                PartOut = NewUsedCarPartOut.Trim(),
+                Shipping = NewUsedCarShipping,
+                Customs = NewUsedCarCustoms
+            };
+
+            var result = await _coordinator.SaveUsedCarAsync(request, SelectedUsedCar);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
             SelectedUsedCar = null;
             ClearUsedCarForm();
-            SetStatus("✓ Used car entry removed.", true);
+        }
+
+        private async Task RemoveSelectedUsedCarAsync()
+        {
+            var result = await _coordinator.DeleteUsedCarAsync(SelectedUsedCar);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            SelectedUsedCar = null;
+            ClearUsedCarForm();
         }
 
         private void ClearUsedCarForm()
@@ -1024,13 +1297,19 @@ namespace SpareParts.Desktop.Wpf
             NewUsedCarModelYear = 0;
             NewUsedCarCarModelId = null;
             NewUsedCarPriceCurrency = _baseCurrencyCode;
+            NewUsedCarPrice = 0;
             NewUsedCarPriceBase = 0;
             NewUsedCarPriceCounter = 0;
-            NewUsedCarLocation = string.Empty;
+            NewUsedCarLocationId = null;
             NewUsedCarTransportation = 0;
+            NewUsedCarIsReceived = false;
+            NewUsedCarIsShipped = false;
             NewUsedCarPartOut = string.Empty;
             NewUsedCarShipping = 0;
             NewUsedCarCustoms = 0;
+            NewUsedCarTotalBeforeShipping = 0;
+            NewUsedCarGrandTotalBase = 0;
+            NewUsedCarGrandTotalCounter = 0;
         }
 
         private void SyncUsedCarFromSelectedModel()
@@ -1046,46 +1325,40 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
-            NewUsedCarName = selectedModel.Name;
-            if (int.TryParse(selectedModel.Year, out var modelYear))
-            {
-                NewUsedCarModelYear = modelYear;
-            }
-
-            if (selectedModel.BasePrice > 0)
-            {
-                ApplyUsedCarPricesFromBasePrice(selectedModel.BasePrice);
-            }
-        }
-
-        private void ApplyUsedCarPricesFromBasePrice(decimal basePrice)
-        {
-            var normalizedBasePrice = decimal.Round(basePrice, 2, MidpointRounding.AwayFromZero);
-            var counterRateToBaseCurrency = ResolveRateToBaseCurrency(_counterCurrencyCode);
-            if (counterRateToBaseCurrency <= 0)
-            {
-                counterRateToBaseCurrency = _defaultCounterRate;
-            }
-
-            _newUsedCarPriceCurrency = _baseCurrencyCode;
-            _newUsedCarPriceBase = normalizedBasePrice;
-            _newUsedCarPriceCounter = counterRateToBaseCurrency > 0
-                ? decimal.Round(normalizedBasePrice / counterRateToBaseCurrency, 2, MidpointRounding.AwayFromZero)
-                : normalizedBasePrice;
-
-            OnPropertyChanged(nameof(NewUsedCarPriceCurrency));
-            OnPropertyChanged(nameof(NewUsedCarPriceBase));
-            OnPropertyChanged(nameof(NewUsedCarPriceCounter));
+            var option = UsedCarModelOptions.FirstOrDefault(item => item.Id == carModelId);
+            NewUsedCarName = option?.DisplayName ?? selectedModel.Name;
         }
 
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
         private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
-        private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelYear), nameof(NewCarModelEngine), nameof(NewCarModelBasePrice));
+        private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelBodyType));
+        private void RaiseLocationProps() => RaiseAll(nameof(NewLocationName), nameof(NewLocationShippingFees), nameof(NewLocationShippingFeesCurrencyCode));
         private void RaiseWarehouseProps() => RaiseAll(nameof(NewWarehouseName), nameof(NewWarehouseAddress), nameof(NewWarehouseIsMain));
         private void RaiseTransactionTypeProps() => RaiseAll(nameof(NewTransactionTypeName), nameof(NewTransactionCurrencyCode), nameof(NewTransactionCounterRate), nameof(NewTransactionIsActive));
-        private void RaiseUsedCarProps() => RaiseAll(nameof(NewUsedCarName), nameof(NewUsedCarModelYear), nameof(NewUsedCarCarModelId), nameof(NewUsedCarPriceCurrency), nameof(NewUsedCarPriceBase), nameof(NewUsedCarPriceCounter), nameof(NewUsedCarLocation), nameof(NewUsedCarTransportation), nameof(NewUsedCarPartOut), nameof(NewUsedCarShipping), nameof(NewUsedCarCustoms));
+        private void RaiseUsedCarProps() => RaiseAll(
+            nameof(NewUsedCarName),
+            nameof(NewUsedCarModelYear),
+            nameof(NewUsedCarCarModelId),
+            nameof(NewUsedCarPriceCurrency),
+            nameof(NewUsedCarPrice),
+            nameof(NewUsedCarPriceBase),
+            nameof(NewUsedCarPriceCounter),
+            nameof(NewUsedCarLocationId),
+            nameof(NewUsedCarTransportation),
+            nameof(NewUsedCarIsReceived),
+            nameof(NewUsedCarIsShipped),
+            nameof(NewUsedCarPartOut),
+            nameof(NewUsedCarShipping),
+            nameof(NewUsedCarCustoms),
+            nameof(NewUsedCarTotalBeforeShipping),
+            nameof(NewUsedCarGrandTotalBase),
+            nameof(NewUsedCarGrandTotalCounter),
+            nameof(UsedCarPriceLabel));
+        private void RaiseUsedCarSummaryProps() => RaiseAll(
+            nameof(UsedCarsTotalBaseAmount),
+            nameof(UsedCarsTotalCounterAmount));
         private void SetStatus(string message, bool isSuccess) => _statusCenter.SetStatus(message, isSuccess);
 
         private void RaiseAll(params string[] names) { foreach (var n in names) OnPropertyChanged(n); }
