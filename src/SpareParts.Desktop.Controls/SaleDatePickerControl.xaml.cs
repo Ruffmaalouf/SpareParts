@@ -31,6 +31,27 @@ namespace SpareParts.Desktop.Wpf
                 typeof(SaleDatePickerControl),
                 new PropertyMetadata("Select date"));
 
+        public static readonly DependencyProperty PlaceholderTextProperty =
+            DependencyProperty.Register(
+                nameof(PlaceholderText),
+                typeof(string),
+                typeof(SaleDatePickerControl),
+                new PropertyMetadata("Select date", OnDisplaySettingsChanged));
+
+        public static readonly DependencyProperty PopupTitleProperty =
+            DependencyProperty.Register(
+                nameof(PopupTitle),
+                typeof(string),
+                typeof(SaleDatePickerControl),
+                new PropertyMetadata("SELECT DATE"));
+
+        public static readonly DependencyProperty DisplayFormatProperty =
+            DependencyProperty.Register(
+                nameof(DisplayFormat),
+                typeof(string),
+                typeof(SaleDatePickerControl),
+                new PropertyMetadata("dddd, dd MMM yyyy", OnDisplaySettingsChanged));
+
         public DateTime? SelectedDate
         {
             get => (DateTime?)GetValue(SelectedDateProperty);
@@ -49,6 +70,24 @@ namespace SpareParts.Desktop.Wpf
             set => SetValue(SelectedDateDisplayTextProperty, value);
         }
 
+        public string PlaceholderText
+        {
+            get => (string)GetValue(PlaceholderTextProperty);
+            set => SetValue(PlaceholderTextProperty, value);
+        }
+
+        public string PopupTitle
+        {
+            get => (string)GetValue(PopupTitleProperty);
+            set => SetValue(PopupTitleProperty, value);
+        }
+
+        public string DisplayFormat
+        {
+            get => (string)GetValue(DisplayFormatProperty);
+            set => SetValue(DisplayFormatProperty, value);
+        }
+
         public SaleDatePickerControl()
         {
             InitializeComponent();
@@ -56,6 +95,14 @@ namespace SpareParts.Desktop.Wpf
         }
 
         private static void OnSelectedDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SaleDatePickerControl control)
+            {
+                control.UpdateSelectedDateDisplayText();
+            }
+        }
+
+        private static void OnDisplaySettingsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is SaleDatePickerControl control)
             {
@@ -94,9 +141,22 @@ namespace SpareParts.Desktop.Wpf
 
         private void UpdateSelectedDateDisplayText()
         {
-            SelectedDateDisplayText = SelectedDate.HasValue
-                ? SelectedDate.Value.ToString("dddd, dd MMM yyyy", System.Globalization.CultureInfo.CurrentCulture)
-                : "Select date";
+            if (!SelectedDate.HasValue)
+            {
+                SelectedDateDisplayText = string.IsNullOrWhiteSpace(PlaceholderText) ? "Select date" : PlaceholderText;
+                return;
+            }
+
+            var format = string.IsNullOrWhiteSpace(DisplayFormat) ? "d" : DisplayFormat;
+
+            try
+            {
+                SelectedDateDisplayText = SelectedDate.Value.ToString(format, CultureInfo.CurrentCulture);
+            }
+            catch (FormatException)
+            {
+                SelectedDateDisplayText = SelectedDate.Value.ToString("d", CultureInfo.CurrentCulture);
+            }
         }
     }
 }

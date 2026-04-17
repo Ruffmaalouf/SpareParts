@@ -30,6 +30,7 @@ namespace SpareParts.Desktop.Wpf
             services.AddSingleton<IArDeviceBridge, ArDeviceBridge>();
 
             services.AddTransient<IAuthApiClient, AuthApiClient>();
+            services.AddTransient<IAccountingApiClient, AccountingApiClient>();
             services.AddTransient<IApiSessionClient, ApiSessionClient>();
             services.AddTransient<ICarCatalogApiClient, CarCatalogApiClient>();
             services.AddTransient<ICustomerApiClient, CustomersApiClient>();

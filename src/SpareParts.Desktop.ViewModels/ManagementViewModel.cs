@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Management;
+using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
@@ -34,6 +35,7 @@ namespace SpareParts.Desktop.Wpf
         public LocationManagementViewModel LocationsFeature { get; } = new();
         public WarehouseManagementViewModel WarehousesFeature { get; } = new();
         public TransactionTypeManagementViewModel TransactionTypesFeature { get; } = new();
+        public AccountingViewModel AccountingVm { get; }
 
         public UsersViewModel UsersVm { get; }
         public RolesViewModel RolesVm { get; }
@@ -54,6 +56,9 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<string> LocationCurrencyCodes => UsedCarCurrencyCodes;
         public ObservableCollection<TransactionTypeDto> TransactionTypes => TransactionTypesFeature.TransactionTypes;
         public ObservableCollection<UsedCarEntry> UsedCars { get; } = new();
+        public ObservableCollection<AccountingAccountRow> AccountingAccounts { get; } = new();
+        public ObservableCollection<AccountingAccountRow> ConfiguredAccountingAccounts { get; } = new();
+        public ObservableCollection<AccountingPostingRuleRow> AccountingPostingRules { get; } = new();
 
 
         public bool CanViewSupplierTab => _supplierPermissions.CanViewSupplierTab;
@@ -97,6 +102,13 @@ namespace SpareParts.Desktop.Wpf
         public string UsedCarsTotalCounterLabel => $"Total Counter Amount ({CounterCurrencyCode})";
         public decimal UsedCarsTotalBaseAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalBase), 2, MidpointRounding.AwayFromZero);
         public decimal UsedCarsTotalCounterAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalCounter), 2, MidpointRounding.AwayFromZero);
+        public int AccountingAccountCount => AccountingAccounts.Count;
+        public int ActiveTransactionTypeCount => TransactionTypes.Count(item => item.IsActive);
+        public decimal CustomerOpeningBalanceTotal => decimal.Round(Customers.Sum(customer => customer.OpeningBalance), 2, MidpointRounding.AwayFromZero);
+        public decimal SupplierOpeningBalanceTotal => decimal.Round(Suppliers.Sum(supplier => supplier.OpeningBalance), 2, MidpointRounding.AwayFromZero);
+        public string AccountingChartSummary => $"{AccountingAccountCount} seeded account(s) are available for the chart of accounts.";
+        public string AccountingPostingSummary => $"{AccountingPostingRules.Count} posting flow(s) are currently wired in backend services.";
+        public string AccountingOperationsSummary => $"{ActiveTransactionTypeCount} active transaction type(s) and {CurrencyRates.Count} currency rate snapshot(s) support the accounting workflow.";
 
         public CustomerDto? SelectedCustomer { get => CustomersFeature.SelectedCustomer; set { CustomersFeature.SelectedCustomer = value; OnPropertyChanged(nameof(SelectedCustomer)); if (value != null) { CustomersFeature.PopulateForm(value); RaiseCustomerProps(); } } }
         public SupplierDto? SelectedSupplier
@@ -197,6 +209,33 @@ namespace SpareParts.Desktop.Wpf
                 OnPropertyChanged(nameof(UsedCarPriceLabel));
             }
         }
+
+        public AccountingAccountRow? SelectedAccountingAccount
+        {
+            get => _selectedAccountingAccount;
+            set
+            {
+                if (_selectedAccountingAccount == value) return;
+                _selectedAccountingAccount = value;
+                OnPropertyChanged(nameof(SelectedAccountingAccount));
+                OnPropertyChanged(nameof(SelectedAccountingAccountTitle));
+                OnPropertyChanged(nameof(SelectedAccountingAccountUsage));
+                OnPropertyChanged(nameof(SelectedAccountingAccountRole));
+                OnPropertyChanged(nameof(SelectedAccountingAccountParent));
+            }
+        }
+
+        public string SelectedAccountingAccountTitle =>
+            SelectedAccountingAccount == null
+                ? "Select an account"
+                : $"{SelectedAccountingAccount.Code} · {SelectedAccountingAccount.Name}";
+
+        public string SelectedAccountingAccountUsage =>
+            SelectedAccountingAccount?.UsageSummary
+            ?? "Pick an account from the chart below to review how the current app uses it.";
+
+        public string SelectedAccountingAccountRole => SelectedAccountingAccount?.PostingRoleLabel ?? "Reference";
+        public string SelectedAccountingAccountParent => SelectedAccountingAccount?.ParentDisplay ?? "Root";
 
         public string NewCustomerName { get => CustomersFeature.NewCustomerName; set { CustomersFeature.NewCustomerName = value; OnPropertyChanged(nameof(NewCustomerName)); } }
         public string NewCustomerPhone { get => CustomersFeature.NewCustomerPhone; set { CustomersFeature.NewCustomerPhone = value; OnPropertyChanged(nameof(NewCustomerPhone)); } }
@@ -451,6 +490,7 @@ namespace SpareParts.Desktop.Wpf
         private decimal _newUsedCarTotalBeforeShipping;
         private decimal _newUsedCarGrandTotalBase;
         private decimal _newUsedCarGrandTotalCounter;
+        private AccountingAccountRow? _selectedAccountingAccount;
         private bool _canViewCurrencyTab;
         private bool _canViewTransactionTypesTab;
         public bool IsLoading
@@ -490,6 +530,7 @@ namespace SpareParts.Desktop.Wpf
 
         public ManagementViewModel(
             ICrudApiClient crudApi,
+            IAccountingApiClient accountingApi,
             ICarCatalogApiClient carCatalogApi,
             UsersViewModel usersVm,
             RolesViewModel rolesVm,
@@ -500,6 +541,7 @@ namespace SpareParts.Desktop.Wpf
         {
             UsersVm = usersVm;
             RolesVm = rolesVm;
+            AccountingVm = new AccountingViewModel(accountingApi);
             SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
 
             _coordinator = new ManagementCoordinator(
@@ -552,6 +594,7 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 var loadResult = await _coordinator.LoadAllAsync(RolesVm);
+                await AccountingVm.LoadSetupAsync();
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -573,9 +616,12 @@ namespace SpareParts.Desktop.Wpf
                     ReplaceCurrencyRateRows();
                     ReplaceUsedCars(loadResult.UsedCars);
                     Replace(TransactionTypes, loadResult.TransactionTypes);
+                    RaiseAccountingDashboardProps();
                 });
 
-                SetStatus("✓ Data loaded.", true);
+                SetStatus(
+                    AccountingVm.IsStatusSuccess ? "✓ Data loaded." : AccountingVm.Status,
+                    AccountingVm.IsStatusSuccess);
             }
             catch (Exception ex)
             {
@@ -588,6 +634,121 @@ namespace SpareParts.Desktop.Wpf
             {
                 IsLoading = false;
             }
+        }
+
+        private void InitializeAccountingCenter()
+        {
+            var accounts = new[]
+            {
+                new AccountingAccountRow
+                {
+                    Id = 1,
+                    Code = "1000",
+                    Name = "Cash",
+                    AccountType = AccountType.Asset,
+                    IsConfiguredPostingAccount = true,
+                    PostingRoleLabel = "Sales cash account",
+                    UsageSummary = "Receives the debit side of sales postings and represents immediate collections."
+                },
+                new AccountingAccountRow
+                {
+                    Id = 2,
+                    Code = "1100",
+                    Name = "Inventory",
+                    AccountType = AccountType.Asset,
+                    IsConfiguredPostingAccount = true,
+                    PostingRoleLabel = "Inventory control",
+                    UsageSummary = "Credited during sales and debited during purchases to keep stock valuation aligned with movement."
+                },
+                new AccountingAccountRow
+                {
+                    Id = 3,
+                    Code = "2000",
+                    Name = "Accounts Payable",
+                    AccountType = AccountType.Liability,
+                    PostingRoleLabel = "Reference liability",
+                    UsageSummary = "Seeded as the liability bucket for supplier balances and future credit-purchase workflows."
+                },
+                new AccountingAccountRow
+                {
+                    Id = 4,
+                    Code = "3000",
+                    Name = "Owner Equity",
+                    AccountType = AccountType.Equity,
+                    IsConfiguredPostingAccount = true,
+                    PostingRoleLabel = "Purchase offset",
+                    UsageSummary = "Currently configured as the offset account for purchase postings in the backend accounting options."
+                },
+                new AccountingAccountRow
+                {
+                    Id = 5,
+                    Code = "4000",
+                    Name = "Sales Revenue",
+                    AccountType = AccountType.Income,
+                    IsConfiguredPostingAccount = true,
+                    PostingRoleLabel = "Sales revenue",
+                    UsageSummary = "Credited whenever a sales invoice is posted."
+                },
+                new AccountingAccountRow
+                {
+                    Id = 6,
+                    Code = "5000",
+                    Name = "Cost of Goods Sold",
+                    AccountType = AccountType.Expense,
+                    IsConfiguredPostingAccount = true,
+                    PostingRoleLabel = "COGS expense",
+                    UsageSummary = "Debited alongside each sale to recognize the cost of inventory leaving stock."
+                },
+                new AccountingAccountRow
+                {
+                    Id = 7,
+                    Code = "6000",
+                    Name = "Operating Expenses",
+                    AccountType = AccountType.Expense,
+                    PostingRoleLabel = "Reference expense",
+                    UsageSummary = "Available for future non-inventory expense postings once more accounting flows are added."
+                }
+            };
+
+            var postingRules = new[]
+            {
+                new AccountingPostingRuleRow
+                {
+                    Area = "Sales",
+                    Trigger = "Create or update a sales invoice",
+                    DebitAccounts = "1000 Cash, 5000 Cost of Goods Sold",
+                    CreditAccounts = "4000 Sales Revenue, 1100 Inventory",
+                    Notes = "Matches the current sales accounting strategy used by the backend service."
+                },
+                new AccountingPostingRuleRow
+                {
+                    Area = "Purchases",
+                    Trigger = "Create a purchase invoice",
+                    DebitAccounts = "1100 Inventory",
+                    CreditAccounts = "3000 Owner Equity",
+                    Notes = "Reflects the current purchase offset account configured in application settings."
+                }
+            };
+
+            Replace(AccountingAccounts, accounts);
+            Replace(ConfiguredAccountingAccounts, accounts.Where(account => account.IsConfiguredPostingAccount));
+            Replace(AccountingPostingRules, postingRules);
+            SelectedAccountingAccount = ConfiguredAccountingAccounts.FirstOrDefault() ?? AccountingAccounts.FirstOrDefault();
+
+            RaiseAccountingDashboardProps();
+            OnPropertyChanged(nameof(AccountingChartSummary));
+            OnPropertyChanged(nameof(AccountingPostingSummary));
+        }
+
+        private void RaiseAccountingDashboardProps()
+        {
+            OnPropertyChanged(nameof(AccountingAccountCount));
+            OnPropertyChanged(nameof(ActiveTransactionTypeCount));
+            OnPropertyChanged(nameof(CustomerOpeningBalanceTotal));
+            OnPropertyChanged(nameof(SupplierOpeningBalanceTotal));
+            OnPropertyChanged(nameof(AccountingChartSummary));
+            OnPropertyChanged(nameof(AccountingPostingSummary));
+            OnPropertyChanged(nameof(AccountingOperationsSummary));
         }
 
         private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)

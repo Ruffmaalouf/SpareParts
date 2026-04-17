@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
@@ -23,6 +22,7 @@ public static class SparePartsApiComposition
         [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(WarehousesController), nameof(TransactionTypesController)],
+        [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
         [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController)],
         [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController)],
         [ServiceCapability.Health] = [nameof(HealthController)]
@@ -42,14 +42,18 @@ public static class SparePartsApiComposition
 
     public static void AddSparePartsApiCore(this WebApplicationBuilder builder)
     {
+        AccountingDapperBootstrap.EnsureConfigured();
+
         var connString = ResolveConnectionString(builder);
         var jwtSettings = ResolveJwtSettings(builder.Configuration);
+        var accountingOptions = builder.Configuration.GetSection("Accounting").Get<AccountingOptions>() ?? new AccountingOptions();
 
-        builder.Services.Configure<AccountingOptions>(builder.Configuration.GetSection("Accounting"));
+        builder.Services.AddSingleton(accountingOptions);
 
         builder.Services.AddSingleton<ISqlConnectionFactory>(_ => new SqlConnectionFactory(connString));
         builder.Services.AddSingleton<IExceptionLogWriter, SqlExceptionLogWriter>();
         builder.Services.AddSingleton(jwtSettings);
+        builder.Services.AddSingleton<AccountingSettingsProvider>();
 
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -93,14 +97,12 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Sales))
         {
+            services.AddScoped<CustomerAccountResolver>();
             services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>
             {
-                var options = sp.GetRequiredService<IOptions<AccountingOptions>>().Value;
                 return new SaleAccountingStrategy(
-                    cashAccountId: options.CashAccountId,
-                    salesAccountId: options.SalesAccountId,
-                    cogsAccountId: options.CogsAccountId,
-                    inventoryAccountId: options.InventoryAccountId);
+                    sp.GetRequiredService<AccountingSettingsProvider>(),
+                    sp.GetRequiredService<CustomerAccountResolver>());
             });
 
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
@@ -111,12 +113,12 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Purchases))
         {
+            services.AddScoped<SupplierAccountResolver>();
             services.AddScoped<IAccountingStrategy<PurchaseInvoice>>(sp =>
             {
-                var options = sp.GetRequiredService<IOptions<AccountingOptions>>().Value;
                 return new PurchaseAccountingStrategy(
-                    inventoryAccountId: options.InventoryAccountId,
-                    cashOrApAccountId: options.CashOrApAccountId);
+                    sp.GetRequiredService<AccountingSettingsProvider>(),
+                    sp.GetRequiredService<SupplierAccountResolver>());
             });
 
             services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
@@ -130,6 +132,13 @@ public static class SparePartsApiComposition
             services.AddScoped<PartsService>();
             services.AddScoped<WarehousesService>();
             services.AddScoped<TransactionTypesService>();
+        }
+
+        if (distinctCapabilities.Contains(ServiceCapability.Accounting))
+        {
+            services.AddScoped<AccountingService>();
+            services.AddScoped<CustomerAccountResolver>();
+            services.AddScoped<SupplierAccountResolver>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Identity))
@@ -180,6 +189,7 @@ public static class SparePartsApiComposition
     public static void UseSparePartsApiPipeline(this WebApplication app)
     {
         var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
+        AccountingMigration.EnsureApplied(sqlConnectionFactory);
         MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
         TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
         CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);

@@ -9,5 +9,16 @@ namespace SpareParts.Domain.BusinessPartners
         public string? Address { get; set; }
         public string? TaxNumber { get; set; }
         public decimal OpeningBalance { get; set; }
+        public int? AccountId { get; set; }
+        public string? AccountCode { get; set; }
+        public string? AccountName { get; set; }
+
+        public string AccountDisplay => !AccountId.HasValue
+            ? "Pending"
+            : string.IsNullOrWhiteSpace(AccountCode)
+                ? (AccountName ?? string.Empty)
+                : string.IsNullOrWhiteSpace(AccountName)
+                    ? AccountCode
+                    : $"{AccountCode} · {AccountName}";
     }
 }

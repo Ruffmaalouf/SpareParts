@@ -68,6 +68,20 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _canViewStockManagementScreen = value; OnPropertyChanged(nameof(CanViewStockManagementScreen)); }
         }
 
+        private bool _canViewAccountingScreen;
+        public bool CanViewAccountingScreen
+        {
+            get => _canViewAccountingScreen;
+            private set { _canViewAccountingScreen = value; OnPropertyChanged(nameof(CanViewAccountingScreen)); }
+        }
+
+        private bool _canViewManualJournalScreen;
+        public bool CanViewManualJournalScreen
+        {
+            get => _canViewManualJournalScreen;
+            private set { _canViewManualJournalScreen = value; OnPropertyChanged(nameof(CanViewManualJournalScreen)); }
+        }
+
         private bool _canViewCarSelectionScreen;
         public bool CanViewCarSelectionScreen
         {
@@ -295,7 +309,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IsLoadingRolePermissions ||
             IsLoadingInvoiceSearch ||
             IsLoadingInvoiceOpen ||
-            ManagementVm.IsLoading;
+            ManagementVm.IsLoading ||
+            ManagementVm.AccountingVm.IsLoading;
 
         public ObservableCollection<ThemeOption> Themes { get; } = new();
         public ICommand SelectThemeCommand { get; private set; } = null!;
@@ -324,6 +339,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToStockManagementCommand { get; }
+        public ICommand GoToAccountingCommand { get; }
+        public ICommand GoToManualJournalCommand { get; }
         public ICommand GoToArCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
@@ -350,6 +367,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ManagementVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(ManagementViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            ManagementVm.AccountingVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(Management.AccountingViewModel.IsLoading))
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
@@ -452,6 +476,28 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 ActiveScreen = AppScreen.StockManagement;
             });
+            GoToAccountingCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewAccountingScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view accounting.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.Accounting;
+                ManagementVm.AccountingVm.LoadReviewAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToManualJournalCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewManualJournalScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view manual journals.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.ManualJournal;
+                ManagementVm.AccountingVm.LoadManualJournalAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             GoToArCommand = new RelayCommand(_ =>
             {
                 if (!CanViewArScreen)
@@ -508,6 +554,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var supplierTab = GetMenuAccess(menuAccessItems, "supplier_tab");
             var currencyTab = GetMenuAccess(menuAccessItems, "currency_tab");
             var transactionTypesTab = GetMenuAccess(menuAccessItems, "transaction_types_tab");
+            var accountingScreen = GetMenuAccess(menuAccessItems, "accounting_screen");
+            var manualJournalScreen = GetMenuAccess(menuAccessItems, "manual_journal_screen");
             var posScreen = GetMenuAccess(menuAccessItems, "pos_screen");
             var purchasesScreen = GetMenuAccess(menuAccessItems, "purchases_screen");
             var stockManagementScreen = GetMenuAccess(menuAccessItems, "stock_management_screen");
@@ -520,6 +568,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CanViewPosScreen = posScreen.CanView;
             CanViewPurchasesScreen = purchasesScreen.CanView;
             CanViewStockManagementScreen = stockManagementScreen.CanView;
+            CanViewAccountingScreen = accountingScreen.CanView;
+            CanViewManualJournalScreen = manualJournalScreen.CanView;
             CanViewCarSelectionScreen = carSelectionScreen.CanView;
             CanViewPartSelectionScreen = partSelectionScreen.CanView;
             CanViewArScreen = arScreen?.CanView ?? true;

@@ -378,6 +378,18 @@
                                         Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                                         Content="📦  Stock Management"/>
 
+                                <Button Command="{Binding GoToAccountingCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewAccountingScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="📒  Accounting Review"/>
+
+                                <Button Command="{Binding GoToManualJournalCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewManualJournalScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="📝  Manual Journal"/>
+
                                 <Button Command="{Binding GoToArCommand}"
                                         Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
@@ -458,25 +470,321 @@
                            Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <TextBlock Text="Maalouf Auto Parts" FontSize="28" FontWeight="Bold"
                                Margin="0 20 0 0" HorizontalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 30 0 0">
+                    <WrapPanel HorizontalAlignment="Center" Margin="0 30 0 0">
                         <Button Content="Start New Sale" Command="{Binding GoToPosCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 Visibility="{Binding CanViewPosScreen, Converter={StaticResource BoolToVis}}"
-                                Width="200"/>
+                                Width="200" Margin="0 0 12 12"/>
                         <Button Content="Open Purchases" Command="{Binding GoToPurchasesCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
-                                Width="200" Margin="12 0 0 0"/>
+                                Width="200" Margin="0 0 12 12"/>
                         <Button Content="Open Stock" Command="{Binding GoToStockManagementCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
-                                Width="200" Margin="12 0 0 0"/>
+                                Width="200" Margin="0 0 12 12"/>
+                        <Button Content="Open Accounting" Command="{Binding GoToAccountingCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewAccountingScreen, Converter={StaticResource BoolToVis}}"
+                                Width="200" Margin="0 0 12 12"/>
+                        <Button Content="Open Manual Journal" Command="{Binding GoToManualJournalCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewManualJournalScreen, Converter={StaticResource BoolToVis}}"
+                                Width="200" Margin="0 0 12 12"/>
                         <Button Content="Open AR" Command="{Binding GoToArCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Visibility="{Binding CanViewArScreen, Converter={StaticResource BoolToVis}}"
-                                Width="200" Margin="12 0 0 0"/>
-                    </StackPanel>
+                                Width="200" Margin="0 0 12 12"/>
+                    </WrapPanel>
                 </StackPanel>
+            </Grid>
+
+            <!-- ── Accounting ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=Accounting}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left" MaxWidth="720">
+                        <TextBlock Text="Accounting Review" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Review journal activity, inspect posted entries, and monitor ledger and trial balance results."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="⟵ Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"
+                                Margin="0 0 10 0"/>
+                        <Button Content="↻ Refresh"
+                                Command="{Binding ManagementVm.AccountingVm.LoadReviewCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Manual Journal"
+                                Command="{Binding GoToManualJournalCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewManualJournalScreen, Converter={StaticResource BoolToVis}}"
+                                Width="150"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Open Management"
+                                Command="{Binding OpenManagementCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}"
+                                Width="170"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <Border Grid.Row="1"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        CornerRadius="12"
+                        Padding="14"
+                        Margin="0 0 0 20">
+                    <DockPanel>
+                        <TextBlock Text="Status"
+                                   DockPanel.Dock="Left"
+                                   FontWeight="SemiBold"
+                                   Margin="0 0 12 0"/>
+                        <TextBlock Text="{Binding ManagementVm.AccountingVm.Status}"
+                                   Foreground="{Binding ManagementVm.AccountingVm.StatusBrush}"
+                                   TextWrapping="Wrap"/>
+                    </DockPanel>
+                </Border>
+
+                <local:AccountingWorkspaceControl Grid.Row="2"
+                                                 DataContext="{Binding ManagementVm.AccountingVm}"/>
+
+                <Grid Grid.Row="2"
+                      Visibility="Collapsed"
+                      DataContext="{x:Null}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="360"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18" Margin="0 0 0 12">
+                            <StackPanel>
+                                <TextBlock Text="Posting Rules" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding ManagementVm.AccountingPostingSummary}"
+                                           Margin="0 6 0 14"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <ItemsControl ItemsSource="{Binding ManagementVm.AccountingPostingRules}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource AppBackgroundBrush}"
+                                                    BorderBrush="{DynamicResource BorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="12"
+                                                    Margin="0 0 0 10">
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <TextBlock Text="{Binding Area}" FontSize="15" FontWeight="SemiBold" DockPanel.Dock="Left"/>
+                                                        <TextBlock Text="{Binding Trigger}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right"/>
+                                                    </DockPanel>
+                                                    <TextBlock Margin="0 8 0 0"
+                                                               FontWeight="SemiBold"
+                                                               TextWrapping="Wrap">
+                                                        <Run Text="Debit: "/>
+                                                        <Run Text="{Binding DebitAccounts}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Margin="0 4 0 0"
+                                                               FontWeight="SemiBold"
+                                                               TextWrapping="Wrap">
+                                                        <Run Text="Credit: "/>
+                                                        <Run Text="{Binding CreditAccounts}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding Notes}"
+                                                               Margin="0 8 0 0"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="Configured Posting Accounts" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="These are the key accounts the current application configuration points to."
+                                           Margin="0 6 0 14"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+                                <ItemsControl ItemsSource="{Binding ManagementVm.ConfiguredAccountingAccounts}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource AppBackgroundBrush}"
+                                                    BorderBrush="{DynamicResource BorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="12"
+                                                    Margin="0 0 0 10">
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <StackPanel DockPanel.Dock="Left">
+                                                            <TextBlock Text="{Binding Code}" FontWeight="Bold"/>
+                                                            <TextBlock Text="{Binding Name}" Margin="0 4 0 0"/>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding PostingRoleLabel}"
+                                                                   DockPanel.Dock="Right"
+                                                                   Foreground="{DynamicResource AccentBrush}"
+                                                                   FontSize="11"
+                                                                   VerticalAlignment="Top"/>
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding UsageSummary}"
+                                                               Margin="0 8 0 0"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Selected Account" FontSize="16" FontWeight="SemiBold" Margin="0 6 0 6"/>
+                                <TextBlock Text="{Binding ManagementVm.SelectedAccountingAccountTitle}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding ManagementVm.SelectedAccountingAccountRole}"
+                                           Margin="0 6 0 0"
+                                           Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="{Binding ManagementVm.SelectedAccountingAccountUsage}"
+                                           Margin="0 8 0 0"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+                                <TextBlock Margin="0 8 0 0"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}">
+                                    <Run Text="Parent: "/>
+                                    <Run Text="{Binding ManagementVm.SelectedAccountingAccountParent, Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Border Grid.Column="2"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            CornerRadius="12"
+                            Padding="18">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                <StackPanel DockPanel.Dock="Left">
+                                    <TextBlock Text="Chart of Accounts" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding ManagementVm.AccountingChartSummary}"
+                                               Margin="0 6 0 0"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <DataGrid Grid.Row="1"
+                                      ItemsSource="{Binding ManagementVm.AccountingAccounts}"
+                                      SelectedItem="{Binding ManagementVm.SelectedAccountingAccount, Mode=TwoWay}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      CanUserDeleteRows="False"
+                                      CanUserResizeRows="False"
+                                      IsReadOnly="True"
+                                      SelectionMode="Single"
+                                      SelectionUnit="FullRow"
+                                      HeadersVisibility="Column"
+                                      BorderThickness="0"
+                                      GridLinesVisibility="Horizontal"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="55"/>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="90"/>
+                                    <DataGridTextColumn Header="Account" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding AccountType}" Width="120"/>
+                                    <DataGridTextColumn Header="Parent" Binding="{Binding ParentDisplay}" Width="80"/>
+                                    <DataGridCheckBoxColumn Header="Configured" Binding="{Binding IsConfiguredPostingAccount, Mode=OneWay}" Width="90"/>
+                                    <DataGridTextColumn Header="Role" Binding="{Binding PostingRoleLabel}" Width="180"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- ── Manual Journal ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=ManualJournal}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left" MaxWidth="720">
+                        <TextBlock Text="Manual Journal" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Post standalone journal entries with dedicated access control, separate from chart setup and reporting."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="⟵ Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"
+                                Margin="0 0 10 0"/>
+                        <Button Content="↻ Refresh"
+                                Command="{Binding ManagementVm.AccountingVm.LoadManualJournalCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Open Accounting"
+                                Command="{Binding GoToAccountingCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Visibility="{Binding CanViewAccountingScreen, Converter={StaticResource BoolToVis}}"
+                                Width="150"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Open Management"
+                                Command="{Binding OpenManagementCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}"
+                                Width="170"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <Border Grid.Row="1"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        CornerRadius="12"
+                        Padding="14"
+                        Margin="0 0 0 20">
+                    <DockPanel>
+                        <TextBlock Text="Status"
+                                   DockPanel.Dock="Left"
+                                   FontWeight="SemiBold"
+                                   Margin="0 0 12 0"/>
+                        <TextBlock Text="{Binding ManagementVm.AccountingVm.Status}"
+                                   Foreground="{Binding ManagementVm.AccountingVm.StatusBrush}"
+                                   TextWrapping="Wrap"/>
+                    </DockPanel>
+                </Border>
+
+                <local:ManualJournalPostingControl Grid.Row="2"
+                                                  DataContext="{Binding ManagementVm.AccountingVm}"/>
             </Grid>
 
             <!-- ── Purchases ── -->
@@ -887,6 +1195,7 @@
                                         <controls:SaleDatePickerControl
                             Grid.Column="6"
                             Label="DATE"
+                            PopupTitle="SELECT INVOICE DATE"
                             SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
                             VerticalAlignment="Top"/>
                                     </Grid>

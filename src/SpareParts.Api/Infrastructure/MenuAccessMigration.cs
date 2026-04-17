@@ -49,7 +49,9 @@ USING (VALUES
     ('invoice_search', 'Invoice Search', 10),
     ('purchases_screen', 'Purchases Screen', 15),
     ('stock_management_screen', 'Stock Management Screen', 18),
-    ('management_screen', 'Management Screen', 20),
+    ('accounting_screen', 'Accounting Screen', 19),
+    ('manual_journal_screen', 'Manual Journal Screen', 20),
+    ('management_screen', 'Management Screen', 21),
     ('supplier_tab', 'Supplier Tab', 30),
     ('currency_tab', 'Currency Tab', 31),
     ('transaction_types_tab', 'Transaction Types Tab', 32)
@@ -66,7 +68,7 @@ SELECT r.Id,
        CASE 
          WHEN m.MenuKey IN ('home_screen','pos_screen','car_selection_screen','part_selection_screen') AND r.Name IN ('Admin','Manager','Cashier') THEN 1
          WHEN m.MenuKey = 'invoice_search' AND r.Name IN ('Admin','Manager','Cashier') THEN 1
-         WHEN m.MenuKey IN ('purchases_screen','stock_management_screen') AND r.Name IN ('Admin','Manager') THEN 1
+         WHEN m.MenuKey IN ('purchases_screen','stock_management_screen','accounting_screen','manual_journal_screen') AND r.Name IN ('Admin','Manager') THEN 1
          WHEN m.MenuKey IN ('management_screen','supplier_tab','currency_tab','transaction_types_tab') AND r.Name IN ('Admin','Manager') THEN 1
          ELSE 0
        END AS CanView,

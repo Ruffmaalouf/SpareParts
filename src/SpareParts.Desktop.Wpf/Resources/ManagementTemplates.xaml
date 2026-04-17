@@ -178,6 +178,7 @@
                                         <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
                                         <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"          Width="120"/>
                                         <DataGridTextColumn Header="Email"   Binding="{Binding Email}"          Width="160"/>
+                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay}" Width="180"/>
                                         <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, StringFormat={}{0:N0}}" Width="90"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -245,6 +246,7 @@
                                         <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="50"/>
                                         <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
                                         <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"          Width="120"/>
+                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay}" Width="180"/>
                                         <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, StringFormat={}{0:N0}}" Width="90"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -859,7 +861,11 @@
                     </Grid>
                 </TabItem>
 
-                <!-- TAB 8 — USERS (UsersVm sub-binding) -->
+                <TabItem Header="📒  Accounting Setup" DataContext="{Binding AccountingVm}">
+                    <local:AccountingSetupControl Margin="10"/>
+                </TabItem>
+
+                <!-- USERS (UsersVm sub-binding) -->
                 <TabItem Header="👥  Users" DataContext="{Binding UsersVm}">
                     <controls:UsersTab/>
                 </TabItem>

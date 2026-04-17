@@ -1,0 +1,88 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.ManualJournalPostingControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SpareParts.Desktop.Wpf;assembly=SpareParts.Desktop.Controls">
+    <UserControl.Resources>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource AccountingComboBoxStyle}"/>
+    </UserControl.Resources>
+    <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Manual Journal Posting" FontSize="18" FontWeight="Bold"/>
+            <Grid Grid.Row="1" Margin="0 12 0 12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="240"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <controls:SaleDatePickerControl Grid.Column="0"
+                                                Grid.RowSpan="2"
+                                                Label="ENTRY DATE"
+                                                PopupTitle="SELECT JOURNAL DATE"
+                                                DisplayFormat="dd MMM yyyy"
+                                                PlaceholderText="Journal date"
+                                                SelectedDate="{Binding ManualJournalEntryDate, Mode=TwoWay}"
+                                                VerticalAlignment="Top"/>
+                <TextBlock Grid.Column="2"
+                           Text="Reference"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBlock Grid.Column="4"
+                           Text="Description"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBox Grid.Column="2"
+                         Grid.Row="1"
+                         Margin="0 6 0 0"
+                         Text="{Binding ManualJournalReferenceType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Grid.Column="4"
+                         Grid.Row="1"
+                         Margin="0 6 0 0"
+                         Text="{Binding ManualJournalDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+            <DataGrid Grid.Row="2" ItemsSource="{Binding ManualJournalLines}" SelectedItem="{Binding SelectedManualJournalLine, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Account" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding DataContext.Accounts, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedValue="{Binding AccountId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Id" DisplayMemberPath="DisplayName"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Debit" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Debit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Credit" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Credit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0 14 0 0">
+                <Button Content="Add Line" Command="{Binding AddManualLineCommand}" Style="{StaticResource SecondaryButtonStyle}" Width="120" Margin="0 0 10 0"/>
+                <Button Content="Remove Line" Command="{Binding RemoveManualLineCommand}" Style="{StaticResource SecondaryButtonStyle}" Width="140" Margin="0 0 10 0"/>
+                <Button Content="Post Journal" Command="{Binding PostManualJournalCommand}" Style="{StaticResource PrimaryButtonStyle}" Width="140"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

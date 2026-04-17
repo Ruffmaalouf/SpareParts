@@ -1,10 +1,13 @@
+using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Data.Repositories;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class CustomersService
 {
+    private const string CustomerControlAccountCode = "1200";
     private readonly ISqlConnectionFactory _factory;
 
     public CustomersService(ISqlConnectionFactory factory)
@@ -22,16 +25,7 @@ public sealed class CustomersService
             all = all.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        var projected = all.Select(c => new CustomerDto
-        {
-            Id = c.Id,
-            Name = c.Name,
-            Phone = c.Phone,
-            Email = c.Email,
-            Address = c.Address,
-            TaxNumber = c.TaxNumber,
-            OpeningBalance = c.OpeningBalance
-        }).ToList();
+        var projected = all.ToList();
 
         var paged = projected.Skip((page - 1) * pageSize).Take(pageSize);
         return (paged, projected.Count);
@@ -41,6 +35,7 @@ public sealed class CustomersService
     {
         using var session = new DbSession(_factory);
         var repository = new CustomersRepository(session);
+        var accounting = RepositoryCatalog.For(session).Accounting;
         var customer = new Customer
         {
             Name = request.Name,
@@ -49,11 +44,14 @@ public sealed class CustomersService
             Address = request.Address,
             TaxNumber = request.TaxNumber,
             OpeningBalance = request.OpeningBalance,
+            AccountId = null,
             CreatedAt = DateTime.UtcNow,
             CreatedByUserId = userId
         };
 
         var id = repository.Insert(customer);
+        var accountId = EnsureCustomerAccount(accounting, id, customer.Name, null, userId);
+        repository.SetAccountId(id, accountId, userId);
         session.Commit();
         return id;
     }
@@ -62,11 +60,16 @@ public sealed class CustomersService
     {
         using var session = new DbSession(_factory);
         var repository = new CustomersRepository(session);
+        var accounting = RepositoryCatalog.For(session).Accounting;
+        var existing = repository.GetById(id) ?? throw new NotFoundException("Customer not found.");
+
         if (!repository.Update(id, request, userId))
         {
             throw new NotFoundException("Customer not found.");
         }
 
+        var accountId = EnsureCustomerAccount(accounting, id, request.Name, existing.AccountId, userId);
+        repository.SetAccountId(id, accountId, userId);
         session.Commit();
     }
 
@@ -74,11 +77,96 @@ public sealed class CustomersService
     {
         using var session = new DbSession(_factory);
         var repository = new CustomersRepository(session);
+        var accounting = RepositoryCatalog.For(session).Accounting;
+        var existing = repository.GetById(id) ?? throw new NotFoundException("Customer not found.");
+
         if (!repository.Delete(id))
         {
             throw new NotFoundException("Customer not found.");
         }
 
+        if (existing.AccountId is > 0
+            && !repository.UsesAccount(existing.AccountId.Value)
+            && !accounting.PostingSettings.UsesAccount(existing.AccountId.Value)
+            && !accounting.Journal.HasEntriesForAccount(existing.AccountId.Value)
+            && !accounting.Accounts.HasChildren(existing.AccountId.Value))
+        {
+            accounting.Accounts.Delete(existing.AccountId.Value);
+        }
+
         session.Commit();
+    }
+
+    public int? GetCustomerAccountId(int customerId)
+    {
+        using var session = new DbSession(_factory);
+        return new CustomersRepository(session).GetAccountId(customerId);
+    }
+
+    private static int EnsureCustomerAccount(AccountingRepositories accounting, int customerId, string customerName, int? existingAccountId, int userId)
+    {
+        var parentAccountId = EnsureCustomerControlAccount(accounting.Accounts, userId);
+        var accountCode = BuildCustomerAccountCode(customerId);
+        var accountName = BuildCustomerAccountName(customerName, customerId);
+
+        if (existingAccountId is > 0)
+        {
+            var existingAccount = accounting.Accounts.GetById(existingAccountId.Value);
+            if (existingAccount != null)
+            {
+                accounting.Accounts.Update(existingAccount.Id, accountCode, accountName, "asset", parentAccountId, userId);
+                return existingAccount.Id;
+            }
+        }
+
+        var accountByCode = accounting.Accounts.GetByCode(accountCode);
+        if (accountByCode != null)
+        {
+            accounting.Accounts.Update(accountByCode.Id, accountCode, accountName, "asset", parentAccountId, userId);
+            return accountByCode.Id;
+        }
+
+        return accounting.Accounts.Insert(new Account
+        {
+            Code = accountCode,
+            Name = accountName,
+            AccountTypeKey = "asset",
+            ParentId = parentAccountId,
+            CreatedAt = DateTime.UtcNow,
+            CreatedByUserId = userId
+        });
+    }
+
+    private static int EnsureCustomerControlAccount(SpareParts.Infrastructure.Interfaces.Repositories.IAccountsRepository accountsRepository, int userId)
+    {
+        var existing = accountsRepository.GetByCode(CustomerControlAccountCode);
+        if (existing != null)
+        {
+            return existing.Id;
+        }
+
+        return accountsRepository.Insert(new Account
+        {
+            Code = CustomerControlAccountCode,
+            Name = "Customer Accounts",
+            AccountTypeKey = "asset",
+            ParentId = null,
+            CreatedAt = DateTime.UtcNow,
+            CreatedByUserId = userId
+        });
+    }
+
+    private static string BuildCustomerAccountCode(int customerId)
+        => $"CUST-{customerId:D6}";
+
+    private static string BuildCustomerAccountName(string? customerName, int customerId)
+    {
+        var safeName = string.IsNullOrWhiteSpace(customerName)
+            ? $"Customer {customerId}"
+            : customerName.Trim();
+
+        return safeName.Length > 149
+            ? $"Customer - {safeName[..149]}"
+            : $"Customer - {safeName}";
     }
 }

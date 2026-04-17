@@ -104,28 +104,51 @@ namespace SpareParts.Desktop.Wpf
             {
                 var result = await _authApi.LoginAsync(Username.Trim(), password);
 
+                var sessionUser = new SessionUser
+                {
+                    UserId = result.UserId,
+                    FullName = result.FullName,
+                    Role = result.Role,
+                    Token = result.Token,
+                    ExpiresAt = result.ExpiresAt
+                };
+
                 // Store token in the shared API token store for future API calls
                 _sessionApi.SetToken(result.Token);
 
                 // Store session info globally
-                SessionContext.CurrentUser = new SessionUser
-                {
-                    UserId   = result.UserId,
-                    FullName = result.FullName,
-                    Role     = result.Role,
-                    Token    = result.Token,
-                    ExpiresAt = result.ExpiresAt
-                };
+                SessionContext.CurrentUser = sessionUser;
 
-                LoginSucceeded?.Invoke(result);
+                try
+                {
+                    LoginSucceeded?.Invoke(result);
+                }
+                catch (Exception ex)
+                {
+                    _sessionApi.ClearToken();
+                    SessionContext.CurrentUser = null;
+                    ErrorMessage = $"Login succeeded, but the main window could not open: {ex.Message}";
+                }
             }
             catch (UnauthorizedAccessException ex)
             {
                 ErrorMessage = ex.Message;
             }
-            catch (Exception ex)
+            catch (ApiClientException ex)
+            {
+                ErrorMessage = ex.Message;
+            }
+            catch (HttpRequestException ex)
             {
                 ErrorMessage = $"Cannot reach API: {ex.Message}";
+            }
+            catch (TaskCanceledException)
+            {
+                ErrorMessage = "Cannot reach API: the request timed out.";
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Login failed: {ex.Message}";
             }
             finally
             {

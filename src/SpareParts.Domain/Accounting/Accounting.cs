@@ -6,7 +6,7 @@ namespace SpareParts.Domain.Accounting
     {
         public string Code { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public AccountType AccountType { get; set; }
+        public string AccountTypeKey { get; set; } = string.Empty;
         public int? ParentId { get; set; }
     }
 }

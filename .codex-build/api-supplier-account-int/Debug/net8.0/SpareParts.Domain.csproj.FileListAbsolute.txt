@@ -1,0 +1,5 @@
+D:\Ralph\SpareParts\.codex-build\api-supplier-account-int\Debug\net8.0\SpareParts.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\.codex-build\api-supplier-account-int\Debug\net8.0\SpareParts.Domain.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\.codex-build\api-supplier-account-int\Debug\net8.0\SpareParts.Domain.AssemblyInfo.cs
+D:\Ralph\SpareParts\.codex-build\api-supplier-account-int\Debug\net8.0\SpareParts.Domain.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\.codex-build\api-supplier-account-int\Debug\net8.0\SpareParts.Domain.sourcelink.json

@@ -5,17 +5,13 @@ namespace SpareParts.Infrastructure.Services
 {
     public class SaleAccountingStrategy : IAccountingStrategy<SalesInvoice>
     {
-        private readonly int _cashAccountId;
-        private readonly int _salesAccountId;
-        private readonly int _cogsAccountId;
-        private readonly int _inventoryAccountId;
+        private readonly AccountingSettingsProvider _settingsProvider;
+        private readonly CustomerAccountResolver _customerAccountResolver;
 
-        public SaleAccountingStrategy(int cashAccountId, int salesAccountId, int cogsAccountId, int inventoryAccountId)
+        public SaleAccountingStrategy(AccountingSettingsProvider settingsProvider, CustomerAccountResolver customerAccountResolver)
         {
-            _cashAccountId = cashAccountId;
-            _salesAccountId = salesAccountId;
-            _cogsAccountId = cogsAccountId;
-            _inventoryAccountId = inventoryAccountId;
+            _settingsProvider = settingsProvider;
+            _customerAccountResolver = customerAccountResolver;
         }
 
         public List<JournalLine> BuildJournalLines(SalesInvoice invoice, int userId)
@@ -25,12 +21,14 @@ namespace SpareParts.Infrastructure.Services
                 throw new InvalidOperationException("Sale journal lines cannot be generated from negative totals.");
             }
 
+            var settings = _settingsProvider.GetSnapshot();
+            var debitAccountId = _customerAccountResolver.ResolveAccountId(invoice.CustomerId) ?? settings.SalesCashAccountId;
             var lines = new List<JournalLine>
             {
-                new() { AccountId = _cashAccountId, Debit = invoice.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = _salesAccountId, Debit = 0, Credit = invoice.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = _cogsAccountId, Debit = invoice.TotalCost, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = _inventoryAccountId, Debit = 0, Credit = invoice.TotalCost, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
+                new() { AccountId = debitAccountId, Debit = invoice.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = settings.SalesRevenueAccountId, Debit = 0, Credit = invoice.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = settings.CogsAccountId, Debit = invoice.TotalCost, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = settings.InventoryAccountId, Debit = 0, Credit = invoice.TotalCost, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
             };
 
             var totalDebit = lines.Sum(x => x.Debit);

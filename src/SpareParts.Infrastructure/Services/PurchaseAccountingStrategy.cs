@@ -5,13 +5,13 @@ namespace SpareParts.Infrastructure.Services
 {
     public class PurchaseAccountingStrategy : IAccountingStrategy<PurchaseInvoice>
     {
-        private readonly int _inventoryAccountId;
-        private readonly int _cashOrApAccountId;
+        private readonly AccountingSettingsProvider _settingsProvider;
+        private readonly SupplierAccountResolver _supplierAccountResolver;
 
-        public PurchaseAccountingStrategy(int inventoryAccountId, int cashOrApAccountId)
+        public PurchaseAccountingStrategy(AccountingSettingsProvider settingsProvider, SupplierAccountResolver supplierAccountResolver)
         {
-            _inventoryAccountId = inventoryAccountId;
-            _cashOrApAccountId = cashOrApAccountId;
+            _settingsProvider = settingsProvider;
+            _supplierAccountResolver = supplierAccountResolver;
         }
 
         public List<JournalLine> BuildJournalLines(PurchaseInvoice purchase, int userId)
@@ -21,10 +21,12 @@ namespace SpareParts.Infrastructure.Services
                 throw new InvalidOperationException("Purchase journal lines cannot be generated from negative totals.");
             }
 
+            var settings = _settingsProvider.GetSnapshot();
+            var creditAccountId = _supplierAccountResolver.ResolveAccountId(purchase.SupplierId) ?? settings.PurchaseOffsetAccountId;
             var lines = new List<JournalLine>
             {
-                new() { AccountId = _inventoryAccountId, Debit = purchase.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = _cashOrApAccountId, Debit = 0, Credit = purchase.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
+                new() { AccountId = settings.InventoryAccountId, Debit = purchase.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
+                new() { AccountId = creditAccountId, Debit = 0, Credit = purchase.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
             };
 
             var totalDebit = lines.Sum(x => x.Debit);
