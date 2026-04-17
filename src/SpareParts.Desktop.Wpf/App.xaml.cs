@@ -35,6 +35,7 @@ namespace SpareParts.Desktop.Wpf
             services.AddTransient<ICarCatalogApiClient, CarCatalogApiClient>();
             services.AddTransient<ICustomerApiClient, CustomersApiClient>();
             services.AddTransient<IPartsApiClient, PartsApiClient>();
+            services.AddTransient<IPurchasesApiClient, PurchasesApiClient>();
             services.AddTransient<IRoleApiClient, RolesApiClient>();
             services.AddTransient<ISalesApiClient, SalesApiClient>();
             services.AddTransient<IUserApiClient, UsersApiClient>();

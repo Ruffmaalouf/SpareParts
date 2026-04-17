@@ -47,6 +47,26 @@ namespace SpareParts.Infrastructure.Data
             }, _session.Transaction);
         }
 
+        public bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId)
+        {
+            const string sql = @"UPDATE Stock
+                                 SET Quantity = Quantity + @Delta,
+                                     ModifiedAt = @ModifiedAt,
+                                     ModifiedByUserId = @ModifiedByUserId
+                                 WHERE Id = @Id
+                                   AND Quantity + @Delta >= 0";
+
+            var affectedRows = _session.Connection.Execute(sql, new
+            {
+                Id = stockId,
+                Delta = delta,
+                ModifiedAt = DateTime.UtcNow,
+                ModifiedByUserId = userId
+            }, _session.Transaction);
+
+            return affectedRows > 0;
+        }
+
         public int InsertStockMovement(StockMovement movement)
         {
             const string sql = @"INSERT INTO StockMovements

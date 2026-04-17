@@ -7,6 +7,7 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
         Stock? GetStock(int partId, int warehouseId);
         int InsertStock(Stock stock);
         void UpdateStockQuantity(int stockId, int delta, int userId);
+        bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId);
         int InsertStockMovement(StockMovement movement);
     }
 }

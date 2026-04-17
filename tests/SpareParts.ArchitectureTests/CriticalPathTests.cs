@@ -58,7 +58,7 @@ public class CriticalPathTests
     [Fact]
     public void JournalPosting_SaleAccountingStrategy_ShouldBalance()
     {
-        var strategy = new SaleAccountingStrategy(cashAccountId: 101, salesAccountId: 401, cogsAccountId: 501, inventoryAccountId: 301);
+        var strategy = CreateSaleAccountingStrategy();
         var invoice = new SalesInvoice
         {
             TotalAmount = 200,
@@ -87,7 +87,7 @@ public class CriticalPathTests
     [Fact]
     public void FailurePath_SaleAccountingStrategy_ShouldThrowForNegativeTotals()
     {
-        var strategy = new SaleAccountingStrategy(cashAccountId: 101, salesAccountId: 401, cogsAccountId: 501, inventoryAccountId: 301);
+        var strategy = CreateSaleAccountingStrategy();
         var invoice = new SalesInvoice
         {
             TotalAmount = -1m,
@@ -167,5 +167,23 @@ public class CriticalPathTests
 
         Assert.Equal(5, quantities[9]);
         Assert.Equal(1, quantities[10]);
+    }
+
+    private static SaleAccountingStrategy CreateSaleAccountingStrategy()
+    {
+        var factory = new InMemorySqliteConnectionFactory();
+        factory.InitializeSchema();
+
+        var settingsProvider = new AccountingSettingsProvider(factory, new AccountingOptions
+        {
+            CashAccountId = 101,
+            SalesAccountId = 401,
+            CogsAccountId = 501,
+            InventoryAccountId = 301,
+            CashOrApAccountId = 999
+        });
+
+        var customerResolver = new CustomerAccountResolver(factory);
+        return new SaleAccountingStrategy(settingsProvider, customerResolver);
     }
 }

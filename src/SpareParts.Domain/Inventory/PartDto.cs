@@ -12,6 +12,7 @@ namespace SpareParts.Domain.Inventory
         public int? BrandId { get; set; }
         public decimal CostPrice { get; set; }
         public decimal SalePrice { get; set; }
+        public decimal? AveragePrice { get; set; }
         public string Currency { get; set; } = "USD";
         public int MinStock { get; set; }
         public string? Notes { get; set; }

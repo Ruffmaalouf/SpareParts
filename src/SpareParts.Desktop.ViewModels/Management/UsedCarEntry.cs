@@ -18,7 +18,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private decimal _transportation;
         private bool _isReceived;
         private bool _isShipped;
-        private string _partOut = string.Empty;
+        private decimal _partOut;
         private decimal _shipping;
         private decimal _customs;
         private decimal _totalBeforeShipping;
@@ -109,7 +109,7 @@ namespace SpareParts.Desktop.Wpf.Management
             set => SetField(ref _totalBeforeShipping, value);
         }
 
-        public string PartOut
+        public decimal PartOut
         {
             get => _partOut;
             set => SetField(ref _partOut, value);

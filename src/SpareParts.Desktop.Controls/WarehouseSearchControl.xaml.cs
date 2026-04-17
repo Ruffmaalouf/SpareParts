@@ -41,7 +41,13 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
-            _ = control.ApplyExternalSelectionAsync(e.NewValue as int?);
+            var value = e.NewValue as int?;
+            if (e.NewValue is int id)
+            {
+                value = id;
+            }
+
+            _ = control.ApplyExternalSelectionAsync(value);
         }
 
         public static readonly DependencyProperty WarehouseSearchTextProperty =
@@ -57,7 +63,7 @@ namespace SpareParts.Desktop.Wpf
         public static readonly DependencyProperty FilteredWarehousesProperty =
             DependencyProperty.Register(nameof(FilteredWarehouses),
                 typeof(ObservableCollection<WarehouseDto>), typeof(WarehouseSearchControl),
-                new PropertyMetadata(new ObservableCollection<WarehouseDto>()));
+                new PropertyMetadata(null));
 
         public ObservableCollection<WarehouseDto> FilteredWarehouses
         {
@@ -196,10 +202,14 @@ namespace SpareParts.Desktop.Wpf
                 _all = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
                 await ApplyExternalSelectionAsync(SelectedWarehouseId);
             }
-            catch
+            catch (Exception ex)
             {
-                _all = new List<WarehouseDto> { new() { Id = 1, Name = "Main Warehouse", IsMain = true } };
-                await ApplyExternalSelectionAsync(SelectedWarehouseId);
+                // Do not inject placeholder warehouses; it can lead to invalid selections and wrong transactions.
+                _all = new List<WarehouseDto>();
+                FilteredWarehouses.Clear();
+                ClosePopup();
+                SelectedWarehouseId = null;
+                System.Diagnostics.Debug.WriteLine($"[WarehouseSearch] load failed: {ex.Message}");
             }
         }
 

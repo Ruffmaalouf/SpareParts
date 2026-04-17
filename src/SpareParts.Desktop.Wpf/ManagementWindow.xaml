@@ -283,6 +283,9 @@
                                     </StackPanel>
                                 </Grid>
 
+                                <TextBlock Text="AVERAGE PRICE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewPartAveragePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
+
                                 <Grid Margin="0 0 0 14">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -316,8 +319,28 @@
                                 </Grid>
 
                                 <TextBlock Text="NOTES" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <Border Background="{DynamicResource CardHighlightBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="12"
+                                        Margin="0 0 0 10">
+                                    <StackPanel>
+                                        <TextBlock Text="AI ASSIST" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Text="Draft concise catalog notes and estimate an average selling price from the current part details."
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0 4 0 10"/>
+                                        <Button Content="{Binding PartAiButtonText}"
+                                                Command="{Binding GeneratePartNotesCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                HorizontalAlignment="Stretch"
+                                                Height="36"/>
+                                    </StackPanel>
+                                </Border>
                                 <TextBox Text="{Binding NewPartNotes, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0 0 0 24"/>
+                                         Height="90" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Margin="0 0 0 24"/>
 
                                 <Button Content="＋  Save Part"
                                         Command="{Binding SavePartCommand}"
@@ -355,6 +378,7 @@
                                     <DataGridTextColumn Header="OEM"       Binding="{Binding OEMNumber}"                        Width="100"/>
                                     <DataGridTextColumn Header="Cost"      Binding="{Binding CostPrice, StringFormat={}{0:N0}}" Width="80"/>
                                     <DataGridTextColumn Header="Sale"      Binding="{Binding SalePrice, StringFormat={}{0:N0}}" Width="80"/>
+                                    <DataGridTextColumn Header="Average"   Binding="{Binding AveragePrice, StringFormat={}{0:N0}}" Width="90"/>
                                     <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock}"                         Width="80"/>
                                 </DataGrid.Columns>
                             </DataGrid>

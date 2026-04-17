@@ -53,7 +53,7 @@ public sealed class UsersService
         if (!string.IsNullOrWhiteSpace(request.NewPassword))
         {
             var hash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword.Trim(), workFactor: 12);
-            conn.Execute(
+            var affectedRows = conn.Execute(
                 @"UPDATE Users SET FullName = @FullName, Email = @Email, Role = @Role,
                                    IsActive = @IsActive, PasswordHash = @Hash,
                                    ModifiedAt = @Now
@@ -69,21 +69,36 @@ public sealed class UsersService
                     Id = id
                 });
 
+            if (affectedRows == 0)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
             return;
         }
 
-        conn.Execute(
+        var updatedRows = conn.Execute(
             @"UPDATE Users SET FullName = @FullName, Email = @Email, Role = @Role,
                                IsActive = @IsActive, ModifiedAt = @Now
               WHERE Id = @Id",
             new { request.FullName, request.Email, request.Role, request.IsActive, Now = DateTime.UtcNow, Id = id });
+
+        if (updatedRows == 0)
+        {
+            throw new NotFoundException("User not found.");
+        }
     }
 
     public void Deactivate(int id)
     {
         using var conn = _factory.CreateConnection();
-        conn.Execute(
+        var affectedRows = conn.Execute(
             "UPDATE Users SET IsActive = 0, ModifiedAt = @Now WHERE Id = @Id",
             new { Now = DateTime.UtcNow, Id = id });
+
+        if (affectedRows == 0)
+        {
+            throw new NotFoundException("User not found.");
+        }
     }
 }

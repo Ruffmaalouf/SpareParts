@@ -15,11 +15,14 @@ namespace SpareParts.Domain.Cars
         public decimal Transportation { get; set; }
         public bool IsReceived { get; set; }
         public bool IsShipped { get; set; }
-        public string PartOut { get; set; } = string.Empty;
+        public decimal PartOut { get; set; }
         public decimal Shipping { get; set; }
         public decimal Customs { get; set; }
         public decimal TotalBeforeShipping { get; set; }
         public decimal GrandTotalBase { get; set; }
         public decimal GrandTotalCounter { get; set; }
+        public string BaseCurrencyCode { get; set; } = "USD";
+        public string CounterCurrencyCode { get; set; } = "USD";
+        public decimal CounterRateToBase { get; set; } = 1m;
     }
 }

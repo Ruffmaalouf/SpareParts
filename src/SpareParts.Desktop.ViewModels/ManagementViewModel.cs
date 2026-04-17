@@ -1,4 +1,5 @@
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf.Management;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
@@ -93,6 +94,7 @@ namespace SpareParts.Desktop.Wpf
         public string UsedCarBasePriceLabel => $"Price Base ({BaseCurrencyCode})";
         public string UsedCarCounterPriceLabel => $"Price Counter ({CounterCurrencyCode})";
         public string UsedCarTransportationLabel => $"Transportation ({CounterCurrencyCode})";
+        public string UsedCarPartOutLabel => $"Part-Out ({CounterCurrencyCode})";
         public string UsedCarShippingLabel => $"Shipping ({CounterCurrencyCode})";
         public string UsedCarCustomsLabel => $"Customs ({CounterCurrencyCode})";
         public string UsedCarTotalBeforeShippingLabel => $"Total Before Shipping ({CounterCurrencyCode})";
@@ -259,6 +261,7 @@ namespace SpareParts.Desktop.Wpf
         public string NewPartOEM { get => PartsFeature.NewPartOEM; set { PartsFeature.NewPartOEM = value; OnPropertyChanged(nameof(NewPartOEM)); } }
         public decimal NewPartCostPrice { get => PartsFeature.NewPartCostPrice; set { PartsFeature.NewPartCostPrice = value; OnPropertyChanged(nameof(NewPartCostPrice)); } }
         public decimal NewPartSalePrice { get => PartsFeature.NewPartSalePrice; set { PartsFeature.NewPartSalePrice = value; OnPropertyChanged(nameof(NewPartSalePrice)); } }
+        public string NewPartAveragePrice { get => PartsFeature.NewPartAveragePrice; set { PartsFeature.NewPartAveragePrice = value; OnPropertyChanged(nameof(NewPartAveragePrice)); } }
         public string NewPartCurrency { get => PartsFeature.NewPartCurrency; set { PartsFeature.NewPartCurrency = value; OnPropertyChanged(nameof(NewPartCurrency)); } }
         public int NewPartMinStock { get => PartsFeature.NewPartMinStock; set { PartsFeature.NewPartMinStock = value; OnPropertyChanged(nameof(NewPartMinStock)); } }
         public int NewPartCategoryId { get => PartsFeature.NewPartCategoryId; set { PartsFeature.NewPartCategoryId = value; OnPropertyChanged(nameof(NewPartCategoryId)); } }
@@ -406,13 +409,14 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        public string NewUsedCarPartOut
+        public decimal NewUsedCarPartOut
         {
             get => _newUsedCarPartOut;
             set
             {
                 _newUsedCarPartOut = value;
                 OnPropertyChanged(nameof(NewUsedCarPartOut));
+                RecalculateUsedCarTotals();
             }
         }
 
@@ -472,6 +476,7 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<StatusMessage> StatusMessages => _statusCenter.StatusMessages;
         public Brush StatusBrush => _statusCenter.StatusBrush;
         private bool _isLoading;
+        private bool _isGeneratingPartNotes;
         private UsedCarEntry? _selectedUsedCar;
         private string _newUsedCarName = string.Empty;
         private int _newUsedCarModelYear;
@@ -484,7 +489,7 @@ namespace SpareParts.Desktop.Wpf
         private decimal _newUsedCarTransportation;
         private bool _newUsedCarIsReceived;
         private bool _newUsedCarIsShipped;
-        private string _newUsedCarPartOut = string.Empty;
+        private decimal _newUsedCarPartOut;
         private decimal _newUsedCarShipping;
         private decimal _newUsedCarCustoms;
         private decimal _newUsedCarTotalBeforeShipping;
@@ -503,6 +508,20 @@ namespace SpareParts.Desktop.Wpf
                 OnPropertyChanged(nameof(IsLoading));
             }
         }
+
+        public bool IsGeneratingPartNotes
+        {
+            get => _isGeneratingPartNotes;
+            private set
+            {
+                if (_isGeneratingPartNotes == value) return;
+                _isGeneratingPartNotes = value;
+                OnPropertyChanged(nameof(IsGeneratingPartNotes));
+                OnPropertyChanged(nameof(PartAiButtonText));
+            }
+        }
+
+        public string PartAiButtonText => IsGeneratingPartNotes ? "AI is drafting notes..." : "✨ Draft Notes with AI";
 
         public ICommand LoadAllCommand { get; }
         public ICommand SaveCustomerCommand { get; }
@@ -523,6 +542,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteWarehouseCommand { get; }
         public ICommand SaveTransactionTypeCommand { get; }
         public ICommand DeleteTransactionTypeCommand { get; }
+        public ICommand GeneratePartNotesCommand { get; }
         public ICommand StartNewManagementItemCommand { get; }
         public ICommand OpenUsedCarGalleryCommand { get; }
         public ICommand AddUsedCarCommand { get; }
@@ -532,6 +552,7 @@ namespace SpareParts.Desktop.Wpf
             ICrudApiClient crudApi,
             IAccountingApiClient accountingApi,
             ICarCatalogApiClient carCatalogApi,
+            IPartsApiClient partsApi,
             UsersViewModel usersVm,
             RolesViewModel rolesVm,
             bool canViewSupplierTab = false,
@@ -546,7 +567,8 @@ namespace SpareParts.Desktop.Wpf
 
             _coordinator = new ManagementCoordinator(
                 crudApi,
-                carCatalogApi);
+                carCatalogApi,
+                partsApi);
             UsedCars.CollectionChanged += UsedCars_CollectionChanged;
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
@@ -568,6 +590,7 @@ namespace SpareParts.Desktop.Wpf
             DeleteWarehouseCommand = new RelayCommand(_ => _ = DeleteWarehouseAsync());
             SaveTransactionTypeCommand = new RelayCommand(_ => _ = SaveTransactionTypeAsync());
             DeleteTransactionTypeCommand = new RelayCommand(_ => _ = DeleteTransactionTypeAsync());
+            GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
             StartNewManagementItemCommand = new RelayCommand(StartNewManagementItem);
             OpenUsedCarGalleryCommand = new RelayCommand(_ => OpenUsedCarGallery());
             AddUsedCarCommand = new RelayCommand(_ => _ = SaveUsedCarAsync());
@@ -782,6 +805,7 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(UsedCarBasePriceLabel));
             OnPropertyChanged(nameof(UsedCarCounterPriceLabel));
             OnPropertyChanged(nameof(UsedCarTransportationLabel));
+            OnPropertyChanged(nameof(UsedCarPartOutLabel));
             OnPropertyChanged(nameof(UsedCarShippingLabel));
             OnPropertyChanged(nameof(UsedCarCustomsLabel));
             OnPropertyChanged(nameof(UsedCarTotalBeforeShippingLabel));
@@ -1016,6 +1040,7 @@ namespace SpareParts.Desktop.Wpf
         private void RecalculateUsedCarTotals()
         {
             var counterExpensesTotal = Math.Max(NewUsedCarTransportation, 0m)
+                + Math.Max(NewUsedCarPartOut, 0m)
                 + Math.Max(NewUsedCarShipping, 0m)
                 + Math.Max(NewUsedCarCustoms, 0m);
             var counterToBaseRate = ResolveRateToBaseCurrency(_counterCurrencyCode);
@@ -1228,6 +1253,35 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(SelectedPart));
         }
 
+        private async Task GeneratePartNotesAsync()
+        {
+            if (IsGeneratingPartNotes)
+            {
+                return;
+            }
+
+            IsGeneratingPartNotes = true;
+            SetStatus("Drafting part notes with AI…", true);
+
+            try
+            {
+                var categoryLookup = Categories.ToDictionary(item => item.Id, item => item.Name);
+                var brandLookup = Brands.ToDictionary(item => item.Id, item => item.Name);
+
+                var result = await _coordinator.GeneratePartNotesAsync(PartsFeature, categoryLookup, brandLookup);
+                SetStatus(result.Message, result.Success);
+                if (result.Success)
+                {
+                    OnPropertyChanged(nameof(NewPartNotes));
+                    OnPropertyChanged(nameof(NewPartAveragePrice));
+                }
+            }
+            finally
+            {
+                IsGeneratingPartNotes = false;
+            }
+        }
+
         private async Task SaveCarBrandAsync()
         {
             var result = await _coordinator.SaveCarBrandAsync(CarModelsFeature);
@@ -1301,16 +1355,28 @@ namespace SpareParts.Desktop.Wpf
             RaiseLocationProps();
         }
 
-        private Task SaveWarehouseAsync()
+        private async Task SaveWarehouseAsync()
         {
-            SetStatus("✗ Warehouse save flow is not wired yet.", false);
-            return Task.CompletedTask;
+            var result = await _coordinator.SaveWarehouseAsync(WarehousesFeature);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            WarehousesFeature.ClearForm();
+            RaiseWarehouseProps();
+            OnPropertyChanged(nameof(SelectedWarehouse));
         }
 
-        private Task DeleteWarehouseAsync()
+        private async Task DeleteWarehouseAsync()
         {
-            SetStatus("✗ Warehouse delete flow is not wired yet.", false);
-            return Task.CompletedTask;
+            var result = await _coordinator.DeleteWarehouseAsync(SelectedWarehouse);
+            SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+
+            await LoadAllAsync();
+            WarehousesFeature.ClearForm();
+            OnPropertyChanged(nameof(SelectedWarehouse));
+            RaiseWarehouseProps();
         }
 
         private async Task SaveTransactionTypeAsync()
@@ -1429,7 +1495,7 @@ namespace SpareParts.Desktop.Wpf
                 LocationId = locationId,
                 IsReceived = NewUsedCarIsReceived,
                 IsShipped = NewUsedCarIsShipped,
-                PartOut = NewUsedCarPartOut.Trim(),
+                PartOut = NewUsedCarPartOut,
                 Shipping = NewUsedCarShipping,
                 Customs = NewUsedCarCustoms
             };
@@ -1489,7 +1555,7 @@ namespace SpareParts.Desktop.Wpf
             NewUsedCarTransportation = 0;
             NewUsedCarIsReceived = false;
             NewUsedCarIsShipped = false;
-            NewUsedCarPartOut = string.Empty;
+            NewUsedCarPartOut = 0;
             NewUsedCarShipping = 0;
             NewUsedCarCustoms = 0;
             NewUsedCarTotalBeforeShipping = 0;
@@ -1516,7 +1582,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
-        private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
+        private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartAveragePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
         private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelBodyType));
         private void RaiseLocationProps() => RaiseAll(nameof(NewLocationName), nameof(NewLocationShippingFees), nameof(NewLocationShippingFeesCurrencyCode));
@@ -1540,7 +1606,8 @@ namespace SpareParts.Desktop.Wpf
             nameof(NewUsedCarTotalBeforeShipping),
             nameof(NewUsedCarGrandTotalBase),
             nameof(NewUsedCarGrandTotalCounter),
-            nameof(UsedCarPriceLabel));
+            nameof(UsedCarPriceLabel),
+            nameof(UsedCarPartOutLabel));
         private void RaiseUsedCarSummaryProps() => RaiseAll(
             nameof(UsedCarsTotalBaseAmount),
             nameof(UsedCarsTotalCounterAmount));

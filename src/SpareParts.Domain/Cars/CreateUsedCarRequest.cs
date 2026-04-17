@@ -9,7 +9,7 @@ namespace SpareParts.Domain.Cars
         public int LocationId { get; set; }
         public bool IsReceived { get; set; }
         public bool IsShipped { get; set; }
-        public string PartOut { get; set; } = string.Empty;
+        public decimal PartOut { get; set; }
         public decimal Shipping { get; set; }
         public decimal Customs { get; set; }
     }

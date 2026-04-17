@@ -26,12 +26,15 @@ BEGIN
         Transportation DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_Transportation DEFAULT (0),
         IsReceived BIT NOT NULL CONSTRAINT DF_UsedCars_IsReceived DEFAULT (0),
         IsShipped BIT NOT NULL CONSTRAINT DF_UsedCars_IsShipped DEFAULT (0),
-        PartOut NVARCHAR(160) NOT NULL CONSTRAINT DF_UsedCars_PartOut DEFAULT (N''),
+        PartOutAmount DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_PartOutAmount DEFAULT (0),
         Shipping DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_Shipping DEFAULT (0),
         Customs DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_Customs DEFAULT (0),
         TotalBeforeShipping DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_TotalBeforeShipping DEFAULT (0),
         GrandTotalBase DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_GrandTotalBase DEFAULT (0),
         GrandTotalCounter DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_GrandTotalCounter DEFAULT (0),
+        BaseCurrencyCode CHAR(3) NOT NULL CONSTRAINT DF_UsedCars_BaseCurrencyCode DEFAULT ('USD'),
+        CounterCurrencyCode CHAR(3) NOT NULL CONSTRAINT DF_UsedCars_CounterCurrencyCode DEFAULT ('USD'),
+        CounterRateToBase DECIMAL(19, 8) NOT NULL CONSTRAINT DF_UsedCars_CounterRateToBase DEFAULT (1),
         CreatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_UsedCars_CreatedAt DEFAULT SYSUTCDATETIME(),
         ModifiedAt DATETIME2(0) NULL,
         CreatedByUserId INT NULL,
@@ -72,6 +75,102 @@ BEGIN
 
     ALTER TABLE dbo.UsedCars ALTER COLUMN IsShipped BIT NOT NULL;
 END;
+
+IF COL_LENGTH('dbo.UsedCars', 'PartOutAmount') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD PartOutAmount DECIMAL(18, 2) NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'PartOut') IS NOT NULL
+BEGIN
+    UPDATE dbo.UsedCars
+    SET PartOutAmount = COALESCE(
+        TRY_CONVERT(DECIMAL(18, 2), NULLIF(LTRIM(RTRIM(CONVERT(NVARCHAR(160), PartOut))), N'')),
+        0
+    )
+    WHERE PartOutAmount IS NULL;
+END
+ELSE
+BEGIN
+    UPDATE dbo.UsedCars
+    SET PartOutAmount = 0
+    WHERE PartOutAmount IS NULL;
+END;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN PartOutAmount DECIMAL(18, 2) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+DECLARE @UsedCarsBaseCurrencyCode CHAR(3) = 'USD';
+DECLARE @UsedCarsCounterCurrencyCode CHAR(3) = 'USD';
+DECLARE @UsedCarsCounterRateToBase DECIMAL(19, 8) = 1;
+
+IF OBJECT_ID('dbo.AppConstants', 'U') IS NOT NULL
+BEGIN
+    SELECT TOP (1) @UsedCarsBaseCurrencyCode = UPPER(LTRIM(RTRIM(Value)))
+    FROM dbo.AppConstants
+    WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode')
+      AND LEN(LTRIM(RTRIM(Value))) = 3
+    ORDER BY CASE WHEN [Key] = 'BaseCurrencyCode' THEN 0 ELSE 1 END;
+
+    SELECT TOP (1) @UsedCarsCounterCurrencyCode = UPPER(LTRIM(RTRIM(Value)))
+    FROM dbo.AppConstants
+    WHERE [Key] = 'CounterCurrencyCode'
+      AND LEN(LTRIM(RTRIM(Value))) = 3;
+
+    SELECT TOP (1) @UsedCarsCounterRateToBase = TRY_CONVERT(DECIMAL(19, 8), Value)
+    FROM dbo.AppConstants
+    WHERE [Key] = 'DefaultCounterRate'
+      AND TRY_CONVERT(DECIMAL(19, 8), Value) > 0;
+END;
+
+SET @UsedCarsCounterCurrencyCode = COALESCE(NULLIF(@UsedCarsCounterCurrencyCode, ''), @UsedCarsBaseCurrencyCode, 'USD');
+SET @UsedCarsBaseCurrencyCode = COALESCE(NULLIF(@UsedCarsBaseCurrencyCode, ''), 'USD');
+SET @UsedCarsCounterRateToBase = COALESCE(NULLIF(@UsedCarsCounterRateToBase, 0), 1);
+
+IF COL_LENGTH('dbo.UsedCars', 'BaseCurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD BaseCurrencyCode CHAR(3) NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'CounterCurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD CounterCurrencyCode CHAR(3) NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'CounterRateToBase') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD CounterRateToBase DECIMAL(19, 8) NULL;
+END;
+
+UPDATE dbo.UsedCars
+SET BaseCurrencyCode = COALESCE(NULLIF(BaseCurrencyCode, ''), @UsedCarsBaseCurrencyCode),
+    CounterCurrencyCode = COALESCE(NULLIF(CounterCurrencyCode, ''), @UsedCarsCounterCurrencyCode),
+    CounterRateToBase = COALESCE(NULLIF(CounterRateToBase, 0), @UsedCarsCounterRateToBase)
+WHERE BaseCurrencyCode IS NULL
+   OR CounterCurrencyCode IS NULL
+   OR CounterRateToBase IS NULL
+   OR CounterRateToBase <= 0;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN BaseCurrencyCode CHAR(3) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN CounterCurrencyCode CHAR(3) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN CounterRateToBase DECIMAL(19, 8) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
 
 IF OBJECT_ID('dbo.Location', 'U') IS NOT NULL
 BEGIN

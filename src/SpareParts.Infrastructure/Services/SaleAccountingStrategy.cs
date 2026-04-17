@@ -31,8 +31,8 @@ namespace SpareParts.Infrastructure.Services
                 new() { AccountId = settings.InventoryAccountId, Debit = 0, Credit = invoice.TotalCost, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
             };
 
-            var totalDebit = lines.Sum(x => x.Debit);
-            var totalCredit = lines.Sum(x => x.Credit);
+            var totalDebit = decimal.Round(lines.Sum(x => x.Debit), 4, MidpointRounding.AwayFromZero);
+            var totalCredit = decimal.Round(lines.Sum(x => x.Credit), 4, MidpointRounding.AwayFromZero);
             if (totalDebit != totalCredit)
             {
                 throw new InvalidOperationException("Sale journal entry is not balanced.");

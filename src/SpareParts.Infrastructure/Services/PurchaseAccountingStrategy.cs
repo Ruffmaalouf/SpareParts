@@ -29,8 +29,8 @@ namespace SpareParts.Infrastructure.Services
                 new() { AccountId = creditAccountId, Debit = 0, Credit = purchase.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
             };
 
-            var totalDebit = lines.Sum(x => x.Debit);
-            var totalCredit = lines.Sum(x => x.Credit);
+            var totalDebit = decimal.Round(lines.Sum(x => x.Debit), 4, MidpointRounding.AwayFromZero);
+            var totalCredit = decimal.Round(lines.Sum(x => x.Credit), 4, MidpointRounding.AwayFromZero);
             if (totalDebit != totalCredit)
             {
                 throw new InvalidOperationException("Purchase journal entry is not balanced.");

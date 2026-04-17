@@ -41,7 +41,13 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
-            _ = control.ApplyExternalSelectionAsync(e.NewValue as int?);
+            var value = e.NewValue as int?;
+            if (e.NewValue is int id)
+            {
+                value = id;
+            }
+
+            _ = control.ApplyExternalSelectionAsync(value);
         }
 
         public static readonly DependencyProperty CustomerSearchTextProperty =
@@ -57,7 +63,7 @@ namespace SpareParts.Desktop.Wpf
         public static readonly DependencyProperty FilteredCustomersProperty =
             DependencyProperty.Register(nameof(FilteredCustomers),
                 typeof(ObservableCollection<CustomerDto>), typeof(CustomerSearchControl),
-                new PropertyMetadata(new ObservableCollection<CustomerDto>()));
+                new PropertyMetadata(null));
 
         public ObservableCollection<CustomerDto> FilteredCustomers
         {

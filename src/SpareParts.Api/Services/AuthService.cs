@@ -45,8 +45,7 @@ public sealed class AuthService
         }
         catch
         {
-            throw new UnauthorizedAccessException(
-                "Password hash format is invalid. Use GET /api/auth/hashpassword?plain=YourPassword to generate a valid hash, then UPDATE Users SET PasswordHash = '<hash>' WHERE Username = '<user>'.");
+            throw new UnauthorizedAccessException("Invalid username or password.");
         }
 
         if (!valid)
@@ -62,13 +61,15 @@ public sealed class AuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        var fullName = string.IsNullOrWhiteSpace(user.FullName) ? user.Username : user.FullName;
+        var role = string.IsNullOrWhiteSpace(user.Role) ? "User" : user.Role;
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Name, user.FullName),
-            new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.Role),
+            new Claim(JwtRegisteredClaimNames.Name, fullName),
+            new Claim(ClaimTypes.Name, fullName),
+            new Claim(ClaimTypes.Role, role),
             new Claim("username", user.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
@@ -83,8 +84,8 @@ public sealed class AuthService
         return new LoginResponse
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
-            FullName = user.FullName,
-            Role = user.Role,
+            FullName = fullName,
+            Role = role,
             UserId = user.Id,
             ExpiresAt = expiry
         };

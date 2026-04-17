@@ -87,7 +87,12 @@ namespace SpareParts.Desktop.Wpf
             _sessionApi = sessionApi;
 
             LoginCommand = new RelayCommand(pwd => ExecuteLoginAsync(pwd as string ?? string.Empty));
-            _ = CheckApiAsync();
+            CheckApiAsync().SafeFireAndForget(ex =>
+            {
+                StatusText = "Unable to check service endpoints.";
+                StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xE5, 0x39, 0x35));
+                ServiceStatusText = $"Health-check failed: {ex.Message}";
+            });
         }
 
         // ── Login via API ─────────────────────────────────────────────────────

@@ -41,6 +41,11 @@ namespace SpareParts.Infrastructure.Services
 
             if (existing == null)
             {
+                if (quantityChange < 0)
+                {
+                    throw new ConflictException($"Cannot reduce stock below zero for part {partId} in warehouse {warehouseId}.");
+                }
+
                 var stock = new Stock
                 {
                     PartId = partId,
@@ -55,7 +60,18 @@ namespace SpareParts.Infrastructure.Services
             }
             else
             {
-                inventoryRepository.UpdateStockQuantity(stockId, quantityChange, userId);
+                if (quantityChange < 0)
+                {
+                    var updated = inventoryRepository.TryUpdateStockQuantityAtomically(stockId, quantityChange, userId);
+                    if (!updated)
+                    {
+                        throw new ConflictException($"Cannot reduce stock below zero for part {partId} in warehouse {warehouseId}.");
+                    }
+                }
+                else
+                {
+                    inventoryRepository.UpdateStockQuantity(stockId, quantityChange, userId);
+                }
             }
 
             var movement = new StockMovement

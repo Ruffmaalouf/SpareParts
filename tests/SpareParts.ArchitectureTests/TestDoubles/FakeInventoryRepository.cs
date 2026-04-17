@@ -26,6 +26,20 @@ internal sealed class FakeInventoryRepository : IInventoryRepository
         stock.ModifiedByUserId = userId;
     }
 
+    public bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId)
+    {
+        var stock = StockRows.First(x => x.Id == stockId);
+        if (stock.Quantity + delta < 0)
+        {
+            return false;
+        }
+
+        stock.Quantity += delta;
+        stock.ModifiedAt = DateTime.UtcNow;
+        stock.ModifiedByUserId = userId;
+        return true;
+    }
+
     public int InsertStockMovement(StockMovement movement)
     {
         movement.Id = Movements.Count + 1;

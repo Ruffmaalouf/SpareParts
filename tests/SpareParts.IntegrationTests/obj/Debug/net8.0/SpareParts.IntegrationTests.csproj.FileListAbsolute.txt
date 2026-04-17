@@ -1,0 +1,7 @@
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\bin\Debug\net8.0\.msCoverageSourceRootsMapping_SpareParts.IntegrationTests
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\obj\Debug\net8.0\SpareParts.IntegrationTests.csproj.AssemblyReference.cache
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\obj\Debug\net8.0\SpareParts.IntegrationTests.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\obj\Debug\net8.0\SpareParts.IntegrationTests.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\obj\Debug\net8.0\SpareParts.IntegrationTests.AssemblyInfo.cs
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\obj\Debug\net8.0\SpareParts.IntegrationTests.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\tests\SpareParts.IntegrationTests\obj\Debug\net8.0\SpareParts.IntegrationTests.sourcelink.json

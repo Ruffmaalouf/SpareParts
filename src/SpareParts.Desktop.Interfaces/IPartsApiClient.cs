@@ -13,5 +13,6 @@ namespace SpareParts.Desktop.Wpf.Interfaces
     public interface IPartsApiClient
     {
         Task<List<PartDto>> GetPartsAsync();
+        Task<GeneratePartNotesResponse> GeneratePartNotesAsync(GeneratePartNotesRequest request);
     }
 }

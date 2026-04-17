@@ -129,14 +129,14 @@
         </Style>
 
         <Style x:Key="QuickMenuToggleStyle" TargetType="ToggleButton">
-            <Setter Property="Height" Value="44"/>
-            <Setter Property="Padding" Value="14 0"/>
+            <Setter Property="Height" Value="52"/>
+            <Setter Property="Padding" Value="14 12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -144,38 +144,37 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="12">
-                            <Grid>
+                                CornerRadius="14">
+                            <Grid Margin="{TemplateBinding Padding}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="☰"
-                                           FontSize="16"
-                                           Margin="0 0 10 0"
-                                           VerticalAlignment="Center"/>
-                                <ContentPresenter Grid.Column="1"
+                                <ContentPresenter Grid.Column="0"
                                                   VerticalAlignment="Center"/>
-                                <TextBlock x:Name="ChevronIcon"
-                                           Grid.Column="2"
-                                           Text="▴"
-                                           FontSize="13"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                           VerticalAlignment="Center"/>
+                                <Border Grid.Column="1"
+                                        Margin="12 0 0 0"
+                                        Padding="8 4"
+                                        Background="#12FFFFFF"
+                                        CornerRadius="9">
+                                    <TextBlock x:Name="ChevronIcon"
+                                               Text="▾"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                </Border>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="False">
-                                <Setter TargetName="ChevronIcon" Property="Text" Value="▾"/>
-                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ToggleRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="ToggleRoot" Property="Background" Value="#0DFFFFFF"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="ToggleRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                <Setter TargetName="ToggleRoot" Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+                                <Setter TargetName="ToggleRoot" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                <Setter TargetName="ChevronIcon" Property="Text" Value="▴"/>
+                                <Setter TargetName="ChevronIcon" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -184,8 +183,9 @@
         </Style>
 
         <Style x:Key="QuickActionMenuButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Height" Value="46"/>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="Padding" Value="12 0"/>
             <Setter Property="Margin" Value="0 0 0 8"/>
             <Setter Property="Template">
@@ -195,16 +195,171 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="10"
+                                CornerRadius="12"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MenuButtonRoot" Property="Background" Value="#0DFFFFFF"/>
                                 <Setter TargetName="MenuButtonRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="MenuButtonRoot" Property="Opacity" Value="0.9"/>
+                                <Setter TargetName="MenuButtonRoot" Property="Opacity" Value="0.92"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionExpanderStyle" TargetType="Expander">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Margin" Value="0 0 0 8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <Border x:Name="OuterBorder"
+                                Background="{DynamicResource AppBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="4">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <ToggleButton x:Name="HeaderSite"
+                                              Grid.Row="0"
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              Cursor="Hand"
+                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent" Padding="8 10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <ContentPresenter Grid.Column="0"
+                                                                      VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="1"
+                                                            Padding="8 4"
+                                                            Background="#12FFFFFF"
+                                                            CornerRadius="9"
+                                                            Margin="10 0 0 0">
+                                                        <TextBlock x:Name="Arrow"
+                                                                   Text="▶"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Arrow" Property="Text" Value="▼"/>
+                                                    <Setter TargetName="Arrow" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                    <ContentPresenter ContentSource="Header"/>
+                                </ToggleButton>
+                                <ContentPresenter x:Name="ExpandSite"
+                                                  Grid.Row="1"
+                                                  Margin="0 8 0 0"
+                                                  Visibility="Collapsed"
+                                                  Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="OuterBorder" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                            </Trigger>
+                            <Trigger SourceName="HeaderSite" Property="IsMouseOver" Value="True">
+                                <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="OuterBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BrandTileStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Width" Value="84"/>
+            <Setter Property="Height" Value="78"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Container"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Container" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                <Setter TargetName="Container" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Container" Property="Opacity" Value="0.92"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SidebarToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource InvoiceIconButtonStyle}">
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="SidebarToggleRoot"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="SidebarToggleRoot" Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+                                <Setter TargetName="SidebarToggleRoot" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="SidebarToggleRoot" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -220,16 +375,23 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- ══ SIDEBAR ════════════════════════════════════════════════════ -->
-        <Border Grid.Column="0"
+        <Border x:Name="SidebarHost"
+                Grid.Column="0"
+                Width="280"
+                MinWidth="0"
+                ClipToBounds="True"
                 Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="#0DFFFFFF" BorderThickness="0 0 1 0"
-                Margin="0,-10,0,10" Panel.ZIndex="2">
-            <Grid Margin="24">
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0 0 1 0"
+                Panel.ZIndex="2">
+            <Grid x:Name="SidebarContent" Margin="18 18 18 20">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="SidebarContentTranslate"/>
+                </Grid.RenderTransform>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -237,48 +399,156 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Logo -->
-                <StackPanel Grid.Row="0" Margin="0 0 0 30">
-                    <StackPanel.InputBindings>
-                        <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
-                    </StackPanel.InputBindings>
-                    <Image Source="/Assets/MaaloufLogo.png" Width="232" Height="231" Panel.ZIndex="-10"/>
-                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="White" Text="Maalouf Auto Parts"/>
-                    <TextBlock Text="Parts Management" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                </StackPanel>
+                <!-- Header -->
+                <Border Grid.Row="0"
+                        Background="{DynamicResource AppBackgroundBrush}"
+                        CornerRadius="18"
+                        Padding="16"
+                        Margin="0 0 0 16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Grid.Row="0" LastChildFill="False">
+                            <TextBlock DockPanel.Dock="Left"
+                                       Text="Navigation"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <Button DockPanel.Dock="Right"
+                                    Click="HideSidebarButton_Click"
+                                    Style="{StaticResource SidebarToggleButtonStyle}"
+                                    ToolTip="Hide navigation panel">
+                                <TextBlock Text="◀"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                        </DockPanel>
+
+                        <Grid Grid.Row="1" Margin="0 14 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="56"
+                                    Height="56"
+                                    Background="#14FFFFFF"
+                                    CornerRadius="14">
+                                <Image Source="/Assets/MaaloufLogo.png"
+                                       Stretch="Uniform"
+                                       Margin="7"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="14 0 0 0">
+                                <TextBlock FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="White"
+                                           Text="Maalouf Auto Parts"/>
+                                <TextBlock Text="Browse brands and open tools without clutter."
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="0 4 0 0"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <Grid.InputBindings>
+                                <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
+                            </Grid.InputBindings>
+                        </Grid>
+                    </Grid>
+                </Border>
 
                 <!-- Selected brand card -->
-                <Border Grid.Row="1" Background="{DynamicResource AppBackgroundBrush}"
-                        CornerRadius="12" Padding="16" Margin="0 0 0 30">
-                    <StackPanel>
-                        <TextBlock Text="SELECTED MANUFACTURE" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Margin="0 10 0 0" VerticalAlignment="Center">
-                            <Image Source="{Binding SelectedBrand.Logo}"
-                                   Width="40" Height="40" Margin="0 0 12 0"
-                                   Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding SelectedBrand.Name, TargetNullValue='None Selected'}"
-                                           FontSize="18" FontWeight="SemiBold" Foreground="White"/>
-                                <TextBlock Text="{Binding SelectedBrand.Country, StringFormat=' ({0})'}"
-                                           FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <Border Grid.Row="1"
+                        Background="{DynamicResource AppBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="16"
+                        Padding="14 12"
+                        Margin="0 0 0 16">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedBrand}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <DockPanel LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="Selected Brand"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="0 8 0 0"
+                                        VerticalAlignment="Center">
+                                <Border Width="38"
+                                        Height="38"
+                                        Background="#14FFFFFF"
+                                        CornerRadius="10"
+                                        Margin="0 0 10 0">
+                                    <Image Source="{Binding SelectedBrand.Logo}"
+                                           Margin="5"
+                                           Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedBrand.Name}"
+                                               FontSize="16"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"/>
+                                    <TextBlock Text="{Binding SelectedBrand.Country}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
-                    </StackPanel>
+                        <Button DockPanel.Dock="Right"
+                                Content="Change"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="12 6"
+                                Margin="12 0 0 0"
+                                VerticalAlignment="Center"/>
+                    </DockPanel>
                 </Border>
 
                 <!-- Brand groups -->
                 <Grid Grid.Row="2">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Margin="0 0 0 12">
+                        <TextBlock Text="Browse Brands"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="Pick a region, then choose the manufacturer."
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Margin="0 4 0 0"/>
+                    </StackPanel>
+                    <ScrollViewer Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding BrandGroups}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Expander Style="{StaticResource SectionExpanderStyle}"
-                                              Header="{Binding RegionGroup}" IsExpanded="False">
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="220">
+                                              Header="{Binding RegionGroup}"
+                                              IsExpanded="False">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      MaxHeight="198">
                                             <ItemsControl ItemsSource="{Binding Brands}">
                                                 <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel/>
+                                                    </ItemsPanelTemplate>
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
@@ -287,9 +557,12 @@
                                                                 CommandParameter="{Binding}"
                                                                 ToolTip="{Binding Name}">
                                                             <StackPanel VerticalAlignment="Center">
-                                                                <Image Source="{Binding Logo}" Height="50"
+                                                                <Image Source="{Binding Logo}"
+                                                                       Height="34"
+                                                                       Margin="0 0 0 6"
                                                                        RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                                <TextBlock Text="{Binding Name}" Margin="8" FontSize="11"
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           FontSize="11"
                                                                            HorizontalAlignment="Center"
                                                                            TextTrimming="CharacterEllipsis"/>
                                                             </StackPanel>
@@ -305,14 +578,67 @@
                     </ScrollViewer>
                 </Grid>
 
-                <!-- Bottom: quick actions menu + themes + date -->
-                <StackPanel Grid.Row="3" Margin="0 0 0 10" VerticalAlignment="Bottom">
+                <!-- Bottom: compact popups + date -->
+                <StackPanel Grid.Row="3" Margin="0 14 0 0" VerticalAlignment="Bottom">
+                    <Grid Margin="0 0 0 12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <ToggleButton x:Name="QuickActionsToggle"
-                                  HorizontalAlignment="Stretch"
-                                  Margin="0 0 0 16"
-                                  Content="Quick Menu"
-                                  Style="{StaticResource QuickMenuToggleStyle}"/>
+                        <ToggleButton x:Name="QuickActionsToggle"
+                                      Grid.Column="0"
+                                      HorizontalAlignment="Stretch"
+                                      Style="{StaticResource QuickMenuToggleStyle}"
+                                      Checked="SidebarMenuToggle_Checked">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="☰"
+                                           FontSize="15"
+                                           Margin="0 0 10 0"
+                                           VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Quick Links"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="Hidden list"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </ToggleButton>
+
+                        <ToggleButton x:Name="ThemesToggle"
+                                      Grid.Column="2"
+                                      HorizontalAlignment="Stretch"
+                                      Style="{StaticResource QuickMenuToggleStyle}"
+                                      Checked="SidebarMenuToggle_Checked">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="◌"
+                                           FontSize="15"
+                                           Margin="0 0 10 0"
+                                           VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Themes"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="Switch look"
+                                               FontSize="10"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </ToggleButton>
+                    </Grid>
 
                     <Popup Placement="Top"
                            PlacementTarget="{Binding ElementName=QuickActionsToggle}"
@@ -323,11 +649,11 @@
                         <Border Background="{DynamicResource CardBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="10"
+                                CornerRadius="14"
                                 Padding="10"
-                                Width="250">
+                                Width="238">
                             <StackPanel>
-                                <TextBlock Text="Quick Actions"
+                                <TextBlock Text="Quick Links"
                                            FontSize="12"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
@@ -343,14 +669,17 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="⚙" FontSize="16" Margin="0 0 12 0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="⚙"
+                                                       FontSize="15"
+                                                       Margin="0 0 12 0"
+                                                       VerticalAlignment="Center"/>
                                             <TextBlock Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Text" Value="Management Center"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsManagementOpen}" Value="True">
-                                                                <Setter Property="Text" Value="Close Management Center"/>
+                                                                <Setter Property="Text" Value="Close Management"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -399,67 +728,114 @@
                         </Border>
                     </Popup>
 
-                    <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8"/>
-                    <ScrollViewer MaxHeight="192" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding Themes}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Margin="0 0 0 4"
-                                            Command="{Binding DataContext.SelectThemeCommand, ElementName=RootWindow}"
-                                            CommandParameter="{Binding}">
-                                        <Button.Template>
-                                            <ControlTemplate TargetType="Button">
-                                                <Grid>
-                                                    <Border x:Name="Card" CornerRadius="6"
-                                                            Background="Transparent"
-                                                            BorderBrush="#15FFFFFF" BorderThickness="1"
-                                                            Padding="8 6">
-                                                        <Grid>
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <Ellipse Grid.Column="0" Width="10" Height="10"
-                                                                     Fill="{Binding AccentBrush}"
-                                                                     VerticalAlignment="Center" Margin="0 0 8 0"/>
-                                                            <StackPanel Grid.Column="1">
-                                                                <TextBlock Text="{Binding Name}" FontSize="12"
-                                                                           FontWeight="SemiBold"
-                                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                                <TextBlock Text="{Binding SubTitle}" FontSize="10"
-                                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                            </StackPanel>
-                                                            <TextBlock Grid.Column="2" Text="✓" FontSize="12"
-                                                                       Foreground="{DynamicResource AccentBrush}"
-                                                                       Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
-                                                                       VerticalAlignment="Center" Margin="4 0 0 0"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </Grid>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Card" Property="Background" Value="#15FFFFFF"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Button.Template>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                    <Popup Placement="Top"
+                           PlacementTarget="{Binding ElementName=ThemesToggle}"
+                           IsOpen="{Binding IsChecked, ElementName=ThemesToggle}"
+                           StaysOpen="False"
+                           AllowsTransparency="True"
+                           PopupAnimation="Fade">
+                        <Border Background="{DynamicResource CardBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="10"
+                                Width="252">
+                            <StackPanel>
+                                <TextBlock Text="Themes"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="4 2 4 10"/>
+                                <ScrollViewer MaxHeight="220"
+                                              VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding Themes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Margin="0 0 0 6"
+                                                        Click="ThemeMenuItem_Click"
+                                                        Command="{Binding DataContext.SelectThemeCommand, ElementName=RootWindow}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="Card"
+                                                                    Background="{DynamicResource AppBackgroundBrush}"
+                                                                    BorderBrush="{DynamicResource BorderBrush}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="12"
+                                                                    Padding="10 8">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Ellipse Grid.Column="0"
+                                                                             Width="10"
+                                                                             Height="10"
+                                                                             Fill="{Binding AccentBrush}"
+                                                                             VerticalAlignment="Center"
+                                                                             Margin="0 0 10 0"/>
+                                                                    <StackPanel Grid.Column="1">
+                                                                        <TextBlock Text="{Binding Name}"
+                                                                                   FontSize="12"
+                                                                                   FontWeight="SemiBold"
+                                                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                                        <TextBlock Text="{Binding SubTitle}"
+                                                                                   FontSize="10"
+                                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                                    </StackPanel>
+                                                                    <TextBlock Grid.Column="2"
+                                                                               Text="✓"
+                                                                               FontSize="12"
+                                                                               Foreground="{DynamicResource AccentBrush}"
+                                                                               Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"
+                                                                               VerticalAlignment="Center"
+                                                                               Margin="6 0 0 0"/>
+                                                                </Grid>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Card" Property="Background" Value="#0DFFFFFF"/>
+                                                                    <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
 
                     <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{}{0:D}'}"
-                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0 10 0 0"/>
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Right"
+                               Margin="0 2 4 0"/>
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- ══ MAIN CONTENT AREA ══════════════════════════════════════════ -->
         <Grid Grid.Column="1">
+            <Button x:Name="ShowSidebarButton"
+                    Click="ShowSidebarButton_Click"
+                    Style="{StaticResource SidebarToggleButtonStyle}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="18 18 0 0"
+                    Panel.ZIndex="30"
+                    ToolTip="Show navigation panel"
+                    Visibility="Collapsed"
+                    Opacity="0">
+                <TextBlock Text="☰"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+            </Button>
 
             <!-- ── Home Page ── -->
             <Grid Margin="5,0,40,10"
@@ -814,23 +1190,8 @@
                     </StackPanel>
                 </DockPanel>
 
-                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="12">
-                    <DataGrid ItemsSource="{Binding PurchaseDraftItems}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              IsReadOnly="True"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Part Code" Binding="{Binding PartCode}" Width="140"/>
-                            <DataGridTextColumn Header="Part Name" Binding="{Binding PartName}" Width="*"/>
-                            <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="220"/>
-                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
-                            <DataGridTextColumn Header="Unit Cost" Binding="{Binding UnitCost, StringFormat={}{0:N2} USD}" Width="130"/>
-                            <DataGridTextColumn Header="Line Total" Binding="{Binding LineTotal, StringFormat={}{0:N2} USD}" Width="150"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Border>
+                <local:UsedCarPurchasesControl Grid.Row="1"
+                                               DataContext="{Binding PurchasesVm}"/>
             </Grid>
 
             <!-- ── Stock Management ── -->

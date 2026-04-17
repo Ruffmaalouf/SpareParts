@@ -44,5 +44,11 @@ namespace SpareParts.Api.Controllers
             _service.Delete(id);
             return NoContent();
         }
+
+        [HttpPost("ai/notes")]
+        public async Task<ActionResult<GeneratePartNotesResponse>> GenerateNotes(
+            [FromBody] GeneratePartNotesRequest request,
+            CancellationToken cancellationToken)
+            => Ok(await _service.GenerateNotesAsync(request, cancellationToken));
     }
 }

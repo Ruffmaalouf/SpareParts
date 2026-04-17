@@ -13,5 +13,8 @@ namespace SpareParts.Desktop.Wpf
         }
 
         public Task<List<PartDto>> GetPartsAsync() => RetrieveAsync<PartDto>("api/parts");
+
+        public Task<GeneratePartNotesResponse> GeneratePartNotesAsync(GeneratePartNotesRequest request)
+            => AddAsync<GeneratePartNotesResponse>("api/parts/ai/notes", request, "AI did not return part notes.");
     }
 }

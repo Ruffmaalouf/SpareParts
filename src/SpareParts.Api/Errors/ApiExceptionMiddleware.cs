@@ -65,6 +65,7 @@ namespace SpareParts.Api.Errors
                 ValidationException => (HttpStatusCode.BadRequest, "validation_error"),
                 NotFoundException => (HttpStatusCode.NotFound, "not_found"),
                 ConflictException => (HttpStatusCode.Conflict, "conflict"),
+                ExternalServiceException => (HttpStatusCode.BadGateway, "upstream_error"),
                 UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "unauthorized"),
                 _ => (HttpStatusCode.InternalServerError, "internal_error")
             };
@@ -107,11 +108,14 @@ namespace SpareParts.Api.Errors
 
             context.Response.StatusCode = (int)statusCode;
             context.Response.ContentType = "application/json";
+            var publicMessage = code == "internal_error"
+                ? "An unexpected server error occurred."
+                : ex.Message;
 
             var envelope = new ApiErrorEnvelope
             {
                 Code = code,
-                Message = ex.Message,
+                Message = publicMessage,
                 TraceId = context.TraceIdentifier
             };
 

@@ -124,7 +124,12 @@ USING
         ('sales_revenue', 'Sales Revenue', 'Credited for the revenue side of each sale.', 20, 1),
         ('cogs', 'Cost of Goods Sold', 'Debited for the inventory cost leaving stock on a sale.', 30, 1),
         ('inventory', 'Inventory', 'Inventory control account used by both sales and purchase postings.', 40, 1),
-        ('purchase_offset', 'Purchase Offset', 'Credited when a purchase invoice is posted.', 50, 1)
+        ('purchase_offset', 'Purchase Offset', 'Credited when a purchase invoice is posted.', 50, 1),
+        ('used_car_price', 'Used Car Price', 'Default account for the vehicle purchase amount on used-car purchase posting.', 60, 1),
+        ('used_car_transportation', 'Used Car Transportation', 'Default account for transportation charges on used-car purchase posting.', 70, 1),
+        ('used_car_partout', 'Used Car Part-Out', 'Default account for part-out charges on used-car purchase posting.', 80, 1),
+        ('used_car_shipping', 'Used Car Shipping', 'Default account for shipping charges on used-car purchase posting.', 90, 1),
+        ('used_car_customs', 'Used Car Customs', 'Default account for customs charges on used-car purchase posting.', 100, 1)
 ) AS source (RoleKey, Label, Description, SortOrder, IsActive)
 ON target.RoleKey = source.RoleKey
 WHEN MATCHED THEN
@@ -222,18 +227,80 @@ BEGIN
     VALUES ('2100', 'Supplier Accounts', 1, 'liability', @AccountsPayableControlId, SYSUTCDATETIME());
 END;
 
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '1150')
+BEGIN
+    DECLARE @InventoryParentAccountId INT;
+    SELECT @InventoryParentAccountId = Id FROM dbo.Accounts WHERE Code = '1100';
+
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('1150', 'Used Car Cost', 0, 'asset', @InventoryParentAccountId, SYSUTCDATETIME());
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '5210')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('5210', 'Used Car Transportation', 4, 'expense', 7, SYSUTCDATETIME());
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '5220')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('5220', 'Used Car Part-Out', 4, 'expense', 7, SYSUTCDATETIME());
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '5230')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('5230', 'Used Car Shipping', 4, 'expense', 7, SYSUTCDATETIME());
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '5240')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('5240', 'Used Car Customs', 4, 'expense', 7, SYSUTCDATETIME());
+END;
+
+DECLARE @SalesCashAccountId INT;
+DECLARE @SalesRevenueAccountId INT;
+DECLARE @CogsAccountId INT;
+DECLARE @InventoryAccountId INT;
+DECLARE @PurchaseOffsetAccountId INT;
+DECLARE @UsedCarPriceAccountId INT;
+DECLARE @UsedCarTransportationAccountId INT;
+DECLARE @UsedCarPartOutAccountId INT;
+DECLARE @UsedCarShippingAccountId INT;
+DECLARE @UsedCarCustomsAccountId INT;
+
+SELECT @SalesCashAccountId = Id FROM dbo.Accounts WHERE Code = '1000';
+SELECT @SalesRevenueAccountId = Id FROM dbo.Accounts WHERE Code = '4000';
+SELECT @CogsAccountId = Id FROM dbo.Accounts WHERE Code = '5000';
+SELECT @InventoryAccountId = Id FROM dbo.Accounts WHERE Code = '1100';
+SELECT @PurchaseOffsetAccountId = Id FROM dbo.Accounts WHERE Code = '3000';
+SELECT @UsedCarPriceAccountId = Id FROM dbo.Accounts WHERE Code = '1150';
+SELECT @UsedCarTransportationAccountId = Id FROM dbo.Accounts WHERE Code = '5210';
+SELECT @UsedCarPartOutAccountId = Id FROM dbo.Accounts WHERE Code = '5220';
+SELECT @UsedCarShippingAccountId = Id FROM dbo.Accounts WHERE Code = '5230';
+SELECT @UsedCarCustomsAccountId = Id FROM dbo.Accounts WHERE Code = '5240';
+
 MERGE dbo.AccountingPostingSettings AS target
 USING
 (
     VALUES
-        ('sales_cash', 1),
-        ('sales_revenue', 5),
-        ('cogs', 6),
-        ('inventory', 2),
-        ('purchase_offset', 4)
+        ('sales_cash', @SalesCashAccountId),
+        ('sales_revenue', @SalesRevenueAccountId),
+        ('cogs', @CogsAccountId),
+        ('inventory', @InventoryAccountId),
+        ('purchase_offset', @PurchaseOffsetAccountId),
+        ('used_car_price', @UsedCarPriceAccountId),
+        ('used_car_transportation', @UsedCarTransportationAccountId),
+        ('used_car_partout', @UsedCarPartOutAccountId),
+        ('used_car_shipping', @UsedCarShippingAccountId),
+        ('used_car_customs', @UsedCarCustomsAccountId)
 ) AS source (SettingKey, AccountId)
 ON target.SettingKey = source.SettingKey
-WHEN NOT MATCHED THEN
+WHEN MATCHED AND target.AccountId IS NULL AND source.AccountId IS NOT NULL THEN
+    UPDATE SET AccountId = source.AccountId, ModifiedAt = SYSUTCDATETIME()
+WHEN NOT MATCHED AND source.AccountId IS NOT NULL THEN
     INSERT (SettingKey, AccountId, ModifiedAt)
     VALUES (source.SettingKey, source.AccountId, SYSUTCDATETIME());
 

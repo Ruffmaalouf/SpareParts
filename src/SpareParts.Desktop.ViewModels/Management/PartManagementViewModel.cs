@@ -12,6 +12,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public string NewPartOEM { get; set; } = string.Empty;
         public decimal NewPartCostPrice { get; set; }
         public decimal NewPartSalePrice { get; set; }
+        public string NewPartAveragePrice { get; set; } = string.Empty;
         public string NewPartCurrency { get; set; } = "USD";
         public int NewPartMinStock { get; set; }
         public int NewPartCategoryId { get; set; } = 1;
@@ -28,6 +29,7 @@ namespace SpareParts.Desktop.Wpf.Management
             NewPartBrandId = p.BrandId;
             NewPartCostPrice = p.CostPrice;
             NewPartSalePrice = p.SalePrice;
+            NewPartAveragePrice = p.AveragePrice?.ToString("0.##") ?? string.Empty;
             NewPartCurrency = p.Currency;
             NewPartMinStock = p.MinStock;
             NewPartNotes = p.Notes ?? string.Empty;
@@ -35,7 +37,7 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public void ClearForm(string defaultCurrencyCode = "USD")
         {
-            NewPartCode = NewPartName = NewPartOEM = NewPartNotes = string.Empty;
+            NewPartCode = NewPartName = NewPartOEM = NewPartAveragePrice = NewPartNotes = string.Empty;
             NewPartCostPrice = NewPartSalePrice = 0;
             NewPartCurrency = defaultCurrencyCode;
             NewPartMinStock = 0;

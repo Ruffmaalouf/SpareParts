@@ -25,6 +25,20 @@ internal sealed class ThrowOnMovementInsertInventoryRepository : IInventoryRepos
         stock.ModifiedByUserId = userId;
     }
 
+    public bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId)
+    {
+        var stock = _stocks.First(x => x.Id == stockId);
+        if (stock.Quantity + delta < 0)
+        {
+            return false;
+        }
+
+        stock.Quantity += delta;
+        stock.ModifiedAt = DateTime.UtcNow;
+        stock.ModifiedByUserId = userId;
+        return true;
+    }
+
     public int InsertStockMovement(StockMovement movement)
         => throw new InvalidOperationException("Simulated movement insert failure.");
 }

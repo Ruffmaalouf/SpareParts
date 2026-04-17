@@ -50,6 +50,23 @@ internal sealed class ThreadSafeInventoryRepository : IInventoryRepository
         }
     }
 
+    public bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId)
+    {
+        lock (_stockLock)
+        {
+            var stock = _stocksById[stockId];
+            if (stock.Quantity + delta < 0)
+            {
+                return false;
+            }
+
+            stock.Quantity += delta;
+            stock.ModifiedAt = DateTime.UtcNow;
+            stock.ModifiedByUserId = userId;
+            return true;
+        }
+    }
+
     public int InsertStockMovement(StockMovement movement)
     {
         movement.Id = Interlocked.Increment(ref _movementIdSeed);

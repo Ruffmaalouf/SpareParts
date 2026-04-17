@@ -51,8 +51,29 @@ namespace SpareParts.Desktop.Wpf
             InitializeComponent();
             // Assign after InitializeComponent — NEVER put items in XAML AND call ItemsSource
             ResultsList.ItemsSource = _allRoles;
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
 
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current?.MainWindow == null)
+            {
+                return;
+            }
+
+            Application.Current.MainWindow.PreviewMouseDown -= MainWindow_PreviewMouseDown;
             Application.Current.MainWindow.PreviewMouseDown += MainWindow_PreviewMouseDown;
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current?.MainWindow == null)
+            {
+                return;
+            }
+
+            Application.Current.MainWindow.PreviewMouseDown -= MainWindow_PreviewMouseDown;
         }
 
         private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)

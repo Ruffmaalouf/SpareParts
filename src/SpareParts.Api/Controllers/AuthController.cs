@@ -50,7 +50,6 @@ namespace SpareParts.Api.Controllers
             var hash = BCrypt.Net.BCrypt.HashPassword(plain.Trim(), workFactor: 12);
             return Ok(new
             {
-                plain,
                 hash
             });
         }

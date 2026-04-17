@@ -37,6 +37,11 @@ namespace SpareParts.Desktop.Wpf
         {
             if (d is not PartSearchControl control) return;
             var value = e.NewValue as int?;
+            if (e.NewValue is int id)
+            {
+                value = id;
+            }
+
             if (!value.HasValue || value.Value <= 0)
             {
                 control.ClearSelectionVisualState();
@@ -84,7 +89,7 @@ namespace SpareParts.Desktop.Wpf
         public static readonly DependencyProperty FilteredPartsProperty =
             DependencyProperty.Register(nameof(FilteredParts),
                 typeof(ObservableCollection<PartDto>), typeof(PartSearchControl),
-                new PropertyMetadata(new ObservableCollection<PartDto>()));
+                new PropertyMetadata(null));
 
         public ObservableCollection<PartDto> FilteredParts
         {

@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore SpareParts.sln
+
+      - name: Build (warnings as errors)
+        run: dotnet build SpareParts.sln --configuration Release --no-restore
+
+      - name: Collect changed C# files
+        id: changed_files
+        shell: pwsh
+        run: |
+          $baseRef = "${{ github.base_ref }}"
+          if ([string]::IsNullOrWhiteSpace($baseRef)) {
+            $base = "HEAD~1"
+          } else {
+            $base = "origin/$baseRef"
+            git fetch origin $baseRef --depth=1
+          }
+
+          $files = git diff --name-only $base...HEAD -- '*.cs' '*.csproj' '*.props'
+          if (-not $files) {
+            "has_changes=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            exit 0
+          }
+
+          $absolute = $files | ForEach-Object { Join-Path (Get-Location) $_ }
+          "has_changes=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "files<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          $absolute | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: dotnet format on touched files
+        if: steps.changed_files.outputs.has_changes == 'true'
+        shell: pwsh
+        run: |
+          $files = @"
+          ${{ steps.changed_files.outputs.files }}
+          "@ -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+          dotnet format SpareParts.sln --verify-no-changes --severity warn --include $files
+
+      - name: Test architecture suite
+        run: dotnet test tests/SpareParts.ArchitectureTests/SpareParts.ArchitectureTests.csproj --configuration Release
+
+      - name: Test management suite
+        run: dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj --configuration Release
+
+      - name: Test SQL Server integration suite
+        run: dotnet test tests/SpareParts.IntegrationTests/SpareParts.IntegrationTests.csproj --configuration Release

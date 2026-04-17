@@ -50,12 +50,15 @@ public sealed class UsedCarsService
                      uc.Transportation,
                      uc.IsReceived,
                      uc.IsShipped,
-                     uc.PartOut,
+                     uc.PartOutAmount AS PartOut,
                      uc.Shipping,
                      uc.Customs,
                      uc.TotalBeforeShipping,
                      uc.GrandTotalBase,
-                     uc.GrandTotalCounter
+                     uc.GrandTotalCounter,
+                     uc.BaseCurrencyCode,
+                     uc.CounterCurrencyCode,
+                     uc.CounterRateToBase
               FROM dbo.UsedCars uc
               INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
               INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
@@ -70,9 +73,9 @@ public sealed class UsedCarsService
         using var conn = _factory.CreateConnection();
         return conn.ExecuteScalar<int>(
             @"INSERT INTO dbo.UsedCars
-                (CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOut, Shipping, Customs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, CreatedByUserId)
+                (CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, CreatedByUserId)
               VALUES
-                (@CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @UserId);
+                (@CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @UserId);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
@@ -93,6 +96,9 @@ public sealed class UsedCarsService
                 snapshot.TotalBeforeShipping,
                 snapshot.GrandTotalBase,
                 snapshot.GrandTotalCounter,
+                snapshot.BaseCurrencyCode,
+                snapshot.CounterCurrencyCode,
+                snapshot.CounterRateToBase,
                 UserId = userId
             });
     }
@@ -115,12 +121,15 @@ public sealed class UsedCarsService
                   Transportation = @Transportation,
                   IsReceived = @IsReceived,
                   IsShipped = @IsShipped,
-                  PartOut = @PartOut,
+                  PartOutAmount = @PartOut,
                   Shipping = @Shipping,
                   Customs = @Customs,
                   TotalBeforeShipping = @TotalBeforeShipping,
                   GrandTotalBase = @GrandTotalBase,
                   GrandTotalCounter = @GrandTotalCounter,
+                  BaseCurrencyCode = @BaseCurrencyCode,
+                  CounterCurrencyCode = @CounterCurrencyCode,
+                  CounterRateToBase = @CounterRateToBase,
                   ModifiedAt = @Now,
                   ModifiedByUserId = @UserId
               WHERE Id = @Id",
@@ -144,6 +153,9 @@ public sealed class UsedCarsService
                 snapshot.TotalBeforeShipping,
                 snapshot.GrandTotalBase,
                 snapshot.GrandTotalCounter,
+                snapshot.BaseCurrencyCode,
+                snapshot.CounterCurrencyCode,
+                snapshot.CounterRateToBase,
                 UserId = userId,
                 Now = DateTime.UtcNow
             });
@@ -244,9 +256,9 @@ public sealed class UsedCarsService
             throw new ValidationException($"No conversion rate is configured for location currency {locationCurrencyCode}.");
         }
 
-        var normalizedPartOut = request.PartOut?.Trim() ?? string.Empty;
         var normalizedLocationName = selectedLocation.Name?.Trim() ?? string.Empty;
         var roundedPrice = decimal.Round(request.Price, 2, MidpointRounding.AwayFromZero);
+        var roundedPartOut = decimal.Round(request.PartOut, 2, MidpointRounding.AwayFromZero);
         var roundedShipping = decimal.Round(request.Shipping, 2, MidpointRounding.AwayFromZero);
         var roundedCustoms = decimal.Round(request.Customs, 2, MidpointRounding.AwayFromZero);
 
@@ -256,7 +268,7 @@ public sealed class UsedCarsService
             : priceBase;
         var transportation = decimal.Round(selectedLocation.ShippingFees * locationToCounterRate, 2, MidpointRounding.AwayFromZero);
         var totalBeforeShipping = decimal.Round(priceCounter + transportation, 2, MidpointRounding.AwayFromZero);
-        var expensesCounterTotal = transportation + roundedShipping + roundedCustoms;
+        var expensesCounterTotal = transportation + roundedPartOut + roundedShipping + roundedCustoms;
         var grandTotalCounter = decimal.Round(priceCounter + expensesCounterTotal, 2, MidpointRounding.AwayFromZero);
         var grandTotalBase = decimal.Round(priceBase + (expensesCounterTotal * counterToBaseRate), 2, MidpointRounding.AwayFromZero);
 
@@ -273,12 +285,15 @@ public sealed class UsedCarsService
             Transportation = transportation,
             IsReceived = request.IsReceived,
             IsShipped = request.IsShipped,
-            PartOut = normalizedPartOut,
+            PartOut = roundedPartOut,
             Shipping = roundedShipping,
             Customs = roundedCustoms,
             TotalBeforeShipping = totalBeforeShipping,
             GrandTotalBase = grandTotalBase,
-            GrandTotalCounter = grandTotalCounter
+            GrandTotalCounter = grandTotalCounter,
+            BaseCurrencyCode = baseCurrencyCode,
+            CounterCurrencyCode = counterCurrencyCode,
+            CounterRateToBase = decimal.Round(counterToBaseRate, 8, MidpointRounding.AwayFromZero)
         };
     }
 
@@ -304,7 +319,7 @@ public sealed class UsedCarsService
             throw new ValidationException("Location is required.");
         }
 
-        if (request.Shipping < 0 || request.Customs < 0)
+        if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0)
         {
             throw new ValidationException("Expense values cannot be negative.");
         }
@@ -424,11 +439,14 @@ public sealed class UsedCarsService
         public decimal Transportation { get; init; }
         public bool IsReceived { get; init; }
         public bool IsShipped { get; init; }
-        public string PartOut { get; init; } = string.Empty;
+        public decimal PartOut { get; init; }
         public decimal Shipping { get; init; }
         public decimal Customs { get; init; }
         public decimal TotalBeforeShipping { get; init; }
         public decimal GrandTotalBase { get; init; }
         public decimal GrandTotalCounter { get; init; }
+        public string BaseCurrencyCode { get; init; } = "USD";
+        public string CounterCurrencyCode { get; init; } = "USD";
+        public decimal CounterRateToBase { get; init; } = 1m;
     }
 }

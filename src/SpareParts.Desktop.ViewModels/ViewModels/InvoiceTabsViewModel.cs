@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Collections.Generic;
 using System.Windows.Media.Imaging;
+using System.Threading;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
 {
@@ -30,8 +31,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private readonly IRoleApiClient _rolesApi;
         private readonly IArRenderingService _arRenderingService;
         private readonly IArDeviceBridge _arDeviceBridge;
+        private int _invoiceSearchVersion;
+        private CancellationTokenSource? _invoiceSearchCts;
+        private int _carsLoadVersion;
 
         public ManagementViewModel ManagementVm { get; }
+        public UsedCarPurchasesViewModel PurchasesVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -96,7 +101,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _canViewPartSelectionScreen = value; OnPropertyChanged(nameof(CanViewPartSelectionScreen)); }
         }
 
-        private bool _canViewArScreen = true;
+        private bool _canViewArScreen;
         public bool CanViewArScreen
         {
             get => _canViewArScreen;
@@ -309,6 +314,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IsLoadingRolePermissions ||
             IsLoadingInvoiceSearch ||
             IsLoadingInvoiceOpen ||
+            PurchasesVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -349,6 +355,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public InvoiceTabsViewModel(
             ICarCatalogApiClient carCatalogApi,
             IPartsApiClient partsApi,
+            IAccountingApiClient accountingApi,
+            IPurchasesApiClient purchasesApi,
             ISalesApiClient salesApi,
             ICrudApiClient crudApi,
             IRoleApiClient rolesApi,
@@ -364,6 +372,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _arRenderingService = arRenderingService;
             _arDeviceBridge = arDeviceBridge;
             ManagementVm = managementVm;
+            PurchasesVm = new UsedCarPurchasesViewModel(crudApi, accountingApi, purchasesApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(ManagementViewModel.IsLoading))
@@ -374,6 +383,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ManagementVm.AccountingVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(Management.AccountingViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            PurchasesVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(UsedCarPurchasesViewModel.IsLoading))
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
@@ -463,8 +479,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                ActiveScreen = AppScreen.Pos;
-                SelectedTab?.SelectTransactionTypeByName("Purchases");
+                ActiveScreen = AppScreen.Purchases;
+                PurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
             GoToStockManagementCommand = new RelayCommand(_ =>
             {
@@ -572,7 +588,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CanViewManualJournalScreen = manualJournalScreen.CanView;
             CanViewCarSelectionScreen = carSelectionScreen.CanView;
             CanViewPartSelectionScreen = partSelectionScreen.CanView;
-            CanViewArScreen = arScreen?.CanView ?? true;
+            CanViewArScreen = arScreen?.CanView ?? false;
             ManagementVm.SetTabPermissions(
                 supplierTab.CanView,
                 supplierTab.CanEdit,
@@ -703,24 +719,47 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void RefreshInvoiceSearch()
         {
-            RefreshInvoiceSearchAsync().SafeFireAndForget(HandleBackgroundException);
+            var version = Interlocked.Increment(ref _invoiceSearchVersion);
+            _invoiceSearchCts?.Cancel();
+            _invoiceSearchCts?.Dispose();
+            _invoiceSearchCts = new CancellationTokenSource();
+            RefreshInvoiceSearchAsync(version, _invoiceSearchCts.Token).SafeFireAndForget(HandleBackgroundException);
         }
 
-        private async Task RefreshInvoiceSearchAsync()
+        private async Task RefreshInvoiceSearchAsync(int version, CancellationToken cancellationToken)
         {
             try
             {
+                await Task.Delay(150, cancellationToken);
+                if (version != _invoiceSearchVersion || cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 IsLoadingInvoiceSearch = true;
                 var results = await _salesApi.SearchInvoicesAsync(InvoiceSearchText ?? string.Empty);
+                if (version != _invoiceSearchVersion || cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    if (version != _invoiceSearchVersion || cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
                     InvoiceSearchResults.Clear();
                     foreach (var invoice in results)
                     {
                         InvoiceSearchResults.Add(invoice);
                     }
                 });
+            }
+            catch (TaskCanceledException)
+            {
+                // A newer search superseded this request.
             }
             catch (ApiClientException ex)
             {
@@ -732,7 +771,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
             finally
             {
-                IsLoadingInvoiceSearch = false;
+                if (version == _invoiceSearchVersion)
+                {
+                    IsLoadingInvoiceSearch = false;
+                }
             }
         }
 
@@ -805,7 +847,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                     foreach (var grp in grouped)
                     {
-                        var groupVm = new BrandGroupViewModel { RegionGroup = grp.Key.ToUpperInvariant() };
+                        var regionGroup = string.IsNullOrWhiteSpace(grp.Key)
+                            ? "OTHER"
+                            : grp.Key.ToUpperInvariant();
+                        var groupVm = new BrandGroupViewModel { RegionGroup = regionGroup };
                         foreach (var b in grp.OrderBy(x => x.SortOrder).ThenBy(x => x.Name))
                         {
                             var bvm = new CarBrandViewModel
@@ -878,18 +923,29 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             SelectedBrand = brand;
             ActiveScreen  = AppScreen.CarSelection;
-            LoadCarsAsync(brand.Id).SafeFireAndForget(HandleBackgroundException);
+            var loadVersion = Interlocked.Increment(ref _carsLoadVersion);
+            LoadCarsAsync(brand.Id, loadVersion).SafeFireAndForget(HandleBackgroundException);
         }
 
-        private async Task LoadCarsAsync(int brandId)
+        private async Task LoadCarsAsync(int brandId, int loadVersion)
         {
             AvailableCars.Clear();
             IsLoadingCars = true;
             try
             {
                 var dtos = await _carCatalogApi.GetCarModelsAsync(brandId);
+                if (loadVersion != _carsLoadVersion || SelectedBrand?.Id != brandId)
+                {
+                    return;
+                }
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    if (loadVersion != _carsLoadVersion || SelectedBrand?.Id != brandId)
+                    {
+                        return;
+                    }
+
                     AvailableCars.Clear();
                     foreach (var dto in dtos)
                     {

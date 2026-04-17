@@ -81,6 +81,22 @@ public class ApiCompositionTests
             profile.Capabilities);
     }
 
+    [Fact]
+    public void AddCapabilities_WhenInventoryEnabled_ShouldRegisterAiBackedPartsServices()
+    {
+        var services = new ServiceCollection();
+        services.AddOptions();
+        services.AddSingleton(new OpenAiOptions());
+
+        services.AddCapabilities(
+            "SpareParts.Inventory.Api",
+            ServiceCapability.Inventory,
+            ServiceCapability.Health);
+
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(PartsService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(PartNotesAiService));
+    }
+
     private static string[] GetControllerNames(params ServiceCapability[] capabilities)
     {
         var services = new ServiceCollection();

@@ -11,6 +11,7 @@ using SpareParts.Domain.Purchases;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Services;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace SpareParts.Api.Hosting;
@@ -47,8 +48,10 @@ public static class SparePartsApiComposition
         var connString = ResolveConnectionString(builder);
         var jwtSettings = ResolveJwtSettings(builder.Configuration);
         var accountingOptions = builder.Configuration.GetSection("Accounting").Get<AccountingOptions>() ?? new AccountingOptions();
+        var openAiOptions = ResolveOpenAiOptions(builder.Configuration);
 
         builder.Services.AddSingleton(accountingOptions);
+        builder.Services.AddSingleton(openAiOptions);
 
         builder.Services.AddSingleton<ISqlConnectionFactory>(_ => new SqlConnectionFactory(connString));
         builder.Services.AddSingleton<IExceptionLogWriter, SqlExceptionLogWriter>();
@@ -122,6 +125,7 @@ public static class SparePartsApiComposition
             });
 
             services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
+            services.AddScoped<ICreateUsedCarPurchaseHandler, CreateUsedCarPurchaseHandler>();
             services.AddScoped<PurchaseService>();
             RegisterSharedInvoiceServices(services);
             services.AddScoped<SuppliersService>();
@@ -129,6 +133,14 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Inventory))
         {
+            services.AddHttpClient<PartNotesAiService>((serviceProvider, client) =>
+            {
+                var options = serviceProvider.GetRequiredService<OpenAiOptions>();
+                client.BaseAddress = new Uri(options.BaseUrl, UriKind.Absolute);
+                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
             services.AddScoped<PartsService>();
             services.AddScoped<WarehousesService>();
             services.AddScoped<TransactionTypesService>();
@@ -192,11 +204,13 @@ public static class SparePartsApiComposition
         AccountingMigration.EnsureApplied(sqlConnectionFactory);
         MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
         TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
+        PartAveragePriceMigration.EnsureApplied(sqlConnectionFactory);
         CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);
         AppConstantsMigration.EnsureApplied(sqlConnectionFactory);
         CarModelsMigration.EnsureApplied(sqlConnectionFactory);
         LocationsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
+        UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
 
         app.UseMiddleware<ApiExceptionMiddleware>();
@@ -238,6 +252,40 @@ public static class SparePartsApiComposition
             Issuer = jwtSection["Issuer"] ?? "SpareParts.Api",
             Audience = jwtSection["Audience"] ?? "SpareParts.Desktop",
             ExpiryHours = int.TryParse(jwtSection["ExpiryHours"], out var hours) ? hours : 12
+        };
+    }
+
+    private static OpenAiOptions ResolveOpenAiOptions(IConfiguration configuration)
+    {
+        var section = configuration.GetSection("OpenAI");
+        var apiKey = section["ApiKey"] ?? configuration["OPENAI_API_KEY"];
+        if (!string.IsNullOrWhiteSpace(apiKey) && apiKey.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            apiKey = apiKey["Bearer ".Length..];
+        }
+
+        var baseUrl = section["BaseUrl"];
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = "https://api.openai.com/v1/";
+        }
+
+        baseUrl = baseUrl.Trim();
+        if (!baseUrl.EndsWith("/", StringComparison.Ordinal))
+        {
+            baseUrl = $"{baseUrl}/";
+        }
+
+        var timeoutSeconds = int.TryParse(section["TimeoutSeconds"], out var configuredTimeout)
+            ? Math.Clamp(configuredTimeout, 5, 120)
+            : 30;
+
+        return new OpenAiOptions
+        {
+            ApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey.Trim(),
+            BaseUrl = baseUrl,
+            Model = string.IsNullOrWhiteSpace(section["Model"]) ? "gpt-5-mini" : section["Model"]!.Trim(),
+            TimeoutSeconds = timeoutSeconds
         };
     }
 

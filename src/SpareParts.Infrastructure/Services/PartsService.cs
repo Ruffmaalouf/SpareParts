@@ -6,10 +6,12 @@ namespace SpareParts.Infrastructure.Services;
 public sealed class PartsService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly PartNotesAiService _partNotesAiService;
 
-    public PartsService(ISqlConnectionFactory factory)
+    public PartsService(ISqlConnectionFactory factory, PartNotesAiService partNotesAiService)
     {
         _factory = factory;
+        _partNotesAiService = partNotesAiService;
     }
 
     public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize)
@@ -28,6 +30,7 @@ public sealed class PartsService
             BrandId = p.BrandId,
             CostPrice = p.CostPrice,
             SalePrice = p.SalePrice,
+            AveragePrice = p.AveragePrice,
             Currency = p.Currency,
             MinStock = p.MinStock,
             Notes = p.Notes,
@@ -53,6 +56,7 @@ public sealed class PartsService
             BrandId = request.BrandId,
             CostPrice = request.CostPrice,
             SalePrice = request.SalePrice,
+            AveragePrice = request.AveragePrice,
             Currency = request.Currency,
             MinStock = request.MinStock,
             Notes = request.Notes,
@@ -89,4 +93,9 @@ public sealed class PartsService
 
         session.Commit();
     }
+
+    public Task<GeneratePartNotesResponse> GenerateNotesAsync(
+        GeneratePartNotesRequest request,
+        CancellationToken cancellationToken = default)
+        => _partNotesAiService.GenerateNotesAsync(request, cancellationToken);
 }

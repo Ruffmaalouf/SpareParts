@@ -33,10 +33,10 @@ namespace SpareParts.Infrastructure.Data
         {
             const string sql = @"INSERT INTO Parts
                 (InternalCode, Barcode, Name, OEMNumber, Condition, CategoryId, BrandId,
-                 CostPrice, SalePrice, Currency, MinStock, Notes, IsActive, CreatedAt, CreatedByUserId)
+                 CostPrice, SalePrice, AveragePrice, Currency, MinStock, Notes, IsActive, CreatedAt, CreatedByUserId)
                 VALUES
                 (@InternalCode, @Barcode, @Name, @OEMNumber, @Condition, @CategoryId, @BrandId,
-                 @CostPrice, @SalePrice, @Currency, @MinStock, @Notes, @IsActive, @CreatedAt, @CreatedByUserId);
+                 @CostPrice, @SalePrice, @AveragePrice, @Currency, @MinStock, @Notes, @IsActive, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
             return _session.Connection.ExecuteScalar<int>(sql, part, _session.Transaction);
         }
@@ -46,7 +46,7 @@ namespace SpareParts.Infrastructure.Data
             const string sql = @"UPDATE Parts
                                  SET InternalCode = @InternalCode, Barcode = @Barcode, Name = @Name,
                                      OEMNumber = @OEMNumber, Condition = @Condition, CategoryId = @CategoryId, BrandId = @BrandId,
-                                     CostPrice = @CostPrice, SalePrice = @SalePrice, Currency = @Currency, MinStock = @MinStock,
+                                     CostPrice = @CostPrice, SalePrice = @SalePrice, AveragePrice = @AveragePrice, Currency = @Currency, MinStock = @MinStock,
                                      Notes = @Notes, ModifiedAt = @Now, ModifiedByUserId = @UserId
                                  WHERE Id = @Id";
             var updated = _session.Connection.Execute(sql, new
@@ -61,6 +61,7 @@ namespace SpareParts.Infrastructure.Data
                 request.BrandId,
                 request.CostPrice,
                 request.SalePrice,
+                request.AveragePrice,
                 request.Currency,
                 request.MinStock,
                 request.Notes,

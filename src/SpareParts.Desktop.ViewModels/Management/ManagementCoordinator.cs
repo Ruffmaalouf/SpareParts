@@ -5,6 +5,7 @@ using SpareParts.Domain.MasterData;
 using SpareParts.Desktop.Wpf.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf.Management
@@ -13,11 +14,16 @@ namespace SpareParts.Desktop.Wpf.Management
     {
         private readonly ICrudApiClient _crudApi;
         private readonly ICarCatalogApiClient _carCatalogApi;
+        private readonly IPartsApiClient _partsApi;
 
-        public ManagementCoordinator(ICrudApiClient crudApi, ICarCatalogApiClient carCatalogApi)
+        public ManagementCoordinator(
+            ICrudApiClient crudApi,
+            ICarCatalogApiClient carCatalogApi,
+            IPartsApiClient partsApi)
         {
             _crudApi = crudApi;
             _carCatalogApi = carCatalogApi;
+            _partsApi = partsApi;
         }
 
         public async Task<ManagementLoadResult> LoadAllAsync(RolesViewModel rolesVm)
@@ -163,6 +169,16 @@ namespace SpareParts.Desktop.Wpf.Management
                 return Task.FromResult(ToFailure(new DomainValidationException("Part code and name are required.", "part_required_fields_missing"), "saving Part"));
             }
 
+            decimal? averagePrice;
+            try
+            {
+                averagePrice = ParseOptionalDecimal(feature.NewPartAveragePrice, "Average price", "part_average_price_invalid");
+            }
+            catch (DomainValidationException exception)
+            {
+                return Task.FromResult(ToFailure(exception, "saving Part"));
+            }
+
             var payload = new CreatePartRequest
             {
                 InternalCode = feature.NewPartCode,
@@ -173,6 +189,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 BrandId = feature.NewPartBrandId,
                 CostPrice = feature.NewPartCostPrice,
                 SalePrice = feature.NewPartSalePrice,
+                AveragePrice = averagePrice,
                 Currency = feature.NewPartCurrency,
                 MinStock = feature.NewPartMinStock,
                 Notes = feature.NewPartNotes
@@ -194,6 +211,47 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             return DeleteAsync($"api/parts/{selected.Id}", "Part");
+        }
+
+        public async Task<ManagementOperationResult> GeneratePartNotesAsync(
+            PartManagementViewModel feature,
+            IReadOnlyDictionary<int, string> categoryLookup,
+            IReadOnlyDictionary<int, string> brandLookup)
+        {
+            if (string.IsNullOrWhiteSpace(feature.NewPartCode) || string.IsNullOrWhiteSpace(feature.NewPartName))
+            {
+                return ToFailure(new DomainValidationException("Part code and name are required before using AI notes.", "part_ai_required_fields_missing"), "generating AI part notes");
+            }
+
+            try
+            {
+                var response = await _partsApi.GeneratePartNotesAsync(new GeneratePartNotesRequest
+                {
+                    InternalCode = feature.NewPartCode.Trim(),
+                    Name = feature.NewPartName.Trim(),
+                    OEMNumber = NormalizeOptional(feature.NewPartOEM),
+                    CategoryId = feature.NewPartCategoryId,
+                    CategoryName = categoryLookup.TryGetValue(feature.NewPartCategoryId, out var categoryName) ? categoryName : null,
+                    BrandId = feature.NewPartBrandId,
+                    BrandName = feature.NewPartBrandId is int brandId && brandLookup.TryGetValue(brandId, out var brandName) ? brandName : null,
+                    CostPrice = feature.NewPartCostPrice,
+                    SalePrice = feature.NewPartSalePrice,
+                    Currency = string.IsNullOrWhiteSpace(feature.NewPartCurrency) ? "USD" : feature.NewPartCurrency.Trim().ToUpperInvariant(),
+                    MinStock = feature.NewPartMinStock,
+                    ExistingNotes = NormalizeOptional(feature.NewPartNotes)
+                });
+
+                feature.NewPartNotes = response.SuggestedNotes;
+                feature.NewPartAveragePrice = response.SuggestedAveragePrice?.ToString("0.##") ?? feature.NewPartAveragePrice;
+
+                return response.SuggestedAveragePrice.HasValue
+                    ? Success("✓ AI draft updated notes and average price.")
+                    : Success("✓ AI draft added to part notes.");
+            }
+            catch (Exception ex)
+            {
+                return ToFailure(ex, "generating AI part notes");
+            }
         }
 
 
@@ -308,6 +366,40 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             return DeleteAsync($"api/locations/{selected.LocationId}", "Location");
+        }
+
+        public Task<ManagementOperationResult> SaveWarehouseAsync(WarehouseManagementViewModel feature)
+        {
+            if (string.IsNullOrWhiteSpace(feature.NewWarehouseName))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Warehouse name is required.", "warehouse_name_required"), "saving Warehouse"));
+            }
+
+            var payload = new CreateWarehouseRequest
+            {
+                Name = feature.NewWarehouseName.Trim(),
+                Address = string.IsNullOrWhiteSpace(feature.NewWarehouseAddress)
+                    ? null
+                    : feature.NewWarehouseAddress.Trim(),
+                IsMain = feature.NewWarehouseIsMain
+            };
+
+            return SaveAsync(
+                feature.SelectedWarehouse is { Id: > 0 },
+                feature.SelectedWarehouse?.Id,
+                "api/warehouses",
+                payload,
+                "Warehouse");
+        }
+
+        public Task<ManagementOperationResult> DeleteWarehouseAsync(WarehouseDto? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a warehouse to delete.", "warehouse_selection_required"), "deleting Warehouse"));
+            }
+
+            return DeleteAsync($"api/warehouses/{selected.Id}", "Warehouse");
         }
 
         public Task<ManagementOperationResult> SaveUsedCarAsync(CreateUsedCarRequest request, UsedCarEntry? selected)
@@ -441,6 +533,25 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private static ManagementOperationResult Success(string message) => new() { Success = true, Message = message };
         private static ManagementOperationResult Fail(string message) => new() { Success = false, Message = message };
+        private static string? NormalizeOptional(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static decimal? ParseOptionalDecimal(string? value, string fieldLabel, string errorCode)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out var parsed)
+                || decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out parsed))
+            {
+                return parsed;
+            }
+
+            throw new DomainValidationException($"{fieldLabel} must be a valid number.", errorCode);
+        }
+
         private static ManagementOperationResult ToFailure(Exception exception, string operationName)
             => exception switch
             {

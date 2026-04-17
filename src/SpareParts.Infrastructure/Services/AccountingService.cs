@@ -415,8 +415,8 @@ namespace SpareParts.Infrastructure.Services
                 };
             }).ToList();
 
-            var totalDebit = lines.Sum(line => line.Debit);
-            var totalCredit = lines.Sum(line => line.Credit);
+            var totalDebit = decimal.Round(lines.Sum(line => line.Debit), 4, MidpointRounding.AwayFromZero);
+            var totalCredit = decimal.Round(lines.Sum(line => line.Credit), 4, MidpointRounding.AwayFromZero);
             if (totalDebit != totalCredit)
             {
                 throw new ValidationException("Journal entry is not balanced.");

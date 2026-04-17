@@ -23,5 +23,16 @@ namespace SpareParts.Api.Controllers
             var result = _purchaseService.CreatePurchase(request, CurrentUserId);
             return Ok(result);
         }
+
+        [HttpGet("used-cars")]
+        public ActionResult<IReadOnlyList<UsedCarPurchaseSummaryDto>> GetUsedCarPurchases()
+            => Ok(_purchaseService.GetUsedCarPurchases());
+
+        [HttpPost("used-cars")]
+        public ActionResult<CreateUsedCarPurchaseResponse> CreateUsedCarPurchase([FromBody] CreateUsedCarPurchaseRequest request)
+        {
+            var result = _purchaseService.CreateUsedCarPurchase(request, CurrentUserId);
+            return Ok(result);
+        }
     }
 }
