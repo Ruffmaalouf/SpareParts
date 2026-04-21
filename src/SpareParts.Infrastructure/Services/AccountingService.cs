@@ -451,15 +451,20 @@ namespace SpareParts.Infrastructure.Services
             var repositories = RepositoryCatalog.For(session).Accounting;
             var account = repositories.Accounts.GetAll().FirstOrDefault(item => item.Id == accountId)
                 ?? throw new NotFoundException("Account not found.");
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
 
             var openingBalance = repositories.Journal.GetOpeningBalance(accountId, dateFrom);
+            var openingCounterBalance = repositories.Journal.GetOpeningCounterBalance(accountId, dateFrom);
             var rows = repositories.Journal.GetLedgerRows(accountId, dateFrom, dateTo).ToList();
             var runningBalance = openingBalance;
+            var runningCounterBalance = openingCounterBalance;
 
             foreach (var row in rows)
             {
                 runningBalance += row.Debit - row.Credit;
+                runningCounterBalance += row.CounterDebit - row.CounterCredit;
                 row.RunningBalance = runningBalance;
+                row.RunningCounterBalance = runningCounterBalance;
             }
 
             return new LedgerReportDto
@@ -467,10 +472,14 @@ namespace SpareParts.Infrastructure.Services
                 AccountId = account.Id,
                 AccountCode = account.Code,
                 AccountName = account.Name,
+                BaseCurrencyCode = rows.FirstOrDefault()?.BaseCurrencyCode ?? currencyContext.BaseCurrencyCode,
+                CounterCurrencyCode = rows.FirstOrDefault()?.CounterCurrencyCode ?? currencyContext.CounterCurrencyCode,
                 DateFrom = dateFrom,
                 DateTo = dateTo,
                 OpeningBalance = openingBalance,
+                OpeningCounterBalance = openingCounterBalance,
                 ClosingBalance = runningBalance,
+                ClosingCounterBalance = runningCounterBalance,
                 Entries = rows
             };
         }
@@ -480,15 +489,62 @@ namespace SpareParts.Infrastructure.Services
             ValidateDateRange(dateFrom, dateTo);
 
             using var session = new DbSession(_factory);
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var rows = RepositoryCatalog.For(session).Accounting.Journal.GetTrialBalanceRows(dateFrom, dateTo).ToList();
 
             return new TrialBalanceReportDto
             {
                 DateFrom = dateFrom,
                 DateTo = dateTo,
+                BaseCurrencyCode = rows.FirstOrDefault()?.BaseCurrencyCode ?? currencyContext.BaseCurrencyCode,
+                CounterCurrencyCode = rows.FirstOrDefault()?.CounterCurrencyCode ?? currencyContext.CounterCurrencyCode,
                 TotalDebit = rows.Sum(row => row.TotalDebit),
                 TotalCredit = rows.Sum(row => row.TotalCredit),
+                TotalCounterDebit = rows.Sum(row => row.TotalCounterDebit),
+                TotalCounterCredit = rows.Sum(row => row.TotalCounterCredit),
                 Rows = rows
+            };
+        }
+
+        public StatementOfAccountReportDto GetStatementOfAccount(int accountId, DateTime? dateFrom, DateTime? dateTo)
+        {
+            var ledger = GetLedger(accountId, dateFrom, dateTo);
+
+            return new StatementOfAccountReportDto
+            {
+                AccountId = ledger.AccountId,
+                AccountCode = ledger.AccountCode,
+                AccountName = ledger.AccountName,
+                BaseCurrencyCode = ledger.BaseCurrencyCode,
+                CounterCurrencyCode = ledger.CounterCurrencyCode,
+                DateFrom = ledger.DateFrom,
+                DateTo = ledger.DateTo,
+                OpeningBalance = ledger.OpeningBalance,
+                ClosingBalance = ledger.ClosingBalance,
+                OpeningCounterBalance = ledger.OpeningCounterBalance,
+                ClosingCounterBalance = ledger.ClosingCounterBalance,
+                TotalDebit = ledger.Entries.Sum(entry => entry.Debit),
+                TotalCredit = ledger.Entries.Sum(entry => entry.Credit),
+                TotalCounterDebit = ledger.Entries.Sum(entry => entry.CounterDebit),
+                TotalCounterCredit = ledger.Entries.Sum(entry => entry.CounterCredit),
+                Entries = ledger.Entries.Select(entry => new StatementOfAccountRowDto
+                {
+                    JournalEntryId = entry.JournalEntryId,
+                    EntryDate = entry.EntryDate,
+                    ReferenceType = entry.ReferenceType,
+                    ReferenceId = entry.ReferenceId,
+                    Description = entry.Description,
+                    BaseCurrencyCode = entry.BaseCurrencyCode,
+                    CounterCurrencyCode = entry.CounterCurrencyCode,
+                    CurrencyCode = entry.CurrencyCode,
+                    OriginalAmount = entry.OriginalAmount,
+                    Debit = entry.Debit,
+                    Credit = entry.Credit,
+                    CounterDebit = entry.CounterDebit,
+                    CounterCredit = entry.CounterCredit,
+                    RunningBalance = entry.RunningBalance,
+                    RunningCounterBalance = entry.RunningCounterBalance
+                }).ToList()
             };
         }
 

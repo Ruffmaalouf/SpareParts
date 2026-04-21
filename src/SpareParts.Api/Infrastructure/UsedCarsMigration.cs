@@ -15,6 +15,7 @@ BEGIN
     CREATE TABLE dbo.UsedCars
     (
         Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_UsedCars PRIMARY KEY,
+        SupplierId INT NULL,
         CarModelId INT NOT NULL,
         ModelYear INT NOT NULL,
         PriceCurrency CHAR(3) NOT NULL,
@@ -35,18 +36,26 @@ BEGIN
         BaseCurrencyCode CHAR(3) NOT NULL CONSTRAINT DF_UsedCars_BaseCurrencyCode DEFAULT ('USD'),
         CounterCurrencyCode CHAR(3) NOT NULL CONSTRAINT DF_UsedCars_CounterCurrencyCode DEFAULT ('USD'),
         CounterRateToBase DECIMAL(19, 8) NOT NULL CONSTRAINT DF_UsedCars_CounterRateToBase DEFAULT (1),
+        ReceivedAt DATETIME2(0) NULL,
         CreatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_UsedCars_CreatedAt DEFAULT SYSUTCDATETIME(),
         ModifiedAt DATETIME2(0) NULL,
         CreatedByUserId INT NULL,
         ModifiedByUserId INT NULL,
+        CONSTRAINT FK_UsedCars_Suppliers FOREIGN KEY (SupplierId) REFERENCES dbo.Suppliers (Id),
         CONSTRAINT FK_UsedCars_CarModels FOREIGN KEY (CarModelId) REFERENCES dbo.CarModels (Id),
         CONSTRAINT FK_UsedCars_Location FOREIGN KEY (LocationId) REFERENCES dbo.Location (LocationId),
         CONSTRAINT FK_UsedCars_CreatedByUsers FOREIGN KEY (CreatedByUserId) REFERENCES dbo.Users (Id),
         CONSTRAINT FK_UsedCars_ModifiedByUsers FOREIGN KEY (ModifiedByUserId) REFERENCES dbo.Users (Id)
     );
 
+    CREATE INDEX IX_UsedCars_SupplierId ON dbo.UsedCars (SupplierId);
     CREATE INDEX IX_UsedCars_CarModelId ON dbo.UsedCars (CarModelId);
     CREATE INDEX IX_UsedCars_LocationId ON dbo.UsedCars (LocationId);
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'SupplierId') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD SupplierId INT NULL;
 END;
 
 IF COL_LENGTH('dbo.UsedCars', 'LocationId') IS NULL
@@ -57,29 +66,60 @@ END;
 IF COL_LENGTH('dbo.UsedCars', 'IsReceived') IS NULL
 BEGIN
     ALTER TABLE dbo.UsedCars ADD IsReceived BIT NULL;
-
-    UPDATE dbo.UsedCars
-    SET IsReceived = CASE WHEN ISNULL(Customs, 0) > 0 THEN 1 ELSE 0 END
-    WHERE IsReceived IS NULL;
-
-    ALTER TABLE dbo.UsedCars ALTER COLUMN IsReceived BIT NOT NULL;
 END;
 
 IF COL_LENGTH('dbo.UsedCars', 'IsShipped') IS NULL
 BEGIN
     ALTER TABLE dbo.UsedCars ADD IsShipped BIT NULL;
-
-    UPDATE dbo.UsedCars
-    SET IsShipped = 0
-    WHERE IsShipped IS NULL;
-
-    ALTER TABLE dbo.UsedCars ALTER COLUMN IsShipped BIT NOT NULL;
 END;
 
 IF COL_LENGTH('dbo.UsedCars', 'PartOutAmount') IS NULL
 BEGIN
     ALTER TABLE dbo.UsedCars ADD PartOutAmount DECIMAL(18, 2) NULL;
 END;
+
+IF COL_LENGTH('dbo.UsedCars', 'BaseCurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD BaseCurrencyCode CHAR(3) NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'CounterCurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD CounterCurrencyCode CHAR(3) NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'CounterRateToBase') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD CounterRateToBase DECIMAL(19, 8) NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'ReceivedAt') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD ReceivedAt DATETIME2(0) NULL;
+END;
+");
+
+        conn.Execute(
+            @"
+UPDATE dbo.UsedCars
+SET IsReceived = CASE WHEN ISNULL(Customs, 0) > 0 THEN 1 ELSE 0 END
+WHERE IsReceived IS NULL;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN IsReceived BIT NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+UPDATE dbo.UsedCars
+SET IsShipped = 0
+WHERE IsShipped IS NULL;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN IsShipped BIT NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
 
 IF COL_LENGTH('dbo.UsedCars', 'PartOut') IS NOT NULL
 BEGIN
@@ -130,21 +170,6 @@ SET @UsedCarsCounterCurrencyCode = COALESCE(NULLIF(@UsedCarsCounterCurrencyCode,
 SET @UsedCarsBaseCurrencyCode = COALESCE(NULLIF(@UsedCarsBaseCurrencyCode, ''), 'USD');
 SET @UsedCarsCounterRateToBase = COALESCE(NULLIF(@UsedCarsCounterRateToBase, 0), 1);
 
-IF COL_LENGTH('dbo.UsedCars', 'BaseCurrencyCode') IS NULL
-BEGIN
-    ALTER TABLE dbo.UsedCars ADD BaseCurrencyCode CHAR(3) NULL;
-END;
-
-IF COL_LENGTH('dbo.UsedCars', 'CounterCurrencyCode') IS NULL
-BEGIN
-    ALTER TABLE dbo.UsedCars ADD CounterCurrencyCode CHAR(3) NULL;
-END;
-
-IF COL_LENGTH('dbo.UsedCars', 'CounterRateToBase') IS NULL
-BEGIN
-    ALTER TABLE dbo.UsedCars ADD CounterRateToBase DECIMAL(19, 8) NULL;
-END;
-
 UPDATE dbo.UsedCars
 SET BaseCurrencyCode = COALESCE(NULLIF(BaseCurrencyCode, ''), @UsedCarsBaseCurrencyCode),
     CounterCurrencyCode = COALESCE(NULLIF(CounterCurrencyCode, ''), @UsedCarsCounterCurrencyCode),
@@ -170,9 +195,12 @@ BEGIN TRY
     ALTER TABLE dbo.UsedCars ALTER COLUMN CounterRateToBase DECIMAL(19, 8) NOT NULL;
 END TRY
 BEGIN CATCH
-END CATCH;
+END CATCH;");
 
-IF OBJECT_ID('dbo.Location', 'U') IS NOT NULL
+        conn.Execute(
+            @"
+IF COL_LENGTH('dbo.UsedCars', 'LocationId') IS NOT NULL
+   AND OBJECT_ID('dbo.Location', 'U') IS NOT NULL
 BEGIN
     UPDATE uc
     SET LocationId = loc.LocationID
@@ -190,6 +218,37 @@ BEGIN
       AND (uc.Location IS NULL OR LTRIM(RTRIM(uc.Location)) = N'');
 END;
 
+IF COL_LENGTH('dbo.UsedCars', 'SupplierId') IS NOT NULL
+   AND OBJECT_ID('dbo.UsedCarPurchases', 'U') IS NOT NULL
+BEGIN
+    UPDATE uc
+    SET SupplierId = source.SupplierId
+    FROM dbo.UsedCars uc
+    OUTER APPLY
+    (
+        SELECT TOP (1) p.SupplierId
+        FROM dbo.UsedCarPurchases p
+        WHERE p.UsedCarId = uc.Id
+          AND p.SupplierId IS NOT NULL
+        ORDER BY p.CreatedAt DESC, p.Id DESC
+    ) source
+    WHERE uc.SupplierId IS NULL
+      AND source.SupplierId IS NOT NULL;
+END;
+
+IF COL_LENGTH('dbo.UsedCars', 'ReceivedAt') IS NOT NULL
+BEGIN
+    UPDATE dbo.UsedCars
+    SET ReceivedAt = NULL
+    WHERE ISNULL(IsReceived, 0) = 0
+      AND ReceivedAt IS NOT NULL;
+
+    UPDATE dbo.UsedCars
+    SET ReceivedAt = COALESCE(ModifiedAt, CreatedAt, SYSUTCDATETIME())
+    WHERE ISNULL(IsReceived, 0) = 1
+      AND ReceivedAt IS NULL;
+END;
+
 IF NOT EXISTS (
     SELECT 1
     FROM sys.foreign_keys
@@ -203,11 +262,33 @@ END;
 
 IF NOT EXISTS (
     SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_UsedCars_Suppliers'
+      AND parent_object_id = OBJECT_ID('dbo.UsedCars'))
+   AND OBJECT_ID('dbo.Suppliers', 'U') IS NOT NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars WITH NOCHECK
+        ADD CONSTRAINT FK_UsedCars_Suppliers FOREIGN KEY (SupplierId) REFERENCES dbo.Suppliers (Id);
+END;
+
+IF NOT EXISTS (
+    SELECT 1
     FROM sys.indexes
     WHERE name = 'IX_UsedCars_LocationId'
       AND object_id = OBJECT_ID('dbo.UsedCars'))
 BEGIN
     CREATE INDEX IX_UsedCars_LocationId ON dbo.UsedCars (LocationId);
+END;");
+
+        conn.Execute(
+            @"
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'IX_UsedCars_SupplierId'
+      AND object_id = OBJECT_ID('dbo.UsedCars'))
+BEGIN
+    CREATE INDEX IX_UsedCars_SupplierId ON dbo.UsedCars (SupplierId);
 END;");
     }
 }

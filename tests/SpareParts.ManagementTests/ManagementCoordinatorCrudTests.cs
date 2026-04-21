@@ -259,6 +259,17 @@ public sealed class ManagementCoordinatorCrudTests
             typeof(CreateCustomerRequest));
 
         yield return SaveCase(
+            "supplier-update",
+            sut => sut.SaveSupplierAsync(new SupplierManagementViewModel
+            {
+                SelectedSupplier = new SupplierDto { Id = 9 },
+                NewSupplierName = "Updated Supplier",
+                NewSupplierEmail = "updated-supplier@example.com"
+            }),
+            "api/suppliers/9",
+            typeof(CreateSupplierRequest));
+
+        yield return SaveCase(
             "location-update",
             sut => sut.SaveLocationAsync(new LocationManagementViewModel
             {

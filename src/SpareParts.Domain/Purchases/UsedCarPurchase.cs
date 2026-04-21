@@ -9,9 +9,15 @@ namespace SpareParts.Domain.Purchases
         public int SupplierId { get; set; }
         public DateTime PurchaseDate { get; set; }
         public string BaseCurrencyCode { get; set; } = "USD";
+        public string CounterCurrencyCode { get; set; } = "USD";
         public decimal TotalBaseAmount { get; set; }
+        public decimal TotalCounterAmount { get; set; }
         public decimal PaidAmount { get; set; }
+        public decimal PaidCounterAmount { get; set; }
         public string PaymentStatus { get; set; } = string.Empty;
+        public string PostingStatus { get; set; } = "Draft";
+        public DateTime? PostedAt { get; set; }
+        public int? PostedByUserId { get; set; }
         public string Notes { get; set; } = string.Empty;
         public List<UsedCarPurchaseLine> Lines { get; set; } = new();
     }
@@ -25,6 +31,7 @@ namespace SpareParts.Domain.Purchases
         public string CurrencyCode { get; set; } = "USD";
         public decimal RateToBase { get; set; }
         public decimal BaseAmount { get; set; }
+        public decimal CounterAmount { get; set; }
         public int AccountId { get; set; }
         public int SortOrder { get; set; }
     }

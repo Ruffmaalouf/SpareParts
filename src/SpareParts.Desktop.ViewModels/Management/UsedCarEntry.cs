@@ -6,8 +6,10 @@ namespace SpareParts.Desktop.Wpf.Management
     public class UsedCarEntry : INotifyPropertyChanged
     {
         private int _id;
+        private int? _supplierId;
         private int? _carModelId;
         private int? _locationId;
+        private string _supplierName = string.Empty;
         private string _car = string.Empty;
         private int _modelYear;
         private string _priceCurrency = "USD";
@@ -29,6 +31,18 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             get => _id;
             set => SetField(ref _id, value);
+        }
+
+        public int? SupplierId
+        {
+            get => _supplierId;
+            set => SetField(ref _supplierId, value);
+        }
+
+        public string SupplierName
+        {
+            get => _supplierName;
+            set => SetField(ref _supplierName, value);
         }
 
         public int? CarModelId

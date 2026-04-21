@@ -5,6 +5,7 @@
     <UserControl.Resources>
         <Style TargetType="ComboBox" BasedOn="{StaticResource AccountingComboBoxStyle}"/>
     </UserControl.Resources>
+
     <TabControl Background="Transparent" BorderThickness="0">
         <TabItem Header="Journals">
             <Grid>
@@ -12,6 +13,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+
                 <Grid Grid.Row="0" Margin="0 0 0 14">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="240"/>
@@ -21,6 +23,7 @@
                         <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+
                     <controls:SaleDatePickerControl Grid.Column="0"
                                                     Label="FROM"
                                                     PopupTitle="SELECT JOURNAL START DATE"
@@ -42,17 +45,36 @@
                             Width="120"
                             VerticalAlignment="Bottom"/>
                 </Grid>
+
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.2*"/>
                         <ColumnDefinition Width="12"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+
                     <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
                         <Grid>
-                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="{Binding JournalSummary}" FontSize="12" Margin="0 0 0 12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <DataGrid Grid.Row="1" ItemsSource="{Binding JournalEntries}" SelectedItem="{Binding SelectedJournalEntry, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0"
+                                       Text="{Binding JournalSummary}"
+                                       FontSize="12"
+                                       Margin="0 0 0 12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                            <DataGrid Grid.Row="1"
+                                      ItemsSource="{Binding JournalEntries}"
+                                      SelectedItem="{Binding SelectedJournalEntry, Mode=TwoWay}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      BorderThickness="0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID" Binding="{Binding Id, Mode=OneWay}" Width="60"/>
                                     <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
@@ -64,25 +86,34 @@
                             </DataGrid>
                         </Grid>
                     </Border>
-                    <Grid Grid.Column="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
-                            <StackPanel>
-                                <TextBlock Text="Selected Journal Entry" FontSize="18" FontWeight="Bold"/>
-                                <TextBlock Text="{Binding SelectedJournalDetailSummary}" Margin="0 6 0 12" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                <TextBlock Text="{Binding SelectedJournalDetail.Description, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                                <DataGrid ItemsSource="{Binding SelectedJournalLines}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" Margin="0 12 0 0">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay, Mode=OneWay}" Width="*"/>
-                                        <DataGridTextColumn Header="Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
-                                        <DataGridTextColumn Header="Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
+
+                    <Border Grid.Column="2" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="Selected Journal Entry" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding SelectedJournalDetailSummary}"
+                                       Margin="0 6 0 12"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SelectedJournalDetail.Description, Mode=OneWay}"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"/>
+
+                            <DataGrid ItemsSource="{Binding SelectedJournalLines}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      BorderThickness="0"
+                                      Margin="0 12 0 0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay, Mode=OneWay}" Width="*"/>
+                                    <DataGridTextColumn Header="Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                                    <DataGridTextColumn Header="Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Grid>
         </TabItem>
@@ -90,7 +121,12 @@
         <TabItem Header="Ledger">
             <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
                 <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="280"/>
@@ -102,6 +138,7 @@
                             <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
+
                         <ComboBox Grid.Column="0"
                                   ItemsSource="{Binding Accounts}"
                                   SelectedValue="{Binding SelectedLedgerAccountId, Mode=TwoWay}"
@@ -129,16 +166,34 @@
                                 Width="120"
                                 VerticalAlignment="Bottom"/>
                     </Grid>
-                    <TextBlock Grid.Row="1" Text="{Binding LedgerSummary}" Margin="0 12 0 12" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    <DataGrid Grid.Row="2" ItemsSource="{Binding LedgerEntries}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding LedgerSummary}"
+                               Margin="0 12 0 12"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding LedgerEntries}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Entry" Binding="{Binding JournalEntryId, Mode=OneWay}" Width="70"/>
                             <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
                             <DataGridTextColumn Header="Reference" Binding="{Binding ReferenceType, Mode=OneWay}" Width="110"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=OneWay}" Width="*"/>
-                            <DataGridTextColumn Header="Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
-                            <DataGridTextColumn Header="Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
-                            <DataGridTextColumn Header="Running" Binding="{Binding RunningBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode, Mode=OneWay}" Width="90"/>
+                            <DataGridTextColumn Header="Original" Binding="{Binding OriginalAmount, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Base Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Base Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Counter Debit" Binding="{Binding CounterDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Credit" Binding="{Binding CounterCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Balance" Binding="{Binding RunningBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Balance" Binding="{Binding RunningCounterBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -148,7 +203,12 @@
         <TabItem Header="Trial Balance">
             <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
                 <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
                     <Grid Grid.Row="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="240"/>
@@ -158,6 +218,7 @@
                             <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
+
                         <controls:SaleDatePickerControl Grid.Column="0"
                                                         Label="FROM"
                                                         PopupTitle="SELECT TRIAL BALANCE START DATE"
@@ -179,16 +240,115 @@
                                 Width="120"
                                 VerticalAlignment="Bottom"/>
                     </Grid>
-                    <TextBlock Grid.Row="1" Text="{Binding TrialBalanceSummary}" Margin="0 12 0 12" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    <DataGrid Grid.Row="2" ItemsSource="{Binding TrialBalanceRows}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding TrialBalanceSummary}"
+                               Margin="0 12 0 12"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding TrialBalanceRows}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Code" Binding="{Binding AccountCode, Mode=OneWay}" Width="90"/>
                             <DataGridTextColumn Header="Account" Binding="{Binding AccountName, Mode=OneWay}" Width="*"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding AccountType, Mode=OneWay}" Width="120"/>
-                            <DataGridTextColumn Header="Total Debit" Binding="{Binding TotalDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
-                            <DataGridTextColumn Header="Total Credit" Binding="{Binding TotalCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
-                            <DataGridTextColumn Header="Debit Balance" Binding="{Binding DebitBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
-                            <DataGridTextColumn Header="Credit Balance" Binding="{Binding CreditBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
+                            <DataGridTextColumn Header="Base Debit" Binding="{Binding TotalDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Credit" Binding="{Binding TotalCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Dr Bal" Binding="{Binding DebitBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Cr Bal" Binding="{Binding CreditBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Debit" Binding="{Binding TotalCounterDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
+                            <DataGridTextColumn Header="Counter Credit" Binding="{Binding TotalCounterCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
+                            <DataGridTextColumn Header="Counter Dr Bal" Binding="{Binding CounterDebitBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="135"/>
+                            <DataGridTextColumn Header="Counter Cr Bal" Binding="{Binding CounterCreditBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="135"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </TabItem>
+
+        <TabItem Header="Statement Of Account">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="280"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding Accounts}"
+                                  SelectedValue="{Binding SelectedStatementAccountId, Mode=TwoWay}"
+                                  SelectedValuePath="Id"
+                                  DisplayMemberPath="DisplayName"
+                                  Margin="0 23 0 0"/>
+                        <controls:SaleDatePickerControl Grid.Column="2"
+                                                        Label="FROM"
+                                                        PopupTitle="SELECT STATEMENT START DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="Start date"
+                                                        SelectedDate="{Binding StatementDateFrom, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"/>
+                        <controls:SaleDatePickerControl Grid.Column="4"
+                                                        Label="TO"
+                                                        PopupTitle="SELECT STATEMENT END DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="End date"
+                                                        SelectedDate="{Binding StatementDateTo, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"/>
+                        <Button Grid.Column="6"
+                                Content="Refresh"
+                                Command="{Binding RefreshStatementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="140"
+                                VerticalAlignment="Bottom"/>
+                    </Grid>
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding StatementSummary}"
+                               Margin="0 12 0 12"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding StatementEntries}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Entry" Binding="{Binding JournalEntryId, Mode=OneWay}" Width="70"/>
+                            <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
+                            <DataGridTextColumn Header="Reference" Binding="{Binding ReferenceType, Mode=OneWay}" Width="110"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=OneWay}" Width="*"/>
+                            <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode, Mode=OneWay}" Width="90"/>
+                            <DataGridTextColumn Header="Original" Binding="{Binding OriginalAmount, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Base Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Base Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Counter Debit" Binding="{Binding CounterDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Credit" Binding="{Binding CounterCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Balance" Binding="{Binding RunningBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Balance" Binding="{Binding RunningCounterBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

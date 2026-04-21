@@ -216,11 +216,9 @@
                                     <TextBox Text="{Binding NewSupplierBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
                                     <Button Content="＋  Save Supplier" Command="{Binding SaveSupplierCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
-                                            IsEnabled="{Binding CanSaveSupplier}"
                                             HorizontalAlignment="Stretch" Height="42"/>
                                     <Button Content="🗑  Delete Selected" Command="{Binding DeleteSupplierCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
-                                            IsEnabled="{Binding CanDeleteSupplier}"
                                             HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
                             </ScrollViewer>
@@ -715,10 +713,23 @@
                                         Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewTransactionTypeName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Key (generated)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding SelectedTransactionType.TypeKey}" IsReadOnly="True" Margin="0 0 0 10"/>
                                 <TextBlock Text="Currency Code *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewTransactionCurrencyCode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Counter Rate *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewTransactionCounterRate, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Serial Number Format *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewTransactionSerialNumberFormat, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 4"/>
+                                <TextBlock Text="Use tokens like {DATE:yyyyMMdd}, {NUMBER:00000000}, {TYPEKEY}, and {NAME}."
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0 0 0 10"/>
+                                <TextBlock Text="Start Number *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewTransactionStartNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Current Number (last used) *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewTransactionCurrentNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <CheckBox Content="Active"
                                           IsChecked="{Binding NewTransactionIsActive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           Margin="0 0 0 20"/>
@@ -749,9 +760,13 @@
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                                        <DataGridTextColumn Header="Key" Binding="{Binding TypeKey}" Width="140"/>
                                         <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode}" Width="100"/>
                                         <DataGridTextColumn Header="Counter Rate" Binding="{Binding CounterRate, StringFormat={}{0:N6}}" Width="140"/>
+                                        <DataGridTextColumn Header="Serial Format" Binding="{Binding SerialNumberFormat}" Width="240"/>
+                                        <DataGridTextColumn Header="Start" Binding="{Binding StartNumber}" Width="90"/>
+                                        <DataGridTextColumn Header="Current" Binding="{Binding CurrentNumber}" Width="100"/>
                                         <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="70"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -782,6 +797,13 @@
                                                SelectedValuePath="Id"
                                                DisplayMemberPath="DisplayName"
                                                SelectedValue="{Binding NewUsedCarCarModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                               Style="{StaticResource ManagementComboBoxStyle}"
+                                               Margin="0 0 0 8"/>
+                                    <TextBlock Text="Supplier *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Suppliers}"
+                                               SelectedValuePath="Id"
+                                               DisplayMemberPath="Name"
+                                               SelectedValue="{Binding NewUsedCarSupplierId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                Style="{StaticResource ManagementComboBoxStyle}"
                                                Margin="0 0 0 8"/>
                                     <TextBlock Text="Model Year *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -868,6 +890,7 @@
                                         </Style>
                                     </DataGrid.RowStyle>
                                     <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="140"/>
                                         <DataGridTextColumn Header="Car" Binding="{Binding Car}" Width="150"/>
                                         <DataGridTextColumn Header="Model" Binding="{Binding ModelYear}" Width="70"/>
                                         <DataGridTextColumn Header="Price Currency" Binding="{Binding PriceCurrency}" Width="95"/>

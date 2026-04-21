@@ -188,6 +188,7 @@ namespace SpareParts.Desktop.Wpf
                     ?? CarModels
                         .FirstOrDefault(m =>
                             string.Equals(m.Name, value.Car, StringComparison.OrdinalIgnoreCase))?.Id;
+                _newUsedCarSupplierId = value.SupplierId;
                 _newUsedCarName = value.Car;
                 _newUsedCarModelYear = value.ModelYear;
                 _newUsedCarPriceCurrency = NormalizeCurrencyCode(value.PriceCurrency) ?? _baseCurrencyCode;
@@ -285,6 +286,9 @@ namespace SpareParts.Desktop.Wpf
         public string NewTransactionTypeName { get => TransactionTypesFeature.NewTransactionTypeName; set { TransactionTypesFeature.NewTransactionTypeName = value; OnPropertyChanged(nameof(NewTransactionTypeName)); } }
         public string NewTransactionCurrencyCode { get => TransactionTypesFeature.NewTransactionCurrencyCode; set { TransactionTypesFeature.NewTransactionCurrencyCode = value; OnPropertyChanged(nameof(NewTransactionCurrencyCode)); } }
         public decimal NewTransactionCounterRate { get => TransactionTypesFeature.NewTransactionCounterRate; set { TransactionTypesFeature.NewTransactionCounterRate = value; OnPropertyChanged(nameof(NewTransactionCounterRate)); } }
+        public string NewTransactionSerialNumberFormat { get => TransactionTypesFeature.NewTransactionSerialNumberFormat; set { TransactionTypesFeature.NewTransactionSerialNumberFormat = value; OnPropertyChanged(nameof(NewTransactionSerialNumberFormat)); } }
+        public long NewTransactionStartNumber { get => TransactionTypesFeature.NewTransactionStartNumber; set { TransactionTypesFeature.NewTransactionStartNumber = value; OnPropertyChanged(nameof(NewTransactionStartNumber)); } }
+        public long NewTransactionCurrentNumber { get => TransactionTypesFeature.NewTransactionCurrentNumber; set { TransactionTypesFeature.NewTransactionCurrentNumber = value; OnPropertyChanged(nameof(NewTransactionCurrentNumber)); } }
         public bool NewTransactionIsActive { get => TransactionTypesFeature.NewTransactionIsActive; set { TransactionTypesFeature.NewTransactionIsActive = value; OnPropertyChanged(nameof(NewTransactionIsActive)); } }
 
         public string NewUsedCarName
@@ -315,6 +319,16 @@ namespace SpareParts.Desktop.Wpf
                 _newUsedCarCarModelId = value;
                 OnPropertyChanged(nameof(NewUsedCarCarModelId));
                 SyncUsedCarFromSelectedModel();
+            }
+        }
+
+        public int? NewUsedCarSupplierId
+        {
+            get => _newUsedCarSupplierId;
+            set
+            {
+                _newUsedCarSupplierId = value;
+                OnPropertyChanged(nameof(NewUsedCarSupplierId));
             }
         }
 
@@ -481,6 +495,7 @@ namespace SpareParts.Desktop.Wpf
         private string _newUsedCarName = string.Empty;
         private int _newUsedCarModelYear;
         private int? _newUsedCarCarModelId;
+        private int? _newUsedCarSupplierId;
         private string _newUsedCarPriceCurrency = "USD";
         private decimal _newUsedCarPrice;
         private decimal _newUsedCarPriceBase;
@@ -563,6 +578,7 @@ namespace SpareParts.Desktop.Wpf
             UsersVm = usersVm;
             RolesVm = rolesVm;
             AccountingVm = new AccountingViewModel(accountingApi);
+            _supplierPermissions.PropertyChanged += SupplierPermissions_PropertyChanged;
             SetSupplierPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
 
             _coordinator = new ManagementCoordinator(
@@ -948,6 +964,8 @@ namespace SpareParts.Desktop.Wpf
             return new UsedCarEntry
             {
                 Id = usedCar.Id,
+                SupplierId = usedCar.SupplierId,
+                SupplierName = usedCar.SupplierName,
                 CarModelId = usedCar.CarModelId,
                 LocationId = usedCar.LocationId,
                 Car = usedCar.Car,
@@ -1179,9 +1197,7 @@ namespace SpareParts.Desktop.Wpf
             if (!result.Success) return;
 
             await LoadAllAsync();
-            SuppliersFeature.ClearForm();
-            RaiseSupplierProps();
-            OnPropertyChanged(nameof(CanSaveSupplier));
+            ResetSupplierEditor();
         }
 
         private async Task DeleteSupplierAsync()
@@ -1203,10 +1219,7 @@ namespace SpareParts.Desktop.Wpf
             if (!result.Success) return;
 
             await LoadAllAsync();
-            SuppliersFeature.SelectedSupplier = null;
-            _supplierPermissions.IsEditingSupplier = false;
-            OnPropertyChanged(nameof(SelectedSupplier));
-            OnPropertyChanged(nameof(CanSaveSupplier));
+            ResetSupplierEditor();
         }
 
         private async Task SaveBrandAsync()
@@ -1411,11 +1424,7 @@ namespace SpareParts.Desktop.Wpf
                     RaiseCustomerProps();
                     break;
                 case "Supplier":
-                    SuppliersFeature.ClearForm();
-                    _supplierPermissions.IsEditingSupplier = false;
-                    OnPropertyChanged(nameof(SelectedSupplier));
-                    OnPropertyChanged(nameof(CanSaveSupplier));
-                    RaiseSupplierProps();
+                    ResetSupplierEditor();
                     break;
                 case "Brand":
                     BrandsFeature.ClearForm();
@@ -1467,6 +1476,12 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
+            if (NewUsedCarSupplierId is not int supplierId)
+            {
+                SetStatus("✗ Select a supplier first.", false);
+                return;
+            }
+
             var selectedModel = CarModels.FirstOrDefault(model => model.Id == carModelId);
             if (selectedModel == null)
             {
@@ -1488,6 +1503,7 @@ namespace SpareParts.Desktop.Wpf
 
             var request = new CreateUsedCarRequest
             {
+                SupplierId = supplierId,
                 CarModelId = carModelId,
                 ModelYear = NewUsedCarModelYear,
                 PriceCurrency = NormalizeCurrencyCode(NewUsedCarPriceCurrency) ?? _baseCurrencyCode,
@@ -1547,6 +1563,7 @@ namespace SpareParts.Desktop.Wpf
             NewUsedCarName = string.Empty;
             NewUsedCarModelYear = 0;
             NewUsedCarCarModelId = null;
+            NewUsedCarSupplierId = null;
             NewUsedCarPriceCurrency = _baseCurrencyCode;
             NewUsedCarPrice = 0;
             NewUsedCarPriceBase = 0;
@@ -1582,16 +1599,55 @@ namespace SpareParts.Desktop.Wpf
 
         private void RaiseCustomerProps() => RaiseAll(nameof(NewCustomerName), nameof(NewCustomerPhone), nameof(NewCustomerEmail), nameof(NewCustomerAddress), nameof(NewCustomerTax), nameof(NewCustomerBalance));
         private void RaiseSupplierProps() => RaiseAll(nameof(NewSupplierName), nameof(NewSupplierPhone), nameof(NewSupplierEmail), nameof(NewSupplierAddress), nameof(NewSupplierTax), nameof(NewSupplierBalance));
+        private void ResetSupplierEditor()
+        {
+            SuppliersFeature.ClearForm();
+            _supplierPermissions.IsEditingSupplier = false;
+            OnPropertyChanged(nameof(SelectedSupplier));
+            OnPropertyChanged(nameof(CanSaveSupplier));
+            RaiseSupplierProps();
+        }
+
+        private void SupplierPermissions_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(SupplierPermissionState.CanViewSupplierTab):
+                    OnPropertyChanged(nameof(CanViewSupplierTab));
+                    break;
+                case nameof(SupplierPermissionState.CanEditSupplier):
+                    OnPropertyChanged(nameof(CanEditSupplier));
+                    break;
+                case nameof(SupplierPermissionState.CanModifySupplier):
+                    OnPropertyChanged(nameof(CanModifySupplier));
+                    break;
+                case nameof(SupplierPermissionState.CanDeleteSupplier):
+                    OnPropertyChanged(nameof(CanDeleteSupplier));
+                    break;
+                case nameof(SupplierPermissionState.CanSaveSupplier):
+                    OnPropertyChanged(nameof(CanSaveSupplier));
+                    break;
+            }
+        }
+
         private void RaisePartProps() => RaiseAll(nameof(NewPartCode), nameof(NewPartName), nameof(NewPartOEM), nameof(NewPartCategoryId), nameof(NewPartBrandId), nameof(NewPartCostPrice), nameof(NewPartSalePrice), nameof(NewPartAveragePrice), nameof(NewPartCurrency), nameof(NewPartMinStock), nameof(NewPartNotes));
         private void RaiseCarBrandProps() => RaiseAll(nameof(NewCarBrandName), nameof(NewCarBrandCountry), nameof(NewCarBrandRegionGroup), nameof(NewCarBrandSortOrder));
         private void RaiseCarModelProps() => RaiseAll(nameof(NewCarModelBrandId), nameof(NewCarModelName), nameof(NewCarModelBodyType));
         private void RaiseLocationProps() => RaiseAll(nameof(NewLocationName), nameof(NewLocationShippingFees), nameof(NewLocationShippingFeesCurrencyCode));
         private void RaiseWarehouseProps() => RaiseAll(nameof(NewWarehouseName), nameof(NewWarehouseAddress), nameof(NewWarehouseIsMain));
-        private void RaiseTransactionTypeProps() => RaiseAll(nameof(NewTransactionTypeName), nameof(NewTransactionCurrencyCode), nameof(NewTransactionCounterRate), nameof(NewTransactionIsActive));
+        private void RaiseTransactionTypeProps() => RaiseAll(
+            nameof(NewTransactionTypeName),
+            nameof(NewTransactionCurrencyCode),
+            nameof(NewTransactionCounterRate),
+            nameof(NewTransactionSerialNumberFormat),
+            nameof(NewTransactionStartNumber),
+            nameof(NewTransactionCurrentNumber),
+            nameof(NewTransactionIsActive));
         private void RaiseUsedCarProps() => RaiseAll(
             nameof(NewUsedCarName),
             nameof(NewUsedCarModelYear),
             nameof(NewUsedCarCarModelId),
+            nameof(NewUsedCarSupplierId),
             nameof(NewUsedCarPriceCurrency),
             nameof(NewUsedCarPrice),
             nameof(NewUsedCarPriceBase),

@@ -2,6 +2,7 @@ namespace SpareParts.Domain.Cars
 {
     public sealed class CreateUsedCarRequest
     {
+        public int SupplierId { get; set; }
         public int CarModelId { get; set; }
         public int ModelYear { get; set; }
         public string PriceCurrency { get; set; } = "USD";

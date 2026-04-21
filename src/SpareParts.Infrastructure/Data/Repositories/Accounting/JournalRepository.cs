@@ -9,6 +9,7 @@ namespace SpareParts.Infrastructure.Data
     public class JournalRepository : IJournalRepository
     {
         private readonly DbSession _session;
+        private AccountingCurrencyContext? _currencyContext;
 
         public JournalRepository(DbSession session)
         {
@@ -28,12 +29,15 @@ namespace SpareParts.Infrastructure.Data
         public void InsertLines(int entryId, IList<JournalLine> lines)
         {
             const string sql = @"INSERT INTO JournalLines
-                (JournalEntryId, AccountId, Debit, Credit, CreatedAt, CreatedByUserId)
+                (JournalEntryId, AccountId, Debit, Credit, CurrencyCode, OriginalAmount, RateToBase, CounterAmount, BaseCurrencyCode, CounterCurrencyCode, CreatedAt, CreatedByUserId)
                 VALUES
-                (@JournalEntryId, @AccountId, @Debit, @Credit, @CreatedAt, @CreatedByUserId);";
+                (@JournalEntryId, @AccountId, @Debit, @Credit, @CurrencyCode, @OriginalAmount, @RateToBase, @CounterAmount, @BaseCurrencyCode, @CounterCurrencyCode, @CreatedAt, @CreatedByUserId);";
+
+            var currencyContext = ResolveCurrencyContext();
             foreach (var line in lines)
             {
                 line.JournalEntryId = entryId;
+                ApplyCurrencyContext(line, currencyContext);
                 _session.Connection.Execute(sql, line, _session.Transaction);
             }
         }
@@ -113,14 +117,22 @@ namespace SpareParts.Infrastructure.Data
 
         public IReadOnlyList<LedgerRowDto> GetLedgerRows(int accountId, DateTime? dateFrom, DateTime? dateTo)
         {
+            var currencyContext = ResolveCurrencyContext();
             const string sql = @"SELECT je.Id AS JournalEntryId,
                                         je.EntryDate,
                                         je.ReferenceType,
                                         je.ReferenceId,
                                         je.Description,
+                                        ISNULL(jl.BaseCurrencyCode, @BaseCurrencyCode) AS BaseCurrencyCode,
+                                        ISNULL(jl.CounterCurrencyCode, @CounterCurrencyCode) AS CounterCurrencyCode,
+                                        ISNULL(jl.CurrencyCode, ISNULL(jl.BaseCurrencyCode, @BaseCurrencyCode)) AS CurrencyCode,
+                                        ISNULL(jl.OriginalAmount, CASE WHEN jl.Debit > 0 THEN jl.Debit ELSE jl.Credit END) AS OriginalAmount,
                                         jl.Debit,
                                         jl.Credit,
-                                        CAST(0 AS DECIMAL(19,4)) AS RunningBalance
+                                        CASE WHEN jl.Debit > 0 THEN ISNULL(jl.CounterAmount, 0) ELSE 0 END AS CounterDebit,
+                                        CASE WHEN jl.Credit > 0 THEN ISNULL(jl.CounterAmount, 0) ELSE 0 END AS CounterCredit,
+                                        CAST(0 AS DECIMAL(19,4)) AS RunningBalance,
+                                        CAST(0 AS DECIMAL(19,4)) AS RunningCounterBalance
                                  FROM JournalLines jl
                                  INNER JOIN JournalEntries je ON je.Id = jl.JournalEntryId
                                  WHERE jl.AccountId = @AccountId
@@ -132,7 +144,9 @@ namespace SpareParts.Infrastructure.Data
             {
                 AccountId = accountId,
                 DateFrom = dateFrom,
-                DateTo = dateTo
+                DateTo = dateTo,
+                BaseCurrencyCode = currencyContext.BaseCurrencyCode,
+                CounterCurrencyCode = currencyContext.CounterCurrencyCode
             }, _session.Transaction).ToList();
         }
 
@@ -152,8 +166,28 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.ExecuteScalar<decimal>(sql, new { AccountId = accountId, DateFrom = dateFrom }, _session.Transaction);
         }
 
+        public decimal GetOpeningCounterBalance(int accountId, DateTime? dateFrom)
+        {
+            if (dateFrom == null)
+            {
+                return 0m;
+            }
+
+            const string sql = @"SELECT ISNULL(SUM(CASE
+                                                     WHEN jl.Debit > 0 THEN ISNULL(jl.CounterAmount, 0)
+                                                     ELSE -ISNULL(jl.CounterAmount, 0)
+                                                 END), 0)
+                                 FROM JournalLines jl
+                                 INNER JOIN JournalEntries je ON je.Id = jl.JournalEntryId
+                                 WHERE jl.AccountId = @AccountId
+                                   AND je.EntryDate < @DateFrom;";
+
+            return _session.Connection.ExecuteScalar<decimal>(sql, new { AccountId = accountId, DateFrom = dateFrom }, _session.Transaction);
+        }
+
         public IReadOnlyList<TrialBalanceRowDto> GetTrialBalanceRows(DateTime? dateFrom, DateTime? dateTo)
         {
+            var currencyContext = ResolveCurrencyContext();
             var hasAccountTypeKey = AccountingSchemaInspector.HasColumn(_session, "dbo.Accounts", "AccountTypeKey");
             var hasAccountTypeLookup = AccountingSchemaInspector.HasTable(_session, "dbo.AccountingAccountTypes");
             var accountTypeSource = hasAccountTypeKey ? "a.AccountTypeKey" : "a.AccountType";
@@ -168,6 +202,8 @@ namespace SpareParts.Infrastructure.Data
                                     a.Name AS AccountName,
                                     {normalizedAccountTypeKey} AS AccountTypeKey,
                                     {accountTypeLabel} AS AccountType,
+                                    COALESCE(MAX(NULLIF(jl.BaseCurrencyCode, '')), @BaseCurrencyCode) AS BaseCurrencyCode,
+                                    COALESCE(MAX(NULLIF(jl.CounterCurrencyCode, '')), @CounterCurrencyCode) AS CounterCurrencyCode,
                                     ISNULL(SUM(CASE
                                         WHEN (@DateFrom IS NULL OR je.EntryDate >= @DateFrom)
                                          AND (@DateTo IS NULL OR je.EntryDate < DATEADD(DAY, 1, @DateTo))
@@ -175,7 +211,17 @@ namespace SpareParts.Infrastructure.Data
                                     ISNULL(SUM(CASE
                                         WHEN (@DateFrom IS NULL OR je.EntryDate >= @DateFrom)
                                          AND (@DateTo IS NULL OR je.EntryDate < DATEADD(DAY, 1, @DateTo))
-                                        THEN jl.Credit ELSE 0 END), 0) AS TotalCredit
+                                        THEN jl.Credit ELSE 0 END), 0) AS TotalCredit,
+                                    ISNULL(SUM(CASE
+                                        WHEN (@DateFrom IS NULL OR je.EntryDate >= @DateFrom)
+                                         AND (@DateTo IS NULL OR je.EntryDate < DATEADD(DAY, 1, @DateTo))
+                                         AND jl.Debit > 0
+                                        THEN ISNULL(jl.CounterAmount, 0) ELSE 0 END), 0) AS TotalCounterDebit,
+                                    ISNULL(SUM(CASE
+                                        WHEN (@DateFrom IS NULL OR je.EntryDate >= @DateFrom)
+                                         AND (@DateTo IS NULL OR je.EntryDate < DATEADD(DAY, 1, @DateTo))
+                                         AND jl.Credit > 0
+                                        THEN ISNULL(jl.CounterAmount, 0) ELSE 0 END), 0) AS TotalCounterCredit
                              FROM Accounts a
                              {(hasAccountTypeLookup ? $"LEFT JOIN AccountingAccountTypes t ON t.TypeKey = {normalizedAccountTypeKey}" : string.Empty)}
                              LEFT JOIN JournalLines jl ON jl.AccountId = a.Id
@@ -187,21 +233,121 @@ namespace SpareParts.Infrastructure.Data
                                 AccountName,
                                 AccountTypeKey,
                                 AccountType,
+                                BaseCurrencyCode,
+                                CounterCurrencyCode,
                                 TotalDebit,
                                 TotalCredit,
                                 CASE WHEN TotalDebit >= TotalCredit THEN TotalDebit - TotalCredit ELSE 0 END AS DebitBalance,
-                                CASE WHEN TotalCredit > TotalDebit THEN TotalCredit - TotalDebit ELSE 0 END AS CreditBalance
+                                CASE WHEN TotalCredit > TotalDebit THEN TotalCredit - TotalDebit ELSE 0 END AS CreditBalance,
+                                TotalCounterDebit,
+                                TotalCounterCredit,
+                                CASE WHEN TotalCounterDebit >= TotalCounterCredit THEN TotalCounterDebit - TotalCounterCredit ELSE 0 END AS CounterDebitBalance,
+                                CASE WHEN TotalCounterCredit > TotalCounterDebit THEN TotalCounterCredit - TotalCounterDebit ELSE 0 END AS CounterCreditBalance
                          FROM AccountTotals
                          WHERE TotalDebit <> 0 OR TotalCredit <> 0
                          ORDER BY AccountCode, AccountName;";
 
-            return _session.Connection.Query<TrialBalanceRowDto>(sql, new { DateFrom = dateFrom, DateTo = dateTo }, _session.Transaction).ToList();
+            return _session.Connection.Query<TrialBalanceRowDto>(sql, new
+            {
+                DateFrom = dateFrom,
+                DateTo = dateTo,
+                BaseCurrencyCode = currencyContext.BaseCurrencyCode,
+                CounterCurrencyCode = currencyContext.CounterCurrencyCode
+            }, _session.Transaction).ToList();
         }
 
         public bool HasEntriesForAccount(int accountId)
         {
             const string sql = "SELECT COUNT(1) FROM JournalLines WHERE AccountId = @AccountId;";
             return _session.Connection.ExecuteScalar<int>(sql, new { AccountId = accountId }, _session.Transaction) > 0;
+        }
+
+        private AccountingCurrencyContext ResolveCurrencyContext()
+            => _currencyContext ??= AccountingCurrencyContextResolver.Resolve(_session);
+
+        private static void ApplyCurrencyContext(JournalLine line, AccountingCurrencyContext context)
+        {
+            var baseAmount = decimal.Round(line.Debit > 0m ? line.Debit : line.Credit, 4, MidpointRounding.AwayFromZero);
+            var baseCurrencyCode = NormalizeCurrencyCode(line.BaseCurrencyCode) ?? context.BaseCurrencyCode;
+            var counterCurrencyCode = NormalizeCurrencyCode(line.CounterCurrencyCode) ?? context.CounterCurrencyCode;
+            var currencyCode = NormalizeCurrencyCode(line.CurrencyCode) ?? baseCurrencyCode;
+
+            var originalAmount = line.OriginalAmount > 0m
+                ? decimal.Round(line.OriginalAmount, 4, MidpointRounding.AwayFromZero)
+                : baseAmount;
+
+            var rateToBase = line.RateToBase > 0m
+                ? decimal.Round(line.RateToBase, 8, MidpointRounding.AwayFromZero)
+                : ResolveRateToBase(currencyCode, baseCurrencyCode, counterCurrencyCode, context.CounterRateToBase, baseAmount, originalAmount);
+
+            var counterAmount = line.CounterAmount > 0m
+                ? decimal.Round(line.CounterAmount, 4, MidpointRounding.AwayFromZero)
+                : ResolveCounterAmount(currencyCode, counterCurrencyCode, baseCurrencyCode, originalAmount, baseAmount, context.CounterRateToBase);
+
+            line.CurrencyCode = currencyCode;
+            line.OriginalAmount = originalAmount;
+            line.RateToBase = rateToBase > 0m ? rateToBase : 1m;
+            line.CounterAmount = counterAmount;
+            line.BaseCurrencyCode = baseCurrencyCode;
+            line.CounterCurrencyCode = counterCurrencyCode;
+        }
+
+        private static decimal ResolveRateToBase(
+            string currencyCode,
+            string baseCurrencyCode,
+            string counterCurrencyCode,
+            decimal counterRateToBase,
+            decimal baseAmount,
+            decimal originalAmount)
+        {
+            if (string.Equals(currencyCode, baseCurrencyCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return 1m;
+            }
+
+            if (originalAmount > 0m && baseAmount > 0m)
+            {
+                return decimal.Round(baseAmount / originalAmount, 8, MidpointRounding.AwayFromZero);
+            }
+
+            if (string.Equals(currencyCode, counterCurrencyCode, StringComparison.OrdinalIgnoreCase) && counterRateToBase > 0m)
+            {
+                return decimal.Round(counterRateToBase, 8, MidpointRounding.AwayFromZero);
+            }
+
+            return 1m;
+        }
+
+        private static decimal ResolveCounterAmount(
+            string currencyCode,
+            string counterCurrencyCode,
+            string baseCurrencyCode,
+            decimal originalAmount,
+            decimal baseAmount,
+            decimal counterRateToBase)
+        {
+            if (string.Equals(currencyCode, counterCurrencyCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return decimal.Round(originalAmount > 0m ? originalAmount : baseAmount, 4, MidpointRounding.AwayFromZero);
+            }
+
+            if (string.Equals(baseCurrencyCode, counterCurrencyCode, StringComparison.OrdinalIgnoreCase) || counterRateToBase <= 0m)
+            {
+                return decimal.Round(baseAmount, 4, MidpointRounding.AwayFromZero);
+            }
+
+            return decimal.Round(baseAmount / counterRateToBase, 4, MidpointRounding.AwayFromZero);
+        }
+
+        private static string? NormalizeCurrencyCode(string? rawValue)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return null;
+            }
+
+            var normalized = rawValue.Trim().ToUpperInvariant();
+            return normalized.Length == 3 ? normalized : null;
         }
     }
 }

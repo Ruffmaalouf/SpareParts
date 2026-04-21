@@ -9,12 +9,16 @@ namespace SpareParts.Infrastructure.Services
 {
     public class CreatePurchaseHandler : ICreatePurchaseHandler
     {
+        private const string PurchasePaymentReferenceType = "PurchasePayment";
+
         private readonly ISqlConnectionFactory _factory;
         private readonly IInventoryService _inventoryService;
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
         private readonly IAccountingStrategy<PurchaseInvoice> _accountingStrategy;
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
+        private readonly AccountingSettingsProvider _accountingSettingsProvider;
+        private readonly SupplierAccountResolver _supplierAccountResolver;
 
         public CreatePurchaseHandler(
             ISqlConnectionFactory factory,
@@ -22,7 +26,9 @@ namespace SpareParts.Infrastructure.Services
             IInvoiceNumberGenerator invoiceNumberGenerator,
             IPaymentStatusPolicy paymentStatusPolicy,
             IAccountingStrategy<PurchaseInvoice> accountingStrategy,
-            IInvoiceTotalsCalculator totalsCalculator)
+            IInvoiceTotalsCalculator totalsCalculator,
+            AccountingSettingsProvider accountingSettingsProvider,
+            SupplierAccountResolver supplierAccountResolver)
         {
             _factory = factory;
             _inventoryService = inventoryService;
@@ -30,6 +36,8 @@ namespace SpareParts.Infrastructure.Services
             _paymentStatusPolicy = paymentStatusPolicy;
             _accountingStrategy = accountingStrategy;
             _totalsCalculator = totalsCalculator;
+            _accountingSettingsProvider = accountingSettingsProvider;
+            _supplierAccountResolver = supplierAccountResolver;
         }
 
         public CreatePurchaseResponse Handle(CreatePurchaseRequest request, int userId)
@@ -71,6 +79,7 @@ namespace SpareParts.Infrastructure.Services
 
             AdjustStockForPurchase(inventoryRepository, request, purchaseItems, purchaseId, userId);
             CreateJournalEntryForPurchase(journalRepository, purchase, purchaseId, userId);
+            CreatePaymentJournalEntryForPurchase(journalRepository, purchase, purchaseId, userId);
 
             session.Commit();
 
@@ -187,6 +196,56 @@ namespace SpareParts.Infrastructure.Services
             };
 
             var lines = _accountingStrategy.BuildJournalLines(purchase, userId);
+            var entryId = journalRepository.InsertEntry(entry);
+            journalRepository.InsertLines(entryId, lines);
+        }
+
+        private void CreatePaymentJournalEntryForPurchase(
+            IJournalRepository journalRepository,
+            PurchaseInvoice purchase,
+            int purchaseId,
+            int userId)
+        {
+            if (purchase.PaidAmount <= 0m)
+            {
+                return;
+            }
+
+            var settings = _accountingSettingsProvider.GetSnapshot();
+            var supplierAccountId = _supplierAccountResolver.ResolveAccountId(purchase.SupplierId)
+                ?? settings.PurchaseOffsetAccountId;
+            var cashAccountId = settings.SalesCashAccountId;
+
+            var lines = new List<JournalLine>
+            {
+                new()
+                {
+                    AccountId = supplierAccountId,
+                    Debit = purchase.PaidAmount,
+                    Credit = 0m,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedByUserId = userId
+                },
+                new()
+                {
+                    AccountId = cashAccountId,
+                    Debit = 0m,
+                    Credit = purchase.PaidAmount,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedByUserId = userId
+                }
+            };
+
+            var entry = new JournalEntry
+            {
+                EntryDate = purchase.PurchaseDate,
+                ReferenceType = PurchasePaymentReferenceType,
+                ReferenceId = purchaseId,
+                Description = $"Purchase payment {purchase.PurchaseNumber}",
+                CreatedAt = DateTime.UtcNow,
+                CreatedByUserId = userId
+            };
+
             var entryId = journalRepository.InsertEntry(entry);
             journalRepository.InsertLines(entryId, lines);
         }

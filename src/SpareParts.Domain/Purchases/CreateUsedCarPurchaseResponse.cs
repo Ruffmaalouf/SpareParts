@@ -6,5 +6,6 @@ namespace SpareParts.Domain.Purchases
         public string PurchaseNumber { get; set; } = string.Empty;
         public decimal TotalBaseAmount { get; set; }
         public string PaymentStatus { get; set; } = string.Empty;
+        public string PostingStatus { get; set; } = "Draft";
     }
 }

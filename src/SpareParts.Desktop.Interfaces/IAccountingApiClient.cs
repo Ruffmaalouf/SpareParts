@@ -26,5 +26,6 @@ namespace SpareParts.Desktop.Wpf.Interfaces
         Task<int> CreateManualJournalAsync(CreateManualJournalEntryRequest request);
         Task<LedgerReportDto> GetLedgerAsync(int accountId, DateTime? dateFrom = null, DateTime? dateTo = null);
         Task<TrialBalanceReportDto> GetTrialBalanceAsync(DateTime? dateFrom = null, DateTime? dateTo = null);
+        Task<StatementOfAccountReportDto> GetStatementOfAccountAsync(int accountId, DateTime? dateFrom = null, DateTime? dateTo = null);
     }
 }

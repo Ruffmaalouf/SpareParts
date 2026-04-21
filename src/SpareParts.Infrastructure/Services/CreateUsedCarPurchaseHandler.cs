@@ -4,7 +4,6 @@ using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
 using SpareParts.Infrastructure.Interfaces;
-using SpareParts.Infrastructure.Interfaces.Repositories;
 
 namespace SpareParts.Infrastructure.Services
 {
@@ -13,21 +12,15 @@ namespace SpareParts.Infrastructure.Services
         private readonly ISqlConnectionFactory _factory;
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
-        private readonly AccountingSettingsProvider _settingsProvider;
-        private readonly SupplierAccountResolver _supplierAccountResolver;
 
         public CreateUsedCarPurchaseHandler(
             ISqlConnectionFactory factory,
             IInvoiceNumberGenerator invoiceNumberGenerator,
-            IPaymentStatusPolicy paymentStatusPolicy,
-            AccountingSettingsProvider settingsProvider,
-            SupplierAccountResolver supplierAccountResolver)
+            IPaymentStatusPolicy paymentStatusPolicy)
         {
             _factory = factory;
             _invoiceNumberGenerator = invoiceNumberGenerator;
             _paymentStatusPolicy = paymentStatusPolicy;
-            _settingsProvider = settingsProvider;
-            _supplierAccountResolver = supplierAccountResolver;
         }
 
         public CreateUsedCarPurchaseResponse Handle(CreateUsedCarPurchaseRequest request, int userId)
@@ -36,6 +29,7 @@ namespace SpareParts.Infrastructure.Services
 
             using var session = new DbSession(_factory);
             var repositories = RepositoryCatalog.For(session);
+            var usedCarPurchasesRepository = repositories.Purchases.UsedCarPurchases;
             EnsureSupplierExists(session, request.SupplierId);
             EnsureUsedCarExists(session, request.UsedCarId);
 
@@ -51,7 +45,14 @@ namespace SpareParts.Infrastructure.Services
             }
 
             var totalBaseAmount = decimal.Round(lines.Sum(line => line.BaseAmount), 4, MidpointRounding.AwayFromZero);
-            var purchaseNumber = _invoiceNumberGenerator.NextPurchaseNumber();
+            var totalCounterAmount = decimal.Round(lines.Sum(line => line.CounterAmount), 4, MidpointRounding.AwayFromZero);
+            var existingDraft = usedCarPurchasesRepository.GetDraftByUsedCarId(request.UsedCarId);
+            if (existingDraft == null && usedCarPurchasesRepository.HasPostedPurchase(request.UsedCarId))
+            {
+                throw new ValidationException("This used car already has a posted purchase and cannot be saved as a new draft.");
+            }
+
+            var purchaseNumber = existingDraft?.PurchaseNumber ?? _invoiceNumberGenerator.NextUsedCarPurchaseNumber();
             var purchase = new UsedCarPurchase
             {
                 PurchaseNumber = purchaseNumber,
@@ -59,18 +60,35 @@ namespace SpareParts.Infrastructure.Services
                 SupplierId = request.SupplierId,
                 PurchaseDate = request.PurchaseDate,
                 BaseCurrencyCode = NormalizeCurrencyCode(request.BaseCurrencyCode, "Base currency code"),
+                CounterCurrencyCode = NormalizeCurrencyCode(request.CounterCurrencyCode, "Counter currency code"),
                 TotalBaseAmount = totalBaseAmount,
+                TotalCounterAmount = totalCounterAmount,
                 PaidAmount = decimal.Round(request.PaidAmount, 4, MidpointRounding.AwayFromZero),
+                PaidCounterAmount = decimal.Round(request.PaidCounterAmount, 4, MidpointRounding.AwayFromZero),
                 PaymentStatus = _paymentStatusPolicy.Resolve(totalBaseAmount, request.PaidAmount).ToString(),
+                PostingStatus = "Draft",
                 Notes = (request.Notes ?? string.Empty).Trim(),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId,
                 Lines = lines
             };
 
-            var purchaseId = repositories.Purchases.UsedCarPurchases.Insert(purchase);
-            repositories.Purchases.UsedCarPurchases.InsertLines(purchaseId, lines);
-            CreateJournalEntry(repositories.Accounting.Journal, purchase, purchaseId, userId);
+            int purchaseId;
+            if (existingDraft == null)
+            {
+                purchaseId = usedCarPurchasesRepository.Insert(purchase);
+                usedCarPurchasesRepository.InsertLines(purchaseId, lines);
+            }
+            else
+            {
+                purchaseId = existingDraft.Id;
+                if (!usedCarPurchasesRepository.Update(purchaseId, purchase))
+                {
+                    throw new ValidationException("The linked used-car draft could not be updated.");
+                }
+
+                usedCarPurchasesRepository.ReplaceLines(purchaseId, lines);
+            }
 
             session.Commit();
 
@@ -79,7 +97,8 @@ namespace SpareParts.Infrastructure.Services
                 PurchaseId = purchaseId,
                 PurchaseNumber = purchaseNumber,
                 TotalBaseAmount = totalBaseAmount,
-                PaymentStatus = purchase.PaymentStatus
+                PaymentStatus = purchase.PaymentStatus,
+                PostingStatus = purchase.PostingStatus
             };
         }
 
@@ -129,6 +148,11 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException($"Used-car purchase line {index + 1} amounts cannot be negative.");
             }
 
+            if (requestLine.CounterAmount < 0)
+            {
+                throw new ValidationException($"Used-car purchase line {index + 1} counter amount cannot be negative.");
+            }
+
             if (requestLine.RateToBase <= 0)
             {
                 throw new ValidationException($"Used-car purchase line {index + 1} must include a positive exchange rate.");
@@ -147,6 +171,7 @@ namespace SpareParts.Infrastructure.Services
                 CurrencyCode = NormalizeCurrencyCode(requestLine.CurrencyCode, $"Currency code for {description}"),
                 RateToBase = decimal.Round(requestLine.RateToBase, 8, MidpointRounding.AwayFromZero),
                 BaseAmount = decimal.Round(requestLine.BaseAmount, 4, MidpointRounding.AwayFromZero),
+                CounterAmount = decimal.Round(requestLine.CounterAmount, 4, MidpointRounding.AwayFromZero),
                 AccountId = requestLine.AccountId,
                 SortOrder = requestLine.SortOrder,
                 CreatedAt = DateTime.UtcNow,
@@ -178,52 +203,6 @@ namespace SpareParts.Infrastructure.Services
             {
                 throw new ValidationException("Selected used car was not found.");
             }
-        }
-
-        private void CreateJournalEntry(IJournalRepository journalRepository, UsedCarPurchase purchase, int purchaseId, int userId)
-        {
-            var creditAccountId = _supplierAccountResolver.ResolveAccountId(purchase.SupplierId)
-                ?? _settingsProvider.GetSnapshot().PurchaseOffsetAccountId;
-
-            var journalLines = purchase.Lines
-                .Select(line => new JournalLine
-                {
-                    AccountId = line.AccountId,
-                    Debit = line.BaseAmount,
-                    Credit = 0m,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedByUserId = userId
-                })
-                .ToList();
-
-            journalLines.Add(new JournalLine
-            {
-                AccountId = creditAccountId,
-                Debit = 0m,
-                Credit = purchase.TotalBaseAmount,
-                CreatedAt = DateTime.UtcNow,
-                CreatedByUserId = userId
-            });
-
-            var totalDebit = decimal.Round(journalLines.Sum(line => line.Debit), 4, MidpointRounding.AwayFromZero);
-            var totalCredit = decimal.Round(journalLines.Sum(line => line.Credit), 4, MidpointRounding.AwayFromZero);
-            if (totalDebit != totalCredit)
-            {
-                throw new InvalidOperationException("Used-car purchase journal entry is not balanced.");
-            }
-
-            var entry = new JournalEntry
-            {
-                EntryDate = purchase.PurchaseDate,
-                ReferenceType = "UsedCarPurchase",
-                ReferenceId = purchaseId,
-                Description = $"Used car purchase {purchase.PurchaseNumber}",
-                CreatedAt = DateTime.UtcNow,
-                CreatedByUserId = userId
-            };
-
-            var entryId = journalRepository.InsertEntry(entry);
-            journalRepository.InsertLines(entryId, journalLines);
         }
 
         private static string NormalizeCurrencyCode(string? currencyCode, string fieldName)

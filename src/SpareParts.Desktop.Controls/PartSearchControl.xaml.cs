@@ -63,6 +63,18 @@ namespace SpareParts.Desktop.Wpf
             set => SetValue(SelectedPartPriceProperty, value);
         }
 
+        public static readonly DependencyProperty SelectedPartCostPriceProperty =
+            DependencyProperty.Register(
+                nameof(SelectedPartCostPrice), typeof(decimal), typeof(PartSearchControl),
+                new FrameworkPropertyMetadata(0m,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+        public decimal SelectedPartCostPrice
+        {
+            get => (decimal)GetValue(SelectedPartCostPriceProperty);
+            set => SetValue(SelectedPartCostPriceProperty, value);
+        }
+
         /// <summary>Bound to InvoiceTabViewModel.NewPartDescription so the grid shows the name.</summary>
         public static readonly DependencyProperty SelectedPartDescriptionProperty =
             DependencyProperty.Register(
@@ -294,6 +306,7 @@ namespace SpareParts.Desktop.Wpf
         {
             SelectedPartId          = part.Id;
             SelectedPartPrice       = part.SalePrice;
+            SelectedPartCostPrice   = part.CostPrice;
             SelectedPartDescription = part.Name;           // ← populates Description column
 
             SelectedNameInline.Text = $"{part.InternalCode} — {part.Name}";
@@ -317,6 +330,7 @@ namespace SpareParts.Desktop.Wpf
         {
             SelectedPartId          = null;
             SelectedPartPrice       = 0;
+            SelectedPartCostPrice   = 0;
             SelectedPartDescription = string.Empty;
 
             ClearSelectionVisualState();
@@ -325,6 +339,7 @@ namespace SpareParts.Desktop.Wpf
         private void ClearSelectionVisualState()
         {
             SelectedPartPrice       = 0;
+            SelectedPartCostPrice   = 0;
             SelectedPartDescription = string.Empty;
 
             SelectedIndicator.Visibility = Visibility.Collapsed;

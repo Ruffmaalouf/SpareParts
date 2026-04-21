@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 
 namespace SpareParts.Desktop.Wpf
@@ -17,6 +18,8 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
+            Trace.WriteLine($"[ActivityFeed][{(isSuccess ? "Success" : "Error")}] {text}");
+
             void AddMessage()
             {
                 Messages.Insert(0, new StatusMessage { Text = text, IsSuccess = isSuccess });
@@ -33,7 +36,14 @@ namespace SpareParts.Desktop.Wpf
                 return;
             }
 
-            Application.Current?.Dispatcher?.Invoke(AddMessage);
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher is null)
+            {
+                AddMessage();
+                return;
+            }
+
+            dispatcher.Invoke(AddMessage);
         }
     }
 }

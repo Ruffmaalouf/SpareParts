@@ -22,7 +22,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<BrandGroupViewModel> BrandGroups    { get; } = new();
         public ObservableCollection<CarModelViewModel>   AvailableCars  { get; } = new();
         public ObservableCollection<CarPartModel>        AvailableParts { get; } = new();
-        public ObservableCollection<StatusMessage> Notifications = AppNotificationCenter.Instance.Messages;
+        public ObservableCollection<StatusMessage> Notifications { get; } = AppNotificationCenter.Instance.Messages;
 
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
@@ -36,6 +36,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private int _carsLoadVersion;
 
         public ManagementViewModel ManagementVm { get; }
+        public PartPurchasesViewModel PartPurchasesVm { get; }
         public UsedCarPurchasesViewModel PurchasesVm { get; }
 
         private bool _canViewInvoiceSearch;
@@ -314,6 +315,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IsLoadingRolePermissions ||
             IsLoadingInvoiceSearch ||
             IsLoadingInvoiceOpen ||
+            PartPurchasesVm.IsLoading ||
             PurchasesVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
@@ -344,6 +346,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand OpenInvoiceSearchCommand { get; }
         public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
+        public ICommand GoToUsedCarPurchasesCommand { get; }
+        public ICommand GoToPurchaseHistoryCommand { get; }
         public ICommand GoToStockManagementCommand { get; }
         public ICommand GoToAccountingCommand { get; }
         public ICommand GoToManualJournalCommand { get; }
@@ -372,6 +376,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _arRenderingService = arRenderingService;
             _arDeviceBridge = arDeviceBridge;
             ManagementVm = managementVm;
+            PartPurchasesVm = new PartPurchasesViewModel(crudApi, purchasesApi);
             PurchasesVm = new UsedCarPurchasesViewModel(crudApi, accountingApi, purchasesApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -383,6 +388,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ManagementVm.AccountingVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(Management.AccountingViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            PartPurchasesVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartPurchasesViewModel.IsLoading))
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
@@ -479,7 +491,29 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
+                ActiveScreen = AppScreen.PartPurchases;
+                PartPurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToUsedCarPurchasesCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewPurchasesScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view used-car purchases.", false);
+                    return;
+                }
+
                 ActiveScreen = AppScreen.Purchases;
+                PurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToPurchaseHistoryCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewPurchasesScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view used-car purchase history.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.PurchaseHistory;
                 PurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
             GoToStockManagementCommand = new RelayCommand(_ =>

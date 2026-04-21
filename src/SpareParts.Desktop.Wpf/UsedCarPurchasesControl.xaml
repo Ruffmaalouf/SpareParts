@@ -5,6 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:SpareParts.Desktop.Wpf;assembly=SpareParts.Desktop.Controls"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource AccountingComboBoxStyle}"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -32,14 +35,7 @@
         </Border>
 
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.4*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0"
-                    Margin="0 0 12 0"
-                    Padding="18"
+            <Border Padding="18"
                     Background="{DynamicResource CardBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -71,8 +67,7 @@
                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
                             <ComboBox ItemsSource="{Binding UsedCars}"
                                       SelectedValuePath="Id"
-                                      SelectedValue="{Binding SelectedUsedCarId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Style="{StaticResource ManagementComboBoxStyle}">
+                                      SelectedValue="{Binding SelectedUsedCarId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -96,8 +91,7 @@
                             <ComboBox ItemsSource="{Binding Suppliers}"
                                       SelectedValuePath="Id"
                                       DisplayMemberPath="Name"
-                                      SelectedValue="{Binding SelectedSupplierId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Style="{StaticResource ManagementComboBoxStyle}"/>
+                                      SelectedValue="{Binding SelectedSupplierId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
                         <controls:SaleDatePickerControl Grid.Row="1"
@@ -117,7 +111,7 @@
                                        FontSize="11"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged}"
+                            <TextBox Text="{Binding PaidAmountText, UpdateSourceTrigger=PropertyChanged}"
                                      Height="56"
                                      VerticalContentAlignment="Center"
                                      Padding="12 0"/>
@@ -156,7 +150,7 @@
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Width="130"
                                     Margin="0 0 0 10"/>
-                            <Button Content="💾 Post Purchase"
+                            <Button Content="💾 Save Draft"
                                     Command="{Binding SubmitCommand}"
                                     Style="{StaticResource PrimaryButtonStyle}"
                                     Width="130"
@@ -170,6 +164,7 @@
 
                     <Grid Grid.Row="2">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
@@ -191,6 +186,15 @@
                                            FontSize="12"
                                            FontWeight="Bold"
                                            Margin="0 0 16 0"/>
+                                <TextBlock Text="{Binding TotalCounterLabel}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Margin="0 0 6 0"/>
+                                <TextBlock Text="{Binding TotalCounterAmount, StringFormat={}{0:N4}}"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Margin="0 0 16 0"/>
                                 <TextBlock Text="{Binding PaidAmountLabel}"
                                            FontSize="12"
                                            FontWeight="SemiBold"
@@ -200,18 +204,30 @@
                                            FontSize="12"
                                            FontWeight="Bold"
                                            Margin="0 0 16 0"/>
-                                <TextBlock Text="Remaining"
+                                <TextBlock Text="{Binding RemainingCounterLabel}"
                                            FontSize="12"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                            Margin="0 0 6 0"/>
-                                <TextBlock Text="{Binding RemainingBaseAmount, StringFormat={}{0:N4}}"
+                                <TextBlock Text="{Binding RemainingCounterAmount, StringFormat={}{0:N4}}"
                                            FontSize="12"
                                            FontWeight="Bold"/>
                             </WrapPanel>
                         </Border>
 
-                        <DataGrid Grid.Row="1"
+                        <Border Grid.Row="1"
+                                Margin="0 0 0 10"
+                                Padding="12 10"
+                                Background="{DynamicResource CardHighlightBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10">
+                            <TextBlock Text="Received cars now keep their accounting draft in the purchase table. Review or refresh the linked draft here, then post it from Purchase History."
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <DataGrid Grid.Row="2"
                                   ItemsSource="{Binding PurchaseLines}"
                                   AutoGenerateColumns="False"
                                   CanUserAddRows="False"
@@ -226,18 +242,21 @@
                                 <DataGridTextColumn Header="Detail"
                                                     Binding="{Binding Description}"
                                                     Width="180"/>
-                                <DataGridTextColumn Header="Amount"
+                                <DataGridTextColumn Header="Original Amount"
                                                     Binding="{Binding Amount, StringFormat={}{0:N4}}"
-                                                    Width="100"/>
-                                <DataGridTextColumn Header="Currency"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Original Currency"
                                                     Binding="{Binding CurrencyCode}"
-                                                    Width="90"/>
+                                                    Width="110"/>
                                 <DataGridTextColumn Header="Rate"
                                                     Binding="{Binding RateToBase, StringFormat={}{0:N8}}"
                                                     Width="110"/>
                                 <DataGridTextColumn Header="Base Amount"
                                                     Binding="{Binding BaseAmount, StringFormat={}{0:N4}}"
                                                     Width="120"/>
+                                <DataGridTextColumn Header="Counter Amount"
+                                                    Binding="{Binding CounterAmount, StringFormat={}{0:N4}}"
+                                                    Width="130"/>
                                 <DataGridTemplateColumn Header="Account"
                                                         Width="*">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -245,71 +264,13 @@
                                             <ComboBox ItemsSource="{Binding DataContext.AccountOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                       SelectedValuePath="Id"
                                                       DisplayMemberPath="DisplayName"
-                                                      SelectedValue="{Binding AccountId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                      Style="{StaticResource ManagementComboBoxStyle}"/>
+                                                      SelectedValue="{Binding AccountId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
-                </Grid>
-            </Border>
-
-            <Border Grid.Column="1"
-                    Padding="18"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0"
-                                Margin="0 0 0 12">
-                        <TextBlock Text="Recent Used-Car Purchases"
-                                   FontSize="18"
-                                   FontWeight="Bold"/>
-                        <TextBlock Text="Latest posted used-car purchases from the purchases service."
-                                   Margin="0 4 0 0"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    </StackPanel>
-
-                    <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding RecentPurchases}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              CanUserAddRows="False"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal"
-                              BorderThickness="0">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Purchase #"
-                                                Binding="{Binding PurchaseNumber}"
-                                                Width="110"/>
-                            <DataGridTextColumn Header="Date"
-                                                Binding="{Binding PurchaseDate, StringFormat={}{0:yyyy-MM-dd}}"
-                                                Width="105"/>
-                            <DataGridTextColumn Header="Used Car"
-                                                Binding="{Binding UsedCar}"
-                                                Width="*"/>
-                            <DataGridTextColumn Header="Supplier"
-                                                Binding="{Binding SupplierName}"
-                                                Width="140"/>
-                            <DataGridTextColumn Header="Total"
-                                                Binding="{Binding TotalBaseAmount, StringFormat={}{0:N4}}"
-                                                Width="95"/>
-                            <DataGridTextColumn Header="Paid"
-                                                Binding="{Binding PaidAmount, StringFormat={}{0:N4}}"
-                                                Width="95"/>
-                            <DataGridTextColumn Header="Status"
-                                                Binding="{Binding PaymentStatus}"
-                                                Width="90"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
                 </Grid>
             </Border>
         </Grid>

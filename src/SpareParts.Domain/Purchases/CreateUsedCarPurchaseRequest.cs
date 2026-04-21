@@ -18,6 +18,12 @@ namespace SpareParts.Domain.Purchases
         [MaxLength(3)]
         public string BaseCurrencyCode { get; set; } = "USD";
 
+        [Range(0, double.MaxValue)]
+        public decimal PaidCounterAmount { get; set; }
+
+        [MaxLength(3)]
+        public string CounterCurrencyCode { get; set; } = "USD";
+
         [MaxLength(400)]
         public string Notes { get; set; } = string.Empty;
 
@@ -44,6 +50,9 @@ namespace SpareParts.Domain.Purchases
 
         [Range(0, double.MaxValue)]
         public decimal BaseAmount { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal CounterAmount { get; set; }
 
         [Range(1, int.MaxValue)]
         public int AccountId { get; set; }

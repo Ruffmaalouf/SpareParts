@@ -1,25 +1,34 @@
 using Dapper;
+using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.MasterData;
+using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Data.Repositories;
+using SpareParts.Infrastructure.Interfaces.Repositories;
 using System.ComponentModel.DataAnnotations;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class UsedCarsService
 {
+    private const string UsedCarReferenceType = "UsedCar";
+
     private readonly ISqlConnectionFactory _factory;
     private readonly CurrenciesService _currenciesService;
     private readonly AppConstantsService _appConstantsService;
+    private readonly AccountingSettingsProvider _accountingSettingsProvider;
 
     public UsedCarsService(
         ISqlConnectionFactory factory,
         CurrenciesService currenciesService,
-        AppConstantsService appConstantsService)
+        AppConstantsService appConstantsService,
+        AccountingSettingsProvider accountingSettingsProvider)
     {
         _factory = factory;
         _currenciesService = currenciesService;
         _appConstantsService = appConstantsService;
+        _accountingSettingsProvider = accountingSettingsProvider;
     }
 
     public IEnumerable<UsedCarDto> GetAll()
@@ -27,6 +36,8 @@ public sealed class UsedCarsService
         using var conn = _factory.CreateConnection();
         return conn.Query<UsedCarDto>(
             @"SELECT uc.Id,
+                     uc.SupplierId,
+                     COALESCE(s.Name, N'') AS SupplierName,
                      uc.CarModelId,
                      CASE
                          WHEN cb.Name IS NULL OR LTRIM(RTRIM(cb.Name)) = N'' THEN
@@ -60,6 +71,7 @@ public sealed class UsedCarsService
                      uc.CounterCurrencyCode,
                      uc.CounterRateToBase
               FROM dbo.UsedCars uc
+              LEFT JOIN dbo.Suppliers s ON s.Id = uc.SupplierId
               INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
               INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
               LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
@@ -70,15 +82,19 @@ public sealed class UsedCarsService
     {
         var snapshot = BuildSnapshot(request);
 
-        using var conn = _factory.CreateConnection();
-        return conn.ExecuteScalar<int>(
+        using var session = new DbSession(_factory);
+        var repositories = RepositoryCatalog.For(session);
+        var receivedAt = snapshot.IsReceived ? DateTime.UtcNow : (DateTime?)null;
+
+        var usedCarId = session.Connection.ExecuteScalar<int>(
             @"INSERT INTO dbo.UsedCars
-                (CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, CreatedByUserId)
+                (SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId)
               VALUES
-                (@CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @UserId);
+                (@SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
+                snapshot.SupplierId,
                 snapshot.CarModelId,
                 snapshot.ModelYear,
                 snapshot.PriceCurrency,
@@ -99,18 +115,46 @@ public sealed class UsedCarsService
                 snapshot.BaseCurrencyCode,
                 snapshot.CounterCurrencyCode,
                 snapshot.CounterRateToBase,
+                ReceivedAt = receivedAt,
                 UserId = userId
-            });
+            },
+            session.Transaction);
+
+        if (snapshot.IsReceived && receivedAt.HasValue)
+        {
+            SyncLinkedPurchaseDraft(repositories, usedCarId, snapshot, receivedAt.Value, userId);
+        }
+
+        SyncReceiveJournal(session, repositories, usedCarId, snapshot, receivedAt, userId);
+
+        session.Commit();
+        return usedCarId;
     }
 
     public void Update(int id, CreateUsedCarRequest request, int userId)
     {
         var snapshot = BuildSnapshot(request);
 
-        using var conn = _factory.CreateConnection();
-        var updated = conn.Execute(
+        using var session = new DbSession(_factory);
+        var repositories = RepositoryCatalog.For(session);
+        var existing = GetExistingState(session, id);
+        if (existing == null)
+        {
+            throw new NotFoundException("Used car not found.");
+        }
+
+        EnsurePostedPurchaseCanBeUpdated(repositories.Purchases.UsedCarPurchases, existing, snapshot, id);
+
+        var receivedAt = snapshot.IsReceived
+            ? existing.IsReceived
+                ? existing.ReceivedAt ?? DateTime.UtcNow
+                : DateTime.UtcNow
+            : (DateTime?)null;
+
+        var updated = session.Connection.Execute(
             @"UPDATE dbo.UsedCars
-              SET CarModelId = @CarModelId,
+              SET SupplierId = @SupplierId,
+                  CarModelId = @CarModelId,
                   ModelYear = @ModelYear,
                   PriceCurrency = @PriceCurrency,
                   Price = @Price,
@@ -130,12 +174,14 @@ public sealed class UsedCarsService
                   BaseCurrencyCode = @BaseCurrencyCode,
                   CounterCurrencyCode = @CounterCurrencyCode,
                   CounterRateToBase = @CounterRateToBase,
+                  ReceivedAt = @ReceivedAt,
                   ModifiedAt = @Now,
                   ModifiedByUserId = @UserId
               WHERE Id = @Id",
             new
             {
                 Id = id,
+                snapshot.SupplierId,
                 snapshot.CarModelId,
                 snapshot.ModelYear,
                 snapshot.PriceCurrency,
@@ -156,24 +202,55 @@ public sealed class UsedCarsService
                 snapshot.BaseCurrencyCode,
                 snapshot.CounterCurrencyCode,
                 snapshot.CounterRateToBase,
+                ReceivedAt = receivedAt,
                 UserId = userId,
                 Now = DateTime.UtcNow
-            });
+            },
+            session.Transaction);
 
         if (updated == 0)
         {
             throw new NotFoundException("Used car not found.");
         }
+
+        if (snapshot.IsReceived && receivedAt.HasValue)
+        {
+            SyncLinkedPurchaseDraft(repositories, id, snapshot, receivedAt.Value, userId);
+        }
+        else
+        {
+            repositories.Purchases.UsedCarPurchases.DeleteDraftsByUsedCarId(id);
+        }
+
+        SyncReceiveJournal(session, repositories, id, snapshot, receivedAt, userId);
+
+        session.Commit();
     }
 
     public void Delete(int id)
     {
-        using var conn = _factory.CreateConnection();
-        var deleted = conn.Execute("DELETE FROM dbo.UsedCars WHERE Id = @Id", new { Id = id });
+        using var session = new DbSession(_factory);
+        var repositories = RepositoryCatalog.For(session);
+        repositories.Accounting.Journal.DeleteEntriesByReference(UsedCarReferenceType, id);
+
+        if (repositories.Purchases.UsedCarPurchases.HasPostedPurchase(id))
+        {
+            throw new ValidationException("This used car already has a posted purchase and cannot be deleted.");
+        }
+
+        repositories.Purchases.UsedCarPurchases.DeleteDraftsByUsedCarId(id);
+
+        var deleted = session.Connection.Execute(
+            "DELETE FROM dbo.UsedCars WHERE Id = @Id",
+            new { Id = id },
+            session.Transaction);
+
         if (deleted == 0)
         {
             throw new NotFoundException("Used car not found.");
         }
+
+        session.Commit();
     }
 
     private UsedCarSnapshot BuildSnapshot(CreateUsedCarRequest request)
@@ -184,10 +261,34 @@ public sealed class UsedCarsService
             ?? throw new ValidationException("Price currency is required.");
 
         using var conn = _factory.CreateConnection();
-        var carModelExists = conn.ExecuteScalar<int>(
-            "SELECT COUNT(1) FROM dbo.CarModels WHERE Id = @Id AND IsActive = 1",
+        var supplierExists = conn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM dbo.Suppliers WHERE Id = @Id",
+            new { Id = request.SupplierId });
+        if (supplierExists == 0)
+        {
+            throw new ValidationException("Selected supplier was not found.");
+        }
+
+        var carDisplayName = conn.QuerySingleOrDefault<string>(
+            @"SELECT TOP (1)
+                     CASE
+                         WHEN cb.Name IS NULL OR LTRIM(RTRIM(cb.Name)) = N'' THEN
+                             CASE
+                                 WHEN NULLIF(LTRIM(RTRIM(cm.BodyType)), N'') IS NULL THEN cm.Name
+                                 ELSE cm.Name + N' (' + cm.BodyType + N')'
+                             END
+                         ELSE
+                             CASE
+                                 WHEN NULLIF(LTRIM(RTRIM(cm.BodyType)), N'') IS NULL THEN cb.Name + N' ' + cm.Name
+                                 ELSE cb.Name + N' ' + cm.Name + N' (' + cm.BodyType + N')'
+                             END
+                     END
+              FROM dbo.CarModels cm
+              INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+              WHERE cm.Id = @Id
+                AND cm.IsActive = 1;",
             new { Id = request.CarModelId });
-        if (carModelExists == 0)
+        if (string.IsNullOrWhiteSpace(carDisplayName))
         {
             throw new ValidationException("Selected car model was not found.");
         }
@@ -274,8 +375,10 @@ public sealed class UsedCarsService
 
         return new UsedCarSnapshot
         {
+            SupplierId = request.SupplierId,
             CarModelId = request.CarModelId,
             ModelYear = request.ModelYear,
+            CarDisplayName = $"{carDisplayName.Trim()} {request.ModelYear}",
             PriceCurrency = normalizedPriceCurrency,
             Price = roundedPrice,
             PriceBase = priceBase,
@@ -299,6 +402,11 @@ public sealed class UsedCarsService
 
     private static void ValidateRequest(CreateUsedCarRequest request)
     {
+        if (request.SupplierId <= 0)
+        {
+            throw new ValidationException("Supplier is required.");
+        }
+
         if (request.CarModelId <= 0)
         {
             throw new ValidationException("Car model is required.");
@@ -328,6 +436,94 @@ public sealed class UsedCarsService
         {
             throw new ValidationException("Customs should be different than 0 when the car is marked as received.");
         }
+    }
+
+    private void SyncReceiveJournal(
+        DbSession session,
+        RepositoryCatalog repositories,
+        int usedCarId,
+        UsedCarSnapshot snapshot,
+        DateTime? receivedAt,
+        int userId)
+    {
+        repositories.Accounting.Journal.DeleteEntriesByReference(UsedCarReferenceType, usedCarId);
+
+        if (!snapshot.IsReceived || !receivedAt.HasValue)
+        {
+            return;
+        }
+
+        if (repositories.Purchases.UsedCarPurchases.HasPostedPurchase(usedCarId))
+        {
+            return;
+        }
+
+        var postingAccounts = repositories.Accounting.PostingSettings.GetAll()
+            .Where(item => item.AccountId > 0)
+            .ToDictionary(item => item.SettingKey, item => item.AccountId, StringComparer.OrdinalIgnoreCase);
+
+        var linePlans = BuildReceiveJournalLinePlans(snapshot, postingAccounts);
+        if (linePlans.Count == 0)
+        {
+            return;
+        }
+
+        AdjustLinePlansToGrandTotal(snapshot.GrandTotalBase, linePlans);
+        var supplierAccountId = ResolveUsedCarSupplierAccountId(session, postingAccounts, snapshot.SupplierId);
+        var createdAt = DateTime.UtcNow;
+        var lines = linePlans
+            .Select(plan => new JournalLine
+            {
+                AccountId = plan.AccountId,
+                Debit = plan.BaseAmount,
+                Credit = 0m,
+                CurrencyCode = plan.CurrencyCode,
+                OriginalAmount = plan.OriginalAmount,
+                RateToBase = plan.RateToBase,
+                CounterAmount = plan.CounterAmount,
+                BaseCurrencyCode = snapshot.BaseCurrencyCode,
+                CounterCurrencyCode = snapshot.CounterCurrencyCode,
+                CreatedAt = createdAt,
+                CreatedByUserId = userId
+            })
+            .ToList();
+
+        lines.Add(new JournalLine
+        {
+            AccountId = supplierAccountId,
+            Debit = 0m,
+            Credit = snapshot.GrandTotalBase,
+            CurrencyCode = snapshot.CounterCurrencyCode,
+            OriginalAmount = snapshot.GrandTotalCounter > 0m ? snapshot.GrandTotalCounter : snapshot.GrandTotalBase,
+            RateToBase = snapshot.CounterRateToBase > 0m
+                ? decimal.Round(snapshot.CounterRateToBase, 8, MidpointRounding.AwayFromZero)
+                : 1m,
+            CounterAmount = snapshot.GrandTotalCounter > 0m ? snapshot.GrandTotalCounter : snapshot.GrandTotalBase,
+            BaseCurrencyCode = snapshot.BaseCurrencyCode,
+            CounterCurrencyCode = snapshot.CounterCurrencyCode,
+            CreatedAt = createdAt,
+            CreatedByUserId = userId
+        });
+
+        var totalDebit = decimal.Round(lines.Sum(line => line.Debit), 4, MidpointRounding.AwayFromZero);
+        var totalCredit = decimal.Round(lines.Sum(line => line.Credit), 4, MidpointRounding.AwayFromZero);
+        if (totalDebit != totalCredit)
+        {
+            throw new InvalidOperationException("Used-car receive journal entry is not balanced.");
+        }
+
+        var entry = new JournalEntry
+        {
+            EntryDate = receivedAt.Value,
+            ReferenceType = UsedCarReferenceType,
+            ReferenceId = usedCarId,
+            Description = AccountingJournalDescriptionFormatter.FormatUsedCarReceipt(snapshot.CarDisplayName),
+            CreatedAt = createdAt,
+            CreatedByUserId = userId
+        };
+
+        var entryId = repositories.Accounting.Journal.InsertEntry(entry);
+        repositories.Accounting.Journal.InsertLines(entryId, lines);
     }
 
     private static decimal ResolveRateToBaseCurrency(
@@ -418,6 +614,347 @@ public sealed class UsedCarsService
         return normalized.Length == 3 ? normalized : null;
     }
 
+    private static ExistingUsedCarState? GetExistingState(DbSession session, int id)
+        => session.Connection.QuerySingleOrDefault<ExistingUsedCarState>(
+            @"SELECT Id,
+                     SupplierId,
+                     PriceCurrency,
+                     Price,
+                     PriceBase,
+                     PriceCounter,
+                     LocationId,
+                     Transportation,
+                     PartOutAmount AS PartOut,
+                     Shipping,
+                     Customs,
+                     TotalBeforeShipping,
+                     GrandTotalBase,
+                     GrandTotalCounter,
+                     BaseCurrencyCode,
+                     CounterCurrencyCode,
+                     CounterRateToBase,
+                     IsReceived,
+                     ReceivedAt
+              FROM dbo.UsedCars
+              WHERE Id = @Id;",
+            new { Id = id },
+            session.Transaction);
+
+    private int ResolveUsedCarSupplierAccountId(
+        DbSession session,
+        IReadOnlyDictionary<string, int> postingAccounts,
+        int supplierId)
+    {
+        var supplierAccountId = new SuppliersRepository(session).GetAccountId(supplierId);
+        if (supplierAccountId is > 0)
+        {
+            return supplierAccountId.Value;
+        }
+
+        if (postingAccounts.TryGetValue(AccountingSettingKeys.PurchaseOffset, out var configuredOffsetAccountId)
+            && configuredOffsetAccountId > 0)
+        {
+            return configuredOffsetAccountId;
+        }
+
+        var fallbackAccountId = _accountingSettingsProvider.GetSnapshot().PurchaseOffsetAccountId;
+        if (fallbackAccountId > 0)
+        {
+            return fallbackAccountId;
+        }
+
+        throw new ValidationException("Configure the purchase offset account or link an account to the supplier before receiving used cars.");
+    }
+
+    private void SyncLinkedPurchaseDraft(
+        RepositoryCatalog repositories,
+        int usedCarId,
+        UsedCarSnapshot snapshot,
+        DateTime receivedAt,
+        int userId)
+    {
+        var usedCarPurchasesRepository = repositories.Purchases.UsedCarPurchases;
+        var existingDraft = usedCarPurchasesRepository.GetDraftByUsedCarId(usedCarId);
+        if (existingDraft == null && usedCarPurchasesRepository.HasPostedPurchase(usedCarId))
+        {
+            return;
+        }
+
+        var postingAccounts = repositories.Accounting.PostingSettings.GetAll()
+            .Where(item => item.AccountId > 0)
+            .ToDictionary(item => item.SettingKey, item => item.AccountId, StringComparer.OrdinalIgnoreCase);
+
+        var linePlans = BuildReceiveJournalLinePlans(snapshot, postingAccounts);
+        if (linePlans.Count == 0)
+        {
+            throw new ValidationException("Used car receive posting requires at least one non-zero posting line.");
+        }
+
+        AdjustLinePlansToGrandTotal(snapshot.GrandTotalBase, linePlans);
+
+        var createdAt = DateTime.UtcNow;
+        var purchaseLines = linePlans
+            .Select((plan, index) => new UsedCarPurchaseLine
+            {
+                DetailKey = plan.DetailKey,
+                Description = plan.Description,
+                Amount = plan.OriginalAmount,
+                CurrencyCode = plan.CurrencyCode,
+                RateToBase = plan.RateToBase,
+                BaseAmount = plan.BaseAmount,
+                CounterAmount = plan.CounterAmount,
+                AccountId = plan.AccountId,
+                SortOrder = index + 1,
+                CreatedAt = createdAt,
+                CreatedByUserId = userId
+            })
+            .ToList();
+
+        var totalBaseAmount = decimal.Round(purchaseLines.Sum(line => line.BaseAmount), 4, MidpointRounding.AwayFromZero);
+        var totalCounterAmount = decimal.Round(purchaseLines.Sum(line => line.CounterAmount), 4, MidpointRounding.AwayFromZero);
+        var paidAmount = existingDraft?.PaidAmount ?? 0m;
+        var paidCounterAmount = existingDraft?.PaidCounterAmount ?? 0m;
+        var purchase = new UsedCarPurchase
+        {
+            PurchaseNumber = existingDraft?.PurchaseNumber ?? new UtcInvoiceNumberGenerator(_factory).NextUsedCarPurchaseNumber(),
+            UsedCarId = usedCarId,
+            SupplierId = snapshot.SupplierId,
+            PurchaseDate = existingDraft?.PurchaseDate ?? receivedAt,
+            BaseCurrencyCode = snapshot.BaseCurrencyCode,
+            CounterCurrencyCode = snapshot.CounterCurrencyCode,
+            TotalBaseAmount = totalBaseAmount,
+            TotalCounterAmount = totalCounterAmount,
+            PaidAmount = paidAmount,
+            PaidCounterAmount = paidCounterAmount,
+            PaymentStatus = ResolvePaymentStatus(totalBaseAmount, paidAmount),
+            PostingStatus = "Draft",
+            Notes = existingDraft?.Notes ?? string.Empty,
+            CreatedAt = createdAt,
+            CreatedByUserId = userId,
+            Lines = purchaseLines
+        };
+
+        if (existingDraft == null)
+        {
+            var purchaseId = usedCarPurchasesRepository.Insert(purchase);
+            usedCarPurchasesRepository.InsertLines(purchaseId, purchaseLines);
+            return;
+        }
+
+        if (!usedCarPurchasesRepository.Update(existingDraft.Id, purchase))
+        {
+            throw new ValidationException("The linked used-car purchase draft could not be synchronized.");
+        }
+
+        usedCarPurchasesRepository.ReplaceLines(existingDraft.Id, purchaseLines);
+    }
+
+    private static List<UsedCarJournalLinePlan> BuildReceiveJournalLinePlans(
+        UsedCarSnapshot snapshot,
+        IReadOnlyDictionary<string, int> postingAccounts)
+    {
+        var linePlans = new List<UsedCarJournalLinePlan>();
+
+        AddJournalLinePlan(
+            linePlans,
+            AccountingSettingKeys.UsedCarPrice,
+            "Vehicle Price",
+            ResolveRequiredPostingAccountId(postingAccounts, AccountingSettingKeys.UsedCarPrice, "Used Car Price"),
+            snapshot.PriceBase,
+            snapshot.PriceCurrency,
+            snapshot.Price,
+            snapshot.Price > 0m
+                ? decimal.Round(snapshot.PriceBase / snapshot.Price, 8, MidpointRounding.AwayFromZero)
+                : 1m,
+            snapshot.PriceCounter > 0m ? snapshot.PriceCounter : snapshot.PriceBase);
+
+        AddCounterJournalLinePlan(
+            linePlans,
+            AccountingSettingKeys.UsedCarTransportation,
+            "Transportation",
+            ResolveRequiredPostingAccountId(postingAccounts, AccountingSettingKeys.UsedCarTransportation, "Used Car Transportation"),
+            snapshot.Transportation,
+            snapshot.CounterRateToBase,
+            snapshot.CounterCurrencyCode);
+
+        AddCounterJournalLinePlan(
+            linePlans,
+            AccountingSettingKeys.UsedCarPartOut,
+            "Part-Out",
+            ResolveRequiredPostingAccountId(postingAccounts, AccountingSettingKeys.UsedCarPartOut, "Used Car Part-Out"),
+            snapshot.PartOut,
+            snapshot.CounterRateToBase,
+            snapshot.CounterCurrencyCode);
+
+        AddCounterJournalLinePlan(
+            linePlans,
+            AccountingSettingKeys.UsedCarShipping,
+            "Shipping",
+            ResolveRequiredPostingAccountId(postingAccounts, AccountingSettingKeys.UsedCarShipping, "Used Car Shipping"),
+            snapshot.Shipping,
+            snapshot.CounterRateToBase,
+            snapshot.CounterCurrencyCode);
+
+        AddCounterJournalLinePlan(
+            linePlans,
+            AccountingSettingKeys.UsedCarCustoms,
+            "Customs",
+            ResolveRequiredPostingAccountId(postingAccounts, AccountingSettingKeys.UsedCarCustoms, "Used Car Customs"),
+            snapshot.Customs,
+            snapshot.CounterRateToBase,
+            snapshot.CounterCurrencyCode);
+
+        return linePlans;
+    }
+
+    private static void AddJournalLinePlan(
+        ICollection<UsedCarJournalLinePlan> linePlans,
+        string detailKey,
+        string description,
+        int accountId,
+        decimal baseAmount,
+        string currencyCode,
+        decimal originalAmount,
+        decimal rateToBase,
+        decimal counterAmount)
+    {
+        if (baseAmount <= 0m)
+        {
+            return;
+        }
+
+        linePlans.Add(new UsedCarJournalLinePlan
+        {
+            DetailKey = detailKey,
+            Description = description,
+            AccountId = accountId,
+            BaseAmount = decimal.Round(baseAmount, 2, MidpointRounding.AwayFromZero),
+            CurrencyCode = currencyCode,
+            OriginalAmount = decimal.Round(originalAmount > 0m ? originalAmount : baseAmount, 2, MidpointRounding.AwayFromZero),
+            RateToBase = rateToBase > 0m
+                ? decimal.Round(rateToBase, 8, MidpointRounding.AwayFromZero)
+                : 1m,
+            CounterAmount = decimal.Round(counterAmount > 0m ? counterAmount : baseAmount, 2, MidpointRounding.AwayFromZero)
+        });
+    }
+
+    private static void AddCounterJournalLinePlan(
+        ICollection<UsedCarJournalLinePlan> linePlans,
+        string detailKey,
+        string description,
+        int accountId,
+        decimal counterAmount,
+        decimal counterRateToBase,
+        string counterCurrencyCode)
+    {
+        if (counterAmount <= 0m)
+        {
+            return;
+        }
+
+        AddJournalLinePlan(
+            linePlans,
+            detailKey,
+            description,
+            accountId,
+            decimal.Round(counterAmount * counterRateToBase, 2, MidpointRounding.AwayFromZero),
+            counterCurrencyCode,
+            counterAmount,
+            counterRateToBase,
+            counterAmount);
+    }
+
+    private static void AdjustLinePlansToGrandTotal(decimal expectedGrandTotalBase, IList<UsedCarJournalLinePlan> linePlans)
+    {
+        if (linePlans.Count == 0)
+        {
+            return;
+        }
+
+        var plannedCreditTotal = decimal.Round(linePlans.Sum(line => line.BaseAmount), 2, MidpointRounding.AwayFromZero);
+        var difference = decimal.Round(expectedGrandTotalBase - plannedCreditTotal, 2, MidpointRounding.AwayFromZero);
+        if (difference == 0m)
+        {
+            return;
+        }
+
+        linePlans[^1].BaseAmount = decimal.Round(linePlans[^1].BaseAmount + difference, 2, MidpointRounding.AwayFromZero);
+        if (linePlans[^1].BaseAmount <= 0m)
+        {
+            throw new InvalidOperationException("Used car receive journal entry could not be balanced.");
+        }
+    }
+
+    private static void EnsurePostedPurchaseCanBeUpdated(
+        IUsedCarPurchasesRepository usedCarPurchasesRepository,
+        ExistingUsedCarState existing,
+        UsedCarSnapshot snapshot,
+        int usedCarId)
+    {
+        if (!usedCarPurchasesRepository.HasPostedPurchase(usedCarId))
+        {
+            return;
+        }
+
+        if (!snapshot.IsReceived)
+        {
+            throw new ValidationException("This used car already has a posted purchase and cannot be marked as not received.");
+        }
+
+        if (HasPurchaseAffectingChanges(existing, snapshot))
+        {
+            throw new ValidationException("This used car already has a posted purchase. Change the linked purchase through accounting instead of editing the used-car amounts here.");
+        }
+    }
+
+    private static bool HasPurchaseAffectingChanges(ExistingUsedCarState existing, UsedCarSnapshot snapshot)
+    {
+        return existing.SupplierId != snapshot.SupplierId
+            || !string.Equals(NormalizeCurrencyCode(existing.PriceCurrency), snapshot.PriceCurrency, StringComparison.OrdinalIgnoreCase)
+            || decimal.Round(existing.Price, 2, MidpointRounding.AwayFromZero) != snapshot.Price
+            || decimal.Round(existing.PriceBase, 2, MidpointRounding.AwayFromZero) != snapshot.PriceBase
+            || decimal.Round(existing.PriceCounter, 2, MidpointRounding.AwayFromZero) != snapshot.PriceCounter
+            || existing.LocationId != snapshot.LocationId
+            || decimal.Round(existing.Transportation, 2, MidpointRounding.AwayFromZero) != snapshot.Transportation
+            || decimal.Round(existing.PartOut, 2, MidpointRounding.AwayFromZero) != snapshot.PartOut
+            || decimal.Round(existing.Shipping, 2, MidpointRounding.AwayFromZero) != snapshot.Shipping
+            || decimal.Round(existing.Customs, 2, MidpointRounding.AwayFromZero) != snapshot.Customs
+            || decimal.Round(existing.TotalBeforeShipping, 2, MidpointRounding.AwayFromZero) != snapshot.TotalBeforeShipping
+            || decimal.Round(existing.GrandTotalBase, 2, MidpointRounding.AwayFromZero) != snapshot.GrandTotalBase
+            || decimal.Round(existing.GrandTotalCounter, 2, MidpointRounding.AwayFromZero) != snapshot.GrandTotalCounter
+            || !string.Equals(NormalizeCurrencyCode(existing.BaseCurrencyCode), snapshot.BaseCurrencyCode, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(NormalizeCurrencyCode(existing.CounterCurrencyCode), snapshot.CounterCurrencyCode, StringComparison.OrdinalIgnoreCase)
+            || decimal.Round(existing.CounterRateToBase, 8, MidpointRounding.AwayFromZero) != snapshot.CounterRateToBase;
+    }
+
+    private static string ResolvePaymentStatus(decimal totalBaseAmount, decimal paidAmount)
+    {
+        if (paidAmount <= 0m)
+        {
+            return "Unpaid";
+        }
+
+        if (paidAmount >= totalBaseAmount)
+        {
+            return "Paid";
+        }
+
+        return "PartiallyPaid";
+    }
+
+    private static int ResolveRequiredPostingAccountId(
+        IReadOnlyDictionary<string, int> postingAccounts,
+        string settingKey,
+        string label)
+    {
+        if (!postingAccounts.TryGetValue(settingKey, out var accountId) || accountId <= 0)
+        {
+            throw new ValidationException($"Configure the posting account for '{label}' before receiving used cars.");
+        }
+
+        return accountId;
+    }
+
     private sealed class LocationLookup
     {
         public int LocationID { get; init; }
@@ -426,10 +963,35 @@ public sealed class UsedCarsService
         public string ShippingFeesCurrencyCode { get; init; } = "USD";
     }
 
+    private sealed class ExistingUsedCarState
+    {
+        public int Id { get; init; }
+        public int? SupplierId { get; init; }
+        public string PriceCurrency { get; init; } = "USD";
+        public decimal Price { get; init; }
+        public decimal PriceBase { get; init; }
+        public decimal PriceCounter { get; init; }
+        public int? LocationId { get; init; }
+        public decimal Transportation { get; init; }
+        public decimal PartOut { get; init; }
+        public decimal Shipping { get; init; }
+        public decimal Customs { get; init; }
+        public decimal TotalBeforeShipping { get; init; }
+        public decimal GrandTotalBase { get; init; }
+        public decimal GrandTotalCounter { get; init; }
+        public string BaseCurrencyCode { get; init; } = "USD";
+        public string CounterCurrencyCode { get; init; } = "USD";
+        public decimal CounterRateToBase { get; init; } = 1m;
+        public bool IsReceived { get; init; }
+        public DateTime? ReceivedAt { get; init; }
+    }
+
     private sealed class UsedCarSnapshot
     {
+        public int SupplierId { get; init; }
         public int CarModelId { get; init; }
         public int ModelYear { get; init; }
+        public string CarDisplayName { get; init; } = string.Empty;
         public string PriceCurrency { get; init; } = "USD";
         public decimal Price { get; init; }
         public decimal PriceBase { get; init; }
@@ -448,5 +1010,17 @@ public sealed class UsedCarsService
         public string BaseCurrencyCode { get; init; } = "USD";
         public string CounterCurrencyCode { get; init; } = "USD";
         public decimal CounterRateToBase { get; init; } = 1m;
+    }
+
+    private sealed class UsedCarJournalLinePlan
+    {
+        public string DetailKey { get; init; } = string.Empty;
+        public string Description { get; init; } = string.Empty;
+        public int AccountId { get; init; }
+        public decimal BaseAmount { get; set; }
+        public string CurrencyCode { get; init; } = "USD";
+        public decimal OriginalAmount { get; init; }
+        public decimal RateToBase { get; init; } = 1m;
+        public decimal CounterAmount { get; init; }
     }
 }

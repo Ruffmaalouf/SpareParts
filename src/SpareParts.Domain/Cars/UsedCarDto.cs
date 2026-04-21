@@ -3,6 +3,8 @@ namespace SpareParts.Domain.Cars
     public sealed class UsedCarDto
     {
         public int Id { get; set; }
+        public int? SupplierId { get; set; }
+        public string SupplierName { get; set; } = string.Empty;
         public int CarModelId { get; set; }
         public string Car { get; set; } = string.Empty;
         public int ModelYear { get; set; }

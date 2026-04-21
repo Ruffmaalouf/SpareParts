@@ -15,42 +15,91 @@ namespace SpareParts.Infrastructure.Data
 
         public IEnumerable<TransactionTypeDto> GetAll()
         {
-            const string sql = @"SELECT Id, Name, CurrencyCode, CounterRate, IsActive
+            const string sql = @"SELECT Id,
+                                        TypeKey,
+                                        Name,
+                                        CurrencyCode,
+                                        CounterRate,
+                                        SerialNumberFormat,
+                                        SerialStartNumber AS StartNumber,
+                                        SerialCurrentNumber AS CurrentNumber,
+                                        IsActive
                                  FROM TransactionTypes
-                                 ORDER BY Name;";
+                                 ORDER BY SortOrder, Name;";
 
             return _session.Connection.Query<TransactionTypeDto>(sql, transaction: _session.Transaction);
         }
 
-        public void Insert(string name, string currencyCode, decimal counterRate, bool isActive)
+        public TransactionTypeDto? GetById(int id)
         {
-            const string sql = @"INSERT INTO TransactionTypes (Name, CurrencyCode, CounterRate, IsActive)
-                                 VALUES (@Name, @CurrencyCode, @CounterRate, @IsActive);";
+            const string sql = @"SELECT Id,
+                                        TypeKey,
+                                        Name,
+                                        CurrencyCode,
+                                        CounterRate,
+                                        SerialNumberFormat,
+                                        SerialStartNumber AS StartNumber,
+                                        SerialCurrentNumber AS CurrentNumber,
+                                        IsActive
+                                 FROM TransactionTypes
+                                 WHERE Id = @Id;";
+
+            return _session.Connection.QuerySingleOrDefault<TransactionTypeDto>(
+                sql,
+                new { Id = id },
+                _session.Transaction);
+        }
+
+        public void Insert(string typeKey, string name, string currencyCode, decimal counterRate, string serialNumberFormat, long startNumber, long currentNumber, bool isActive)
+        {
+            const string sql = @"INSERT INTO TransactionTypes (TypeKey, Name, CurrencyCode, CounterRate, SerialNumberFormat, SerialStartNumber, SerialCurrentNumber, IsActive, SortOrder)
+                                 VALUES (
+                                     @TypeKey,
+                                     @Name,
+                                     @CurrencyCode,
+                                     @CounterRate,
+                                     @SerialNumberFormat,
+                                     @StartNumber,
+                                     @CurrentNumber,
+                                     @IsActive,
+                                     ISNULL((SELECT MAX(SortOrder) + 10 FROM TransactionTypes), 10));";
 
             _session.Connection.Execute(sql, new
             {
+                TypeKey = typeKey,
                 Name = name,
                 CurrencyCode = currencyCode,
                 CounterRate = counterRate,
+                SerialNumberFormat = serialNumberFormat,
+                StartNumber = startNumber,
+                CurrentNumber = currentNumber,
                 IsActive = isActive
             }, _session.Transaction);
         }
 
-        public bool Update(int id, string name, string currencyCode, decimal counterRate, bool isActive)
+        public bool Update(int id, string typeKey, string name, string currencyCode, decimal counterRate, string serialNumberFormat, long startNumber, long currentNumber, bool isActive)
         {
             const string sql = @"UPDATE TransactionTypes
-                                 SET Name = @Name,
+                                 SET TypeKey = @TypeKey,
+                                     Name = @Name,
                                      CurrencyCode = @CurrencyCode,
                                      CounterRate = @CounterRate,
+                                     SerialNumberFormat = @SerialNumberFormat,
+                                     SerialStartNumber = @StartNumber,
+                                     SerialCurrentNumber = @CurrentNumber,
                                      IsActive = @IsActive
                                  WHERE Id = @Id;";
 
             var affected = _session.Connection.Execute(sql, new
             {
                 Id = id,
+                TypeKey = typeKey,
                 Name = name,
                 CurrencyCode = currencyCode,
                 CounterRate = counterRate,
+                SerialNumberFormat = serialNumberFormat,
+                StartNumber = startNumber,
+                CurrentNumber = currentNumber,
                 IsActive = isActive
             }, _session.Transaction);
 

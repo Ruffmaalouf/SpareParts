@@ -99,5 +99,9 @@ namespace SpareParts.Api.Controllers
         [HttpGet("trial-balance")]
         public ActionResult<TrialBalanceReportDto> GetTrialBalance([FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null)
             => Ok(_service.GetTrialBalance(dateFrom, dateTo));
+
+        [HttpGet("statement-of-account")]
+        public ActionResult<StatementOfAccountReportDto> GetStatementOfAccount([FromQuery] int accountId, [FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null)
+            => Ok(_service.GetStatementOfAccount(accountId, dateFrom, dateTo));
     }
 }

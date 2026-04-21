@@ -201,6 +201,7 @@ public static class SparePartsApiComposition
     public static void UseSparePartsApiPipeline(this WebApplication app)
     {
         var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
+        InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
         AccountingMigration.EnsureApplied(sqlConnectionFactory);
         MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
         TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
@@ -211,6 +212,7 @@ public static class SparePartsApiComposition
         LocationsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
+        TransactionsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
 
         app.UseMiddleware<ApiExceptionMiddleware>();

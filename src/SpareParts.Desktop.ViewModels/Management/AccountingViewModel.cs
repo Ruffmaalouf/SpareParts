@@ -24,6 +24,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private readonly IAccountingApiClient _accountingApi;
         private bool _suppressJournalSelectionLoad;
         private bool _suppressLedgerRefresh;
+        private bool _suppressStatementRefresh;
 
         public ObservableCollection<AccountDto> Accounts { get; } = new();
         public ObservableCollection<AccountTypeDefinitionDto> AccountTypes { get; } = new();
@@ -36,6 +37,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public ObservableCollection<ManualJournalLineEditor> ManualJournalLines { get; } = new();
         public ObservableCollection<LedgerRowDto> LedgerEntries { get; } = new();
         public ObservableCollection<TrialBalanceRowDto> TrialBalanceRows { get; } = new();
+        public ObservableCollection<StatementOfAccountRowDto> StatementEntries { get; } = new();
 
         private AccountDto? _selectedAccount;
         public AccountDto? SelectedAccount
@@ -278,6 +280,48 @@ namespace SpareParts.Desktop.Wpf.Management
             }
         }
 
+        private int? _selectedStatementAccountId;
+        public int? SelectedStatementAccountId
+        {
+            get => _selectedStatementAccountId;
+            set
+            {
+                if (_selectedStatementAccountId == value) return;
+                _selectedStatementAccountId = value;
+                OnPropertyChanged(nameof(SelectedStatementAccountId));
+                if (!_suppressStatementRefresh && value is > 0)
+                {
+                    _ = RefreshStatementAsync();
+                }
+            }
+        }
+
+        private DateTime? _statementDateFrom;
+        public DateTime? StatementDateFrom
+        {
+            get => _statementDateFrom;
+            set { _statementDateFrom = value; OnPropertyChanged(nameof(StatementDateFrom)); }
+        }
+
+        private DateTime? _statementDateTo;
+        public DateTime? StatementDateTo
+        {
+            get => _statementDateTo;
+            set { _statementDateTo = value; OnPropertyChanged(nameof(StatementDateTo)); }
+        }
+
+        private StatementOfAccountReportDto? _statementReport;
+        public StatementOfAccountReportDto? StatementReport
+        {
+            get => _statementReport;
+            private set
+            {
+                _statementReport = value;
+                OnPropertyChanged(nameof(StatementReport));
+                OnPropertyChanged(nameof(StatementSummary));
+            }
+        }
+
         private DateTime? _trialBalanceDateFrom;
         public DateTime? TrialBalanceDateFrom
         {
@@ -364,8 +408,13 @@ namespace SpareParts.Desktop.Wpf.Management
             : $"Debit {SelectedJournalDetail.TotalDebit:N2} | Credit {SelectedJournalDetail.TotalCredit:N2}";
         public string LedgerSummary => LedgerReport == null
             ? "Choose an account to view its running balance."
-            : $"Opening {LedgerReport.OpeningBalance:N2} | Closing {LedgerReport.ClosingBalance:N2}";
-        public string TrialBalanceSummary => $"Debit {TrialBalanceTotalDebit:N2} | Credit {TrialBalanceTotalCredit:N2}";
+            : $"Base {LedgerReport.BaseCurrencyCode}: open {LedgerReport.OpeningBalance:N2} | close {LedgerReport.ClosingBalance:N2}  ·  Counter {LedgerReport.CounterCurrencyCode}: open {LedgerReport.OpeningCounterBalance:N2} | close {LedgerReport.ClosingCounterBalance:N2}";
+        public string TrialBalanceSummary => TrialBalanceRows.Count == 0
+            ? "No trial balance activity in the selected period."
+            : $"Base debit {TrialBalanceTotalDebit:N2} | Base credit {TrialBalanceTotalCredit:N2}  ·  Counter debit {TrialBalanceRows.Sum(row => row.TotalCounterDebit):N2} | Counter credit {TrialBalanceRows.Sum(row => row.TotalCounterCredit):N2}";
+        public string StatementSummary => StatementReport == null
+            ? "Choose an account to review its statement."
+            : $"Base {StatementReport.BaseCurrencyCode}: open {StatementReport.OpeningBalance:N2} | close {StatementReport.ClosingBalance:N2}  ·  Counter {StatementReport.CounterCurrencyCode}: open {StatementReport.OpeningCounterBalance:N2} | close {StatementReport.ClosingCounterBalance:N2}";
 
         public ICommand LoadCommand { get; }
         public ICommand LoadSetupCommand { get; }
@@ -387,6 +436,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public ICommand PostManualJournalCommand { get; }
         public ICommand RefreshLedgerCommand { get; }
         public ICommand RefreshTrialBalanceCommand { get; }
+        public ICommand RefreshStatementCommand { get; }
 
         public AccountingViewModel(IAccountingApiClient accountingApi)
         {
@@ -412,6 +462,7 @@ namespace SpareParts.Desktop.Wpf.Management
             PostManualJournalCommand = new RelayCommand(_ => _ = PostManualJournalAsync());
             RefreshLedgerCommand = new RelayCommand(_ => _ = RefreshLedgerAsync());
             RefreshTrialBalanceCommand = new RelayCommand(_ => _ = RefreshTrialBalanceAsync());
+            RefreshStatementCommand = new RelayCommand(_ => _ = RefreshStatementAsync());
 
             EnsureManualJournalSeedLines();
         }
@@ -443,6 +494,7 @@ namespace SpareParts.Desktop.Wpf.Management
             {
                 var preservedAccountId = accountIdToSelect ?? SelectedAccount?.Id;
                 var preservedLedgerAccountId = SelectedLedgerAccountId;
+                var preservedStatementAccountId = SelectedStatementAccountId;
                 var preservedJournalId = journalIdToSelect ?? SelectedJournalEntry?.Id;
                 var preservedAccountTypeDefinitionKey = SelectedAccountTypeDefinition?.TypeKey;
                 var preservedPostingRoleKey = SelectedPostingRoleDefinition?.RoleKey;
@@ -508,10 +560,12 @@ namespace SpareParts.Desktop.Wpf.Management
                         journalsTask.Result,
                         trialBalanceTask.Result,
                         preservedLedgerAccountId,
+                        preservedStatementAccountId,
                         preservedJournalId);
 
                     await LoadSelectedJournalDetailAsync();
                     await RefreshLedgerAsync(silent: true);
+                    await RefreshStatementAsync(silent: true);
                 }
 
                 SetStatus(scope switch
@@ -601,6 +655,7 @@ namespace SpareParts.Desktop.Wpf.Management
             IEnumerable<JournalEntrySummaryDto> journals,
             TrialBalanceReportDto trialBalance,
             int? preservedLedgerAccountId,
+            int? preservedStatementAccountId,
             int? preservedJournalId)
         {
             Replace(JournalEntries, journals);
@@ -611,12 +666,15 @@ namespace SpareParts.Desktop.Wpf.Management
 
             _suppressJournalSelectionLoad = true;
             _suppressLedgerRefresh = true;
+            _suppressStatementRefresh = true;
 
             SelectedLedgerAccountId = ResolveAccountSelection(preservedLedgerAccountId)?.Id ?? Accounts.FirstOrDefault()?.Id;
+            SelectedStatementAccountId = ResolveAccountSelection(preservedStatementAccountId)?.Id ?? Accounts.FirstOrDefault()?.Id;
             SelectedJournalEntry = ResolveJournalSelection(preservedJournalId);
 
             _suppressJournalSelectionLoad = false;
             _suppressLedgerRefresh = false;
+            _suppressStatementRefresh = false;
 
             OnPropertyChanged(nameof(JournalSummary));
             OnPropertyChanged(nameof(TrialBalanceSummary));
@@ -923,6 +981,35 @@ namespace SpareParts.Desktop.Wpf.Management
             catch (Exception ex)
             {
                 SetStatus($"Refreshing trial balance failed: {ex.Message}", false);
+            }
+        }
+
+        private async Task RefreshStatementAsync(bool silent = false)
+        {
+            try
+            {
+                if (SelectedStatementAccountId is not int accountId || accountId <= 0)
+                {
+                    StatementReport = null;
+                    Replace(StatementEntries, Array.Empty<StatementOfAccountRowDto>());
+                    return;
+                }
+
+                var report = await _accountingApi.GetStatementOfAccountAsync(accountId, StatementDateFrom, StatementDateTo);
+                StatementReport = report;
+                Replace(StatementEntries, report.Entries);
+                OnPropertyChanged(nameof(StatementSummary));
+
+                if (!silent)
+                {
+                    SetStatus("Statement of account refreshed.", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatementReport = null;
+                Replace(StatementEntries, Array.Empty<StatementOfAccountRowDto>());
+                SetStatus($"Refreshing statement of account failed: {ex.Message}", false);
             }
         }
 

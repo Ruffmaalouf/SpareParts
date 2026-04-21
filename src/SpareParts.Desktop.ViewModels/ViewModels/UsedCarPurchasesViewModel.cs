@@ -2,11 +2,13 @@ using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
+using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Purchases;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -26,15 +28,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private readonly IAccountingApiClient _accountingApi;
         private readonly IPurchasesApiClient _purchasesApi;
         private readonly Dictionary<string, int?> _defaultAccountsByRole = new(StringComparer.OrdinalIgnoreCase);
+        private string _baseCurrencyCode = "USD";
+        private string _counterCurrencyCode = "USD";
 
         private int? _selectedUsedCarId;
         private int? _selectedSupplierId;
         private DateTime _purchaseDate = DateTime.Today;
         private decimal _paidAmount;
+        private string _paidAmountText = "0";
         private string _notes = string.Empty;
         private bool _isLoading;
         private string _status = "Used-car purchases are ready.";
         private Brush _statusBrush = Brushes.LightGreen;
+        private UsedCarPurchaseSummaryDto? _selectedRecentPurchase;
+        private UsedCarPurchaseDetailDto? _selectedPurchaseDetail;
+        private int _selectedPurchaseDetailVersion;
 
         public ObservableCollection<UsedCarDto> UsedCars { get; } = new();
         public ObservableCollection<SupplierDto> Suppliers { get; } = new();
@@ -53,8 +61,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(SelectedUsedCarId));
                 OnPropertyChanged(nameof(SelectedUsedCar));
                 OnPropertyChanged(nameof(BaseCurrencyCode));
+                OnPropertyChanged(nameof(CounterCurrencyCode));
                 OnPropertyChanged(nameof(TotalBaseLabel));
+                OnPropertyChanged(nameof(TotalCounterLabel));
                 OnPropertyChanged(nameof(PaidAmountLabel));
+                OnPropertyChanged(nameof(RemainingCounterLabel));
+                OnPropertyChanged(nameof(PaidAmountBase));
                 GeneratePurchaseLines();
             }
         }
@@ -81,16 +93,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
+        public string PaidAmountText
+        {
+            get => _paidAmountText;
+            set
+            {
+                if (_paidAmountText == value) return;
+                _paidAmountText = value;
+                OnPropertyChanged(nameof(PaidAmountText));
+
+                if (TryParseEditableAmount(value, out var parsedAmount))
+                {
+                    SetPaidAmount(parsedAmount, synchronizeText: false);
+                }
+            }
+        }
+
         public decimal PaidAmount
         {
             get => _paidAmount;
-            set
-            {
-                if (_paidAmount == value) return;
-                _paidAmount = value;
-                OnPropertyChanged(nameof(PaidAmount));
-                OnPropertyChanged(nameof(RemainingBaseAmount));
-            }
+            set => SetPaidAmount(value, synchronizeText: true);
         }
 
         public string Notes
@@ -137,21 +159,73 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
+        public UsedCarPurchaseSummaryDto? SelectedRecentPurchase
+        {
+            get => _selectedRecentPurchase;
+            set
+            {
+                if (ReferenceEquals(_selectedRecentPurchase, value)) return;
+                _selectedRecentPurchase = value;
+                OnPropertyChanged(nameof(SelectedRecentPurchase));
+                OnPropertyChanged(nameof(CanDeleteSelectedPurchase));
+                OnPropertyChanged(nameof(CanPostSelectedPurchase));
+                LoadSelectedPurchaseDetailAsync(value?.Id).SafeFireAndForget(HandleBackgroundException);
+            }
+        }
+
+        public UsedCarPurchaseDetailDto? SelectedPurchaseDetail
+        {
+            get => _selectedPurchaseDetail;
+            private set
+            {
+                if (ReferenceEquals(_selectedPurchaseDetail, value)) return;
+                _selectedPurchaseDetail = value;
+                OnPropertyChanged(nameof(SelectedPurchaseDetail));
+                OnPropertyChanged(nameof(SelectedPurchaseDetailSummary));
+                OnPropertyChanged(nameof(SelectedPurchaseNotes));
+            }
+        }
+
         public UsedCarDto? SelectedUsedCar => SelectedUsedCarId is int usedCarId
             ? UsedCars.FirstOrDefault(item => item.Id == usedCarId)
             : null;
 
-        public string BaseCurrencyCode => SelectedUsedCar?.BaseCurrencyCode ?? "USD";
-        public string TotalBaseLabel => $"Total ({BaseCurrencyCode})";
-        public string PaidAmountLabel => $"Paid ({BaseCurrencyCode})";
+        public string BaseCurrencyCode => NormalizeCurrencyCode(SelectedUsedCar?.BaseCurrencyCode) ?? _baseCurrencyCode;
+        public string CounterCurrencyCode => NormalizeCurrencyCode(SelectedUsedCar?.CounterCurrencyCode) ?? _counterCurrencyCode;
+        public string TotalBaseLabel => $"Total Base ({BaseCurrencyCode})";
+        public string TotalCounterLabel => $"Total Counter ({CounterCurrencyCode})";
+        public string PaidAmountLabel => $"Paid ({CounterCurrencyCode})";
+        public string RemainingCounterLabel => $"Remaining ({CounterCurrencyCode})";
         public decimal TotalBaseAmount => decimal.Round(PurchaseLines.Sum(line => line.BaseAmount), 4, MidpointRounding.AwayFromZero);
-        public decimal RemainingBaseAmount => decimal.Round(Math.Max(TotalBaseAmount - PaidAmount, 0m), 4, MidpointRounding.AwayFromZero);
-        public string ScreenSummary => $"{RecentPurchases.Count} used-car purchase(s) recorded.";
+        public decimal TotalCounterAmount => decimal.Round(PurchaseLines.Sum(line => line.CounterAmount), 4, MidpointRounding.AwayFromZero);
+        public decimal PaidAmountBase => ConvertToBaseAmount(PaidAmount, ResolveCounterRateToBase(SelectedUsedCar));
+        public decimal RemainingBaseAmount => decimal.Round(Math.Max(TotalBaseAmount - PaidAmountBase, 0m), 4, MidpointRounding.AwayFromZero);
+        public decimal RemainingCounterAmount => decimal.Round(Math.Max(TotalCounterAmount - PaidAmount, 0m), 4, MidpointRounding.AwayFromZero);
+        public string ScreenSummary
+        {
+            get
+            {
+                var postedCount = RecentPurchases.Count(item => string.Equals(item.PostingStatus, "Posted", StringComparison.OrdinalIgnoreCase));
+                var draftCount = RecentPurchases.Count - postedCount;
+                return $"{RecentPurchases.Count} used-car purchase(s): {draftCount} draft, {postedCount} posted.";
+            }
+        }
+        public bool CanDeleteSelectedPurchase => SelectedRecentPurchase is { Id: > 0 };
+        public bool CanPostSelectedPurchase => SelectedRecentPurchase is { Id: > 0 } purchase
+            && !string.Equals(purchase.PostingStatus, "Posted", StringComparison.OrdinalIgnoreCase);
+        public string SelectedPurchaseDetailSummary => SelectedPurchaseDetail == null
+            ? "Select a saved purchase to load its lines from the purchase table."
+            : $"{SelectedPurchaseDetail.Lines.Count} saved line(s) loaded for {SelectedPurchaseDetail.PurchaseNumber}.";
+        public string SelectedPurchaseNotes => string.IsNullOrWhiteSpace(SelectedPurchaseDetail?.Notes)
+            ? "No notes recorded for the selected purchase."
+            : SelectedPurchaseDetail.Notes;
 
         public ICommand LoadCommand { get; }
         public ICommand SubmitCommand { get; }
         public ICommand ResetCommand { get; }
         public ICommand RefreshLinesCommand { get; }
+        public ICommand DeleteSelectedPurchaseCommand { get; }
+        public ICommand PostSelectedPurchaseCommand { get; }
 
         public UsedCarPurchasesViewModel(
             ICrudApiClient crudApi,
@@ -166,9 +240,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             SubmitCommand = new RelayCommand(_ => _ = SubmitAsync());
             ResetCommand = new RelayCommand(_ => ResetForm());
             RefreshLinesCommand = new RelayCommand(_ => GeneratePurchaseLines());
+            DeleteSelectedPurchaseCommand = new RelayCommand(_ => _ = DeleteSelectedPurchaseAsync());
+            PostSelectedPurchaseCommand = new RelayCommand(_ => _ = PostSelectedPurchaseAsync());
         }
 
-        public async Task LoadAsync()
+        public async Task LoadAsync(int? purchaseIdToSelect = null)
         {
             IsLoading = true;
             SetStatus("Loading used-car purchase workspace…", true);
@@ -177,14 +253,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 var selectedUsedCarId = SelectedUsedCarId;
                 var selectedSupplierId = SelectedSupplierId;
+                var selectedRecentPurchaseId = SelectedRecentPurchase?.Id;
 
                 var usedCarsTask = _crudApi.GetAllAsync<UsedCarDto>("api/usedcars");
                 var suppliersTask = _crudApi.GetAllAsync<SupplierDto>("api/suppliers");
                 var accountsTask = _accountingApi.GetAccountsAsync();
                 var postingSettingsTask = _accountingApi.GetPostingSettingsAsync();
                 var purchasesTask = _purchasesApi.GetUsedCarPurchasesAsync();
+                var appConstantsTask = _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
 
-                await Task.WhenAll(usedCarsTask, suppliersTask, accountsTask, postingSettingsTask, purchasesTask);
+                await Task.WhenAll(usedCarsTask, suppliersTask, accountsTask, postingSettingsTask, purchasesTask, appConstantsTask);
 
                 Replace(UsedCars, usedCarsTask.Result.OrderByDescending(item => item.Id));
                 Replace(Suppliers, suppliersTask.Result.OrderBy(item => item.Name));
@@ -202,6 +280,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     _defaultAccountsByRole[setting.SettingKey] = setting.AccountId;
                 }
 
+                ApplyCurrencyDefaults(appConstantsTask.Result);
+
+                var purchaseIdToPreserve = purchaseIdToSelect ?? selectedRecentPurchaseId;
+
                 SelectedUsedCarId = UsedCars.Any(item => item.Id == selectedUsedCarId)
                     ? selectedUsedCarId
                     : UsedCars.FirstOrDefault()?.Id;
@@ -209,6 +291,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 SelectedSupplierId = Suppliers.Any(item => item.Id == selectedSupplierId)
                     ? selectedSupplierId
                     : SelectedSupplierId ?? Suppliers.FirstOrDefault()?.Id;
+
+                SelectedRecentPurchase = RecentPurchases.FirstOrDefault(item => item.Id == purchaseIdToPreserve);
 
                 OnPropertyChanged(nameof(ScreenSummary));
                 GeneratePurchaseLines();
@@ -221,6 +305,56 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        private async Task DeleteSelectedPurchaseAsync()
+        {
+            if (SelectedRecentPurchase is not { Id: > 0 } purchase)
+            {
+                SetStatus("Select a purchase to delete first.", false);
+                return;
+            }
+
+            try
+            {
+                await _purchasesApi.DeleteUsedCarPurchaseAsync(purchase.Id);
+                AppNotificationCenter.Instance.Publish($"✓ Used-car purchase {purchase.PurchaseNumber} deleted.", true);
+                SetStatus($"Used-car purchase {purchase.PurchaseNumber} deleted.", true);
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ {ex.Message}", false);
+                SetStatus($"Deleting used-car purchase failed: {ex.Message}", false);
+            }
+        }
+
+        private async Task PostSelectedPurchaseAsync()
+        {
+            if (SelectedRecentPurchase is not { Id: > 0 } purchase)
+            {
+                SetStatus("Select a saved purchase to post first.", false);
+                return;
+            }
+
+            if (string.Equals(purchase.PostingStatus, "Posted", StringComparison.OrdinalIgnoreCase))
+            {
+                SetStatus($"Purchase {purchase.PurchaseNumber} is already posted.", false);
+                return;
+            }
+
+            try
+            {
+                var result = await _purchasesApi.PostUsedCarPurchaseAsync(purchase.Id);
+                AppNotificationCenter.Instance.Publish($"✓ Used-car purchase {result.PurchaseNumber} posted.", true);
+                SetStatus($"Used-car purchase {result.PurchaseNumber} posted.", true);
+                await LoadAsync(purchase.Id);
+            }
+            catch (Exception ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ {ex.Message}", false);
+                SetStatus($"Posting saved purchase failed: {ex.Message}", false);
             }
         }
 
@@ -246,7 +380,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             if (PurchaseLines.Count == 0)
             {
-                SetStatus("The selected used car has no positive amount lines to post.", false);
+                SetStatus("The selected used car has no positive amount lines to save.", false);
                 return;
             }
 
@@ -263,8 +397,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     UsedCarId = usedCar.Id,
                     SupplierId = supplierId,
                     PurchaseDate = PurchaseDate,
-                    PaidAmount = PaidAmount,
+                    PaidAmount = PaidAmountBase,
+                    PaidCounterAmount = PaidAmount,
                     BaseCurrencyCode = BaseCurrencyCode,
+                    CounterCurrencyCode = CounterCurrencyCode,
                     Notes = (Notes ?? string.Empty).Trim(),
                     Lines = PurchaseLines
                         .Where(line => line.BaseAmount > 0m)
@@ -276,6 +412,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                             CurrencyCode = line.CurrencyCode,
                             RateToBase = line.RateToBase,
                             BaseAmount = line.BaseAmount,
+                            CounterAmount = line.CounterAmount,
                             AccountId = line.AccountId ?? 0,
                             SortOrder = line.SortOrder
                         })
@@ -283,17 +420,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 };
 
                 var result = await _purchasesApi.CreateUsedCarPurchaseAsync(request);
-                AppNotificationCenter.Instance.Publish($"✓ Used-car purchase {result.PurchaseNumber} created.", true);
-                SetStatus($"Used-car purchase {result.PurchaseNumber} created.", true);
+                AppNotificationCenter.Instance.Publish($"✓ Used-car purchase {result.PurchaseNumber} saved as draft.", true);
+                SetStatus($"Used-car purchase {result.PurchaseNumber} saved. Post it from purchase history.", true);
 
                 PaidAmount = 0m;
                 Notes = string.Empty;
-                await LoadAsync();
+                await LoadAsync(result.PurchaseId);
             }
             catch (Exception ex)
             {
                 AppNotificationCenter.Instance.Publish($"✗ {ex.Message}", false);
-                SetStatus($"Posting used-car purchase failed: {ex.Message}", false);
+                SetStatus($"Saving used-car purchase failed: {ex.Message}", false);
             }
         }
 
@@ -303,7 +440,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             PaidAmount = 0m;
             Notes = string.Empty;
             GeneratePurchaseLines();
-            SetStatus("Used-car purchase form reset.", true);
+            SetStatus("Used-car purchase draft form reset.", true);
         }
 
         private void GeneratePurchaseLines()
@@ -314,49 +451,114 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             if (usedCar == null)
             {
                 OnPropertyChanged(nameof(TotalBaseAmount));
+                OnPropertyChanged(nameof(TotalCounterAmount));
                 OnPropertyChanged(nameof(RemainingBaseAmount));
+                OnPropertyChanged(nameof(RemainingCounterAmount));
                 return;
             }
 
-            var counterRate = usedCar.CounterRateToBase > 0m ? usedCar.CounterRateToBase : 1m;
-            var priceRate = usedCar.Price > 0m && usedCar.PriceBase > 0m
+            var counterRateToBase = ResolveCounterRateToBase(usedCar);
+            var priceRateToBase = usedCar.Price > 0m && usedCar.PriceBase > 0m
                 ? decimal.Round(usedCar.PriceBase / usedCar.Price, 8, MidpointRounding.AwayFromZero)
                 : 1m;
+            var priceCounterAmount = usedCar.PriceCounter > 0m
+                ? decimal.Round(usedCar.PriceCounter, 4, MidpointRounding.AwayFromZero)
+                : ConvertBaseToCounterAmount(usedCar.PriceBase, counterRateToBase);
 
-            AddLine(UsedCarPriceRoleKey, "Vehicle Price", usedCar.Price, usedCar.PriceCurrency, priceRate, usedCar.PriceBase);
-            AddLine(UsedCarTransportationRoleKey, "Transportation", usedCar.Transportation, usedCar.CounterCurrencyCode, counterRate);
-            AddLine(UsedCarPartOutRoleKey, "Part-Out", usedCar.PartOut, usedCar.CounterCurrencyCode, counterRate);
-            AddLine(UsedCarShippingRoleKey, "Shipping", usedCar.Shipping, usedCar.CounterCurrencyCode, counterRate);
-            AddLine(UsedCarCustomsRoleKey, "Customs", usedCar.Customs, usedCar.CounterCurrencyCode, counterRate);
+            AddLine(
+                UsedCarPriceRoleKey,
+                "Vehicle Price",
+                usedCar.Price,
+                usedCar.PriceCurrency,
+                priceRateToBase,
+                usedCar.PriceBase,
+                priceCounterAmount);
+            AddLine(
+                UsedCarTransportationRoleKey,
+                "Transportation",
+                usedCar.Transportation,
+                CounterCurrencyCode,
+                counterRateToBase,
+                ConvertToBaseAmount(usedCar.Transportation, counterRateToBase),
+                usedCar.Transportation);
+            AddLine(
+                UsedCarPartOutRoleKey,
+                "Part-Out",
+                usedCar.PartOut,
+                CounterCurrencyCode,
+                counterRateToBase,
+                ConvertToBaseAmount(usedCar.PartOut, counterRateToBase),
+                usedCar.PartOut);
+            AddLine(
+                UsedCarShippingRoleKey,
+                "Shipping",
+                usedCar.Shipping,
+                CounterCurrencyCode,
+                counterRateToBase,
+                ConvertToBaseAmount(usedCar.Shipping, counterRateToBase),
+                usedCar.Shipping);
+            AddLine(
+                UsedCarCustomsRoleKey,
+                "Customs",
+                usedCar.Customs,
+                CounterCurrencyCode,
+                counterRateToBase,
+                ConvertToBaseAmount(usedCar.Customs, counterRateToBase),
+                usedCar.Customs);
 
             OnPropertyChanged(nameof(TotalBaseAmount));
+            OnPropertyChanged(nameof(TotalCounterAmount));
             OnPropertyChanged(nameof(RemainingBaseAmount));
+            OnPropertyChanged(nameof(RemainingCounterAmount));
         }
 
-        private void AddLine(string roleKey, string description, decimal amount, string currencyCode, decimal rateToBase, decimal? baseAmountOverride = null)
+        private void AddLine(
+            string roleKey,
+            string description,
+            decimal amount,
+            string? currencyCode,
+            decimal rateToBase,
+            decimal baseAmount,
+            decimal counterAmount)
         {
             var roundedAmount = decimal.Round(amount, 4, MidpointRounding.AwayFromZero);
-            if (roundedAmount <= 0m)
+            var roundedBaseAmount = decimal.Round(baseAmount, 4, MidpointRounding.AwayFromZero);
+            var roundedCounterAmount = decimal.Round(counterAmount, 4, MidpointRounding.AwayFromZero);
+            if (roundedAmount <= 0m && roundedBaseAmount <= 0m && roundedCounterAmount <= 0m)
             {
                 return;
             }
-
-            var effectiveRate = rateToBase > 0m ? rateToBase : 1m;
-            var baseAmount = baseAmountOverride is > 0m
-                ? decimal.Round(baseAmountOverride.Value, 4, MidpointRounding.AwayFromZero)
-                : decimal.Round(roundedAmount * effectiveRate, 4, MidpointRounding.AwayFromZero);
 
             PurchaseLines.Add(new UsedCarPurchaseLineViewModel
             {
                 SortOrder = PurchaseLines.Count + 1,
                 RoleKey = roleKey,
                 Description = description,
-                Amount = roundedAmount,
-                CurrencyCode = NormalizeCurrencyCode(currencyCode) ?? BaseCurrencyCode,
-                RateToBase = decimal.Round(effectiveRate, 8, MidpointRounding.AwayFromZero),
-                BaseAmount = baseAmount,
+                Amount = roundedAmount > 0m ? roundedAmount : roundedCounterAmount,
+                CurrencyCode = NormalizeCurrencyCode(currencyCode) ?? CounterCurrencyCode,
+                RateToBase = decimal.Round(rateToBase > 0m ? rateToBase : 1m, 8, MidpointRounding.AwayFromZero),
+                BaseAmount = roundedBaseAmount,
+                CounterAmount = roundedCounterAmount,
                 AccountId = ResolveDefaultAccountId(roleKey)
             });
+        }
+
+        private void ApplyCurrencyDefaults(IEnumerable<AppConstantDto> constants)
+        {
+            var byKey = constants.ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+            _baseCurrencyCode = ResolveCurrencyCode(byKey, "BaseCurrencyCode")
+                ?? ResolveCurrencyCode(byKey, "DefaultCurrencyCode")
+                ?? "USD";
+            _counterCurrencyCode = ResolveCurrencyCode(byKey, "CounterCurrencyCode")
+                ?? _baseCurrencyCode;
+
+            OnPropertyChanged(nameof(BaseCurrencyCode));
+            OnPropertyChanged(nameof(CounterCurrencyCode));
+            OnPropertyChanged(nameof(TotalBaseLabel));
+            OnPropertyChanged(nameof(TotalCounterLabel));
+            OnPropertyChanged(nameof(PaidAmountLabel));
+            OnPropertyChanged(nameof(RemainingCounterLabel));
+            OnPropertyChanged(nameof(PaidAmountBase));
         }
 
         private int? ResolveDefaultAccountId(string roleKey)
@@ -388,6 +590,155 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             return normalized.Length == 3 ? normalized : null;
         }
 
+        private static string? ResolveCurrencyCode(IReadOnlyDictionary<string, string> constants, string key)
+        {
+            if (!constants.TryGetValue(key, out var value))
+            {
+                return null;
+            }
+
+            return NormalizeCurrencyCode(value);
+        }
+
+        private void SetPaidAmount(decimal value, bool synchronizeText)
+        {
+            var roundedValue = decimal.Round(value, 4, MidpointRounding.AwayFromZero);
+            var formattedValue = FormatEditableAmount(roundedValue);
+            var amountChanged = _paidAmount != roundedValue;
+            var textChanged = synchronizeText && _paidAmountText != formattedValue;
+
+            if (!amountChanged && !textChanged)
+            {
+                return;
+            }
+
+            _paidAmount = roundedValue;
+            if (amountChanged)
+            {
+                OnPropertyChanged(nameof(PaidAmount));
+                OnPropertyChanged(nameof(PaidAmountBase));
+                OnPropertyChanged(nameof(RemainingBaseAmount));
+                OnPropertyChanged(nameof(RemainingCounterAmount));
+            }
+
+            if (textChanged)
+            {
+                _paidAmountText = formattedValue;
+                OnPropertyChanged(nameof(PaidAmountText));
+            }
+        }
+
+        private static bool TryParseEditableAmount(string? value, out decimal parsedAmount)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                parsedAmount = 0m;
+                return true;
+            }
+
+            var trimmedValue = value.Trim();
+            if (decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.CurrentCulture, out parsedAmount)
+                || decimal.TryParse(trimmedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out parsedAmount))
+            {
+                return true;
+            }
+
+            var normalizedValue = trimmedValue
+                .Replace(",", string.Empty)
+                .Replace(" ", string.Empty)
+                .Replace("\u00A0", string.Empty);
+
+            var groupSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator;
+            if (!string.IsNullOrWhiteSpace(groupSeparator))
+            {
+                normalizedValue = normalizedValue.Replace(groupSeparator, string.Empty);
+            }
+
+            return decimal.TryParse(normalizedValue, NumberStyles.Number, CultureInfo.CurrentCulture, out parsedAmount)
+                || decimal.TryParse(normalizedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out parsedAmount);
+        }
+
+        private static string FormatEditableAmount(decimal value)
+            => value.ToString("#,0.####", CultureInfo.InvariantCulture);
+
+        private static decimal ConvertToBaseAmount(decimal amount, decimal rateToBase)
+        {
+            var roundedAmount = decimal.Round(amount, 4, MidpointRounding.AwayFromZero);
+            if (roundedAmount <= 0m)
+            {
+                return 0m;
+            }
+
+            var effectiveRate = rateToBase > 0m ? rateToBase : 1m;
+            return decimal.Round(roundedAmount * effectiveRate, 4, MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal ConvertBaseToCounterAmount(decimal baseAmount, decimal counterRateToBase)
+        {
+            var roundedBaseAmount = decimal.Round(baseAmount, 4, MidpointRounding.AwayFromZero);
+            if (roundedBaseAmount <= 0m)
+            {
+                return 0m;
+            }
+
+            var effectiveRate = counterRateToBase > 0m ? counterRateToBase : 1m;
+            return decimal.Round(roundedBaseAmount / effectiveRate, 4, MidpointRounding.AwayFromZero);
+        }
+
+        private static decimal ResolveCounterRateToBase(UsedCarDto? usedCar)
+        {
+            if (usedCar == null)
+            {
+                return 1m;
+            }
+
+            if (usedCar.PriceBase > 0m && usedCar.PriceCounter > 0m)
+            {
+                return decimal.Round(usedCar.PriceBase / usedCar.PriceCounter, 8, MidpointRounding.AwayFromZero);
+            }
+
+            if (usedCar.CounterRateToBase > 0m)
+            {
+                return decimal.Round(usedCar.CounterRateToBase, 8, MidpointRounding.AwayFromZero);
+            }
+
+            return 1m;
+        }
+
+        private async Task LoadSelectedPurchaseDetailAsync(int? purchaseId)
+        {
+            var version = ++_selectedPurchaseDetailVersion;
+            if (purchaseId is not > 0)
+            {
+                SelectedPurchaseDetail = null;
+                return;
+            }
+
+            try
+            {
+                var detail = await _purchasesApi.GetUsedCarPurchaseAsync(purchaseId.Value);
+                if (version != _selectedPurchaseDetailVersion)
+                {
+                    return;
+                }
+
+                SelectedPurchaseDetail = detail;
+            }
+            catch (Exception ex)
+            {
+                if (version != _selectedPurchaseDetailVersion)
+                {
+                    return;
+                }
+
+                SelectedPurchaseDetail = null;
+                SetStatus($"Loading saved purchase lines failed: {ex.Message}", false);
+            }
+        }
+
+        private void HandleBackgroundException(Exception ex)
+            => SetStatus(ex.Message, false);
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged(string propertyName)
@@ -411,6 +762,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public string CurrencyCode { get; set; } = "USD";
         public decimal RateToBase { get; set; }
         public decimal BaseAmount { get; set; }
+        public decimal CounterAmount { get; set; }
 
         public int? AccountId
         {

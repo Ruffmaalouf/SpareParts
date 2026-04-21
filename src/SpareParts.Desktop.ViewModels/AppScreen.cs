@@ -8,7 +8,9 @@ namespace SpareParts.Desktop.Wpf
         CarSelection,
         PartSelection,
         Pos,
+        PartPurchases,
         Purchases,
+        PurchaseHistory,
         StockManagement,
         ArExperience
     }

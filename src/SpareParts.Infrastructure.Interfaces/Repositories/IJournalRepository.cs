@@ -11,6 +11,7 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
         JournalEntryDetailDto? GetEntryDetail(int id);
         IReadOnlyList<LedgerRowDto> GetLedgerRows(int accountId, DateTime? dateFrom, DateTime? dateTo);
         decimal GetOpeningBalance(int accountId, DateTime? dateFrom);
+        decimal GetOpeningCounterBalance(int accountId, DateTime? dateFrom);
         IReadOnlyList<TrialBalanceRowDto> GetTrialBalanceRows(DateTime? dateFrom, DateTime? dateTo);
         bool HasEntriesForAccount(int accountId);
     }

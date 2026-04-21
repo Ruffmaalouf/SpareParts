@@ -33,6 +33,20 @@ BEGIN
 END;
 
 IF OBJECT_ID('dbo.SalesInvoices', 'U') IS NOT NULL
+   AND COL_LENGTH('dbo.SalesInvoices', 'InvoiceNumber') IS NOT NULL
+   AND COL_LENGTH('dbo.SalesInvoices', 'InvoiceNumber') < 64
+BEGIN
+    ALTER TABLE dbo.SalesInvoices ALTER COLUMN InvoiceNumber NVARCHAR(32) NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.PurchaseInvoices', 'U') IS NOT NULL
+   AND COL_LENGTH('dbo.PurchaseInvoices', 'PurchaseNumber') IS NOT NULL
+   AND COL_LENGTH('dbo.PurchaseInvoices', 'PurchaseNumber') < 64
+BEGIN
+    ALTER TABLE dbo.PurchaseInvoices ALTER COLUMN PurchaseNumber NVARCHAR(32) NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.SalesInvoices', 'U') IS NOT NULL
     AND NOT EXISTS
     (
         SELECT 1

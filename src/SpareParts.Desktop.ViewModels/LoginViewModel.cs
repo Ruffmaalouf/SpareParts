@@ -186,7 +186,7 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private static async Task<List<EndpointStatus>> PingAllEndpointsAsync()
+        private async Task<List<EndpointStatus>> PingAllEndpointsAsync()
         {
             var endpoints = new List<EndpointStatus>
             {
@@ -199,9 +199,12 @@ namespace SpareParts.Desktop.Wpf
 
             using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
 
-            foreach (var endpoint in endpoints)
+            for (var index = 0; index < endpoints.Count; index++)
             {
-                endpoint.IsOnline = await PingHealthEndpointAsync(httpClient, endpoint.Url);
+                var endpoint = endpoints[index];
+                endpoint.IsOnline = index == 0
+                    ? await _authApi.PingAsync()
+                    : await PingHealthEndpointAsync(httpClient, endpoint.Url);
             }
 
             return endpoints;

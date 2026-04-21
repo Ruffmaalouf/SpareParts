@@ -7,6 +7,11 @@ namespace SpareParts.Domain.Accounting
         public const string Cogs = "cogs";
         public const string Inventory = "inventory";
         public const string PurchaseOffset = "purchase_offset";
+        public const string UsedCarPrice = "used_car_price";
+        public const string UsedCarTransportation = "used_car_transportation";
+        public const string UsedCarPartOut = "used_car_partout";
+        public const string UsedCarShipping = "used_car_shipping";
+        public const string UsedCarCustoms = "used_car_customs";
 
         public static readonly string[] All =
         {
@@ -14,7 +19,12 @@ namespace SpareParts.Domain.Accounting
             SalesRevenue,
             Cogs,
             Inventory,
-            PurchaseOffset
+            PurchaseOffset,
+            UsedCarPrice,
+            UsedCarTransportation,
+            UsedCarPartOut,
+            UsedCarShipping,
+            UsedCarCustoms
         };
     }
 }

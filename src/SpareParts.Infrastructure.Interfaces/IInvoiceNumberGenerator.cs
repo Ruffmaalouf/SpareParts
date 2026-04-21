@@ -4,5 +4,6 @@ namespace SpareParts.Infrastructure.Interfaces
     {
         string NextSalesNumber();
         string NextPurchaseNumber();
+        string NextUsedCarPurchaseNumber();
     }
 }

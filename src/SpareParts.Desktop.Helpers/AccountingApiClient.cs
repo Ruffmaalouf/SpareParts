@@ -71,6 +71,9 @@ namespace SpareParts.Desktop.Wpf
         public Task<TrialBalanceReportDto> GetTrialBalanceAsync(DateTime? dateFrom = null, DateTime? dateTo = null)
             => RetrieveOneAsync<TrialBalanceReportDto>($"api/accounting/trial-balance{BuildDateQuery(dateFrom, dateTo)}", "Trial balance report was empty.");
 
+        public Task<StatementOfAccountReportDto> GetStatementOfAccountAsync(int accountId, DateTime? dateFrom = null, DateTime? dateTo = null)
+            => RetrieveOneAsync<StatementOfAccountReportDto>($"api/accounting/statement-of-account?accountId={accountId}{BuildDateQuery(dateFrom, dateTo, hasExistingQuery: true)}", "Statement of account was empty.");
+
         private static string BuildDateQuery(DateTime? dateFrom, DateTime? dateTo, bool hasExistingQuery = false)
         {
             var builder = new StringBuilder();

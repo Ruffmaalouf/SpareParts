@@ -195,6 +195,197 @@ BEGIN
     );
 END;
 
+IF COL_LENGTH('dbo.JournalLines', 'CurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.JournalLines ADD CurrencyCode CHAR(3) NULL;
+END;
+
+IF COL_LENGTH('dbo.JournalLines', 'OriginalAmount') IS NULL
+BEGIN
+    ALTER TABLE dbo.JournalLines ADD OriginalAmount DECIMAL(19, 4) NULL;
+END;
+
+IF COL_LENGTH('dbo.JournalLines', 'RateToBase') IS NULL
+BEGIN
+    ALTER TABLE dbo.JournalLines ADD RateToBase DECIMAL(19, 8) NULL;
+END;
+
+IF COL_LENGTH('dbo.JournalLines', 'CounterAmount') IS NULL
+BEGIN
+    ALTER TABLE dbo.JournalLines ADD CounterAmount DECIMAL(19, 4) NULL;
+END;
+
+IF COL_LENGTH('dbo.JournalLines', 'BaseCurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.JournalLines ADD BaseCurrencyCode CHAR(3) NULL;
+END;
+
+IF COL_LENGTH('dbo.JournalLines', 'CounterCurrencyCode') IS NULL
+BEGIN
+    ALTER TABLE dbo.JournalLines ADD CounterCurrencyCode CHAR(3) NULL;
+END;
+
+DECLARE @AccountingBaseCurrencyCode CHAR(3) = 'USD';
+DECLARE @AccountingCounterCurrencyCode CHAR(3) = 'USD';
+DECLARE @AccountingDefaultCounterRate DECIMAL(19, 8) = 1;
+
+IF OBJECT_ID('dbo.AppConstants', 'U') IS NOT NULL
+BEGIN
+    SELECT TOP (1) @AccountingBaseCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+    FROM dbo.AppConstants
+    WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode')
+    ORDER BY CASE WHEN [Key] = 'BaseCurrencyCode' THEN 0 ELSE 1 END;
+
+    SELECT TOP (1) @AccountingCounterCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+    FROM dbo.AppConstants
+    WHERE [Key] = 'CounterCurrencyCode';
+
+    SELECT TOP (1) @AccountingDefaultCounterRate = TRY_CONVERT(DECIMAL(19, 8), [Value])
+    FROM dbo.AppConstants
+    WHERE [Key] = 'DefaultCounterRate';
+END;
+
+SET @AccountingBaseCurrencyCode = COALESCE(NULLIF(@AccountingBaseCurrencyCode, ''), 'USD');
+SET @AccountingCounterCurrencyCode = COALESCE(NULLIF(@AccountingCounterCurrencyCode, ''), @AccountingBaseCurrencyCode, 'USD');
+SET @AccountingDefaultCounterRate = COALESCE(NULLIF(@AccountingDefaultCounterRate, 0), 1);
+
+EXEC sp_executesql
+N'
+UPDATE dbo.JournalLines
+SET BaseCurrencyCode = COALESCE(NULLIF(BaseCurrencyCode, ''''), @BaseCurrencyCode),
+    CounterCurrencyCode = COALESCE(NULLIF(CounterCurrencyCode, ''''), @CounterCurrencyCode),
+    CurrencyCode = COALESCE(NULLIF(CurrencyCode, ''''), @BaseCurrencyCode),
+    OriginalAmount = CASE
+        WHEN ISNULL(OriginalAmount, 0) > 0 THEN ROUND(OriginalAmount, 4)
+        ELSE ROUND(CASE WHEN Debit > 0 THEN Debit ELSE Credit END, 4)
+    END,
+    RateToBase = CASE
+        WHEN ISNULL(RateToBase, 0) > 0 THEN ROUND(RateToBase, 8)
+        WHEN COALESCE(NULLIF(CurrencyCode, ''''), @BaseCurrencyCode) = @BaseCurrencyCode THEN CAST(1 AS DECIMAL(19, 8))
+        WHEN COALESCE(NULLIF(CurrencyCode, ''''), @BaseCurrencyCode) = @CounterCurrencyCode THEN @CounterRateToBase
+        ELSE CAST(1 AS DECIMAL(19, 8))
+    END,
+    CounterAmount = CASE
+        WHEN ISNULL(CounterAmount, 0) > 0 THEN ROUND(CounterAmount, 4)
+        WHEN COALESCE(NULLIF(CurrencyCode, ''''), @BaseCurrencyCode) = @CounterCurrencyCode THEN ROUND(
+            CASE
+                WHEN ISNULL(OriginalAmount, 0) > 0 THEN OriginalAmount
+                ELSE CASE WHEN Debit > 0 THEN Debit ELSE Credit END
+            END, 4)
+        WHEN @CounterRateToBase > 0 THEN ROUND((CASE WHEN Debit > 0 THEN Debit ELSE Credit END) / @CounterRateToBase, 4)
+        ELSE ROUND(CASE WHEN Debit > 0 THEN Debit ELSE Credit END, 4)
+    END
+WHERE BaseCurrencyCode IS NULL
+   OR CounterCurrencyCode IS NULL
+   OR CurrencyCode IS NULL
+   OR LTRIM(RTRIM(CurrencyCode)) = ''''
+   OR OriginalAmount IS NULL
+   OR OriginalAmount <= 0
+   OR RateToBase IS NULL
+   OR RateToBase <= 0
+   OR CounterAmount IS NULL
+   OR CounterAmount < 0;',
+N'@BaseCurrencyCode CHAR(3), @CounterCurrencyCode CHAR(3), @CounterRateToBase DECIMAL(19, 8)',
+@BaseCurrencyCode = @AccountingBaseCurrencyCode,
+@CounterCurrencyCode = @AccountingCounterCurrencyCode,
+@CounterRateToBase = @AccountingDefaultCounterRate;
+
+IF OBJECT_ID('dbo.UsedCarPurchases', 'U') IS NOT NULL
+   AND OBJECT_ID('dbo.UsedCarPurchaseLines', 'U') IS NOT NULL
+BEGIN
+    EXEC(N'
+;WITH PurchaseJournalDebitLines AS
+(
+    SELECT jl.Id,
+           je.ReferenceId AS PurchaseId,
+           jl.AccountId,
+           ROW_NUMBER() OVER (PARTITION BY je.ReferenceId, jl.AccountId ORDER BY jl.Id) AS RowNumber
+    FROM dbo.JournalLines jl
+    INNER JOIN dbo.JournalEntries je ON je.Id = jl.JournalEntryId
+    WHERE je.ReferenceType = ''UsedCarPurchase''
+      AND jl.Debit > 0
+),
+PurchaseSourceLines AS
+(
+    SELECT l.UsedCarPurchaseId AS PurchaseId,
+           l.AccountId,
+           l.CurrencyCode,
+           l.Amount,
+           l.RateToBase,
+           l.CounterAmount,
+           p.BaseCurrencyCode,
+           p.CounterCurrencyCode,
+           ROW_NUMBER() OVER (PARTITION BY l.UsedCarPurchaseId, l.AccountId ORDER BY l.SortOrder, l.Id) AS RowNumber
+    FROM dbo.UsedCarPurchaseLines l
+    INNER JOIN dbo.UsedCarPurchases p ON p.Id = l.UsedCarPurchaseId
+)
+UPDATE jl
+SET jl.CurrencyCode = source.CurrencyCode,
+    jl.OriginalAmount = ROUND(source.Amount, 4),
+    jl.RateToBase = CASE WHEN source.RateToBase > 0 THEN ROUND(source.RateToBase, 8) ELSE 1 END,
+    jl.CounterAmount = ROUND(source.CounterAmount, 4),
+    jl.BaseCurrencyCode = source.BaseCurrencyCode,
+    jl.CounterCurrencyCode = source.CounterCurrencyCode
+FROM dbo.JournalLines jl
+INNER JOIN PurchaseJournalDebitLines target ON target.Id = jl.Id
+INNER JOIN PurchaseSourceLines source
+    ON source.PurchaseId = target.PurchaseId
+   AND source.AccountId = target.AccountId
+   AND source.RowNumber = target.RowNumber;
+
+UPDATE jl
+SET jl.CurrencyCode = p.CounterCurrencyCode,
+    jl.OriginalAmount = ROUND(CASE WHEN p.TotalCounterAmount > 0 THEN p.TotalCounterAmount ELSE p.TotalBaseAmount END, 4),
+    jl.RateToBase = CASE
+        WHEN p.TotalCounterAmount > 0 THEN ROUND(p.TotalBaseAmount / NULLIF(p.TotalCounterAmount, 0), 8)
+        ELSE 1
+    END,
+    jl.CounterAmount = ROUND(CASE WHEN p.TotalCounterAmount > 0 THEN p.TotalCounterAmount ELSE p.TotalBaseAmount END, 4),
+    jl.BaseCurrencyCode = p.BaseCurrencyCode,
+    jl.CounterCurrencyCode = p.CounterCurrencyCode
+FROM dbo.JournalLines jl
+INNER JOIN dbo.JournalEntries je ON je.Id = jl.JournalEntryId
+INNER JOIN dbo.UsedCarPurchases p ON p.Id = je.ReferenceId
+WHERE je.ReferenceType = ''UsedCarPurchase''
+  AND jl.Credit > 0;');
+END;
+
+BEGIN TRY
+    ALTER TABLE dbo.JournalLines ALTER COLUMN CurrencyCode CHAR(3) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.JournalLines ALTER COLUMN OriginalAmount DECIMAL(19, 4) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.JournalLines ALTER COLUMN RateToBase DECIMAL(19, 8) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.JournalLines ALTER COLUMN CounterAmount DECIMAL(19, 4) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.JournalLines ALTER COLUMN BaseCurrencyCode CHAR(3) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+BEGIN TRY
+    ALTER TABLE dbo.JournalLines ALTER COLUMN CounterCurrencyCode CHAR(3) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
 IF NOT EXISTS (SELECT 1 FROM dbo.Accounts)
 BEGIN
     SET IDENTITY_INSERT dbo.Accounts ON;

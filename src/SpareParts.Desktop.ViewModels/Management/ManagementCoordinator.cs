@@ -404,6 +404,11 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public Task<ManagementOperationResult> SaveUsedCarAsync(CreateUsedCarRequest request, UsedCarEntry? selected)
         {
+            if (request.SupplierId <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Supplier is required.", "used_car_supplier_required"), "saving Used car"));
+            }
+
             if (request.CarModelId <= 0)
             {
                 return Task.FromResult(ToFailure(new DomainValidationException("Car model is required.", "used_car_model_required"), "saving Used car"));
@@ -424,7 +429,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 return Task.FromResult(ToFailure(new DomainValidationException("Location is required.", "used_car_location_required"), "saving Used car"));
             }
 
-            if (request.Shipping < 0 || request.Customs < 0)
+            if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0)
             {
                 return Task.FromResult(ToFailure(new DomainValidationException("Expense values cannot be negative.", "used_car_expenses_invalid"), "saving Used car"));
             }
@@ -473,11 +478,29 @@ namespace SpareParts.Desktop.Wpf.Management
                 return Task.FromResult(ToFailure(new DomainValidationException("Counter rate must be greater than zero.", "transaction_counter_rate_invalid"), "saving Transaction type"));
             }
 
+            if (string.IsNullOrWhiteSpace(feature.NewTransactionSerialNumberFormat))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Serial number format is required.", "transaction_serial_format_required"), "saving Transaction type"));
+            }
+
+            if (feature.NewTransactionStartNumber <= 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Start number must be greater than zero.", "transaction_start_number_invalid"), "saving Transaction type"));
+            }
+
+            if (feature.NewTransactionCurrentNumber < 0)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Current number cannot be negative.", "transaction_current_number_invalid"), "saving Transaction type"));
+            }
+
             var payload = new CreateTransactionTypeRequest
             {
                 Name = feature.NewTransactionTypeName.Trim(),
                 CurrencyCode = (feature.NewTransactionCurrencyCode ?? string.Empty).Trim().ToUpperInvariant(),
                 CounterRate = feature.NewTransactionCounterRate,
+                SerialNumberFormat = feature.NewTransactionSerialNumberFormat.Trim(),
+                StartNumber = feature.NewTransactionStartNumber,
+                CurrentNumber = feature.NewTransactionCurrentNumber,
                 IsActive = feature.NewTransactionIsActive
             };
 
