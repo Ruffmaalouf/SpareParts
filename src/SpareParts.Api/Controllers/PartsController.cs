@@ -18,11 +18,14 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<PartDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+        public ActionResult<IEnumerable<PartDto>> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 100,
+            [FromQuery] int? usedCarId = null)
         {
             (page, pageSize) = NormalizePagination(page, pageSize);
 
-            var result = _service.GetAll(page, pageSize);
+            var result = _service.GetAll(page, pageSize, usedCarId);
             ApplyPaginationHeaders(page, pageSize, result.TotalCount);
             return Ok(result.Items);
         }
@@ -35,6 +38,13 @@ namespace SpareParts.Api.Controllers
         public IActionResult Update(int id, [FromBody] CreatePartRequest req)
         {
             _service.Update(id, req, CurrentUserId);
+            return NoContent();
+        }
+
+        [HttpPut("{id:int}/usedcar")]
+        public IActionResult UpdateUsedCar(int id, [FromBody] UpdatePartUsedCarRequest req)
+        {
+            _service.UpdateUsedCar(id, req.UsedCarId, CurrentUserId);
             return NoContent();
         }
 

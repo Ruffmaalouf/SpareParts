@@ -71,13 +71,5 @@ namespace SpareParts.Infrastructure.Services
 
             throw new InvalidOperationException($"Could not allocate a unique transaction number for type '{typeKey}'.");
         }
-
-        private sealed class TransactionTypeNumberState
-        {
-            public string TypeKey { get; init; } = string.Empty;
-            public string Name { get; init; } = string.Empty;
-            public string SerialNumberFormat { get; init; } = string.Empty;
-            public long SerialCurrentNumber { get; init; }
-        }
     }
 }

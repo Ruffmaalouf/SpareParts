@@ -206,12 +206,5 @@ namespace SpareParts.Desktop.Wpf
         private void OnPropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        public sealed class UsedCarGalleryImageItem
-        {
-            public int Id { get; init; }
-            public BitmapImage? Preview { get; init; }
-            public DateTime CreatedAt { get; init; }
-            public string MimeType { get; init; } = "image/png";
-        }
     }
 }

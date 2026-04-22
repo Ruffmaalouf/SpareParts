@@ -224,13 +224,6 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        private sealed class EndpointStatus(string label, string url)
-        {
-            public string Label { get; } = label;
-            public string Url { get; } = url;
-            public bool IsOnline { get; set; }
-        }
-
         private void ClearError() => ErrorMessage = string.Empty;
 
         public event PropertyChangedEventHandler? PropertyChanged;

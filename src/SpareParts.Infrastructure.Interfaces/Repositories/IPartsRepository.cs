@@ -5,9 +5,10 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
     public interface IPartsRepository
     {
         Dictionary<int, Part> GetByIds(IList<int> partIds);
-        IEnumerable<Part> GetAllActive();
+        IEnumerable<Part> GetAllActive(int? usedCarId = null);
         int Insert(Part part);
         bool Update(int id, CreatePartRequest request, int userId);
+        bool UpdateUsedCarId(int id, int? usedCarId, int userId);
         bool Delete(int id);
     }
 }

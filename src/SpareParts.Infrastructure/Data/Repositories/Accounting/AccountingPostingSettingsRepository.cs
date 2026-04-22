@@ -54,10 +54,4 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.ExecuteScalar<int>(sql, new { AccountId = accountId }, _session.Transaction) > 0;
         }
     }
-
-    public sealed class AccountingPostingSettingRecord
-    {
-        public string SettingKey { get; set; } = string.Empty;
-        public int AccountId { get; set; }
-    }
 }

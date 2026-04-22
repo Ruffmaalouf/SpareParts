@@ -14,13 +14,6 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class AccountingViewModel : INotifyPropertyChanged
     {
-        private enum AccountingLoadScope
-        {
-            Setup,
-            Review,
-            ManualJournal
-        }
-
         private readonly IAccountingApiClient _accountingApi;
         private bool _suppressJournalSelectionLoad;
         private bool _suppressLedgerRefresh;

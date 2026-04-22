@@ -226,32 +226,4 @@ public sealed class PartNotesAiService
 
         return null;
     }
-
-    private sealed class OpenAiResponseEnvelope
-    {
-        public List<OpenAiOutputItem>? Output { get; set; }
-    }
-
-    private sealed class OpenAiOutputItem
-    {
-        public string? Type { get; set; }
-        public List<OpenAiContentItem>? Content { get; set; }
-    }
-
-    private sealed class OpenAiContentItem
-    {
-        public string? Type { get; set; }
-        public string? Text { get; set; }
-        public string? Refusal { get; set; }
-    }
-
-    private sealed class OpenAiErrorEnvelope
-    {
-        public OpenAiErrorPayload? Error { get; set; }
-    }
-
-    private sealed class OpenAiErrorPayload
-    {
-        public string? Message { get; set; }
-    }
 }

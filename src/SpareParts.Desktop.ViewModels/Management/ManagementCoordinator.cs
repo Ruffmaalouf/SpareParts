@@ -6,6 +6,7 @@ using SpareParts.Desktop.Wpf.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SpareParts.Desktop.Wpf.Management
@@ -15,6 +16,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private readonly ICrudApiClient _crudApi;
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
+        private readonly ExcelImportCoordinator _excelImportCoordinator;
 
         public ManagementCoordinator(
             ICrudApiClient crudApi,
@@ -24,6 +26,7 @@ namespace SpareParts.Desktop.Wpf.Management
             _crudApi = crudApi;
             _carCatalogApi = carCatalogApi;
             _partsApi = partsApi;
+            _excelImportCoordinator = new ExcelImportCoordinator(crudApi);
         }
 
         public async Task<ManagementLoadResult> LoadAllAsync(RolesViewModel rolesVm)
@@ -33,7 +36,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var brands = await _crudApi.GetAllAsync<BrandDto>("api/brands");
             var carBrands = await _carCatalogApi.GetCarBrandsAsync();
             var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
-            var parts = await _crudApi.GetAllAsync<PartDto>("api/parts");
+            var parts = await _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");
             var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
             var locations = await _crudApi.GetAllAsync<LocationDto>("api/locations");
             var usedCars = await _crudApi.GetAllAsync<UsedCarDto>("api/usedcars");
@@ -184,7 +187,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 InternalCode = feature.NewPartCode,
                 Name = feature.NewPartName,
                 OEMNumber = feature.NewPartOEM,
-                Condition = PartCondition.New,
+                Condition = feature.SelectedPart?.Condition ?? PartCondition.New,
                 CategoryId = feature.NewPartCategoryId,
                 BrandId = feature.NewPartBrandId,
                 CostPrice = feature.NewPartCostPrice,
@@ -192,7 +195,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 AveragePrice = averagePrice,
                 Currency = feature.NewPartCurrency,
                 MinStock = feature.NewPartMinStock,
-                Notes = feature.NewPartNotes
+                Notes = feature.NewPartNotes,
+                UsedCarId = feature.SelectedPart?.UsedCarId
             };
 
             return SaveAsync(
@@ -212,6 +216,79 @@ namespace SpareParts.Desktop.Wpf.Management
 
             return DeleteAsync($"api/parts/{selected.Id}", "Part");
         }
+
+        public Task<List<PartDto>> GetAllPartsAsync()
+            => _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");
+
+        public IReadOnlyList<ExcelImportTargetOption> GetExcelImportTargets()
+            => _excelImportCoordinator.GetTargets();
+
+        public IReadOnlyList<ExcelImportFieldDefinition> GetExcelImportFields(string targetKey)
+            => _excelImportCoordinator.GetFields(targetKey);
+
+        public ExcelWorkbookSheet ReadExcelWorkbook(string filePath)
+            => _excelImportCoordinator.ReadWorkbook(filePath);
+
+        public IReadOnlyDictionary<string, string?> ResolveExcelImportMappings(
+            string targetKey,
+            IReadOnlyList<string> workbookHeaders,
+            IEnumerable<AppConstantDto>? appConstants,
+            IReadOnlyDictionary<string, string?>? overrides = null)
+            => _excelImportCoordinator.ResolveMappings(targetKey, workbookHeaders, appConstants, overrides);
+
+        public Task SaveExcelImportProfileAsync(string targetKey, IReadOnlyDictionary<string, string?> mappings)
+            => _excelImportCoordinator.SaveProfileAsync(targetKey, mappings);
+
+        public Task<ExcelImportResult> ImportFromExcelAsync(
+            string targetKey,
+            string filePath,
+            ExcelImportExecutionContext context,
+            IReadOnlyDictionary<string, string?>? mappings,
+            IReadOnlyCollection<AppConstantDto>? appConstants)
+            => _excelImportCoordinator.ImportAsync(targetKey, filePath, context, mappings, appConstants);
+
+        public async Task<PartExcelImportResult> ImportPartsFromExcelAsync(string filePath)
+        {
+            var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
+            var brands = await _crudApi.GetAllAsync<BrandDto>("api/brands");
+
+            return await ImportPartsFromExcelAsync(filePath, categories, brands);
+        }
+
+        public async Task<PartExcelImportResult> ImportPartsFromExcelAsync(
+            string filePath,
+            IReadOnlyCollection<CategoryDto> categories,
+            IReadOnlyCollection<BrandDto> brands)
+        {
+            var appConstants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
+            var importResult = await _excelImportCoordinator.ImportAsync(
+                ExcelImportTargetKeys.Parts,
+                filePath,
+                new ExcelImportExecutionContext
+                {
+                    Categories = categories,
+                    Brands = brands,
+                    BaseCurrencyCode = ResolveCurrencyCode(appConstants, "BaseCurrencyCode")
+                        ?? ResolveCurrencyCode(appConstants, "DefaultCurrencyCode")
+                        ?? "USD",
+                    CounterCurrencyCode = ResolveCurrencyCode(appConstants, "CounterCurrencyCode")
+                        ?? ResolveCurrencyCode(appConstants, "BaseCurrencyCode")
+                        ?? "USD",
+                    DefaultCounterRate = ResolveDefaultCounterRate(appConstants)
+                },
+                mappings: null,
+                appConstants: appConstants);
+
+            return ToPartExcelImportResult(importResult);
+        }
+
+        public Task SetPartUsedCarAsync(int partId, int? usedCarId)
+            => _crudApi.PutAsync(
+                $"api/parts/{partId}/usedcar",
+                new UpdatePartUsedCarRequest
+                {
+                    UsedCarId = usedCarId
+                });
 
         public async Task<ManagementOperationResult> GeneratePartNotesAsync(
             PartManagementViewModel feature,
@@ -559,6 +636,194 @@ namespace SpareParts.Desktop.Wpf.Management
         private static string? NormalizeOptional(string? value)
             => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+        private static CreatePartRequest BuildImportedPartRequest(
+            PartExcelImportRow row,
+            int defaultCategoryId,
+            IReadOnlyDictionary<int, CategoryDto> categoriesById,
+            IReadOnlyDictionary<string, int> categoriesByName,
+            IReadOnlyDictionary<int, BrandDto> brandsById,
+            IReadOnlyDictionary<string, int> brandsByName)
+        {
+            var internalCode = RequireImportedValue(row.InternalCode, "Internal Code", row.RowNumber);
+            var name = RequireImportedValue(row.Name, "Name", row.RowNumber);
+
+            return new CreatePartRequest
+            {
+                InternalCode = internalCode.Trim(),
+                Barcode = NormalizeOptional(row.Barcode),
+                Name = name.Trim(),
+                OEMNumber = NormalizeOptional(row.OEMNumber),
+                Condition = ParseImportedCondition(row.Condition, row.RowNumber),
+                CategoryId = ResolveImportedCategoryId(
+                    row.Category,
+                    defaultCategoryId,
+                    categoriesById,
+                    categoriesByName,
+                    row.RowNumber),
+                BrandId = ResolveImportedBrandId(
+                    row.Brand,
+                    brandsById,
+                    brandsByName,
+                    row.RowNumber),
+                CostPrice = ParseImportedDecimal(row.CostPrice, "Cost Price", row.RowNumber, 0m),
+                SalePrice = ParseImportedDecimal(row.SalePrice, "Sale Price", row.RowNumber, 0m),
+                AveragePrice = ParseImportedOptionalDecimal(row.AveragePrice, "Average Price", row.RowNumber),
+                Currency = ParseImportedCurrency(row.Currency),
+                MinStock = ParseImportedInteger(row.MinStock, "Min Stock", row.RowNumber, 0),
+                Notes = NormalizeOptional(row.Notes)
+            };
+        }
+
+        private static string RequireImportedValue(string? value, string fieldName, int rowNumber)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+
+            throw new DomainValidationException(
+                $"{fieldName} is required.",
+                $"part_import_{NormalizeImportKey(fieldName)}_required_row_{rowNumber}");
+        }
+
+        private static int ResolveImportedCategoryId(
+            string? rawValue,
+            int defaultCategoryId,
+            IReadOnlyDictionary<int, CategoryDto> categoriesById,
+            IReadOnlyDictionary<string, int> categoriesByName,
+            int rowNumber)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return defaultCategoryId;
+            }
+
+            var trimmed = rawValue.Trim();
+            if (int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var categoryId))
+            {
+                if (categoriesById.ContainsKey(categoryId))
+                {
+                    return categoryId;
+                }
+
+                throw new DomainValidationException($"Category '{trimmed}' was not found.", $"part_import_category_missing_row_{rowNumber}");
+            }
+
+            var normalized = NormalizeImportKey(trimmed);
+            if (categoriesByName.TryGetValue(normalized, out var resolvedCategoryId))
+            {
+                return resolvedCategoryId;
+            }
+
+            throw new DomainValidationException($"Category '{trimmed}' was not found.", $"part_import_category_missing_row_{rowNumber}");
+        }
+
+        private static int? ResolveImportedBrandId(
+            string? rawValue,
+            IReadOnlyDictionary<int, BrandDto> brandsById,
+            IReadOnlyDictionary<string, int> brandsByName,
+            int rowNumber)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return null;
+            }
+
+            var trimmed = rawValue.Trim();
+            if (int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var brandId))
+            {
+                if (brandsById.ContainsKey(brandId))
+                {
+                    return brandId;
+                }
+
+                throw new DomainValidationException($"Brand '{trimmed}' was not found.", $"part_import_brand_missing_row_{rowNumber}");
+            }
+
+            var normalized = NormalizeImportKey(trimmed);
+            if (brandsByName.TryGetValue(normalized, out var resolvedBrandId))
+            {
+                return resolvedBrandId;
+            }
+
+            throw new DomainValidationException($"Brand '{trimmed}' was not found.", $"part_import_brand_missing_row_{rowNumber}");
+        }
+
+        private static PartCondition ParseImportedCondition(string? rawValue, int rowNumber)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return PartCondition.New;
+            }
+
+            var normalized = NormalizeImportKey(rawValue);
+            return normalized switch
+            {
+                "1" or "new" => PartCondition.New,
+                "2" or "used" => PartCondition.Used,
+                "3" or "rebuilt" => PartCondition.Rebuilt,
+                _ => throw new DomainValidationException(
+                    $"Condition '{rawValue}' is invalid. Use New, Used, or Rebuilt.",
+                    $"part_import_condition_invalid_row_{rowNumber}")
+            };
+        }
+
+        private static decimal ParseImportedDecimal(string? rawValue, string fieldName, int rowNumber, decimal defaultValue)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return defaultValue;
+            }
+
+            if (decimal.TryParse(rawValue, NumberStyles.Number, CultureInfo.CurrentCulture, out var currentCultureValue)
+                || decimal.TryParse(rawValue, NumberStyles.Number, CultureInfo.InvariantCulture, out currentCultureValue))
+            {
+                return currentCultureValue;
+            }
+
+            throw new DomainValidationException(
+                $"{fieldName} '{rawValue}' is not a valid number.",
+                $"part_import_{NormalizeImportKey(fieldName)}_invalid_row_{rowNumber}");
+        }
+
+        private static decimal? ParseImportedOptionalDecimal(string? rawValue, string fieldName, int rowNumber)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return null;
+            }
+
+            return ParseImportedDecimal(rawValue, fieldName, rowNumber, 0m);
+        }
+
+        private static int ParseImportedInteger(string? rawValue, string fieldName, int rowNumber, int defaultValue)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return defaultValue;
+            }
+
+            if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.CurrentCulture, out var currentCultureValue)
+                || int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out currentCultureValue))
+            {
+                return currentCultureValue;
+            }
+
+            throw new DomainValidationException(
+                $"{fieldName} '{rawValue}' is not a valid whole number.",
+                $"part_import_{NormalizeImportKey(fieldName)}_invalid_row_{rowNumber}");
+        }
+
+        private static string ParseImportedCurrency(string? rawValue)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return "USD";
+            }
+
+            return rawValue.Trim().ToUpperInvariant();
+        }
+
         private static decimal? ParseOptionalDecimal(string? value, string fieldLabel, string errorCode)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -573,6 +838,70 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             throw new DomainValidationException($"{fieldLabel} must be a valid number.", errorCode);
+        }
+
+        private static string NormalizeImportKey(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            return new string(value
+                .Where(char.IsLetterOrDigit)
+                .Select(char.ToLowerInvariant)
+                .ToArray());
+        }
+
+        private static string MapPartImportError(Exception exception)
+            => exception switch
+            {
+                DomainValidationException validation => validation.Message,
+                ApiClientException apiException => $"API error ({apiException.Code}): {apiException.Message}",
+                _ when !string.IsNullOrWhiteSpace(exception.Message) => exception.Message,
+                _ => "Unexpected error while importing parts."
+            };
+
+        private static PartExcelImportResult ToPartExcelImportResult(ExcelImportResult importResult)
+        {
+            var result = new PartExcelImportResult();
+            for (var index = 0; index < importResult.ImportedCount; index++)
+            {
+                result.AddImported();
+            }
+
+            foreach (var error in importResult.Errors)
+            {
+                result.AddError(error);
+            }
+
+            return result;
+        }
+
+        private static string? ResolveCurrencyCode(IEnumerable<AppConstantDto> constants, string key)
+        {
+            var value = constants
+                .FirstOrDefault(item => string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase))
+                ?.Value;
+
+            if (string.IsNullOrWhiteSpace(value) || value.Trim().Length != 3)
+            {
+                return null;
+            }
+
+            return value.Trim().ToUpperInvariant();
+        }
+
+        private static decimal ResolveDefaultCounterRate(IEnumerable<AppConstantDto> constants)
+        {
+            var value = constants
+                .FirstOrDefault(item => string.Equals(item.Key, "DefaultCounterRate", StringComparison.OrdinalIgnoreCase))
+                ?.Value;
+
+            return decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedRate)
+                && parsedRate > 0
+                    ? parsedRate
+                    : 1m;
         }
 
         private static ManagementOperationResult ToFailure(Exception exception, string operationName)

@@ -20,5 +20,12 @@ namespace SpareParts.Api.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<AppConstantDto>> GetAll()
             => Ok(_service.GetAll());
+
+        [HttpPut("{key}")]
+        public IActionResult Upsert(string key, [FromBody] UpsertAppConstantRequest request)
+        {
+            _service.Upsert(key, request);
+            return NoContent();
+        }
     }
 }

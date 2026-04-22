@@ -1,12 +1,10 @@
 using SpareParts.Desktop.Wpf;
-using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf.Management;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Sales;
-using System.Windows.Media.Imaging;
 
 namespace SpareParts.ManagementTests;
 
@@ -351,69 +349,4 @@ public sealed class ManagementCoordinatorCrudTests
 
     private static ManagementCoordinator CreateSut(RecordingCrudApiClient crud, IPartsApiClient? partsApi = null)
         => new(crud, new StubCarCatalogApiClient(), partsApi ?? new StubPartsApiClient());
-
-    private sealed class RecordingCrudApiClient : ICrudApiClient
-    {
-        public string? LastMethod { get; private set; }
-        public string? LastUrl { get; private set; }
-        public object? LastPayload { get; private set; }
-
-        public Task<List<T>> GetAllAsync<T>(string url)
-            => Task.FromResult(new List<T>());
-
-        public Task PostAsync(string url, object payload)
-        {
-            LastMethod = "POST";
-            LastUrl = url;
-            LastPayload = payload;
-            return Task.CompletedTask;
-        }
-
-        public Task PutAsync(string url, object payload)
-        {
-            LastMethod = "PUT";
-            LastUrl = url;
-            LastPayload = payload;
-            return Task.CompletedTask;
-        }
-
-        public Task DeleteAsync(string url)
-        {
-            LastMethod = "DELETE";
-            LastUrl = url;
-            LastPayload = null;
-            return Task.CompletedTask;
-        }
-    }
-
-    private sealed class StubCarCatalogApiClient : ICarCatalogApiClient
-    {
-        public Task<List<CarBrandDto>> GetCarBrandsAsync() => Task.FromResult(new List<CarBrandDto>());
-        public Task<BitmapImage?> GetCarBrandLogoAsync(int brandId) => Task.FromResult<BitmapImage?>(null);
-        public Task UploadCarBrandLogoAsync(int brandId, string filePath) => Task.CompletedTask;
-        public Task<List<CarModelDto>> GetCarModelsAsync(int brandId) => Task.FromResult(new List<CarModelDto>());
-        public Task<BitmapImage?> GetCarModelImageAsync(int modelId) => Task.FromResult<BitmapImage?>(null);
-        public Task UploadCarModelImageAsync(int modelId, string filePath) => Task.CompletedTask;
-        public Task<List<UsedCarImageDto>> GetUsedCarImagesAsync(int usedCarId) => Task.FromResult(new List<UsedCarImageDto>());
-        public Task UploadUsedCarImageAsync(int usedCarId, string filePath) => Task.CompletedTask;
-        public Task DeleteUsedCarImageAsync(int imageId) => Task.CompletedTask;
-    }
-
-    private sealed class StubPartsApiClient : IPartsApiClient
-    {
-        public GeneratePartNotesRequest? LastRequest { get; private set; }
-        public GeneratePartNotesResponse Response { get; set; } = new()
-        {
-            SuggestedNotes = "Suggested AI notes.",
-            SuggestedAveragePrice = 37.5m
-        };
-
-        public Task<List<PartDto>> GetPartsAsync() => Task.FromResult(new List<PartDto>());
-
-        public Task<GeneratePartNotesResponse> GeneratePartNotesAsync(GeneratePartNotesRequest request)
-        {
-            LastRequest = request;
-            return Task.FromResult(Response);
-        }
-    }
 }

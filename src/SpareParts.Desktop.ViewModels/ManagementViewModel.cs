@@ -6,6 +6,7 @@ using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -37,10 +38,12 @@ namespace SpareParts.Desktop.Wpf
         public WarehouseManagementViewModel WarehousesFeature { get; } = new();
         public TransactionTypeManagementViewModel TransactionTypesFeature { get; } = new();
         public AccountingViewModel AccountingVm { get; }
+        public ExcelManagerViewModel ExcelManagerFeature { get; }
 
         public UsersViewModel UsersVm { get; }
         public RolesViewModel RolesVm { get; }
         public ObservableCollection<CategoryDto> Categories { get; } = new();
+        public ObservableCollection<AppConstantDto> AppConstants { get; } = new();
 
         public ObservableCollection<CustomerDto> Customers => CustomersFeature.Customers;
         public ObservableCollection<SupplierDto> Suppliers => SuppliersFeature.Suppliers;
@@ -491,6 +494,7 @@ namespace SpareParts.Desktop.Wpf
         public Brush StatusBrush => _statusCenter.StatusBrush;
         private bool _isLoading;
         private bool _isGeneratingPartNotes;
+        private bool _isImportingParts;
         private UsedCarEntry? _selectedUsedCar;
         private string _newUsedCarName = string.Empty;
         private int _newUsedCarModelYear;
@@ -538,6 +542,20 @@ namespace SpareParts.Desktop.Wpf
 
         public string PartAiButtonText => IsGeneratingPartNotes ? "AI is drafting notes..." : "✨ Draft Notes with AI";
 
+        public bool IsImportingParts
+        {
+            get => _isImportingParts;
+            private set
+            {
+                if (_isImportingParts == value) return;
+                _isImportingParts = value;
+                OnPropertyChanged(nameof(IsImportingParts));
+                OnPropertyChanged(nameof(PartImportButtonText));
+            }
+        }
+
+        public string PartImportButtonText => IsImportingParts ? "Importing workbook..." : "⬆ Import Parts from Excel";
+
         public ICommand LoadAllCommand { get; }
         public ICommand SaveCustomerCommand { get; }
         public ICommand DeleteCustomerCommand { get; }
@@ -547,6 +565,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand DeleteBrandCommand { get; }
         public ICommand SavePartCommand { get; }
         public ICommand DeletePartCommand { get; }
+        public ICommand ImportPartsFromExcelCommand { get; }
         public ICommand SaveCarBrandCommand { get; }
         public ICommand DeleteCarBrandCommand { get; }
         public ICommand SaveCarModelCommand { get; }
@@ -560,6 +579,7 @@ namespace SpareParts.Desktop.Wpf
         public ICommand GeneratePartNotesCommand { get; }
         public ICommand StartNewManagementItemCommand { get; }
         public ICommand OpenUsedCarGalleryCommand { get; }
+        public ICommand OpenUsedCarPartsCommand { get; }
         public ICommand AddUsedCarCommand { get; }
         public ICommand RemoveUsedCarCommand { get; }
 
@@ -585,6 +605,11 @@ namespace SpareParts.Desktop.Wpf
                 crudApi,
                 carCatalogApi,
                 partsApi);
+            ExcelManagerFeature = new ExcelManagerViewModel(
+                _coordinator,
+                BuildExcelImportExecutionContext,
+                LoadAllAsync,
+                SetStatus);
             UsedCars.CollectionChanged += UsedCars_CollectionChanged;
 
             LoadAllCommand = new RelayCommand(_ => _ = LoadAllAsync());
@@ -596,6 +621,7 @@ namespace SpareParts.Desktop.Wpf
             DeleteBrandCommand = new RelayCommand(_ => _ = DeleteBrandAsync());
             SavePartCommand = new RelayCommand(_ => _ = SavePartAsync());
             DeletePartCommand = new RelayCommand(_ => _ = DeletePartAsync());
+            ImportPartsFromExcelCommand = new RelayCommand(_ => _ = ImportPartsFromExcelAsync());
             SaveCarBrandCommand = new RelayCommand(_ => _ = SaveCarBrandAsync());
             DeleteCarBrandCommand = new RelayCommand(_ => _ = DeleteCarBrandAsync());
             SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
@@ -609,6 +635,7 @@ namespace SpareParts.Desktop.Wpf
             GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
             StartNewManagementItemCommand = new RelayCommand(StartNewManagementItem);
             OpenUsedCarGalleryCommand = new RelayCommand(_ => OpenUsedCarGallery());
+            OpenUsedCarPartsCommand = new RelayCommand(_ => OpenUsedCarParts());
             AddUsedCarCommand = new RelayCommand(_ => _ = SaveUsedCarAsync());
             RemoveUsedCarCommand = new RelayCommand(_ => _ = RemoveSelectedUsedCarAsync());
         }
@@ -638,6 +665,7 @@ namespace SpareParts.Desktop.Wpf
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ApplyCurrencyDefaults(loadResult.AppConstants);
+                    Replace(AppConstants, loadResult.AppConstants);
                     Replace(Customers, loadResult.Customers);
                     Replace(Suppliers, loadResult.Suppliers);
                     Replace(Brands, loadResult.Brands);
@@ -655,6 +683,7 @@ namespace SpareParts.Desktop.Wpf
                     ReplaceCurrencyRateRows();
                     ReplaceUsedCars(loadResult.UsedCars);
                     Replace(TransactionTypes, loadResult.TransactionTypes);
+                    ExcelManagerFeature.UpdateRuntimeData(loadResult.AppConstants.ToList());
                     RaiseAccountingDashboardProps();
                 });
 
@@ -1149,6 +1178,29 @@ namespace SpareParts.Desktop.Wpf
             return normalized.Length == 3 ? normalized : null;
         }
 
+        private ExcelImportExecutionContext BuildExcelImportExecutionContext()
+        {
+            return new ExcelImportExecutionContext
+            {
+                Customers = Customers.ToList(),
+                Suppliers = Suppliers.ToList(),
+                Brands = Brands.ToList(),
+                Categories = Categories.ToList(),
+                CarBrands = CarBrands.ToList(),
+                CarModels = CarModels.ToList(),
+                Locations = Locations.ToList(),
+                Warehouses = Warehouses.ToList(),
+                TransactionTypes = TransactionTypes.ToList(),
+                UsedCars = UsedCars.ToList(),
+                Accounts = AccountingVm.Accounts.ToList(),
+                AccountTypes = AccountingVm.AccountTypes.ToList(),
+                RoleNames = RolesVm.Roles.Select(role => role.Name).ToList(),
+                BaseCurrencyCode = _baseCurrencyCode,
+                CounterCurrencyCode = _counterCurrencyCode,
+                DefaultCounterRate = _defaultCounterRate
+            };
+        }
+
         private async Task SaveCustomerAsync()
         {
             var result = await _coordinator.SaveCustomerAsync(CustomersFeature);
@@ -1292,6 +1344,57 @@ namespace SpareParts.Desktop.Wpf
             finally
             {
                 IsGeneratingPartNotes = false;
+            }
+        }
+
+        private async Task ImportPartsFromExcelAsync()
+        {
+            if (IsImportingParts)
+            {
+                return;
+            }
+
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel workbook|*.xlsx",
+                Multiselect = false,
+                Title = "Import parts from Excel"
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            IsImportingParts = true;
+            SetStatus("Importing parts from Excel…", true);
+
+            try
+            {
+                var result = await _coordinator.ImportPartsFromExcelAsync(
+                    dialog.FileName,
+                    Categories.ToList(),
+                    Brands.ToList());
+
+                SetStatus(result.SummaryMessage, result.HasImportedRows);
+
+                if (result.HasImportedRows)
+                {
+                    await LoadAllAsync();
+                    PartsFeature.ClearForm(_baseCurrencyCode);
+                    RaisePartProps();
+                }
+
+                CustomMessageBox.Show(
+                    result.ToDialogMessage(),
+                    "Parts Import",
+                    result.HasErrors
+                        ? (result.HasImportedRows ? "Warning" : "Error")
+                        : "Success");
+            }
+            finally
+            {
+                IsImportingParts = false;
             }
         }
 
@@ -1556,6 +1659,29 @@ namespace SpareParts.Desktop.Wpf
             }
 
             galleryWindow.ShowDialog();
+        }
+
+        private void OpenUsedCarParts()
+        {
+            if (SelectedUsedCar is not { Id: > 0 } usedCar)
+            {
+                CustomMessageBox.Show("Select a used car row first, then open its parts.", "Used Car Parts", "Warning");
+                return;
+            }
+
+            var partsWindow = new UsedCarPartsWindow(_coordinator, usedCar);
+            var owner = Application.Current?.Windows
+                .OfType<Window>()
+                .FirstOrDefault(window => window.IsActive);
+
+            if (owner != null && owner != partsWindow)
+            {
+                partsWindow.Owner = owner;
+                partsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            }
+
+            partsWindow.ShowDialog();
+            _ = LoadAllAsync();
         }
 
         private void ClearUsedCarForm()

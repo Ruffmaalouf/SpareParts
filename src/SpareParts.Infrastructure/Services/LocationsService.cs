@@ -129,11 +129,4 @@ public sealed class LocationsService
         var normalized = currencyCode.Trim().ToUpperInvariant();
         return normalized.Length == 3 ? normalized : null;
     }
-
-    private sealed class LocationSnapshot
-    {
-        public string Name { get; init; } = string.Empty;
-        public decimal ShippingFees { get; init; }
-        public string ShippingFeesCurrencyCode { get; init; } = "USD";
-    }
 }

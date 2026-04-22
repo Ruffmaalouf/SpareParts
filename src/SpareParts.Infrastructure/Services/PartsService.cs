@@ -1,5 +1,7 @@
+using Dapper;
 using SpareParts.Domain.Inventory;
 using SpareParts.Infrastructure.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -14,11 +16,11 @@ public sealed class PartsService
         _partNotesAiService = partNotesAiService;
     }
 
-    public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize)
+    public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize, int? usedCarId = null)
     {
         using var session = new DbSession(_factory);
         var repository = new PartsRepository(session);
-        var projected = repository.GetAllActive().Select(p => new PartDto
+        var projected = repository.GetAllActive(usedCarId).Select(p => new PartDto
         {
             Id = p.Id,
             InternalCode = p.InternalCode,
@@ -34,6 +36,7 @@ public sealed class PartsService
             Currency = p.Currency,
             MinStock = p.MinStock,
             Notes = p.Notes,
+            UsedCarId = p.UsedCarId,
             IsActive = p.IsActive
         }).ToList();
 
@@ -43,6 +46,8 @@ public sealed class PartsService
 
     public int Create(CreatePartRequest request, int userId)
     {
+        ValidateUsedCar(request.UsedCarId);
+
         using var session = new DbSession(_factory);
         var repository = new PartsRepository(session);
         var part = new Part
@@ -60,6 +65,7 @@ public sealed class PartsService
             Currency = request.Currency,
             MinStock = request.MinStock,
             Notes = request.Notes,
+            UsedCarId = request.UsedCarId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             CreatedByUserId = userId
@@ -72,6 +78,8 @@ public sealed class PartsService
 
     public void Update(int id, CreatePartRequest request, int userId)
     {
+        ValidateUsedCar(request.UsedCarId);
+
         using var session = new DbSession(_factory);
         var repository = new PartsRepository(session);
         if (!repository.Update(id, request, userId))
@@ -94,8 +102,40 @@ public sealed class PartsService
         session.Commit();
     }
 
+    public void UpdateUsedCar(int id, int? usedCarId, int userId)
+    {
+        ValidateUsedCar(usedCarId);
+
+        using var session = new DbSession(_factory);
+        var repository = new PartsRepository(session);
+        if (!repository.UpdateUsedCarId(id, usedCarId, userId))
+        {
+            throw new NotFoundException("Part not found.");
+        }
+
+        session.Commit();
+    }
+
     public Task<GeneratePartNotesResponse> GenerateNotesAsync(
         GeneratePartNotesRequest request,
         CancellationToken cancellationToken = default)
         => _partNotesAiService.GenerateNotesAsync(request, cancellationToken);
+
+    private void ValidateUsedCar(int? usedCarId)
+    {
+        if (usedCarId is not int validUsedCarId || validUsedCarId <= 0)
+        {
+            return;
+        }
+
+        using var session = new DbSession(_factory);
+        var exists = session.Connection.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM dbo.UsedCars WHERE Id = @Id;",
+            new { Id = validUsedCarId },
+            session.Transaction);
+        if (exists == 0)
+        {
+            throw new ValidationException("Selected used car was not found.");
+        }
+    }
 }

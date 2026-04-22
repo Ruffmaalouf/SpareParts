@@ -2,13 +2,6 @@ using Dapper;
 
 namespace SpareParts.Infrastructure.Data
 {
-    internal sealed class AccountingCurrencyContext
-    {
-        public string BaseCurrencyCode { get; init; } = "USD";
-        public string CounterCurrencyCode { get; init; } = "USD";
-        public decimal CounterRateToBase { get; init; } = 1m;
-    }
-
     internal static class AccountingCurrencyContextResolver
     {
         public static AccountingCurrencyContext Resolve(DbSession session)
@@ -65,10 +58,5 @@ namespace SpareParts.Infrastructure.Data
             return normalized.Length == 3 ? normalized : null;
         }
 
-        private sealed class AppConstantRow
-        {
-            public string Key { get; set; } = string.Empty;
-            public string Value { get; set; } = string.Empty;
-        }
     }
 }

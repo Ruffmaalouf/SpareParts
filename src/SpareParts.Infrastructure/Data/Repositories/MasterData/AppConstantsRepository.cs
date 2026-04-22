@@ -20,5 +20,33 @@ namespace SpareParts.Infrastructure.Data
 
             return _session.Connection.Query<AppConstantDto>(sql, transaction: _session.Transaction);
         }
+
+        public void Upsert(string key, string value, string? description)
+        {
+            const string sql = @"
+IF EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = @Key)
+BEGIN
+    UPDATE dbo.AppConstants
+    SET [Value] = @Value,
+        Description = COALESCE(@Description, Description),
+        UpdatedAt = SYSUTCDATETIME()
+    WHERE [Key] = @Key;
+END
+ELSE
+BEGIN
+    INSERT INTO dbo.AppConstants ([Key], [Value], Description)
+    VALUES (@Key, @Value, @Description);
+END;";
+
+            _session.Connection.Execute(
+                sql,
+                new
+                {
+                    Key = key,
+                    Value = value,
+                    Description = description
+                },
+                transaction: _session.Transaction);
+        }
     }
 }

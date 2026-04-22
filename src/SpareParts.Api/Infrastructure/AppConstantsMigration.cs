@@ -15,10 +15,16 @@ BEGIN
     CREATE TABLE dbo.AppConstants
     (
         [Key] NVARCHAR(120) NOT NULL PRIMARY KEY,
-        [Value] NVARCHAR(4000) NOT NULL,
+        [Value] NVARCHAR(MAX) NOT NULL,
         Description NVARCHAR(250) NULL,
         UpdatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_AppConstants_UpdatedAt DEFAULT SYSUTCDATETIME()
     );
+END;
+
+IF COL_LENGTH('dbo.AppConstants', 'Value') <> -1
+BEGIN
+    ALTER TABLE dbo.AppConstants
+    ALTER COLUMN [Value] NVARCHAR(MAX) NOT NULL;
 END;
 
 IF NOT EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = 'BrandRegionOrder')
