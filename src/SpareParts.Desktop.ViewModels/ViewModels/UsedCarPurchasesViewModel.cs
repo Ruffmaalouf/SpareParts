@@ -23,6 +23,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private const string UsedCarPartOutRoleKey = "used_car_partout";
         private const string UsedCarShippingRoleKey = "used_car_shipping";
         private const string UsedCarCustomsRoleKey = "used_car_customs";
+        private const string UsedCarRepairsRoleKey = "used_car_repairs";
 
         private readonly ICrudApiClient _crudApi;
         private readonly IAccountingApiClient _accountingApi;
@@ -183,6 +184,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(SelectedPurchaseDetail));
                 OnPropertyChanged(nameof(SelectedPurchaseDetailSummary));
                 OnPropertyChanged(nameof(SelectedPurchaseNotes));
+                OnPropertyChanged(nameof(HasSelectedPurchaseTimeline));
             }
         }
 
@@ -219,6 +221,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public string SelectedPurchaseNotes => string.IsNullOrWhiteSpace(SelectedPurchaseDetail?.Notes)
             ? "No notes recorded for the selected purchase."
             : SelectedPurchaseDetail.Notes;
+        public bool HasSelectedPurchaseTimeline => SelectedPurchaseDetail?.Timeline.Count > 0;
 
         public ICommand LoadCommand { get; }
         public ICommand SubmitCommand { get; }
@@ -505,6 +508,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 counterRateToBase,
                 ConvertToBaseAmount(usedCar.Customs, counterRateToBase),
                 usedCar.Customs);
+            AddLine(
+                UsedCarRepairsRoleKey,
+                "Repairs",
+                usedCar.Repairs,
+                CounterCurrencyCode,
+                counterRateToBase,
+                ConvertToBaseAmount(usedCar.Repairs, counterRateToBase),
+                usedCar.Repairs);
 
             OnPropertyChanged(nameof(TotalBaseAmount));
             OnPropertyChanged(nameof(TotalCounterAmount));

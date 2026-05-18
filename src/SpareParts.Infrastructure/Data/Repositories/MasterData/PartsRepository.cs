@@ -57,7 +57,7 @@ namespace SpareParts.Infrastructure.Data
             {
                 Id = id,
                 request.InternalCode,
-                request.Barcode,
+                Barcode = NormalizeOptional(request.Barcode),
                 request.Name,
                 request.OEMNumber,
                 request.Condition,
@@ -101,5 +101,8 @@ namespace SpareParts.Infrastructure.Data
             var deleted = _session.Connection.Execute(sql, new { Id = id }, _session.Transaction);
             return deleted > 0;
         }
+
+        private static string? NormalizeOptional(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }

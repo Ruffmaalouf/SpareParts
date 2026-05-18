@@ -12,6 +12,7 @@ namespace SpareParts.Domain.Accounting
         public const string UsedCarPartOut = "used_car_partout";
         public const string UsedCarShipping = "used_car_shipping";
         public const string UsedCarCustoms = "used_car_customs";
+        public const string UsedCarRepairs = "used_car_repairs";
 
         public static readonly string[] All =
         {
@@ -24,7 +25,8 @@ namespace SpareParts.Domain.Accounting
             UsedCarTransportation,
             UsedCarPartOut,
             UsedCarShipping,
-            UsedCarCustoms
+            UsedCarCustoms,
+            UsedCarRepairs
         };
     }
 }

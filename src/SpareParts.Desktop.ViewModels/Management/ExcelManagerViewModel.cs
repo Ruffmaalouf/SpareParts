@@ -127,6 +127,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public ICommand AutoMatchCommand { get; }
         public ICommand SaveMappingCommand { get; }
         public ICommand ImportCommand { get; }
+        public ICommand ImportTableCommand { get; }
 
         public ExcelManagerViewModel(
             ManagementCoordinator coordinator,
@@ -143,9 +144,8 @@ namespace SpareParts.Desktop.Wpf.Management
             AutoMatchCommand = new RelayCommand(_ => AutoMatchMappings());
             SaveMappingCommand = new RelayCommand(_ => _ = SaveMappingAsync());
             ImportCommand = new RelayCommand(_ => _ = ImportAsync());
+            ImportTableCommand = new RelayCommand(parameter => _ = ImportTableAsync(parameter));
 
-            Replace(Targets, _coordinator.GetExcelImportTargets());
-            SelectedTarget = Targets.FirstOrDefault();
             RefreshHeaderOptions();
         }
 
@@ -153,17 +153,17 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             _appConstants = appConstants;
             _localMappings.Clear();
+            var selectedKey = SelectedTarget?.Key;
+            Replace(Targets, _coordinator.GetExcelImportTargets());
+            SelectedTarget = Targets.FirstOrDefault(target =>
+                    string.Equals(target.Key, selectedKey, StringComparison.OrdinalIgnoreCase))
+                ?? Targets.FirstOrDefault();
             RebuildMappingRows();
         }
 
         private Task BrowseWorkbookAsync()
         {
-            var dialog = new OpenFileDialog
-            {
-                Filter = "Excel workbook|*.xlsx",
-                Multiselect = false,
-                Title = "Choose Excel workbook"
-            };
+            var dialog = CreateWorkbookDialog("Choose Excel workbook");
 
             if (dialog.ShowDialog() != true)
             {
@@ -173,13 +173,7 @@ namespace SpareParts.Desktop.Wpf.Management
             try
             {
                 IsBusy = true;
-                WorkbookPath = dialog.FileName;
-
-                var workbook = _coordinator.ReadExcelWorkbook(dialog.FileName);
-                Replace(WorkbookHeaders, workbook.Headers);
-                RefreshHeaderOptions();
-                WorkbookSummary = $"Detected {workbook.Headers.Count} header(s) and {workbook.RowCount} data row(s) in the first worksheet.";
-                RebuildMappingRows();
+                LoadWorkbook(dialog.FileName);
                 SetStatus("Workbook loaded. Review the suggested mappings before importing.", true);
             }
             catch (Exception ex)
@@ -195,6 +189,49 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             return Task.CompletedTask;
+        }
+
+        private async Task ImportTableAsync(object? parameter)
+        {
+            var tableName = parameter as string;
+            if (string.IsNullOrWhiteSpace(tableName))
+            {
+                SetStatus("Excel import table is not configured for this screen.", false);
+                return;
+            }
+
+            var dialog = CreateWorkbookDialog($"Import {tableName.Trim()} from Excel");
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+                await EnsureTargetsLoadedAsync();
+
+                var target = FindTarget(tableName);
+                if (target == null)
+                {
+                    SetStatus($"Excel import target '{tableName}' was not found in the database metadata.", false);
+                    return;
+                }
+
+                SelectedTarget = target;
+                LoadWorkbook(dialog.FileName);
+                AutoMatchMappings();
+
+                await ImportSelectedWorkbookAsync();
+            }
+            catch (Exception ex)
+            {
+                SetStatus($"Import failed: {ex.Message}", false);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private void AutoMatchMappings()
@@ -242,17 +279,28 @@ namespace SpareParts.Desktop.Wpf.Management
             }
         }
 
-        private async Task ImportAsync()
+        private Task ImportAsync()
         {
             if (SelectedTarget == null)
             {
                 SetStatus("Choose a table first.", false);
-                return;
+                return Task.CompletedTask;
             }
 
             if (string.IsNullOrWhiteSpace(WorkbookPath))
             {
                 SetStatus("Choose an Excel workbook first.", false);
+                return Task.CompletedTask;
+            }
+
+            return ImportSelectedWorkbookAsync();
+        }
+
+        private async Task ImportSelectedWorkbookAsync()
+        {
+            if (SelectedTarget == null)
+            {
+                SetStatus("Choose a table first.", false);
                 return;
             }
 
@@ -290,6 +338,68 @@ namespace SpareParts.Desktop.Wpf.Management
                 IsBusy = false;
             }
         }
+
+        private async Task EnsureTargetsLoadedAsync()
+        {
+            if (Targets.Count > 0)
+            {
+                return;
+            }
+
+            await _coordinator.LoadExcelImportTargetsAsync();
+            Replace(Targets, _coordinator.GetExcelImportTargets());
+        }
+
+        private void LoadWorkbook(string filePath)
+        {
+            WorkbookPath = filePath;
+
+            var workbook = _coordinator.ReadExcelWorkbook(filePath);
+            Replace(WorkbookHeaders, workbook.Headers);
+            RefreshHeaderOptions();
+            WorkbookSummary = $"Detected {workbook.Headers.Count} header(s) and {workbook.RowCount} data row(s) in the first worksheet.";
+            RebuildMappingRows();
+        }
+
+        private ExcelImportTargetOption? FindTarget(string tableName)
+        {
+            var normalizedRequested = NormalizeTargetName(tableName);
+
+            return Targets.FirstOrDefault(target =>
+            {
+                var normalizedTableName = NormalizeTargetName(target.TableName);
+                var normalizedName = NormalizeTargetName(target.Name);
+
+                return string.Equals(normalizedTableName, normalizedRequested, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(normalizedName, normalizedRequested, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(RemoveSchema(normalizedTableName), RemoveSchema(normalizedRequested), StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(Singularize(RemoveSchema(normalizedTableName)), Singularize(RemoveSchema(normalizedRequested)), StringComparison.OrdinalIgnoreCase);
+            });
+        }
+
+        private static OpenFileDialog CreateWorkbookDialog(string title)
+            => new()
+            {
+                Filter = "Excel workbook|*.xlsx",
+                Multiselect = false,
+                Title = title
+            };
+
+        private static string NormalizeTargetName(string? value)
+            => string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : value.Trim().Replace("[", string.Empty, StringComparison.Ordinal).Replace("]", string.Empty, StringComparison.Ordinal);
+
+        private static string RemoveSchema(string value)
+        {
+            var parts = value.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return parts.Length == 0 ? value : parts[^1];
+        }
+
+        private static string Singularize(string value)
+            => value.EndsWith("s", StringComparison.OrdinalIgnoreCase) && value.Length > 1
+                ? value[..^1]
+                : value;
 
         private void RebuildMappingRows()
         {

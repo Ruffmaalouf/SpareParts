@@ -70,13 +70,21 @@ namespace SpareParts.Infrastructure.Data
         public int InsertStockMovement(StockMovement movement)
         {
             const string sql = @"INSERT INTO StockMovements
-                (PartId, WarehouseId, Quantity, MovementType, ReferenceType, ReferenceId,
+                (PartId, WarehouseId, Quantity, MovementType, ScanCode, ReferenceType, ReferenceId,
                  UnitCost, CreatedAt, CreatedByUserId)
                 VALUES
-                (@PartId, @WarehouseId, @Quantity, @MovementType, @ReferenceType, @ReferenceId,
+                (@PartId, @WarehouseId, @Quantity, @MovementType, @ScanCode, @ReferenceType, @ReferenceId,
                  @UnitCost, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            return _session.Connection.ExecuteScalar<int>(sql, movement, _session.Transaction);
+            var movementId = _session.Connection.ExecuteScalar<int>(sql, movement, _session.Transaction);
+            _session.Connection.Execute(
+                @"UPDATE StockMovements
+                  SET ScanCode = @ScanCode
+                  WHERE Id = @Id
+                    AND (ScanCode IS NULL OR LTRIM(RTRIM(ScanCode)) = N'');",
+                new { Id = movementId, ScanCode = $"SM-{movementId}" },
+                _session.Transaction);
+            return movementId;
         }
     }
 }

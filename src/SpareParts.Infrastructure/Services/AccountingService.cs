@@ -506,11 +506,70 @@ namespace SpareParts.Infrastructure.Services
             };
         }
 
+        public IReadOnlyList<StatementPartyDto> GetStatementParties()
+        {
+            using var session = new DbSession(_factory);
+            var customers = new CustomersRepository(session)
+                .GetAll()
+                .Select(customer => new StatementPartyDto
+                {
+                    PartyType = "Customer",
+                    PartyId = customer.Id,
+                    Name = customer.Name,
+                    OpeningBalance = customer.OpeningBalance,
+                    AccountId = customer.AccountId,
+                    AccountCode = customer.AccountCode,
+                    AccountName = customer.AccountName
+                });
+
+            var suppliers = new SuppliersRepository(session)
+                .GetAll()
+                .Select(supplier => new StatementPartyDto
+                {
+                    PartyType = "Supplier",
+                    PartyId = supplier.Id,
+                    Name = supplier.Name,
+                    OpeningBalance = supplier.OpeningBalance,
+                    AccountId = supplier.AccountId,
+                    AccountCode = supplier.AccountCode,
+                    AccountName = supplier.AccountName
+                });
+
+            return customers
+                .Concat(suppliers)
+                .OrderBy(party => party.PartyType)
+                .ThenBy(party => party.Name)
+                .ToList();
+        }
+
+        public StatementOfAccountReportDto GetStatementOfAccountForParty(string partyType, int partyId, DateTime? dateFrom, DateTime? dateTo)
+        {
+            if (partyId <= 0)
+            {
+                throw new ValidationException("Business partner id is required.");
+            }
+
+            var normalizedPartyType = NormalizeStatementPartyType(partyType);
+            ValidateDateRange(dateFrom, dateTo);
+
+            using var session = new DbSession(_factory);
+            var party = ResolveStatementParty(session, normalizedPartyType, partyId);
+            if (party.AccountId is not > 0)
+            {
+                throw new ValidationException($"{normalizedPartyType} '{party.Name}' is not linked to an accounting account.");
+            }
+
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
+            var report = GetStatementOfAccount(party.AccountId.Value, dateFrom, dateTo);
+            ApplyStatementPartyContext(report, party, currencyContext);
+            return report;
+        }
+
         public StatementOfAccountReportDto GetStatementOfAccount(int accountId, DateTime? dateFrom, DateTime? dateTo)
         {
             var ledger = GetLedger(accountId, dateFrom, dateTo);
 
-            return new StatementOfAccountReportDto
+            var report = new StatementOfAccountReportDto
             {
                 AccountId = ledger.AccountId,
                 AccountCode = ledger.AccountCode,
@@ -533,6 +592,8 @@ namespace SpareParts.Infrastructure.Services
                     EntryDate = entry.EntryDate,
                     ReferenceType = entry.ReferenceType,
                     ReferenceId = entry.ReferenceId,
+                    ActivityType = ClassifyStatementActivity(entry.ReferenceType),
+                    DocumentNumber = BuildStatementDocumentNumber(entry.ReferenceType, entry.ReferenceId, entry.Description),
                     Description = entry.Description,
                     BaseCurrencyCode = entry.BaseCurrencyCode,
                     CounterCurrencyCode = entry.CounterCurrencyCode,
@@ -545,6 +606,194 @@ namespace SpareParts.Infrastructure.Services
                     RunningBalance = entry.RunningBalance,
                     RunningCounterBalance = entry.RunningCounterBalance
                 }).ToList()
+            };
+
+            report.RemainingBalance = report.ClosingBalance;
+            report.RemainingCounterBalance = report.ClosingCounterBalance;
+            report.TotalInvoiceAmount = SumStatementActivity(report.Entries, "Invoice", isSupplier: false);
+            report.TotalPaymentAmount = SumStatementActivity(report.Entries, "Payment", isSupplier: false);
+            report.TotalJournalAmount = report.Entries
+                .Where(entry => string.Equals(entry.ActivityType, "Journal", StringComparison.OrdinalIgnoreCase))
+                .Sum(entry => Math.Abs(entry.Debit - entry.Credit));
+            RebuildStatementCurrencyTotals(report);
+            return report;
+        }
+
+        private static string NormalizeStatementPartyType(string? partyType)
+        {
+            var normalized = (partyType ?? string.Empty).Trim();
+            if (string.Equals(normalized, "Customer", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Customer";
+            }
+
+            if (string.Equals(normalized, "Supplier", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Supplier";
+            }
+
+            throw new ValidationException("Statement party type must be Customer or Supplier.");
+        }
+
+        private static StatementPartyDto ResolveStatementParty(DbSession session, string partyType, int partyId)
+        {
+            if (string.Equals(partyType, "Customer", StringComparison.OrdinalIgnoreCase))
+            {
+                var customer = new CustomersRepository(session).GetAll().FirstOrDefault(item => item.Id == partyId)
+                    ?? throw new NotFoundException("Customer not found.");
+
+                return new StatementPartyDto
+                {
+                    PartyType = "Customer",
+                    PartyId = customer.Id,
+                    Name = customer.Name,
+                    OpeningBalance = customer.OpeningBalance,
+                    AccountId = customer.AccountId,
+                    AccountCode = customer.AccountCode,
+                    AccountName = customer.AccountName
+                };
+            }
+
+            var supplier = new SuppliersRepository(session).GetAll().FirstOrDefault(item => item.Id == partyId)
+                ?? throw new NotFoundException("Supplier not found.");
+
+            return new StatementPartyDto
+            {
+                PartyType = "Supplier",
+                PartyId = supplier.Id,
+                Name = supplier.Name,
+                OpeningBalance = supplier.OpeningBalance,
+                AccountId = supplier.AccountId,
+                AccountCode = supplier.AccountCode,
+                AccountName = supplier.AccountName
+            };
+        }
+
+        private static void ApplyStatementPartyContext(
+            StatementOfAccountReportDto report,
+            StatementPartyDto party,
+            AccountingCurrencyContext currencyContext)
+        {
+            var isSupplier = string.Equals(party.PartyType, "Supplier", StringComparison.OrdinalIgnoreCase);
+            var signedOpeningBalance = isSupplier ? -party.OpeningBalance : party.OpeningBalance;
+            var signedCounterOpeningBalance = ConvertBaseOpeningBalanceToCounter(signedOpeningBalance, currencyContext);
+
+            report.SubjectType = party.PartyType;
+            report.SubjectId = party.PartyId;
+            report.SubjectName = party.Name;
+            report.PartnerOpeningBalance = party.OpeningBalance;
+            report.PartnerOpeningCounterBalance = Math.Abs(signedCounterOpeningBalance);
+            report.OpeningBalance += signedOpeningBalance;
+            report.ClosingBalance += signedOpeningBalance;
+            report.OpeningCounterBalance += signedCounterOpeningBalance;
+            report.ClosingCounterBalance += signedCounterOpeningBalance;
+            report.RemainingBalance = isSupplier ? -report.ClosingBalance : report.ClosingBalance;
+            report.RemainingCounterBalance = isSupplier ? -report.ClosingCounterBalance : report.ClosingCounterBalance;
+
+            foreach (var entry in report.Entries)
+            {
+                entry.RunningBalance += signedOpeningBalance;
+                entry.RunningCounterBalance += signedCounterOpeningBalance;
+            }
+
+            report.TotalInvoiceAmount = SumStatementActivity(report.Entries, "Invoice", isSupplier);
+            report.TotalPaymentAmount = SumStatementActivity(report.Entries, "Payment", isSupplier);
+            report.TotalJournalAmount = report.Entries
+                .Where(entry => string.Equals(entry.ActivityType, "Journal", StringComparison.OrdinalIgnoreCase))
+                .Sum(entry => Math.Abs(entry.Debit - entry.Credit));
+
+            RebuildStatementCurrencyTotals(report);
+        }
+
+        private static decimal ConvertBaseOpeningBalanceToCounter(decimal baseAmount, AccountingCurrencyContext context)
+        {
+            if (string.Equals(context.BaseCurrencyCode, context.CounterCurrencyCode, StringComparison.OrdinalIgnoreCase)
+                || context.CounterRateToBase <= 0m)
+            {
+                return baseAmount;
+            }
+
+            return decimal.Round(baseAmount / context.CounterRateToBase, 4, MidpointRounding.AwayFromZero);
+        }
+
+        private static string ClassifyStatementActivity(string? referenceType)
+        {
+            if (string.IsNullOrWhiteSpace(referenceType))
+            {
+                return "Journal";
+            }
+
+            if (referenceType.Contains("Payment", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Payment";
+            }
+
+            return referenceType switch
+            {
+                "Sale" or "Purchase" or "UsedCarPurchase" => "Invoice",
+                _ => "Journal"
+            };
+        }
+
+        private static string BuildStatementDocumentNumber(string? referenceType, int? referenceId, string? description)
+        {
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                var normalized = description.Trim();
+                var firstSpace = normalized.IndexOf(' ');
+                if (firstSpace > 0 && firstSpace < normalized.Length - 1)
+                {
+                    return normalized[(firstSpace + 1)..].Trim();
+                }
+            }
+
+            if (referenceId is > 0 && !string.IsNullOrWhiteSpace(referenceType))
+            {
+                return $"{referenceType} #{referenceId}";
+            }
+
+            return referenceId?.ToString() ?? string.Empty;
+        }
+
+        private static decimal SumStatementActivity(
+            IEnumerable<StatementOfAccountRowDto> entries,
+            string activityType,
+            bool isSupplier)
+        {
+            return entries
+                .Where(entry => string.Equals(entry.ActivityType, activityType, StringComparison.OrdinalIgnoreCase))
+                .Sum(entry =>
+                {
+                    var impact = isSupplier
+                        ? entry.Credit - entry.Debit
+                        : entry.Debit - entry.Credit;
+
+                    return impact > 0m ? impact : Math.Abs(impact);
+                });
+        }
+
+        private static void RebuildStatementCurrencyTotals(StatementOfAccountReportDto report)
+        {
+            report.CurrencyTotals = new List<StatementCurrencyTotalDto>
+            {
+                new()
+                {
+                    Label = "Base",
+                    CurrencyCode = report.BaseCurrencyCode,
+                    OpeningBalance = report.OpeningBalance,
+                    TotalDebit = report.TotalDebit,
+                    TotalCredit = report.TotalCredit,
+                    ClosingBalance = report.ClosingBalance
+                },
+                new()
+                {
+                    Label = "Counter",
+                    CurrencyCode = report.CounterCurrencyCode,
+                    OpeningBalance = report.OpeningCounterBalance,
+                    TotalDebit = report.TotalCounterDebit,
+                    TotalCredit = report.TotalCounterCredit,
+                    ClosingBalance = report.ClosingCounterBalance
+                }
             };
         }
 

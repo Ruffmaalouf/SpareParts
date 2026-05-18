@@ -2,6 +2,7 @@ using SpareParts.Domain.Common;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Services;
+using Xunit;
 
 namespace SpareParts.IntegrationTests;
 
@@ -132,13 +133,16 @@ public class CreateSaleSqlServerIntegrationTests : IAsyncLifetime
     {
         var factory = new SqlConnectionFactory(connectionString);
         var settingsProvider = new AccountingSettingsProvider(factory, new AccountingOptions());
-        var strategy = new SaleAccountingStrategy(settingsProvider, new CustomerAccountResolver(factory));
+        var customerAccountResolver = new CustomerAccountResolver(factory);
+        var strategy = new SaleAccountingStrategy(factory, settingsProvider, customerAccountResolver);
         return new CreateSaleHandler(
             factory,
             new InventoryService(),
             new UtcInvoiceNumberGenerator(factory),
             new DefaultPaymentStatusPolicy(),
             strategy,
-            new InvoiceTotalsCalculator());
+            new InvoiceTotalsCalculator(),
+            settingsProvider,
+            customerAccountResolver);
     }
 }

@@ -1,0 +1,292 @@
+<Window x:Class="SpareParts.Desktop.Wpf.UsedCarGalleryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Used Car Gallery"
+        Width="1100" Height="760"
+        MinWidth="900"
+        MinHeight="620"
+        Background="{DynamicResource AppBackgroundBrush}"
+        WindowStartupLocation="CenterOwner"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <Style x:Key="GalleryThumbItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0 0 10 10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{DynamicResource CardBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="10">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="14"
+                Padding="20"
+                Margin="0 0 0 16">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="{Binding WindowTitle}" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding GallerySubtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 6 0 0"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="＋  Add Images"
+                            Click="AddImages_Click"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Padding="18 8"
+                            Margin="0 0 10 0"/>
+                    <Button Content="🗑  Delete Selected"
+                            Click="DeleteSelected_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Padding="18 8"
+                            Margin="0 0 10 0"/>
+                    <Button Content="↻  Refresh"
+                            Click="Refresh_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Padding="18 8"
+                            Margin="0 0 10 0"/>
+                    <Button Content="Close"
+                            Click="Close_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Padding="18 8"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.1*"/>
+                <ColumnDefinition Width="1.2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="14"
+                    Padding="18"
+                    Margin="0 0 16 0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0 0 0 12" LastChildFill="False">
+                        <TextBlock Text="Preview" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center">
+                            <Button Content="-"
+                                    Click="ZoomOut_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="36"
+                                    Padding="0 6"
+                                    Margin="0 0 8 0"
+                                    ToolTip="Zoom out"
+                                    IsEnabled="{Binding HasSelectedPreview}"/>
+                            <TextBlock Text="{Binding PreviewZoomLabel}"
+                                       MinWidth="52"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0 0 8 0"/>
+                            <Button Content="+"
+                                    Click="ZoomIn_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="36"
+                                    Padding="0 6"
+                                    Margin="0 0 8 0"
+                                    ToolTip="Zoom in"
+                                    IsEnabled="{Binding HasSelectedPreview}"/>
+                            <Button Content="Fit"
+                                    Click="ResetZoom_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="14 6"
+                                    ToolTip="Fit image"
+                                    IsEnabled="{Binding HasSelectedPreview}"/>
+                            <Button Content="100%"
+                                    Click="ActualSize_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="14 6"
+                                    Margin="8 0 0 0"
+                                    ToolTip="Actual size"
+                                    IsEnabled="{Binding HasSelectedPreview}"/>
+                            <Button Content="↶"
+                                    Click="RotateLeft_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="36"
+                                    Padding="0 6"
+                                    Margin="8 0 0 0"
+                                    ToolTip="Rotate left"
+                                    IsEnabled="{Binding HasSelectedPreview}"/>
+                            <Button Content="↷"
+                                    Click="RotateRight_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="36"
+                                    Padding="0 6"
+                                    Margin="8 0 0 0"
+                                    ToolTip="Rotate right"
+                                    IsEnabled="{Binding HasSelectedPreview}"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <Grid Grid.Row="1" ClipToBounds="True">
+                        <ScrollViewer x:Name="PreviewScrollViewer"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Background="Transparent"
+                                      PreviewMouseWheel="PreviewScrollViewer_PreviewMouseWheel"
+                                      PreviewMouseLeftButtonDown="PreviewScrollViewer_PreviewMouseLeftButtonDown"
+                                      PreviewMouseLeftButtonUp="PreviewScrollViewer_PreviewMouseLeftButtonUp"
+                                      PreviewMouseMove="PreviewScrollViewer_PreviewMouseMove"
+                                      MouseLeave="PreviewScrollViewer_MouseLeave"
+                                      SizeChanged="PreviewScrollViewer_SizeChanged">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Image x:Name="PreviewImage"
+                                       Source="{Binding SelectedPreview}"
+                                       Stretch="Uniform"
+                                       Width="{Binding PreviewImageWidth}"
+                                       Height="{Binding PreviewImageHeight}"
+                                       RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image.LayoutTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform ScaleX="{Binding PreviewZoom}" ScaleY="{Binding PreviewZoom}"/>
+                                            <RotateTransform Angle="{Binding PreviewRotationAngle}"/>
+                                        </TransformGroup>
+                                    </Image.LayoutTransform>
+                                </Image>
+                            </Grid>
+                        </ScrollViewer>
+
+                        <TextBlock Text="Select an image to preview it here."
+                                   FontSize="16"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedImage}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="14"
+                    Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0 0 0 14">
+                        <TextBlock Text="Saved Images" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding GalleryStatus}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 6 0 0"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1">
+                        <TextBlock Text="No images saved for this used car yet."
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasImages}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <ListBox x:Name="ImagesListBox"
+                                 ItemsSource="{Binding Images}"
+                                 SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.CanContentScroll="False"
+                                 ItemContainerStyle="{StaticResource GalleryThumbItemStyle}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Width="112">
+                                        <Border Height="90"
+                                                CornerRadius="10"
+                                                Background="#11000000"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                ClipToBounds="True">
+                                            <Image Source="{Binding Preview}" Stretch="UniformToFill"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
+                                                   Margin="0 8 0 0"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="12"
+                Padding="16"
+                Margin="0 16 0 0">
+            <TextBlock Text="{Binding FooterStatus}" FontSize="12" Foreground="{DynamicResource AccentBrush}"/>
+        </Border>
+    </Grid>
+</Window>

@@ -24,6 +24,13 @@ namespace SpareParts.Api.Controllers
         public ActionResult<LoginResponse> Login([FromBody] LoginRequest req)
             => Ok(_service.Login(req));
 
+        [HttpPost("external-login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<LoginResponse>> ExternalLogin(
+            [FromBody] ExternalLoginRequest req,
+            CancellationToken cancellationToken)
+            => Ok(await _service.ExternalLoginAsync(req, cancellationToken));
+
         [HttpGet("me")]
         [Authorize]
         public ActionResult GetMe() => Ok(new

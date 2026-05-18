@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SpareParts.Domain.Transactions;
 
 namespace SpareParts.Domain.Purchases
 {
@@ -7,6 +8,7 @@ namespace SpareParts.Domain.Purchases
     {
         public int Id { get; set; }
         public string PurchaseNumber { get; set; } = string.Empty;
+        public string? ScanCode { get; set; }
         public DateTime PurchaseDate { get; set; }
         public int UsedCarId { get; set; }
         public string UsedCar { get; set; } = string.Empty;
@@ -24,5 +26,6 @@ namespace SpareParts.Domain.Purchases
         public string Notes { get; set; } = string.Empty;
         public int LineCount { get; set; }
         public List<UsedCarPurchaseLineDetailDto> Lines { get; set; } = new();
+        public List<TransactionTimelineStepDto> Timeline { get; set; } = new();
     }
 }

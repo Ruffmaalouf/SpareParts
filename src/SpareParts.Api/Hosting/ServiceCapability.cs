@@ -8,5 +8,6 @@ public enum ServiceCapability
     Accounting,
     Identity,
     Catalog,
+    Reporting,
     Health
 }

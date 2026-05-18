@@ -38,12 +38,27 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ManagementViewModel ManagementVm { get; }
         public PartPurchasesViewModel PartPurchasesVm { get; }
         public UsedCarPurchasesViewModel PurchasesVm { get; }
+        public RepairPrepBoardViewModel RepairPrepVm { get; }
+        public ReportBuilderViewModel ReportBuilderVm { get; }
+        public OwnerCockpitDashboardViewModel OwnerCockpitVm { get; }
+        public BusinessAssistantViewModel BusinessAssistantVm { get; }
+        public WhatsAppInboxViewModel WhatsAppVm { get; }
+        public BarcodeModeViewModel BarcodeModeVm { get; }
+        public PartCompatibilityViewModel PartCompatibilityVm { get; }
+        public DeadStockResurrectionViewModel DeadStockVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
         {
             get => _canViewInvoiceSearch;
             private set { _canViewInvoiceSearch = value; OnPropertyChanged(nameof(CanViewInvoiceSearch)); }
+        }
+
+        private bool _canCreateInvoice;
+        public bool CanCreateInvoice
+        {
+            get => _canCreateInvoice;
+            private set { _canCreateInvoice = value; OnPropertyChanged(nameof(CanCreateInvoice)); }
         }
 
         private bool _canViewManagementScreen;
@@ -88,6 +103,27 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             private set { _canViewManualJournalScreen = value; OnPropertyChanged(nameof(CanViewManualJournalScreen)); }
         }
 
+        private bool _canViewReportBuilderScreen;
+        public bool CanViewReportBuilderScreen
+        {
+            get => _canViewReportBuilderScreen;
+            private set { _canViewReportBuilderScreen = value; OnPropertyChanged(nameof(CanViewReportBuilderScreen)); }
+        }
+
+        private bool _canViewBusinessAssistantScreen;
+        public bool CanViewBusinessAssistantScreen
+        {
+            get => _canViewBusinessAssistantScreen;
+            private set { _canViewBusinessAssistantScreen = value; OnPropertyChanged(nameof(CanViewBusinessAssistantScreen)); }
+        }
+
+        private bool _canViewWhatsAppScreen;
+        public bool CanViewWhatsAppScreen
+        {
+            get => _canViewWhatsAppScreen;
+            private set { _canViewWhatsAppScreen = value; OnPropertyChanged(nameof(CanViewWhatsAppScreen)); }
+        }
+
         private bool _canViewCarSelectionScreen;
         public bool CanViewCarSelectionScreen
         {
@@ -107,6 +143,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             get => _canViewArScreen;
             private set { _canViewArScreen = value; OnPropertyChanged(nameof(CanViewArScreen)); }
+        }
+
+        private bool _canViewBarcodeQrScreen;
+        public bool CanViewBarcodeQrScreen
+        {
+            get => _canViewBarcodeQrScreen;
+            private set { _canViewBarcodeQrScreen = value; OnPropertyChanged(nameof(CanViewBarcodeQrScreen)); }
         }
 
         private bool _isManagementOpen;
@@ -315,8 +358,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IsLoadingRolePermissions ||
             IsLoadingInvoiceSearch ||
             IsLoadingInvoiceOpen ||
+            OwnerCockpitVm.IsLoading ||
+            BusinessAssistantVm.IsLoading ||
+            WhatsAppVm.IsLoading ||
+            BarcodeModeVm.IsLoading ||
+            DeadStockVm.IsLoading ||
             PartPurchasesVm.IsLoading ||
             PurchasesVm.IsLoading ||
+            RepairPrepVm.IsLoading ||
+            PartCompatibilityVm.IsLoading ||
+            ReportBuilderVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -342,15 +393,23 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToPosCommand           { get; }
         public ICommand GoToCarSelectionCommand  { get; }
         public ICommand GoToHomeCommand          { get; }
+        public ICommand CreateInvoiceCommand    { get; }
         public ICommand OpenManagementCommand    { get; }
         public ICommand OpenInvoiceSearchCommand { get; }
         public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToUsedCarPurchasesCommand { get; }
         public ICommand GoToPurchaseHistoryCommand { get; }
+        public ICommand GoToRepairPrepCommand { get; }
         public ICommand GoToStockManagementCommand { get; }
+        public ICommand GoToDeadStockCommand { get; }
+        public ICommand GoToCompatibilityCommand { get; }
         public ICommand GoToAccountingCommand { get; }
         public ICommand GoToManualJournalCommand { get; }
+        public ICommand GoToReportBuilderCommand { get; }
+        public ICommand GoToWhatsAppCommand { get; }
+        public ICommand GoToBusinessAssistantCommand { get; }
+        public ICommand GoToBarcodeModeCommand { get; }
         public ICommand GoToArCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
@@ -364,6 +423,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ISalesApiClient salesApi,
             ICrudApiClient crudApi,
             IRoleApiClient rolesApi,
+            IWarehouseApiClient warehouseApi,
+            IOwnerCockpitApiClient ownerCockpitApi,
+            IBusinessAssistantApiClient businessAssistantApi,
+            IReportBuilderApiClient reportBuilderApi,
             IArRenderingService arRenderingService,
             IArDeviceBridge arDeviceBridge,
             ManagementViewModel managementVm)
@@ -376,8 +439,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             _arRenderingService = arRenderingService;
             _arDeviceBridge = arDeviceBridge;
             ManagementVm = managementVm;
+            OwnerCockpitVm = new OwnerCockpitDashboardViewModel(ownerCockpitApi);
+            BusinessAssistantVm = new BusinessAssistantViewModel(businessAssistantApi);
+            WhatsAppVm = new WhatsAppInboxViewModel(crudApi);
+            BarcodeModeVm = new BarcodeModeViewModel(partsApi, salesApi, crudApi, warehouseApi);
+            DeadStockVm = new DeadStockResurrectionViewModel(partsApi);
             PartPurchasesVm = new PartPurchasesViewModel(crudApi, purchasesApi);
             PurchasesVm = new UsedCarPurchasesViewModel(crudApi, accountingApi, purchasesApi);
+            RepairPrepVm = new RepairPrepBoardViewModel(crudApi);
+            PartCompatibilityVm = new PartCompatibilityViewModel(crudApi);
+            ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(ManagementViewModel.IsLoading))
@@ -392,6 +463,41 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
             };
+            OwnerCockpitVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(OwnerCockpitDashboardViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            BusinessAssistantVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(BusinessAssistantViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            WhatsAppVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(WhatsAppInboxViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            BarcodeModeVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(BarcodeModeViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            DeadStockVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(DeadStockResurrectionViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
             PartPurchasesVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(PartPurchasesViewModel.IsLoading))
@@ -402,6 +508,27 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             PurchasesVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(UsedCarPurchasesViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            RepairPrepVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(RepairPrepBoardViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            PartCompatibilityVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartCompatibilityViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            ReportBuilderVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ReportBuilderViewModel.IsLoading))
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
@@ -452,6 +579,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen  = AppScreen.HomePage;
                 SelectedBrand = null;
                 AvailableCars.Clear();
+                OwnerCockpitVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
 
             OpenManagementCommand = new RelayCommand(_ =>
@@ -516,6 +644,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen = AppScreen.PurchaseHistory;
                 PurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
+            GoToRepairPrepCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewPurchasesScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view repair/prep.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.RepairPrepBoard;
+                RepairPrepVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             GoToStockManagementCommand = new RelayCommand(_ =>
             {
                 if (!CanViewStockManagementScreen)
@@ -525,6 +664,28 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 }
 
                 ActiveScreen = AppScreen.StockManagement;
+            });
+            GoToDeadStockCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewStockManagementScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view dead stock recovery.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.DeadStockResurrection;
+                DeadStockVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToCompatibilityCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewStockManagementScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view part compatibility.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.PartCompatibility;
+                PartCompatibilityVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
             GoToAccountingCommand = new RelayCommand(_ =>
             {
@@ -548,25 +709,67 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen = AppScreen.ManualJournal;
                 ManagementVm.AccountingVm.LoadManualJournalAsync().SafeFireAndForget(HandleBackgroundException);
             });
-            GoToArCommand = new RelayCommand(_ =>
+            GoToReportBuilderCommand = new RelayCommand(_ =>
             {
-                if (!CanViewArScreen)
+                if (!CanViewReportBuilderScreen)
                 {
-                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view AR.", false);
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view Report Builder.", false);
                     return;
                 }
 
-                ActiveScreen = AppScreen.ArExperience;
+                ActiveScreen = AppScreen.ReportBuilder;
+                if (ReportBuilderVm.Tables.Count == 0)
+                {
+                    ReportBuilderVm.LoadMetadataAsync().SafeFireAndForget(HandleBackgroundException);
+                }
             });
+            GoToWhatsAppCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewWhatsAppScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view WhatsApp conversations.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.WhatsAppInbox;
+                WhatsAppVm.LoadConversationsAsync().SafeFireAndForget(HandleBackgroundException);
+                WhatsAppVm.LoadCampaignBuilderAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToBusinessAssistantCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewBusinessAssistantScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view the business assistant.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.BusinessAssistant;
+            });
+            void OpenBarcodeMode()
+            {
+                if (!CanViewBarcodeQrScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view Barcode / QR Mode.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.BarcodeMode;
+                BarcodeModeVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            }
+
+            GoToBarcodeModeCommand = new RelayCommand(_ => OpenBarcodeMode());
+            GoToArCommand = new RelayCommand(_ => OpenBarcodeMode());
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);
-            AddTabCommand = new RelayCommand(_ => AddTab());
+            CreateInvoiceCommand = new RelayCommand(_ => CreateInvoice());
+            AddTabCommand = CreateInvoiceCommand;
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
            // SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
+            OwnerCockpitVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             LoadBrandsAsync().SafeFireAndForget(HandleBackgroundException);
             LoadRolePermissionsAsync().SafeFireAndForget(HandleBackgroundException);
         }
@@ -599,6 +802,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void ApplyPermissions(List<RoleMenuAccessDto> menuAccessItems)
         {
+            var invoiceCreate = GetMenuAccess(menuAccessItems, "invoice_create");
             var invoiceSearch = GetMenuAccess(menuAccessItems, "invoice_search");
             var managementScreen = GetMenuAccess(menuAccessItems, "management_screen");
             var supplierTab = GetMenuAccess(menuAccessItems, "supplier_tab");
@@ -606,23 +810,43 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var transactionTypesTab = GetMenuAccess(menuAccessItems, "transaction_types_tab");
             var accountingScreen = GetMenuAccess(menuAccessItems, "accounting_screen");
             var manualJournalScreen = GetMenuAccess(menuAccessItems, "manual_journal_screen");
+            var reportBuilderScreen = GetMenuAccess(menuAccessItems, "report_builder_screen");
             var posScreen = GetMenuAccess(menuAccessItems, "pos_screen");
             var purchasesScreen = GetMenuAccess(menuAccessItems, "purchases_screen");
             var stockManagementScreen = GetMenuAccess(menuAccessItems, "stock_management_screen");
             var carSelectionScreen = GetMenuAccess(menuAccessItems, "car_selection_screen");
             var partSelectionScreen = GetMenuAccess(menuAccessItems, "part_selection_screen");
+            var whatsappScreen = GetMenuAccess(menuAccessItems, "whatsapp_screen");
+            var barcodeQrScreen = GetMenuAccess(menuAccessItems, "barcode_qr_screen");
+            var hasBarcodeQrScreen = menuAccessItems.Any(i => string.Equals(i.MenuKey, "barcode_qr_screen", StringComparison.OrdinalIgnoreCase));
             var arScreen = menuAccessItems.FirstOrDefault(i => string.Equals(i.MenuKey, "ar_screen", StringComparison.OrdinalIgnoreCase));
 
             CanViewInvoiceSearch = invoiceSearch.CanView;
+            CanCreateInvoice = invoiceCreate.CanView || invoiceCreate.CanEdit;
             CanViewManagementScreen = managementScreen.CanView;
             CanViewPosScreen = posScreen.CanView;
             CanViewPurchasesScreen = purchasesScreen.CanView;
             CanViewStockManagementScreen = stockManagementScreen.CanView;
             CanViewAccountingScreen = accountingScreen.CanView;
             CanViewManualJournalScreen = manualJournalScreen.CanView;
+            CanViewReportBuilderScreen = reportBuilderScreen.CanView;
+            CanViewBusinessAssistantScreen =
+                accountingScreen.CanView ||
+                reportBuilderScreen.CanView ||
+                purchasesScreen.CanView ||
+                stockManagementScreen.CanView;
+            CanViewWhatsAppScreen =
+                whatsappScreen.CanView ||
+                posScreen.CanView ||
+                invoiceSearch.CanView ||
+                purchasesScreen.CanView ||
+                stockManagementScreen.CanView;
             CanViewCarSelectionScreen = carSelectionScreen.CanView;
             CanViewPartSelectionScreen = partSelectionScreen.CanView;
-            CanViewArScreen = arScreen?.CanView ?? false;
+            CanViewBarcodeQrScreen = hasBarcodeQrScreen
+                ? barcodeQrScreen.CanView
+                : (arScreen?.CanView ?? false) || posScreen.CanView || stockManagementScreen.CanView;
+            CanViewArScreen = CanViewBarcodeQrScreen;
             ManagementVm.SetTabPermissions(
                 supplierTab.CanView,
                 supplierTab.CanEdit,
@@ -777,7 +1001,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (version != _invoiceSearchVersion || cancellationToken.IsCancellationRequested)
                     {
@@ -867,7 +1091,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 var dtos = await _carCatalogApi.GetCarBrandsAsync();
                 var knownOrder = await LoadBrandRegionOrderAsync();
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     BrandGroups.Clear();
                     var grouped = dtos
@@ -943,7 +1167,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             var bmp = await _carCatalogApi.GetCarBrandLogoAsync(vm.Id);
             if (bmp == null) return;
-            Application.Current.Dispatcher.Invoke(() => vm.Logo = bmp);
+            System.Windows.Application.Current.Dispatcher.Invoke(() => vm.Logo = bmp);
         }
 
         private void SelectBrand(object? parameter)
@@ -973,7 +1197,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     return;
                 }
 
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (loadVersion != _carsLoadVersion || SelectedBrand?.Id != brandId)
                     {
@@ -1016,7 +1240,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             var bmp = await _carCatalogApi.GetCarModelImageAsync(vm.Id);
             if (bmp == null) return;
-            Application.Current.Dispatcher.Invoke(() => vm.Image = bmp);
+            System.Windows.Application.Current.Dispatcher.Invoke(() => vm.Image = bmp);
         }
 
         private void SelectCar(object? parameter)
@@ -1040,7 +1264,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             try
             {
                 var dtos = await _partsApi.GetPartsAsync();
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     AvailableParts.Clear();
                     foreach (var dto in dtos)
@@ -1077,6 +1301,18 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 Quantity    = 1,
                 UnitPrice   = part.UnitPrice
             });
+            ActiveScreen = AppScreen.Pos;
+        }
+
+        private void CreateInvoice()
+        {
+            if (!CanCreateInvoice)
+            {
+                AppNotificationCenter.Instance.Publish("✗ You do not have permission to create invoices.", false);
+                return;
+            }
+
+            AddTab();
             ActiveScreen = AppScreen.Pos;
         }
 

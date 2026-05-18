@@ -5,6 +5,7 @@ namespace SpareParts.Domain.Sales
     public class SalesInvoice : AuditableEntity
     {
         public string InvoiceNumber { get; set; } = string.Empty;
+        public string? ScanCode { get; set; }
         public DateTime InvoiceDate { get; set; }
         public int? CustomerId { get; set; }
         public int WarehouseId { get; set; }

@@ -9,118 +9,21 @@
     <!-- ══════ Management DataTemplate ══════ -->
     <DataTemplate DataType="{x:Type ViewModels:ManagementViewModel}">
             <DataTemplate.Resources>
-                <Style x:Key="InvisibleComboOverlayButtonStyle" TargetType="ToggleButton">
-                    <Setter Property="Focusable" Value="False"/>
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderBrush" Value="Transparent"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="OverridesDefaultStyle" Value="True"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ToggleButton">
-                                <Border Background="Transparent"/>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-
-                <Style x:Key="ManagementComboBoxStyle" TargetType="ComboBox">
-                    <Setter Property="Height" Value="52"/>
-                    <Setter Property="Padding" Value="14 0"/>
+                <Style x:Key="ManagementComboBoxStyle"
+                       TargetType="ComboBox"
+                       BasedOn="{StaticResource AccountingComboBoxStyle}">
+                    <Setter Property="Height" Value="44"/>
+                    <Setter Property="MinHeight" Value="44"/>
+                    <Setter Property="Padding" Value="13 0"/>
                     <Setter Property="Margin" Value="0 0 0 10"/>
-                    <Setter Property="Background" Value="#FF1A1A22"/>
-                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-                    <Setter Property="BorderThickness" Value="1"/>
-                    <Setter Property="FontSize" Value="15"/>
-                    <Setter Property="ItemContainerStyle" Value="{DynamicResource ThemeComboBoxItemStyle}"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ComboBox">
-                                <Grid>
-                                    <Border x:Name="OuterBorder"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            CornerRadius="10">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <ContentPresenter Grid.Column="0"
-                                                              Margin="{TemplateBinding Padding}"
-                                                              VerticalAlignment="Center"
-                                                              HorizontalAlignment="Left"
-                                                              TextElement.Foreground="{TemplateBinding Foreground}"
-                                                              Content="{TemplateBinding SelectionBoxItem}"
-                                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
-
-                                            <Border Grid.Column="1"
-                                                    Width="34"
-                                                    Height="34"
-                                                    Margin="0 0 8 0"
-                                                    Background="{DynamicResource AccentBrush}"
-                                                    CornerRadius="8"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="&#xE70D;"
-                                                           FontFamily="Segoe MDL2 Assets"
-                                                           FontSize="11"
-                                                           Foreground="White"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"/>
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-
-                                    <Popup x:Name="PART_Popup"
-                                           Placement="Bottom"
-                                           AllowsTransparency="True"
-                                           Focusable="False"
-                                           IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                           PopupAnimation="Fade">
-                                        <Border Margin="0 6 0 0"
-                                                MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                                                Background="#FF1E1E28"
-                                                BorderBrush="#33FF5722"
-                                                BorderThickness="1"
-                                                CornerRadius="12">
-                                            <ScrollViewer Margin="4"
-                                                          MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
-                                            </ScrollViewer>
-                                        </Border>
-                                    </Popup>
-
-                                    <ToggleButton Style="{StaticResource InvisibleComboOverlayButtonStyle}"
-                                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="HasItems" Value="False">
-                                        <Setter TargetName="PART_Popup" Property="MinHeight" Value="60"/>
-                                    </Trigger>
-                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Opacity" Value="0.6"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
+                    <Setter Property="FontSize" Value="14"/>
                 </Style>
 
                 <Style x:Key="ManagementActionTileButtonStyle" TargetType="Button">
-                    <Setter Property="Height" Value="92"/>
-                    <Setter Property="Padding" Value="16 14"/>
+                    <Setter Property="Height" Value="78"/>
+                    <Setter Property="Padding" Value="10"/>
                     <Setter Property="Margin" Value="0"/>
-                    <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                    <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                     <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
                     <Setter Property="BorderThickness" Value="1"/>
@@ -134,37 +37,27 @@
                                         Background="{TemplateBinding Background}"
                                         BorderBrush="{TemplateBinding BorderBrush}"
                                         BorderThickness="{TemplateBinding BorderThickness}"
-                                        CornerRadius="18"
+                                        CornerRadius="14"
                                         Padding="{TemplateBinding Padding}">
-                                    <Grid>
-                                        <Border x:Name="ActionAccent"
-                                                Width="56"
-                                                Height="4"
-                                                Background="{DynamicResource AccentBrush}"
-                                                CornerRadius="2"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Top"
-                                                Opacity="0.95"/>
-                                        <ContentPresenter Margin="0 8 0 0"
-                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                    </Grid>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter TargetName="ActionBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                        <Setter TargetName="ActionBorder" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                                        <Setter TargetName="ActionBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
                                         <Setter TargetName="ActionBorder" Property="Effect">
                                             <Setter.Value>
                                                 <DropShadowEffect Color="Black"
-                                                                  BlurRadius="16"
-                                                                  ShadowDepth="3"
-                                                                  Opacity="0.22"/>
+                                                                  BlurRadius="10"
+                                                                  ShadowDepth="2"
+                                                                  Opacity="0.16"/>
                                             </Setter.Value>
                                         </Setter>
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter TargetName="ActionBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                        <Setter TargetName="ActionBorder" Property="Opacity" Value="0.88"/>
                                         <Setter TargetName="ActionBorder" Property="Effect" Value="{x:Null}"/>
                                     </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
@@ -176,39 +69,10 @@
                     </Setter>
                 </Style>
 
-                <Style x:Key="ExcelManagerTargetListBoxItemStyle" TargetType="ListBoxItem">
-                    <Setter Property="Padding" Value="0"/>
-                    <Setter Property="Margin" Value="0 0 0 10"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <Border x:Name="TargetBorder"
-                                        Background="{DynamicResource CardHighlightBrush}"
-                                        BorderBrush="{DynamicResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="16"
-                                        Padding="16 14">
-                                    <ContentPresenter/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="TargetBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="TargetBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                        <Setter TargetName="TargetBorder" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-
                 <Style x:Key="ExcelManagerInlineComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource ManagementComboBoxStyle}">
-                    <Setter Property="Height" Value="42"/>
+                    <Setter Property="Height" Value="38"/>
                     <Setter Property="Margin" Value="0"/>
-                    <Setter Property="Padding" Value="10 0"/>
+                    <Setter Property="Padding" Value="12 0"/>
                     <Setter Property="FontSize" Value="13"/>
                 </Style>
 
@@ -216,7 +80,7 @@
             <TabControl Background="Transparent" BorderThickness="0" Margin="0">
 
                 <!-- TAB 1 — CUSTOMERS -->
-                <TabItem Header="👤  Customers">
+                <TabItem Header="👤  Customers" DataContext="{Binding CustomersFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -227,7 +91,9 @@
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
                                     <TextBlock Text="New Customer" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Customer"
+                                    <Button Content="＋  New / Clear Selection"
+                                            Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="Customer"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
@@ -241,13 +107,20 @@
                                     <TextBox Text="{Binding NewCustomerTax, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Opening Balance" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewCustomerBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
-                                    <Button Content="＋  Save Customer" Command="{Binding SaveCustomerCommand}"
+                                    <Button Content="＋  Save Customer"
+                                            Command="{Binding DataContext.SaveCustomerCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42"/>
-                                    <Button Content="🗑  Delete Selected" Command="{Binding DeleteCustomerCommand}"
+                                    <Button Content="🗑  Delete Selected"
+                                            Command="{Binding DataContext.DeleteCustomerCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
-                                    <TextBlock Text="{Binding Status}" FontSize="12" Margin="0 10 0 0"
+                                    <Button Content="Import from Excel"
+                                            Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="dbo.Customers"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                    <TextBlock Text="{Binding DataContext.Status, RelativeSource={RelativeSource AncestorType=TabControl}}" FontSize="12" Margin="0 10 0 0"
                                                Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </ScrollViewer>
@@ -260,7 +133,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Customers" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Customers}"
@@ -270,12 +143,12 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="50"/>
-                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
-                                        <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"          Width="120"/>
-                                        <DataGridTextColumn Header="Email"   Binding="{Binding Email}"          Width="160"/>
-                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay}" Width="180"/>
-                                        <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id, Mode=OneWay}"             Width="50"/>
+                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name, Mode=OneWay}"           Width="*"/>
+                                        <DataGridTextColumn Header="Phone"   Binding="{Binding Phone, Mode=OneWay}"          Width="120"/>
+                                        <DataGridTextColumn Header="Email"   Binding="{Binding Email, Mode=OneWay}"          Width="160"/>
+                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay, Mode=OneWay}" Width="180"/>
+                                        <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -285,7 +158,8 @@
 
                 <!-- TAB 2 — SUPPLIERS -->
                 <TabItem Header="🏭  Suppliers"
-                         Visibility="{Binding CanViewSupplierTab, Converter={StaticResource BoolToVis}}">
+                         DataContext="{Binding SuppliersFeature}"
+                         Visibility="{Binding DataContext.CanViewSupplierTab, RelativeSource={RelativeSource AncestorType=TabControl}, Converter={StaticResource BoolToVis}}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -296,7 +170,9 @@
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
                                     <TextBlock Text="New Supplier" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Supplier"
+                                    <Button Content="＋  New / Clear Selection"
+                                            Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="Supplier"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewSupplierName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
@@ -310,10 +186,17 @@
                                     <TextBox Text="{Binding NewSupplierTax, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Opening Balance" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewSupplierBalance, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
-                                    <Button Content="＋  Save Supplier" Command="{Binding SaveSupplierCommand}"
+                                    <Button Content="＋  Save Supplier"
+                                            Command="{Binding DataContext.SaveSupplierCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42"/>
-                                    <Button Content="🗑  Delete Selected" Command="{Binding DeleteSupplierCommand}"
+                                    <Button Content="🗑  Delete Selected"
+                                            Command="{Binding DataContext.DeleteSupplierCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                    <Button Content="Import from Excel"
+                                            Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="dbo.Suppliers"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
@@ -327,7 +210,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Suppliers" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Suppliers}"
@@ -337,11 +220,11 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id}"             Width="50"/>
-                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name}"           Width="*"/>
-                                        <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"          Width="120"/>
-                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay}" Width="180"/>
-                                        <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id, Mode=OneWay}"             Width="50"/>
+                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name, Mode=OneWay}"           Width="*"/>
+                                        <DataGridTextColumn Header="Phone"   Binding="{Binding Phone, Mode=OneWay}"          Width="120"/>
+                                        <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay, Mode=OneWay}" Width="180"/>
+                                        <DataGridTextColumn Header="Balance" Binding="{Binding OpeningBalance, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -350,7 +233,7 @@
                 </TabItem>
 
                 <!-- TAB 3 — BRANDS -->
-                <TabItem Header="🏷  Brands">
+                <TabItem Header="🏷  Brands" DataContext="{Binding BrandsFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="280"/>
@@ -360,14 +243,23 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                     <TextBlock Text="New Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Brand"
+                                    <Button Content="＋  New / Clear Selection"
+                                            Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="Brand"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewBrandName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
-                                <Button Content="＋  Save Brand" Command="{Binding SaveBrandCommand}"
+                                <Button Content="＋  Save Brand"
+                                        Command="{Binding DataContext.SaveBrandCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
-                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteBrandCommand}"
+                                <Button Content="🗑  Delete Selected"
+                                        Command="{Binding DataContext.DeleteBrandCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                <Button Content="Import from Excel"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.Brands"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
@@ -380,7 +272,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Brands" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Brands}"
@@ -390,9 +282,9 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"     Binding="{Binding Id}"       Width="50"/>
-                                        <DataGridTextColumn Header="Name"   Binding="{Binding Name}"     Width="*"/>
-                                        <DataGridTextColumn Header="Active" Binding="{Binding IsActive}" Width="70"/>
+                                        <DataGridTextColumn Header="ID"     Binding="{Binding Id, Mode=OneWay}"       Width="50"/>
+                                        <DataGridTextColumn Header="Name"   Binding="{Binding Name, Mode=OneWay}"     Width="*"/>
+                                        <DataGridTextColumn Header="Active" Binding="{Binding IsActive, Mode=OneWay}" Width="70"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -401,7 +293,7 @@
                 </TabItem>
 
                 <!-- TAB 4 — PARTS -->
-                <TabItem Header="🔧  Parts">
+                <TabItem Header="🔧  Parts" DataContext="{Binding PartsFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -412,7 +304,9 @@
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
                                     <TextBlock Text="New Part" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                    <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Part"
+                                    <Button Content="＋  New / Clear Selection"
+                                            Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="Part"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                     <Border Background="{DynamicResource CardHighlightBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
@@ -422,13 +316,14 @@
                                             Margin="0 0 0 16">
                                         <StackPanel>
                                             <TextBlock Text="Bulk Import" FontSize="13" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Import `.xlsx` rows for new, used, or rebuilt parts. Supported columns include Code, Name, OEM, Category, Brand, Cost, Sale, Average, Currency, Min Stock, Notes, and optional Condition."
+                                            <TextBlock Text="Import `.xlsx` rows for new, used, or rebuilt parts. Supported columns include Code, Barcode, Name, OEM, Category, Brand, Cost, Sale, Average, Currency, Min Stock, Notes, and optional Condition."
                                                        FontSize="11"
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        TextWrapping="Wrap"
                                                        Margin="0 4 0 10"/>
-                                            <Button Content="{Binding PartImportButtonText}"
-                                                    Command="{Binding ImportPartsFromExcelCommand}"
+                                            <Button Content="Import from Excel"
+                                                    Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                                    CommandParameter="dbo.Parts"
                                                     Style="{StaticResource SecondaryButtonStyle}"
                                                     HorizontalAlignment="Stretch"
                                                     Height="38"/>
@@ -436,19 +331,21 @@
                                     </Border>
                                     <TextBlock Text="Internal Code *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartCode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Barcode / QR Code" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartBarcode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="OEM Number" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartOEM, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Category" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <ComboBox ItemsSource="{Binding Categories}"
+                                    <ComboBox ItemsSource="{Binding DataContext.Categories, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                               Style="{StaticResource ManagementComboBoxStyle}"
                                               DisplayMemberPath="Name"
                                               SelectedValuePath="Id"
                                               SelectedValue="{Binding NewPartCategoryId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               />
                                     <TextBlock Text="Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <ComboBox ItemsSource="{Binding Brands}"
+                                    <ComboBox ItemsSource="{Binding DataContext.Brands, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                               Style="{StaticResource ManagementComboBoxStyle}"
                                               DisplayMemberPath="Name"
                                               SelectedValuePath="Id"
@@ -461,7 +358,7 @@
                                     <TextBlock Text="Average Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartAveragePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Currency Code" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <ComboBox ItemsSource="{Binding CurrencyRates}"
+                                    <ComboBox ItemsSource="{Binding DataContext.CurrencyRates, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                               Style="{StaticResource ManagementComboBoxStyle}"
                                               DisplayMemberPath="Code"
                                               SelectedValuePath="Code"
@@ -482,8 +379,8 @@
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        TextWrapping="Wrap"
                                                        Margin="0 4 0 10"/>
-                                            <Button Content="{Binding PartAiButtonText}"
-                                                    Command="{Binding GeneratePartNotesCommand}"
+                                            <Button Content="{Binding DataContext.PartAiButtonText, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                                    Command="{Binding DataContext.GeneratePartNotesCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                                     Style="{StaticResource SecondaryButtonStyle}"
                                                     HorizontalAlignment="Stretch"
                                                     Height="36"/>
@@ -495,10 +392,12 @@
                                              AcceptsReturn="True"
                                              VerticalScrollBarVisibility="Auto"
                                              Margin="0 0 0 20"/>
-                                    <Button Content="＋  Save Part" Command="{Binding SavePartCommand}"
+                                    <Button Content="＋  Save Part"
+                                            Command="{Binding DataContext.SavePartCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource PrimaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42"/>
-                                    <Button Content="🗑  Delete Selected" Command="{Binding DeletePartCommand}"
+                                    <Button Content="🗑  Delete Selected"
+                                            Command="{Binding DataContext.DeletePartCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
@@ -512,7 +411,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Parts" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Parts}"
@@ -522,15 +421,191 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"       Binding="{Binding Id}"                               Width="50"/>
-                                        <DataGridTextColumn Header="Code"     Binding="{Binding InternalCode}"                     Width="100"/>
-                                        <DataGridTextColumn Header="Name"     Binding="{Binding Name}"                             Width="*"/>
-                                        <DataGridTextColumn Header="Condition" Binding="{Binding Condition}"                        Width="90"/>
-                                        <DataGridTextColumn Header="OEM"      Binding="{Binding OEMNumber}"                        Width="100"/>
-                                        <DataGridTextColumn Header="Cost"     Binding="{Binding CostPrice, StringFormat={}{0:N0}}" Width="80"/>
-                                        <DataGridTextColumn Header="Sale"     Binding="{Binding SalePrice, StringFormat={}{0:N0}}" Width="80"/>
-                                        <DataGridTextColumn Header="Average"  Binding="{Binding AveragePrice, StringFormat={}{0:N0}}" Width="90"/>
-                                        <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock}"                        Width="80"/>
+                                        <DataGridTextColumn Header="ID"       Binding="{Binding Id, Mode=OneWay}"                               Width="50"/>
+                                        <DataGridTextColumn Header="Code"     Binding="{Binding InternalCode, Mode=OneWay}"                     Width="100"/>
+                                        <DataGridTextColumn Header="Barcode"  Binding="{Binding Barcode, Mode=OneWay}"                          Width="120"/>
+                                        <DataGridTextColumn Header="Name"     Binding="{Binding Name, Mode=OneWay}"                             Width="*"/>
+                                        <DataGridTextColumn Header="Condition" Binding="{Binding Condition, Mode=OneWay}"                        Width="90"/>
+                                        <DataGridTextColumn Header="OEM"      Binding="{Binding OEMNumber, Mode=OneWay}"                        Width="100"/>
+                                        <DataGridTextColumn Header="Cost"     Binding="{Binding CostPrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
+                                        <DataGridTextColumn Header="Sale"     Binding="{Binding SalePrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
+                                        <DataGridTextColumn Header="Average"  Binding="{Binding AveragePrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock, Mode=OneWay}"                        Width="80"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="📣  Part Requests" DataContext="{Binding PartRequestsFeature}">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="360"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="New Request" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <Button Content="＋  New / Clear Selection"
+                                            Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                            CommandParameter="PartRequest"
+                                            Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
+
+                                    <Border Background="{DynamicResource CardHighlightBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="12"
+                                            Padding="14"
+                                            Margin="0 0 0 16">
+                                        <StackPanel>
+                                            <TextBlock Text="Demand Signal" FontSize="13" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding BoardSummary}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0 4 0 0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <TextBlock Text="Existing Customer" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Customers}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding NewRequestCustomerId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsTextSearchEnabled="True"/>
+                                    <TextBlock Text="Customer Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Customer Phone" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestCustomerPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+
+                                    <TextBlock Text="Matched Catalog Part" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 4"/>
+                                    <ComboBox ItemsSource="{Binding Parts}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding NewRequestPartId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsTextSearchEnabled="True"/>
+                                    <TextBlock Text="Requested Part *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestPartName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="OEM / Reference" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestOem, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Vehicle Details" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestVehicleDetails, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Quantity" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestQuantity, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Notes" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewRequestNotes, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="86"
+                                             TextWrapping="Wrap"
+                                             AcceptsReturn="True"
+                                             VerticalScrollBarVisibility="Auto"
+                                             Margin="0 0 0 20"/>
+                                    <Button Content="＋  Save Request"
+                                            Command="{Binding SaveCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42"/>
+                                    <Button Content="🗑  Delete Selected"
+                                            Command="{Binding DeleteCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="Parts Request Board" FontSize="18" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding BoardSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                    </StackPanel>
+                                    <Button Content="↻ Refresh" Command="{Binding RefreshCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                </DockPanel>
+
+                                <UniformGrid Grid.Row="1" Columns="4" Margin="0 0 0 14">
+                                    <Button Content="Contacted"
+                                            Command="{Binding MarkContactedCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Margin="0 0 8 0"
+                                            Height="38"/>
+                                    <Button Content="Fulfilled"
+                                            Command="{Binding MarkFulfilledCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            Margin="0 0 8 0"
+                                            Height="38"/>
+                                    <Button Content="Reopen"
+                                            Command="{Binding ReopenCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Margin="0 0 8 0"
+                                            Height="38"/>
+                                    <Button Content="Cancel"
+                                            Command="{Binding CancelCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Height="38"/>
+                                </UniformGrid>
+
+                                <DataGrid Grid.Row="2" ItemsSource="{Binding Requests}"
+                                          SelectedItem="{Binding SelectedRequest, Mode=TwoWay}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                                          IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
+                                          HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="Signal" Width="90">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border CornerRadius="10" Padding="8 3" HorizontalAlignment="Left">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsReadyToContact}" Value="True">
+                                                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock FontSize="11" FontWeight="SemiBold">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text" Value="{Binding SignalText}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsReadyToContact}" Value="True">
+                                                                            <Setter Property="Foreground" Value="White"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" Width="90"/>
+                                        <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName, Mode=OneWay}" Width="150"/>
+                                        <DataGridTextColumn Header="Phone" Binding="{Binding CustomerPhone, Mode=OneWay}" Width="120"/>
+                                        <DataGridTextColumn Header="Requested Part" Binding="{Binding RequestedPartName, Mode=OneWay}" Width="220"/>
+                                        <DataGridTextColumn Header="Matched Code" Binding="{Binding PartInternalCode, Mode=OneWay}" Width="120"/>
+                                        <DataGridTextColumn Header="Customers Waiting" Binding="{Binding WaitingCustomerCount, Mode=OneWay}" Width="125"/>
+                                        <DataGridTextColumn Header="Available" Binding="{Binding AvailableQuantity, Mode=OneWay}" Width="85"/>
+                                        <DataGridTextColumn Header="Qty" Binding="{Binding Quantity, Mode=OneWay}" Width="60"/>
+                                        <DataGridTextColumn Header="Vehicle" Binding="{Binding VehicleDetails, Mode=OneWay}" Width="170"/>
+                                        <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
+                                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes, Mode=OneWay}" Width="*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -539,7 +614,7 @@
                 </TabItem>
 
                 <!-- TAB 5 — CAR BRANDS -->
-                <TabItem Header="🚘  Car Brands">
+                <TabItem Header="🚘  Car Brands" DataContext="{Binding CarModelsFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -549,7 +624,9 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                 <TextBlock Text="Car Brand" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="CarBrand"
+                                <Button Content="＋  New / Clear Selection"
+                                        Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="CarBrand"
                                         Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewCarBrandName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
@@ -559,10 +636,15 @@
                                 <TextBox Text="{Binding NewCarBrandRegionGroup, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Sort Order" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewCarBrandSortOrder, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
-                                <Button Content="＋  Save Car Brand" Command="{Binding SaveCarBrandCommand}"
+                                <Button Content="＋  Save Car Brand" Command="{Binding DataContext.SaveCarBrandCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
-                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteCarBrandCommand}"
+                                <Button Content="🗑  Delete Selected" Command="{Binding DataContext.DeleteCarBrandCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                <Button Content="Import from Excel"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.CarBrands"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
@@ -575,7 +657,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Car Brands" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding CarBrands}"
@@ -585,12 +667,12 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"          Binding="{Binding Id}"              Width="50"/>
-                                        <DataGridTextColumn Header="Name"        Binding="{Binding Name}"            Width="*"/>
-                                        <DataGridTextColumn Header="Country"     Binding="{Binding Country}"         Width="120"/>
-                                        <DataGridTextColumn Header="Region"      Binding="{Binding RegionGroup}"     Width="120"/>
-                                        <DataGridTextColumn Header="Sort Order"  Binding="{Binding SortOrder}"       Width="90"/>
-                                        <DataGridCheckBoxColumn Header="Active"  Binding="{Binding IsActive}"        Width="70"/>
+                                        <DataGridTextColumn Header="ID"          Binding="{Binding Id, Mode=OneWay}"              Width="50"/>
+                                        <DataGridTextColumn Header="Name"        Binding="{Binding Name, Mode=OneWay}"            Width="*"/>
+                                        <DataGridTextColumn Header="Country"     Binding="{Binding Country, Mode=OneWay}"         Width="120"/>
+                                        <DataGridTextColumn Header="Region"      Binding="{Binding RegionGroup, Mode=OneWay}"     Width="120"/>
+                                        <DataGridTextColumn Header="Sort Order"  Binding="{Binding SortOrder, Mode=OneWay}"       Width="90"/>
+                                        <DataGridCheckBoxColumn Header="Active"  Binding="{Binding IsActive, Mode=OneWay}"        Width="70"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -599,7 +681,7 @@
                 </TabItem>
 
                 <!-- TAB 6 — CAR MODELS -->
-                <TabItem Header="🚗  Car Models">
+                <TabItem Header="🚗  Car Models" DataContext="{Binding CarModelsFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -609,7 +691,9 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                 <TextBlock Text="New Car Model" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="CarModel"
+                                <Button Content="＋  New / Clear Selection"
+                                        Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="CarModel"
                                         Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Car Brand" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <ComboBox ItemsSource="{Binding CarBrands}"
@@ -622,10 +706,15 @@
                                 <TextBox Text="{Binding NewCarModelName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Body Type" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewCarModelBodyType, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
-                                <Button Content="＋  Save Car Model" Command="{Binding SaveCarModelCommand}"
+                                <Button Content="＋  Save Car Model" Command="{Binding DataContext.SaveCarModelCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
-                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteCarModelCommand}"
+                                <Button Content="🗑  Delete Selected" Command="{Binding DataContext.DeleteCarModelCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                <Button Content="Import from Excel"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.CarModels"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
@@ -638,7 +727,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Car Models" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding CarModels}"
@@ -648,10 +737,10 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"         Binding="{Binding Id}"                                 Width="50"/>
-                                        <DataGridTextColumn Header="Brand"      Binding="{Binding CarBrandName}"                       Width="140"/>
-                                        <DataGridTextColumn Header="Name"       Binding="{Binding Name}"                               Width="*"/>
-                                        <DataGridTextColumn Header="Body Type"  Binding="{Binding BodyType}"                           Width="120"/>
+                                        <DataGridTextColumn Header="ID"         Binding="{Binding Id, Mode=OneWay}"                                 Width="50"/>
+                                        <DataGridTextColumn Header="Brand"      Binding="{Binding CarBrandName, Mode=OneWay}"                       Width="140"/>
+                                        <DataGridTextColumn Header="Name"       Binding="{Binding Name, Mode=OneWay}"                               Width="*"/>
+                                        <DataGridTextColumn Header="Body Type"  Binding="{Binding BodyType, Mode=OneWay}"                           Width="120"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -660,7 +749,7 @@
                 </TabItem>
 
                 <!-- TAB 7 — WAREHOUSES -->
-                <TabItem Header="🏬  Warehouses">
+                <TabItem Header="🏬  Warehouses" DataContext="{Binding WarehousesFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -670,19 +759,28 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                 <TextBlock Text="New Warehouse" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Warehouse"
+                                <Button Content="＋  New / Clear Selection"
+                                        Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="Warehouse"
                                         Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewWarehouseName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Barcode / QR Code" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                <TextBox Text="{Binding NewWarehouseBarcode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewWarehouseAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <CheckBox Content="Set as main warehouse"
                                           IsChecked="{Binding NewWarehouseIsMain, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           Margin="0 0 0 20"/>
-                                <Button Content="＋  Save Warehouse" Command="{Binding SaveWarehouseCommand}"
+                                <Button Content="＋  Save Warehouse" Command="{Binding DataContext.SaveWarehouseCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
-                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteWarehouseCommand}"
+                                <Button Content="🗑  Delete Selected" Command="{Binding DataContext.DeleteWarehouseCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                <Button Content="Import from Excel"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.Warehouses"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
@@ -695,7 +793,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Warehouses" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Warehouses}"
@@ -705,10 +803,11 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id}"       Width="50"/>
-                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name}"     Width="*"/>
-                                        <DataGridTextColumn Header="Address" Binding="{Binding Address}"  Width="220"/>
-                                        <DataGridCheckBoxColumn Header="Main" Binding="{Binding IsMain}"  Width="60"/>
+                                        <DataGridTextColumn Header="ID"      Binding="{Binding Id, Mode=OneWay}"       Width="50"/>
+                                        <DataGridTextColumn Header="Name"    Binding="{Binding Name, Mode=OneWay}"     Width="*"/>
+                                        <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode, Mode=OneWay}"  Width="120"/>
+                                        <DataGridTextColumn Header="Address" Binding="{Binding Address, Mode=OneWay}"  Width="220"/>
+                                        <DataGridCheckBoxColumn Header="Main" Binding="{Binding IsMain, Mode=OneWay}"  Width="60"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -716,7 +815,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="📍  Locations">
+                <TabItem Header="📍  Locations" DataContext="{Binding LocationsFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -726,20 +825,27 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                 <TextBlock Text="Location" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="Location"
+                                <Button Content="＋  New / Clear Selection"
+                                        Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="Location"
                                         Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewLocationName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Shipping Fees" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <controls:CurrencyCodeSelectorControl Label=""
-                                                                      CurrencyCodes="{Binding LocationCurrencyCodes}"
+                                                                      CurrencyCodes="{Binding DataContext.LocationCurrencyCodes, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                                                       SelectedCurrencyCode="{Binding NewLocationShippingFeesCurrencyCode, Mode=TwoWay}"
                                                                       Margin="0 0 0 8"/>
                                 <TextBox Text="{Binding NewLocationShippingFees, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 20"/>
-                                <Button Content="＋  Save Location" Command="{Binding SaveLocationCommand}"
+                                <Button Content="＋  Save Location" Command="{Binding DataContext.SaveLocationCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
-                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteLocationCommand}"
+                                <Button Content="🗑  Delete Selected" Command="{Binding DataContext.DeleteLocationCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                <Button Content="Import from Excel"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.Location"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
@@ -752,7 +858,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Locations" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding Locations}"
@@ -762,10 +868,10 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID" Binding="{Binding LocationId}" Width="50"/>
-                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="Currency" Binding="{Binding ShippingFeesCurrencyCode}" Width="100"/>
-                                        <DataGridTextColumn Header="Shipping Fees" Binding="{Binding ShippingFees, StringFormat={}{0:N2}}" Width="140"/>
+                                        <DataGridTextColumn Header="ID" Binding="{Binding LocationId, Mode=OneWay}" Width="50"/>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="*"/>
+                                        <DataGridTextColumn Header="Currency" Binding="{Binding ShippingFeesCurrencyCode, Mode=OneWay}" Width="100"/>
+                                        <DataGridTextColumn Header="Shipping Fees" Binding="{Binding ShippingFees, Mode=OneWay, StringFormat={}{0:N2}}" Width="140"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -775,7 +881,8 @@
 
                 <!-- TAB 8 — CURRENCY RATES -->
                 <TabItem Header="💱  Currency Rates"
-                         Visibility="{Binding CanViewCurrencyTab, Converter={StaticResource BoolToVis}}">
+                         DataContext="{Binding CurrencyRatesFeature}"
+                         Visibility="{Binding DataContext.CanViewCurrencyTab, RelativeSource={RelativeSource AncestorType=TabControl}, Converter={StaticResource BoolToVis}}">
                     <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20" Margin="10">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -787,7 +894,13 @@
                                     <TextBlock Text="Currency Rates" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding CurrencyRatesSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
                                 </StackPanel>
-                                <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                <Button Content="Import from Excel"
+                                        Command="{Binding ImportFromExcelCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        DockPanel.Dock="Right"
+                                        Padding="14 6"
+                                        Margin="0 0 8 0"/>
+                                <Button Content="↻ Refresh" Command="{Binding RefreshCommand}"
                                         Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                             </DockPanel>
                             <DataGrid Grid.Row="1"
@@ -804,10 +917,10 @@
                                       GridLinesVisibility="None"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="90"/>
-                                    <DataGridTextColumn Header="Rate To Base" Binding="{Binding BaseRate, StringFormat={}{0:N6}}" Width="140"/>
-                                    <DataGridTextColumn Header="Rate To Counter" Binding="{Binding CounterRate, StringFormat={}{0:N6}}" Width="150"/>
-                                    <DataGridTextColumn Header="Snapshot (UTC)" Binding="{Binding SnapshotUtc, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="220"/>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code, Mode=OneWay}" Width="90"/>
+                                    <DataGridTextColumn Header="Rate To Base" Binding="{Binding BaseRate, Mode=OneWay, StringFormat={}{0:N6}}" Width="140"/>
+                                    <DataGridTextColumn Header="Rate To Counter" Binding="{Binding CounterRate, Mode=OneWay, StringFormat={}{0:N6}}" Width="150"/>
+                                    <DataGridTextColumn Header="Snapshot (UTC)" Binding="{Binding SnapshotUtc, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="220"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
@@ -816,7 +929,8 @@
 
                 <!-- TAB 9 — TRANSACTION TYPES -->
                 <TabItem Header="🔁  Transaction Types"
-                         Visibility="{Binding CanViewTransactionTypesTab, Converter={StaticResource BoolToVis}}">
+                         DataContext="{Binding TransactionTypesFeature}"
+                         Visibility="{Binding DataContext.CanViewTransactionTypesTab, RelativeSource={RelativeSource AncestorType=TabControl}, Converter={StaticResource BoolToVis}}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
@@ -826,12 +940,14 @@
                                 CornerRadius="10" Padding="24" Margin="0 0 12 0">
                             <StackPanel>
                                 <TextBlock Text="Transaction Type" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
-                                <Button Content="＋  New / Clear Selection" Command="{Binding StartNewManagementItemCommand}" CommandParameter="TransactionType"
+                                <Button Content="＋  New / Clear Selection"
+                                        Command="{Binding DataContext.StartNewManagementItemCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="TransactionType"
                                         Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="38" Margin="0 0 0 16"/>
                                 <TextBlock Text="Name *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewTransactionTypeName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Key (generated)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                <TextBox Text="{Binding SelectedTransactionType.TypeKey}" IsReadOnly="True" Margin="0 0 0 10"/>
+                                <TextBox Text="{Binding SelectedTransactionType.TypeKey, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 10"/>
                                 <TextBlock Text="Currency Code *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                 <TextBox Text="{Binding NewTransactionCurrencyCode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                 <TextBlock Text="Counter Rate *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -850,10 +966,15 @@
                                 <CheckBox Content="Active"
                                           IsChecked="{Binding NewTransactionIsActive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           Margin="0 0 0 20"/>
-                                <Button Content="＋  Save Transaction Type" Command="{Binding SaveTransactionTypeCommand}"
+                                <Button Content="＋  Save Transaction Type" Command="{Binding DataContext.SaveTransactionTypeCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42"/>
-                                <Button Content="🗑  Delete Selected" Command="{Binding DeleteTransactionTypeCommand}"
+                                <Button Content="🗑  Delete Selected" Command="{Binding DataContext.DeleteTransactionTypeCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                <Button Content="Import from Excel"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.TransactionTypes"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                             </StackPanel>
@@ -866,7 +987,7 @@
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                                     <TextBlock Text="All Transaction Types" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
                                 <DataGrid Grid.Row="1" ItemsSource="{Binding TransactionTypes}"
@@ -876,15 +997,15 @@
                                           HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None"
                                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
-                                        <DataGridTextColumn Header="Key" Binding="{Binding TypeKey}" Width="140"/>
-                                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode}" Width="100"/>
-                                        <DataGridTextColumn Header="Counter Rate" Binding="{Binding CounterRate, StringFormat={}{0:N6}}" Width="140"/>
-                                        <DataGridTextColumn Header="Serial Format" Binding="{Binding SerialNumberFormat}" Width="240"/>
-                                        <DataGridTextColumn Header="Start" Binding="{Binding StartNumber}" Width="90"/>
-                                        <DataGridTextColumn Header="Current" Binding="{Binding CurrentNumber}" Width="100"/>
-                                        <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="70"/>
+                                        <DataGridTextColumn Header="ID" Binding="{Binding Id, Mode=OneWay}" Width="60"/>
+                                        <DataGridTextColumn Header="Key" Binding="{Binding TypeKey, Mode=OneWay}" Width="140"/>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" Width="*"/>
+                                        <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode, Mode=OneWay}" Width="100"/>
+                                        <DataGridTextColumn Header="Counter Rate" Binding="{Binding CounterRate, Mode=OneWay, StringFormat={}{0:N6}}" Width="140"/>
+                                        <DataGridTextColumn Header="Serial Format" Binding="{Binding SerialNumberFormat, Mode=OneWay}" Width="240"/>
+                                        <DataGridTextColumn Header="Start" Binding="{Binding StartNumber, Mode=OneWay}" Width="90"/>
+                                        <DataGridTextColumn Header="Current" Binding="{Binding CurrentNumber, Mode=OneWay}" Width="100"/>
+                                        <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive, Mode=OneWay}" Width="70"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -893,7 +1014,7 @@
                 </TabItem>
 
 
-                <TabItem Header="🚘  Used Cars">
+                <TabItem Header="🚘  Used Cars" DataContext="{Binding UsedCarsFeature}">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="360"/>
@@ -908,118 +1029,89 @@
                                     <Border Background="{DynamicResource CardHighlightBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="18"
-                                            Padding="18"
+                                            CornerRadius="16"
+                                            Padding="14"
                                             Margin="0 0 0 16">
                                         <StackPanel>
-                                            <TextBlock Text="Quick Actions" FontSize="13" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Keep the most common used-car actions one tap away."
-                                                       FontSize="11"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       Margin="0 4 0 12"/>
-                                            <StackPanel>
-                                                <Button Command="{Binding StartNewManagementItemCommand}"
-                                                        CommandParameter="UsedCar"
+                                            <DockPanel>
+                                                <StackPanel DockPanel.Dock="Left">
+                                                    <TextBlock Text="Actions" FontSize="13" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="New car, photos, and linked parts."
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               Margin="0 4 0 0"/>
+                                                </StackPanel>
+                                            </DockPanel>
+                                            <UniformGrid Columns="3" Margin="0 12 0 0">
+                                                <Button Command="{Binding StartNewCommand}"
                                                         Style="{StaticResource ManagementActionTileButtonStyle}"
-                                                        Margin="0 0 0 8">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock Text="FORM"
-                                                                       FontSize="10"
+                                                        Margin="0 0 8 0">
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <Border Background="{DynamicResource CardBackgroundBrush}"
+                                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="9"
+                                                                Padding="8 3"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Text="NEW"
+                                                                       FontSize="9"
                                                                        FontWeight="Bold"
                                                                        Foreground="{DynamicResource AccentBrush}"/>
-                                                            <TextBlock Text="Start Fresh"
-                                                                       FontSize="16"
-                                                                       FontWeight="SemiBold"
-                                                                       Margin="0 7 0 3"/>
-                                                            <TextBlock Text="Create a clean draft and clear the currently selected used car."
-                                                                       FontSize="11"
-                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                       TextWrapping="Wrap"/>
-                                                        </StackPanel>
-
-                                                        <TextBlock Grid.Column="1"
-                                                                   Text="→"
-                                                                   FontSize="18"
+                                                        </Border>
+                                                        <TextBlock Text="Start Fresh"
+                                                                   FontSize="11"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="16 0 0 0"/>
-                                                    </Grid>
+                                                                   TextAlignment="Center"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0 8 0 0"/>
+                                                    </StackPanel>
                                                 </Button>
 
-                                                <Button Command="{Binding OpenUsedCarGalleryCommand}"
+                                                <Button Command="{Binding OpenGalleryCommand}"
                                                         Style="{StaticResource ManagementActionTileButtonStyle}"
-                                                        Margin="0 0 0 8">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock Text="MEDIA"
-                                                                       FontSize="10"
+                                                        Margin="0 0 8 0">
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <Border Background="{DynamicResource CardBackgroundBrush}"
+                                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="9"
+                                                                Padding="8 3"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Text="VIEW"
+                                                                       FontSize="9"
                                                                        FontWeight="Bold"
                                                                        Foreground="{DynamicResource AccentBrush}"/>
-                                                            <TextBlock Text="Open Gallery"
-                                                                       FontSize="16"
-                                                                       FontWeight="SemiBold"
-                                                                       Margin="0 7 0 3"/>
-                                                            <TextBlock Text="Review photos, upload new ones, and tidy the saved image set."
-                                                                       FontSize="11"
-                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                       TextWrapping="Wrap"/>
-                                                        </StackPanel>
-
-                                                        <TextBlock Grid.Column="1"
-                                                                   Text="→"
-                                                                   FontSize="18"
+                                                        </Border>
+                                                        <TextBlock Text="Open Gallery"
+                                                                   FontSize="11"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="16 0 0 0"/>
-                                                    </Grid>
+                                                                   TextAlignment="Center"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0 8 0 0"/>
+                                                    </StackPanel>
                                                 </Button>
 
-                                                <Button Command="{Binding OpenUsedCarPartsCommand}"
+                                                <Button Command="{Binding OpenPartsCommand}"
                                                         Style="{StaticResource ManagementActionTileButtonStyle}">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock Text="INVENTORY"
-                                                                       FontSize="10"
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <Border Background="{DynamicResource AccentBrush}"
+                                                                CornerRadius="9"
+                                                                Padding="8 3"
+                                                                HorizontalAlignment="Center">
+                                                            <TextBlock Text="ADD"
+                                                                       FontSize="9"
                                                                        FontWeight="Bold"
-                                                                       Foreground="{DynamicResource AccentBrush}"/>
-                                                            <TextBlock Text="Manage Parts"
-                                                                       FontSize="16"
-                                                                       FontWeight="SemiBold"
-                                                                       Margin="0 7 0 3"/>
-                                                            <TextBlock Text="Open the linked parts workspace and move items in or out of this car."
-                                                                       FontSize="11"
-                                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                       TextWrapping="Wrap"/>
-                                                        </StackPanel>
-
-                                                        <TextBlock Grid.Column="1"
-                                                                   Text="→"
-                                                                   FontSize="18"
+                                                                       Foreground="White"/>
+                                                        </Border>
+                                                        <TextBlock Text="Add Parts"
+                                                                   FontSize="11"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="16 0 0 0"/>
-                                                    </Grid>
+                                                                   TextAlignment="Center"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0 8 0 0"/>
+                                                    </StackPanel>
                                                 </Button>
-                                            </StackPanel>
+                                            </UniformGrid>
                                         </StackPanel>
                                     </Border>
                                     <TextBlock Text="Car Model *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -1029,6 +1121,8 @@
                                                SelectedValue="{Binding NewUsedCarCarModelId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                Style="{StaticResource ManagementComboBoxStyle}"
                                                Margin="0 0 0 8"/>
+                                    <TextBlock Text="Barcode / QR Code" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarBarcode, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="Supplier *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding Suppliers}"
                                                SelectedValuePath="Id"
@@ -1040,15 +1134,15 @@
                                     <TextBox Text="{Binding NewUsedCarModelYear, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="Price Currency" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <controls:CurrencyCodeSelectorControl Label=""
-                                                                          CurrencyCodes="{Binding UsedCarCurrencyCodes}"
+                                                                          CurrencyCodes="{Binding CurrencyCodes}"
                                                                           SelectedCurrencyCode="{Binding NewUsedCarPriceCurrency, Mode=TwoWay}"
                                                                           Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarPriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarBasePriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarPriceBase}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarPriceBase, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarCounterPriceLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarPriceCounter}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarPriceCounter, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <TextBlock Text="Location *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding Locations}"
                                                SelectedValuePath="LocationId"
@@ -1057,7 +1151,7 @@
                                                Style="{StaticResource ManagementComboBoxStyle}"
                                                Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarTransportationLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarTransportation}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarTransportation, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <CheckBox Content="Is Received"
                                               IsChecked="{Binding NewUsedCarIsReceived, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               Margin="0 0 0 8"/>
@@ -1070,17 +1164,23 @@
                                     <TextBox Text="{Binding NewUsedCarShipping, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarCustomsLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarCustoms, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <TextBlock Text="{Binding UsedCarRepairsLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarRepairs, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarTotalBeforeShippingLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarTotalBeforeShipping}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarTotalBeforeShipping, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarGrandTotalBaseLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarGrandTotalBase}" IsReadOnly="True" Margin="0 0 0 8"/>
+                                    <TextBox Text="{Binding NewUsedCarGrandTotalBase, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarGrandTotalCounterLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
-                                    <TextBox Text="{Binding NewUsedCarGrandTotalCounter}" IsReadOnly="True" Margin="0 0 0 20"/>
+                                    <TextBox Text="{Binding NewUsedCarGrandTotalCounter, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 20"/>
 
-                                    <Button Content="💾  Save Used Car" Command="{Binding AddUsedCarCommand}"
+                                    <Button Content="💾  Save Used Car" Command="{Binding SaveCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Stretch" Height="42"/>
-                                    <Button Content="🗑  Remove Selected" Command="{Binding RemoveUsedCarCommand}"
+                                    <Button Content="🗑  Remove Selected" Command="{Binding DeleteCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
+                                    <Button Content="Import from Excel"
+                                            Command="{Binding ImportFromExcelCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch" Height="42" Margin="0 10 0 0"/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
@@ -1088,6 +1188,7 @@
                         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="10" Padding="20">
                             <Grid>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
@@ -1099,12 +1200,80 @@
                                             <TextBlock Text="{Binding UsedCarsTotalBaseAmount, StringFormat={} {0:N2}}" FontSize="11" FontWeight="SemiBold" Margin="6 0 16 0" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding UsedCarsTotalCounterLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding UsedCarsTotalCounterAmount, StringFormat={} {0:N2}}" FontSize="11" FontWeight="SemiBold" Margin="6 0 0 0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Net P/L Base" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="16 0 0 0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding UsedCarsNetProfitLossBaseAmount, StringFormat={} {0:N2}}" FontSize="11" FontWeight="SemiBold" Margin="6 0 0 0" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </StackPanel>
-                                    <Button Content="↻ Refresh" Command="{Binding LoadAllCommand}"
+                                    <Button Content="↻ Refresh" Command="{Binding RefreshCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
-                                <DataGrid Grid.Row="1" ItemsSource="{Binding UsedCars}" SelectedItem="{Binding SelectedUsedCar, Mode=TwoWay}"
+
+                                <Grid Grid.Row="1" Margin="0 0 0 14">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Profit Center Cost Card"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"
+                                               Margin="0 0 0 8"/>
+                                    <UniformGrid Grid.Row="1" Columns="6">
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Purchase" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.PurchaseCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Transport" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.TransportationCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Customs" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.CustomsCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Shipping" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.ShippingCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Part-Out" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.PartOutCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Repairs" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.RepairsCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 8">
+                                            <TextBlock Text="Full Cost" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.FullCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Parts Removed" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.PartsRemovedCount, StringFormat={}{0:N0}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Parts Sold" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.PartsSoldQuantity, StringFormat={}{0:N0}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Sale Price" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.SalePriceBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Remaining Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.RemainingStockValueBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Stock Qty" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.RemainingStockQuantity, StringFormat={}{0:N0}}" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Net Profit/Loss" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.NetProfitLossBase, StringFormat={}{0:N2}}" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                </Grid>
+
+                                <DataGrid Grid.Row="2" ItemsSource="{Binding UsedCars}" SelectedItem="{Binding SelectedUsedCar, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
                                           IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column"
                                           BorderThickness="0" GridLinesVisibility="All" ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -1120,23 +1289,30 @@
                                         </Style>
                                     </DataGrid.RowStyle>
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="140"/>
-                                        <DataGridTextColumn Header="Car" Binding="{Binding Car}" Width="150"/>
-                                        <DataGridTextColumn Header="Model" Binding="{Binding ModelYear}" Width="70"/>
-                                        <DataGridTextColumn Header="Price Currency" Binding="{Binding PriceCurrency}" Width="95"/>
-                                        <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat={}{0:N1}}" Width="90"/>
-                                        <DataGridTextColumn Header="Price Base" Binding="{Binding PriceBase, StringFormat={}{0:N1}}" Width="90"/>
-                                        <DataGridTextColumn Header="Price Counter" Binding="{Binding PriceCounter, StringFormat={}{0:N1}}" Width="100"/>
-                                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="100"/>
-                                        <DataGridTextColumn Header="Transportation" Binding="{Binding Transportation, StringFormat={}{0:N0}}" Width="110"/>
-                                        <DataGridCheckBoxColumn Header="Received" Binding="{Binding IsReceived}" Width="80"/>
-                                        <DataGridCheckBoxColumn Header="Shipped" Binding="{Binding IsShipped}" Width="80"/>
-                                        <DataGridTextColumn Header="Total before Shipping" Binding="{Binding TotalBeforeShipping, StringFormat={}{0:N1}}" Width="150"/>
-                                        <DataGridTextColumn Header="PartOut" Binding="{Binding PartOut, StringFormat={}{0:N1}}" Width="90"/>
-                                        <DataGridTextColumn Header="Shipping" Binding="{Binding Shipping, StringFormat={}{0:N0}}" Width="90"/>
-                                        <DataGridTextColumn Header="Customs" Binding="{Binding Customs, StringFormat={}{0:N0}}" Width="90"/>
-                                        <DataGridTextColumn Header="Grand Total Base" Binding="{Binding GrandTotalBase, StringFormat={}{0:N1}}" Width="120"/>
-                                        <DataGridTextColumn Header="Grand Total Counter" Binding="{Binding GrandTotalCounter, StringFormat={}{0:N1}}" Width="140"/>
+                                        <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode, Mode=OneWay}" Width="110"/>
+                                        <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName, Mode=OneWay}" Width="140"/>
+                                        <DataGridTextColumn Header="Car" Binding="{Binding Car, Mode=OneWay}" Width="150"/>
+                                        <DataGridTextColumn Header="Model" Binding="{Binding ModelYear, Mode=OneWay}" Width="70"/>
+                                        <DataGridTextColumn Header="Price Currency" Binding="{Binding PriceCurrency, Mode=OneWay}" Width="95"/>
+                                        <DataGridTextColumn Header="Price" Binding="{Binding Price, Mode=OneWay, StringFormat={}{0:N1}}" Width="90"/>
+                                        <DataGridTextColumn Header="Price Base" Binding="{Binding PriceBase, Mode=OneWay, StringFormat={}{0:N1}}" Width="90"/>
+                                        <DataGridTextColumn Header="Price Counter" Binding="{Binding PriceCounter, Mode=OneWay, StringFormat={}{0:N1}}" Width="100"/>
+                                        <DataGridTextColumn Header="Location" Binding="{Binding Location, Mode=OneWay}" Width="100"/>
+                                        <DataGridTextColumn Header="Transportation" Binding="{Binding Transportation, Mode=OneWay, StringFormat={}{0:N0}}" Width="110"/>
+                                        <DataGridCheckBoxColumn Header="Received" Binding="{Binding IsReceived, Mode=OneWay}" Width="80"/>
+                                        <DataGridCheckBoxColumn Header="Shipped" Binding="{Binding IsShipped, Mode=OneWay}" Width="80"/>
+                                        <DataGridTextColumn Header="Total before Shipping" Binding="{Binding TotalBeforeShipping, Mode=OneWay, StringFormat={}{0:N1}}" Width="150"/>
+                                        <DataGridTextColumn Header="PartOut" Binding="{Binding PartOut, Mode=OneWay, StringFormat={}{0:N1}}" Width="90"/>
+                                        <DataGridTextColumn Header="Shipping" Binding="{Binding Shipping, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Customs" Binding="{Binding Customs, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Repairs" Binding="{Binding Repairs, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Grand Total Base" Binding="{Binding GrandTotalBase, Mode=OneWay, StringFormat={}{0:N1}}" Width="120"/>
+                                        <DataGridTextColumn Header="Grand Total Counter" Binding="{Binding GrandTotalCounter, Mode=OneWay, StringFormat={}{0:N1}}" Width="140"/>
+                                        <DataGridTextColumn Header="Parts Removed" Binding="{Binding PartsRemovedCount, Mode=OneWay, StringFormat={}{0:N0}}" Width="115"/>
+                                        <DataGridTextColumn Header="Parts Sold" Binding="{Binding PartsSoldQuantity, Mode=OneWay, StringFormat={}{0:N0}}" Width="95"/>
+                                        <DataGridTextColumn Header="Sale Price" Binding="{Binding SalePriceBase, Mode=OneWay, StringFormat={}{0:N1}}" Width="100"/>
+                                        <DataGridTextColumn Header="Remaining Stock" Binding="{Binding RemainingStockValueBase, Mode=OneWay, StringFormat={}{0:N1}}" Width="130"/>
+                                        <DataGridTextColumn Header="Net P/L" Binding="{Binding NetProfitLossBase, Mode=OneWay, StringFormat={}{0:N1}}" Width="100"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>
@@ -1144,235 +1320,200 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="📥  Excel Manager">
+                <TabItem Header="Excel Manager">
                     <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="320"/>
-                            <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0"
-                                Background="{DynamicResource CardBackgroundBrush}"
-                                CornerRadius="18"
-                                Padding="20">
+                        <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24" Margin="0 0 12 0">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="Excel Manager" FontSize="18" FontWeight="Bold" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Choose the table, load the Excel file, map the headers, then import."
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               Margin="0 0 0 16"/>
+
+                                    <TextBlock Text="System Table *" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding ExcelManagerFeature.Targets}"
+                                              SelectedItem="{Binding ExcelManagerFeature.SelectedTarget, Mode=TwoWay}"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource ManagementComboBoxStyle}"/>
+
+                                    <TextBlock Text="{Binding ExcelManagerFeature.SelectedTargetSummary}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               Margin="0 0 0 16"/>
+
+                                    <TextBlock Text="Workbook" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding ExcelManagerFeature.WorkbookPath}"
+                                             IsReadOnly="True"
+                                             Height="38"
+                                             Margin="0 0 0 10"/>
+
+                                    <Button Content="Browse Workbook"
+                                            Command="{Binding ExcelManagerFeature.BrowseWorkbookCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Height="38"
+                                            Margin="0 0 0 16"/>
+
+                                    <Button Content="Auto Match Headers"
+                                            Command="{Binding ExcelManagerFeature.AutoMatchCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Height="42"
+                                            Margin="0 0 0 10"/>
+                                    <Button Content="Save Mapping"
+                                            Command="{Binding ExcelManagerFeature.SaveMappingCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Height="42"
+                                            Margin="0 0 0 10"/>
+                                    <Button Content="Import Workbook"
+                                            Command="{Binding ExcelManagerFeature.ImportCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Height="42"/>
+
+                                    <TextBlock Text="{Binding ExcelManagerFeature.Status}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               TextWrapping="Wrap"
+                                               Margin="0 14 0 0"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10" Padding="24">
                             <Grid>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <StackPanel Grid.Row="0" Margin="0 0 0 16">
-                                    <TextBlock Text="Excel Manager" FontSize="22" FontWeight="Bold"/>
-                                    <TextBlock Text="Choose a system table, load a workbook, then link each Excel header to the right field before importing."
-                                               Margin="0 8 0 0"
-                                               FontSize="12"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
+                                <TextBlock Text="Header Mapping" FontSize="18" FontWeight="Bold" Margin="0 0 0 8"/>
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding ExcelManagerFeature.WorkbookSummary}"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0 0 0 14"/>
 
-                                <ListBox Grid.Row="1"
-                                         ItemsSource="{Binding ExcelManagerFeature.Targets}"
-                                         SelectedItem="{Binding ExcelManagerFeature.SelectedTarget, Mode=TwoWay}"
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         ItemContainerStyle="{StaticResource ExcelManagerTargetListBoxItemStyle}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding Summary}"
-                                                           Margin="0 6 0 0"
-                                                           FontSize="11"
-                                                           Foreground="{DynamicResource AccentBrush}"/>
-                                                <TextBlock Text="{Binding Description}"
-                                                           Margin="0 8 0 0"
-                                                           FontSize="11"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                                <DataGrid Grid.Row="2"
+                                          ItemsSource="{Binding ExcelManagerFeature.MappingRows}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          CanUserDeleteRows="False"
+                                          CanUserResizeRows="False"
+                                          HeadersVisibility="Column"
+                                          RowHeight="48"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Required"
+                                                            Binding="{Binding RequirementLabel}"
+                                                            Width="85"
+                                                            IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="System Column"
+                                                            Binding="{Binding ColumnName}"
+                                                            Width="160"
+                                                            IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="Type"
+                                                            Binding="{Binding DataTypeLabel}"
+                                                            Width="95"
+                                                            IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="Description"
+                                                            Binding="{Binding Description}"
+                                                            Width="*"
+                                                            IsReadOnly="True"/>
+                                        <DataGridTemplateColumn Header="Excel Header" Width="240">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.ExcelManagerFeature.WorkbookHeaderOptions, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                              SelectedItem="{Binding SelectedHeader, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              Style="{StaticResource ExcelManagerInlineComboBoxStyle}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </Grid>
                         </Border>
-
-                        <Grid Grid.Column="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <Border Grid.Row="0"
-                                    Background="{DynamicResource CardBackgroundBrush}"
-                                    CornerRadius="18"
-                                    Padding="20"
-                                    Margin="0 0 0 14">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding ExcelManagerFeature.SelectedTargetSummary}"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding ExcelManagerFeature.WorkbookSummary}"
-                                               Margin="0 8 0 0"
-                                               FontSize="12"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               TextWrapping="Wrap"/>
-
-                                    <DockPanel Margin="0 16 0 0">
-                                        <TextBox Text="{Binding ExcelManagerFeature.WorkbookPath}"
-                                                 IsReadOnly="True"
-                                                 VerticalAlignment="Center"
-                                                 Margin="0 0 12 0"/>
-                                        <Button Content="Browse Workbook"
-                                                Command="{Binding ExcelManagerFeature.BrowseWorkbookCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Padding="14 8"
-                                                DockPanel.Dock="Right"/>
-                                    </DockPanel>
-
-                                    <WrapPanel Margin="0 14 0 0">
-                                        <Button Content="Auto Match"
-                                                Command="{Binding ExcelManagerFeature.AutoMatchCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Padding="14 8"
-                                                Margin="0 0 10 10"/>
-                                        <Button Content="Save Mapping"
-                                                Command="{Binding ExcelManagerFeature.SaveMappingCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}"
-                                                Padding="14 8"
-                                                Margin="0 0 10 10"/>
-                                        <Button Content="Import Workbook"
-                                                Command="{Binding ExcelManagerFeature.ImportCommand}"
-                                                Style="{StaticResource PrimaryButtonStyle}"
-                                                Padding="16 8"
-                                                Margin="0 0 0 10"/>
-                                    </WrapPanel>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Grid.Row="1"
-                                    Background="{DynamicResource CardBackgroundBrush}"
-                                    CornerRadius="18"
-                                    Padding="20"
-                                    Margin="0 0 0 14">
-                                <StackPanel>
-                                    <TextBlock Text="Detected Excel Headers" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock Text="The manager auto-suggests mappings, but you can override each one before importing."
-                                               Margin="0 8 0 0"
-                                               FontSize="11"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               TextWrapping="Wrap"/>
-                                    <ItemsControl ItemsSource="{Binding ExcelManagerFeature.WorkbookHeaders}" Margin="0 14 0 0">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="{DynamicResource CardHighlightBrush}"
-                                                        BorderBrush="{DynamicResource BorderBrush}"
-                                                        BorderThickness="1"
-                                                        CornerRadius="12"
-                                                        Padding="12 7"
-                                                        Margin="0 0 10 10">
-                                                    <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold"/>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Grid.Row="2"
-                                    Background="{DynamicResource CardBackgroundBrush}"
-                                    CornerRadius="18"
-                                    Padding="20">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-
-                                    <StackPanel Grid.Row="0" Margin="0 0 0 14">
-                                        <TextBlock Text="Header Mapping" FontSize="18" FontWeight="Bold"/>
-                                        <TextBlock Text="Each row below is a field in the selected screen. Choose which Excel header should populate it."
-                                                   Margin="0 8 0 0"
-                                                   FontSize="12"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   TextWrapping="Wrap"/>
-                                    </StackPanel>
-
-                                    <DataGrid Grid.Row="1"
-                                              ItemsSource="{Binding ExcelManagerFeature.MappingRows}"
-                                              AutoGenerateColumns="False"
-                                              CanUserAddRows="False"
-                                              CanUserDeleteRows="False"
-                                              CanUserResizeRows="False"
-                                              HeadersVisibility="Column"
-                                              BorderThickness="0"
-                                              GridLinesVisibility="None"
-                                              RowHeight="78"
-                                              AlternationCount="2"
-                                              AlternatingRowBackground="#0AFFFFFF">
-                                        <DataGrid.Columns>
-                                            <DataGridTextColumn Header="System Column"
-                                                                Binding="{Binding ColumnName}"
-                                                                Width="170"
-                                                                IsReadOnly="True"/>
-                                            <DataGridTextColumn Header="Type"
-                                                                Binding="{Binding DataTypeLabel}"
-                                                                Width="90"
-                                                                IsReadOnly="True"/>
-                                            <DataGridTextColumn Header="Required"
-                                                                Binding="{Binding RequirementLabel}"
-                                                                Width="90"
-                                                                IsReadOnly="True"/>
-                                            <DataGridTextColumn Header="Description"
-                                                                Binding="{Binding Description}"
-                                                                Width="*"
-                                                                IsReadOnly="True"/>
-                                            <DataGridTemplateColumn Header="Excel Header" Width="240">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <ComboBox ItemsSource="{Binding DataContext.ExcelManagerFeature.WorkbookHeaderOptions, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                                  SelectedItem="{Binding SelectedHeader, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                  Style="{StaticResource ExcelManagerInlineComboBoxStyle}"/>
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-                                        </DataGrid.Columns>
-                                    </DataGrid>
-                                </Grid>
-                            </Border>
-
-                            <Border Grid.Row="3"
-                                    Background="{DynamicResource CardBackgroundBrush}"
-                                    CornerRadius="14"
-                                    Padding="16"
-                                    Margin="0 14 0 0">
-                                <TextBlock Text="{Binding ExcelManagerFeature.Status}"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource AccentBrush}"
-                                           TextWrapping="Wrap"/>
-                            </Border>
-                        </Grid>
                     </Grid>
                 </TabItem>
 
                 <TabItem Header="📒  Accounting Setup" DataContext="{Binding AccountingVm}">
-                    <local:AccountingSetupControl Margin="10"/>
+                    <DockPanel Margin="10">
+                        <Border DockPanel.Dock="Top"
+                                Background="{DynamicResource CardBackgroundBrush}"
+                                CornerRadius="10"
+                                Padding="12"
+                                Margin="0 0 0 10">
+                            <WrapPanel>
+                                <Button Content="Import Accounts"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.Accounts"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Padding="14 6"
+                                        Margin="0 0 8 0"/>
+                                <Button Content="Import Account Types"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.AccountingAccountTypes"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Padding="14 6"
+                                        Margin="0 0 8 0"/>
+                                <Button Content="Import Posting Roles"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.AccountingPostingRoles"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Padding="14 6"
+                                        Margin="0 0 8 0"/>
+                                <Button Content="Import Posting Setup"
+                                        Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        CommandParameter="dbo.AccountingPostingSettings"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Padding="14 6"/>
+                            </WrapPanel>
+                        </Border>
+                        <local:AccountingSetupControl/>
+                    </DockPanel>
                 </TabItem>
 
                 <!-- USERS (UsersVm sub-binding) -->
                 <TabItem Header="👥  Users" DataContext="{Binding UsersVm}">
-                    <controls:UsersTab/>
+                    <DockPanel Margin="10">
+                        <Button DockPanel.Dock="Top"
+                                Content="Import from Excel"
+                                Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                CommandParameter="dbo.Users"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                HorizontalAlignment="Left"
+                                Padding="14 6"
+                                Margin="0 0 0 10"/>
+                        <controls:UsersTab/>
+                    </DockPanel>
                 </TabItem>
 
                 <TabItem Header="🔑  Roles" DataContext="{Binding RolesVm}">
-                    <controls:RolesTab Margin="10"/>
+                    <DockPanel Margin="10">
+                        <Button DockPanel.Dock="Top"
+                                Content="Import from Excel"
+                                Command="{Binding DataContext.ExcelManagerFeature.ImportTableCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                CommandParameter="dbo.Roles"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                HorizontalAlignment="Left"
+                                Padding="14 6"
+                                Margin="0 0 0 10"/>
+                        <controls:RolesTab/>
+                    </DockPanel>
                 </TabItem>
             </TabControl>
         </DataTemplate>

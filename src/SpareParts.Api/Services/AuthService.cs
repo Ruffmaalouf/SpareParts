@@ -1,9 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Data;
+using System.Net.Http.Json;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 using Dapper;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Services;
@@ -14,11 +19,19 @@ public sealed class AuthService
 {
     private readonly ISqlConnectionFactory _factory;
     private readonly JwtSettings _jwt;
+    private readonly ExternalAuthSettings _externalAuth;
+    private readonly HttpClient _httpClient;
 
-    public AuthService(ISqlConnectionFactory factory, JwtSettings jwt)
+    public AuthService(
+        ISqlConnectionFactory factory,
+        JwtSettings jwt,
+        ExternalAuthSettings externalAuth,
+        HttpClient httpClient)
     {
         _factory = factory;
         _jwt = jwt;
+        _externalAuth = externalAuth;
+        _httpClient = httpClient;
     }
 
     public LoginResponse Login(LoginRequest request)
@@ -30,7 +43,7 @@ public sealed class AuthService
 
         using var conn = _factory.CreateConnection();
         var user = conn.QueryFirstOrDefault<UserRow>(
-            "SELECT Id, Username, FullName, PasswordHash, Role, IsActive FROM Users WHERE Username = @Username",
+            "SELECT Id, Username, FullName, PasswordHash, Role, RoleId, IsActive FROM Users WHERE Username = @Username",
             new { request.Username });
 
         if (user == null || !user.IsActive)
@@ -57,12 +70,91 @@ public sealed class AuthService
             "UPDATE Users SET LastLoginAt = @Now WHERE Id = @Id",
             new { Now = DateTime.UtcNow, user.Id });
 
+        return CreateLoginResponse(user);
+    }
+
+    public async Task<LoginResponse> ExternalLoginAsync(ExternalLoginRequest request, CancellationToken cancellationToken = default)
+    {
+        var profile = await VerifyExternalProfileAsync(request, cancellationToken);
+        var roleName = ResolveWebAppUserRoleName();
+        var username = BuildExternalUsername(profile.Provider, profile.ProviderUserId);
+
+        using var conn = _factory.CreateConnection();
+        var user = conn.QueryFirstOrDefault<UserRow>(
+            "SELECT Id, Username, FullName, Email, PasswordHash, Role, RoleId, IsActive FROM Users WHERE Username = @Username",
+            new { Username = username });
+
+        if (user == null)
+        {
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N"), workFactor: 12);
+            var userId = conn.ExecuteScalar<int>(
+                @"INSERT INTO Users (Username, FullName, Email, PasswordHash, Role, IsActive, CreatedAt, LastLoginAt)
+                  VALUES (@Username, @FullName, @Email, @PasswordHash, @Role, 1, @Now, @Now);
+                  SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                new
+                {
+                    Username = username,
+                    FullName = profile.FullName,
+                    profile.Email,
+                    PasswordHash = passwordHash,
+                    Role = roleName,
+                    Now = DateTime.UtcNow
+                });
+
+            user = new UserRow
+            {
+                Id = userId,
+                Username = username,
+                FullName = profile.FullName,
+                Email = profile.Email,
+                PasswordHash = passwordHash,
+                Role = roleName,
+                RoleId = WebAppUserRoleMigration.RoleId,
+                IsActive = true
+            };
+            SetWebAppRoleId(conn, userId);
+        }
+        else
+        {
+            conn.Execute(
+                @"UPDATE Users
+                  SET FullName = @FullName,
+                      Email = @Email,
+                      Role = @Role,
+                      IsActive = 1,
+                      LastLoginAt = @Now,
+                      ModifiedAt = @Now
+                  WHERE Id = @Id",
+                new
+                {
+                    user.Id,
+                    FullName = profile.FullName,
+                    profile.Email,
+                    Role = roleName,
+                    Now = DateTime.UtcNow
+                });
+
+            user.FullName = profile.FullName;
+            user.Email = profile.Email;
+            user.Role = roleName;
+            user.RoleId = WebAppUserRoleMigration.RoleId;
+            user.IsActive = true;
+            SetWebAppRoleId(conn, user.Id);
+        }
+
+        return CreateLoginResponse(user);
+    }
+
+    private LoginResponse CreateLoginResponse(UserRow user)
+    {
         var expiry = DateTime.UtcNow.AddHours(_jwt.ExpiryHours);
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var fullName = string.IsNullOrWhiteSpace(user.FullName) ? user.Username : user.FullName;
-        var role = string.IsNullOrWhiteSpace(user.Role) ? "User" : user.Role;
+        var role = user.RoleId == WebAppUserRoleMigration.RoleId
+            ? WebAppUserRoleMigration.RoleName
+            : string.IsNullOrWhiteSpace(user.Role) ? "User" : user.Role;
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -70,6 +162,7 @@ public sealed class AuthService
             new Claim(JwtRegisteredClaimNames.Name, fullName),
             new Claim(ClaimTypes.Name, fullName),
             new Claim(ClaimTypes.Role, role),
+            new Claim("roleId", user.RoleId?.ToString() ?? string.Empty),
             new Claim("username", user.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
@@ -86,8 +179,208 @@ public sealed class AuthService
             Token = new JwtSecurityTokenHandler().WriteToken(token),
             FullName = fullName,
             Role = role,
+            RoleId = user.RoleId,
             UserId = user.Id,
             ExpiresAt = expiry
         };
+    }
+
+    private async Task<ExternalProfile> VerifyExternalProfileAsync(ExternalLoginRequest request, CancellationToken cancellationToken)
+    {
+        var provider = (request.Provider ?? string.Empty).Trim().ToLowerInvariant();
+        return provider switch
+        {
+            "google" => await VerifyGoogleAsync(request, cancellationToken),
+            "facebook" or "fb" => await VerifyFacebookAsync(request, cancellationToken),
+            _ => throw new ValidationException("Provider must be google or facebook.")
+        };
+    }
+
+    private async Task<ExternalProfile> VerifyGoogleAsync(ExternalLoginRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_externalAuth.GoogleClientId))
+        {
+            throw new ValidationException("Google login is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.IdToken))
+        {
+            throw new ValidationException("Google id token is required.");
+        }
+
+        var url = $"https://oauth2.googleapis.com/tokeninfo?id_token={Uri.EscapeDataString(request.IdToken)}";
+        var payload = await _httpClient.GetFromJsonAsync<GoogleTokenInfo>(url, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Invalid Google login.");
+
+        if (!string.Equals(payload.Audience, _externalAuth.GoogleClientId, StringComparison.Ordinal) ||
+            string.IsNullOrWhiteSpace(payload.Subject) ||
+            !string.Equals(payload.EmailVerified, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new UnauthorizedAccessException("Invalid Google login.");
+        }
+
+        return new ExternalProfile(
+            Provider: "google",
+            ProviderUserId: payload.Subject,
+            Email: NormalizeEmail(payload.Email) ?? $"{payload.Subject}@google.local",
+            FullName: NormalizeDisplayName(payload.Name, payload.Email, "Google User"));
+    }
+
+    private async Task<ExternalProfile> VerifyFacebookAsync(ExternalLoginRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_externalAuth.FacebookAppId) ||
+            string.IsNullOrWhiteSpace(_externalAuth.FacebookAppSecret))
+        {
+            throw new ValidationException("Facebook login is not configured.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.AccessToken))
+        {
+            throw new ValidationException("Facebook access token is required.");
+        }
+
+        var appToken = $"{_externalAuth.FacebookAppId}|{_externalAuth.FacebookAppSecret}";
+        var debugUrl = "https://graph.facebook.com/debug_token" +
+            $"?input_token={Uri.EscapeDataString(request.AccessToken)}" +
+            $"&access_token={Uri.EscapeDataString(appToken)}";
+        var debug = await _httpClient.GetFromJsonAsync<FacebookDebugTokenResponse>(debugUrl, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Invalid Facebook login.");
+
+        if (debug.Data == null ||
+            !debug.Data.IsValid ||
+            !string.Equals(debug.Data.AppId, _externalAuth.FacebookAppId, StringComparison.Ordinal) ||
+            string.IsNullOrWhiteSpace(debug.Data.UserId))
+        {
+            throw new UnauthorizedAccessException("Invalid Facebook login.");
+        }
+
+        var meUrl = "https://graph.facebook.com/me" +
+            "?fields=id,name,email" +
+            $"&access_token={Uri.EscapeDataString(request.AccessToken)}";
+        var me = await _httpClient.GetFromJsonAsync<FacebookProfileResponse>(meUrl, cancellationToken)
+            ?? throw new UnauthorizedAccessException("Invalid Facebook login.");
+
+        if (!string.Equals(me.Id, debug.Data.UserId, StringComparison.Ordinal))
+        {
+            throw new UnauthorizedAccessException("Invalid Facebook login.");
+        }
+
+        return new ExternalProfile(
+            Provider: "facebook",
+            ProviderUserId: me.Id,
+            Email: NormalizeEmail(me.Email) ?? $"{me.Id}@facebook.local",
+            FullName: NormalizeDisplayName(me.Name, me.Email, "Facebook User"));
+    }
+
+    private string ResolveWebAppUserRoleName()
+    {
+        using var conn = _factory.CreateConnection();
+        var roleName = conn.ExecuteScalar<string?>(
+            "SELECT Name FROM Roles WHERE Id = @RoleId AND IsActive = 1",
+            new { RoleId = WebAppUserRoleMigration.RoleId });
+
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ValidationException("Web App User role id 4 is not configured.");
+        }
+
+        return roleName;
+    }
+
+    private static void SetWebAppRoleId(IDbConnection conn, int userId)
+    {
+        conn.Execute(
+            """
+IF COL_LENGTH('dbo.Users', 'RoleId') IS NOT NULL
+BEGIN
+    UPDATE dbo.Users
+    SET RoleId = @RoleId
+    WHERE Id = @UserId;
+END;
+""",
+            new { RoleId = WebAppUserRoleMigration.RoleId, UserId = userId });
+    }
+
+    private static string BuildExternalUsername(string provider, string providerUserId)
+    {
+        var username = $"{provider}:{providerUserId}".Trim();
+        if (username.Length <= 60)
+        {
+            return username;
+        }
+
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(username))).ToLowerInvariant();
+        return $"{provider}:{hash[..Math.Min(48, hash.Length)]}"[..60];
+    }
+
+    private static string NormalizeDisplayName(string? name, string? email, string fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            return Truncate(name.Trim(), 120);
+        }
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            return Truncate(email.Trim(), 120);
+        }
+
+        return fallback;
+    }
+
+    private static string? NormalizeEmail(string? email)
+        => string.IsNullOrWhiteSpace(email) ? null : Truncate(email.Trim(), 120);
+
+    private static string Truncate(string value, int maxLength)
+        => value.Length <= maxLength ? value : value[..maxLength];
+
+    private sealed record ExternalProfile(string Provider, string ProviderUserId, string? Email, string FullName);
+
+    private sealed class GoogleTokenInfo
+    {
+        [JsonPropertyName("aud")]
+        public string Audience { get; set; } = string.Empty;
+
+        [JsonPropertyName("sub")]
+        public string Subject { get; set; } = string.Empty;
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("email_verified")]
+        public string EmailVerified { get; set; } = string.Empty;
+
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+    }
+
+    private sealed class FacebookDebugTokenResponse
+    {
+        [JsonPropertyName("data")]
+        public FacebookDebugTokenData? Data { get; set; }
+    }
+
+    private sealed class FacebookDebugTokenData
+    {
+        [JsonPropertyName("app_id")]
+        public string AppId { get; set; } = string.Empty;
+
+        [JsonPropertyName("is_valid")]
+        public bool IsValid { get; set; }
+
+        [JsonPropertyName("user_id")]
+        public string UserId { get; set; } = string.Empty;
+    }
+
+    private sealed class FacebookProfileResponse
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
     }
 }

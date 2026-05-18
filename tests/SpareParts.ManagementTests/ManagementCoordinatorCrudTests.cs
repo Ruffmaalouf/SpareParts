@@ -1,10 +1,12 @@
 using SpareParts.Desktop.Wpf;
+using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf.Management;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Sales;
+using Xunit;
 
 namespace SpareParts.ManagementTests;
 
@@ -232,6 +234,7 @@ public sealed class ManagementCoordinatorCrudTests
             "used-car-create",
             sut => sut.SaveUsedCarAsync(new CreateUsedCarRequest
             {
+                SupplierId = 6,
                 CarModelId = 3,
                 ModelYear = 2022,
                 PriceCurrency = "USD",
@@ -308,6 +311,7 @@ public sealed class ManagementCoordinatorCrudTests
             "used-car-update",
             sut => sut.SaveUsedCarAsync(new CreateUsedCarRequest
             {
+                SupplierId = 6,
                 CarModelId = 8,
                 ModelYear = 2020,
                 PriceCurrency = "USD",

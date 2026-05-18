@@ -15,11 +15,12 @@ public class ApiCompositionTests
     public static TheoryData<ServiceCapability[], string[]> CapabilityControllerCases =>
         new()
         {
-            { [ServiceCapability.Sales, ServiceCapability.Health], [nameof(SalesController), nameof(CustomersController), nameof(HealthController)] },
+            { [ServiceCapability.Sales, ServiceCapability.Health], [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(HealthController)] },
             { [ServiceCapability.Purchases, ServiceCapability.Health], [nameof(PurchasesController), nameof(SuppliersController), nameof(HealthController)] },
-            { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(HealthController)] },
+            { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(HealthController)] },
             { [ServiceCapability.Identity, ServiceCapability.Health], [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(HealthController)] },
-            { [ServiceCapability.Catalog, ServiceCapability.Health], [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(HealthController)] }
+            { [ServiceCapability.Catalog, ServiceCapability.Health], [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(HealthController)] },
+            { [ServiceCapability.Reporting, ServiceCapability.Health], [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(HealthController)] }
         };
 
     [Theory]
@@ -95,6 +96,24 @@ public class ApiCompositionTests
 
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(PartsService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(PartNotesAiService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(ScanLookupService));
+    }
+
+    [Fact]
+    public void AddCapabilities_WhenReportingEnabled_ShouldRegisterCommunicationsServices()
+    {
+        var services = new ServiceCollection();
+        services.AddOptions();
+
+        services.AddCapabilities(
+            "SpareParts.Api",
+            ServiceCapability.Reporting,
+            ServiceCapability.Health);
+
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(CommunicationsService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(AccountingService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(SmartSearchService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(ScanLookupService));
     }
 
     private static string[] GetControllerNames(params ServiceCapability[] capabilities)

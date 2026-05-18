@@ -1,6 +1,7 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Purchases;
+using SpareParts.Domain.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -40,6 +41,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<SupplierDto> Suppliers { get; } = new();
         public ObservableCollection<PurchaseInvoiceLookupDto> RecentPurchases { get; } = new();
         public ObservableCollection<PurchaseEditorItemViewModel> Items { get; } = new();
+        public ObservableCollection<TransactionTimelineStepDto> PostingTimeline { get; } = new();
 
         public string SearchText
         {
@@ -239,6 +241,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public bool IsItemsGridReadOnly => !IsEditorEnabled;
         public bool IsEditEnabled => IsLoadedPurchase && !IsInEditMode;
         public bool CanRemoveItem => IsEditorEnabled && SelectedItem != null;
+        public bool HasPostingTimeline => PostingTimeline.Count > 0;
         public string EditorTitle => IsLoadedPurchase
             ? $"Purchase {PurchaseNumber}"
             : "New Purchase";
@@ -384,6 +387,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 Quantity = item.Quantity,
                 UnitCost = item.UnitCost
             }));
+            Replace(PostingTimeline, purchase.Timeline);
+            OnPropertyChanged(nameof(HasPostingTimeline));
 
             IsInEditMode = false;
             _snapshot = CreateSnapshot();
@@ -599,6 +604,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             NewUnitCost = 0m;
             IsInEditMode = false;
             _snapshot = null;
+            PostingTimeline.Clear();
+            OnPropertyChanged(nameof(HasPostingTimeline));
             OnPropertyChanged(nameof(TotalAmount));
         }
 

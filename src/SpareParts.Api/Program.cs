@@ -10,6 +10,7 @@ builder.Services.AddCapabilities(builder.Environment.ApplicationName,
     ServiceCapability.Accounting,
     ServiceCapability.Identity,
     ServiceCapability.Catalog,
+    ServiceCapability.Reporting,
     ServiceCapability.Health);
 builder.Services.AddCapabilityControllers(
     ServiceCapability.Sales,
@@ -18,6 +19,7 @@ builder.Services.AddCapabilityControllers(
     ServiceCapability.Accounting,
     ServiceCapability.Identity,
     ServiceCapability.Catalog,
+    ServiceCapability.Reporting,
     ServiceCapability.Health);
 
 var app = builder.Build();

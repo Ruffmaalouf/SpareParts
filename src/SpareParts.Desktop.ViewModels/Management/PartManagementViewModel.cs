@@ -1,28 +1,204 @@
+using SpareParts.Desktop.Abstractions.Dialogs;
+using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.MasterData;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf.Management
 {
-    public class PartManagementViewModel
+    public sealed class PartManagementViewModel : ManagementFeatureViewModelBase
     {
-        public ObservableCollection<PartDto> Parts { get; } = new();
+        private ManagementCoordinator? _coordinator;
+        private IFilePickerService? _filePickerService;
+        private IUserNotificationService? _notificationService;
+        private Func<Task>? _refreshAsync;
+        private Action<string, bool>? _setStatus;
+        private Func<string>? _getDefaultCurrencyCode;
+        private string _newPartCode = string.Empty;
+        private string _newPartBarcode = string.Empty;
+        private string _newPartName = string.Empty;
+        private string _newPartOEM = string.Empty;
+        private decimal _newPartCostPrice;
+        private decimal _newPartSalePrice;
+        private string _newPartAveragePrice = string.Empty;
+        private string _newPartCurrency = "USD";
+        private int _newPartMinStock;
+        private int _newPartCategoryId = 1;
+        private int? _newPartBrandId;
+        private string _newPartNotes = string.Empty;
+        private PartDto? _selectedPart;
+        private bool _isGeneratingPartNotes;
+        private bool _isImportingParts;
 
-        public string NewPartCode { get; set; } = string.Empty;
-        public string NewPartName { get; set; } = string.Empty;
-        public string NewPartOEM { get; set; } = string.Empty;
-        public decimal NewPartCostPrice { get; set; }
-        public decimal NewPartSalePrice { get; set; }
-        public string NewPartAveragePrice { get; set; } = string.Empty;
-        public string NewPartCurrency { get; set; } = "USD";
-        public int NewPartMinStock { get; set; }
-        public int NewPartCategoryId { get; set; } = 1;
-        public int? NewPartBrandId { get; set; }
-        public string NewPartNotes { get; set; } = string.Empty;
-        public PartDto? SelectedPart { get; set; }
+        public ObservableCollection<PartDto> Parts { get; } = new();
+        public ObservableCollection<CategoryDto> Categories { get; } = new();
+        public ObservableCollection<BrandDto> BrandOptions { get; } = new();
+        public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
+        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand GeneratePartNotesCommand { get; private set; } = new RelayCommand(_ => { });
+
+        public bool IsGeneratingPartNotes
+        {
+            get => _isGeneratingPartNotes;
+            private set
+            {
+                if (!SetProperty(ref _isGeneratingPartNotes, value))
+                {
+                    return;
+                }
+
+                OnPropertyChanged(nameof(PartAiButtonText));
+            }
+        }
+
+        public bool IsImportingParts
+        {
+            get => _isImportingParts;
+            private set
+            {
+                if (!SetProperty(ref _isImportingParts, value))
+                {
+                    return;
+                }
+
+                OnPropertyChanged(nameof(PartImportButtonText));
+            }
+        }
+
+        public string PartAiButtonText => IsGeneratingPartNotes ? "AI is drafting notes..." : "✨ Draft Notes with AI";
+        public string PartImportButtonText => IsImportingParts ? "Importing workbook..." : "⬆ Import Parts from Excel";
+
+        public void Configure(
+            ManagementCoordinator coordinator,
+            IFilePickerService filePickerService,
+            IUserNotificationService notificationService,
+            Func<Task> refreshAsync,
+            Action<string, bool> setStatus,
+            Func<string> getDefaultCurrencyCode,
+            ICommand? importTableCommand = null)
+        {
+            _coordinator = coordinator;
+            _filePickerService = filePickerService;
+            _notificationService = notificationService;
+            _refreshAsync = refreshAsync;
+            _setStatus = setStatus;
+            _getDefaultCurrencyCode = getDefaultCurrencyCode;
+            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand = new RelayCommand(_ => StartNew());
+            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ = ImportFromExcelAsync());
+            GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
+        }
+
+        public void LoadReferenceData(
+            IEnumerable<CategoryDto> categories,
+            IEnumerable<BrandDto> brands,
+            IEnumerable<CurrencyRateDto> currencyRates)
+        {
+            Replace(Categories, categories);
+            Replace(BrandOptions, brands);
+            Replace(CurrencyRates, currencyRates);
+        }
+
+        public string NewPartCode
+        {
+            get => _newPartCode;
+            set => SetProperty(ref _newPartCode, value);
+        }
+
+        public string NewPartBarcode
+        {
+            get => _newPartBarcode;
+            set => SetProperty(ref _newPartBarcode, value);
+        }
+
+        public string NewPartName
+        {
+            get => _newPartName;
+            set => SetProperty(ref _newPartName, value);
+        }
+
+        public string NewPartOEM
+        {
+            get => _newPartOEM;
+            set => SetProperty(ref _newPartOEM, value);
+        }
+
+        public decimal NewPartCostPrice
+        {
+            get => _newPartCostPrice;
+            set => SetProperty(ref _newPartCostPrice, value);
+        }
+
+        public decimal NewPartSalePrice
+        {
+            get => _newPartSalePrice;
+            set => SetProperty(ref _newPartSalePrice, value);
+        }
+
+        public string NewPartAveragePrice
+        {
+            get => _newPartAveragePrice;
+            set => SetProperty(ref _newPartAveragePrice, value);
+        }
+
+        public string NewPartCurrency
+        {
+            get => _newPartCurrency;
+            set => SetProperty(ref _newPartCurrency, value);
+        }
+
+        public int NewPartMinStock
+        {
+            get => _newPartMinStock;
+            set => SetProperty(ref _newPartMinStock, value);
+        }
+
+        public int NewPartCategoryId
+        {
+            get => _newPartCategoryId;
+            set => SetProperty(ref _newPartCategoryId, value);
+        }
+
+        public int? NewPartBrandId
+        {
+            get => _newPartBrandId;
+            set => SetProperty(ref _newPartBrandId, value);
+        }
+
+        public string NewPartNotes
+        {
+            get => _newPartNotes;
+            set => SetProperty(ref _newPartNotes, value);
+        }
+
+        public PartDto? SelectedPart
+        {
+            get => _selectedPart;
+            set
+            {
+                if (!SetProperty(ref _selectedPart, value))
+                {
+                    return;
+                }
+
+                if (value != null)
+                {
+                    PopulateForm(value);
+                }
+            }
+        }
 
         public void PopulateForm(PartDto p)
         {
             NewPartCode = p.InternalCode;
+            NewPartBarcode = p.Barcode ?? string.Empty;
             NewPartName = p.Name;
             NewPartOEM = p.OEMNumber ?? string.Empty;
             NewPartCategoryId = p.CategoryId;
@@ -37,13 +213,131 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public void ClearForm(string defaultCurrencyCode = "USD")
         {
-            NewPartCode = NewPartName = NewPartOEM = NewPartAveragePrice = NewPartNotes = string.Empty;
+            NewPartCode = NewPartBarcode = NewPartName = NewPartOEM = NewPartAveragePrice = NewPartNotes = string.Empty;
             NewPartCostPrice = NewPartSalePrice = 0;
             NewPartCurrency = defaultCurrencyCode;
             NewPartMinStock = 0;
             NewPartCategoryId = 1;
             NewPartBrandId = null;
             SelectedPart = null;
+        }
+
+        public void StartNew() => ClearForm(_getDefaultCurrencyCode?.Invoke() ?? "USD");
+
+        private async Task SaveAsync()
+        {
+            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
+            {
+                return;
+            }
+
+            var result = await _coordinator.SavePartAsync(this);
+            _setStatus(result.Message, result.Success);
+            if (!result.Success)
+            {
+                return;
+            }
+
+            await _refreshAsync();
+            StartNew();
+        }
+
+        private async Task DeleteAsync()
+        {
+            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
+            {
+                return;
+            }
+
+            var result = await _coordinator.DeletePartAsync(SelectedPart);
+            _setStatus(result.Message, result.Success);
+            if (!result.Success)
+            {
+                return;
+            }
+
+            await _refreshAsync();
+            StartNew();
+        }
+
+        private async Task GeneratePartNotesAsync()
+        {
+            if (_coordinator == null || _setStatus == null || IsGeneratingPartNotes)
+            {
+                return;
+            }
+
+            IsGeneratingPartNotes = true;
+            _setStatus("Drafting part notes with AI…", true);
+
+            try
+            {
+                var categoryLookup = Categories.ToDictionary(item => item.Id, item => item.Name);
+                var brandLookup = BrandOptions.ToDictionary(item => item.Id, item => item.Name);
+                var result = await _coordinator.GeneratePartNotesAsync(this, categoryLookup, brandLookup);
+                _setStatus(result.Message, result.Success);
+            }
+            finally
+            {
+                IsGeneratingPartNotes = false;
+            }
+        }
+
+        private async Task ImportFromExcelAsync()
+        {
+            if (_coordinator == null || _filePickerService == null || _notificationService == null || _refreshAsync == null || _setStatus == null || IsImportingParts)
+            {
+                return;
+            }
+
+            var filePath = _filePickerService
+                .PickFiles(new FilePickerRequest
+                {
+                    Filter = "Excel workbook|*.xlsx",
+                    AllowMultiple = false,
+                    Title = "Import parts from Excel"
+                })
+                .FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return;
+            }
+
+            IsImportingParts = true;
+            _setStatus("Importing parts from Excel…", true);
+
+            try
+            {
+                var result = await _coordinator.ImportPartsFromExcelAsync(filePath, Categories.ToList(), BrandOptions.ToList());
+                _setStatus(result.SummaryMessage, result.HasImportedRows);
+
+                if (result.HasImportedRows)
+                {
+                    await _refreshAsync();
+                    StartNew();
+                }
+
+                _notificationService.Show(
+                    result.ToDialogMessage(),
+                    "Parts Import",
+                    result.HasErrors
+                        ? (result.HasImportedRows ? NotificationKind.Warning : NotificationKind.Error)
+                        : NotificationKind.Success);
+            }
+            finally
+            {
+                IsImportingParts = false;
+            }
+        }
+
+        private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
+        {
+            target.Clear();
+            foreach (var item in source)
+            {
+                target.Add(item);
+            }
         }
     }
 }

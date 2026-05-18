@@ -36,6 +36,7 @@ public sealed class UsedCarsService
         using var conn = _factory.CreateConnection();
         return conn.Query<UsedCarDto>(
             @"SELECT uc.Id,
+                     uc.Barcode,
                      uc.SupplierId,
                      COALESCE(s.Name, N'') AS SupplierName,
                      uc.CarModelId,
@@ -64,17 +65,77 @@ public sealed class UsedCarsService
                      uc.PartOutAmount AS PartOut,
                      uc.Shipping,
                      uc.Customs,
+                     uc.Repairs,
                      uc.TotalBeforeShipping,
                      uc.GrandTotalBase,
                      uc.GrandTotalCounter,
                      uc.BaseCurrencyCode,
                      uc.CounterCurrencyCode,
-                     uc.CounterRateToBase
+                     uc.CounterRateToBase,
+                     cost.PurchaseCostBase,
+                     cost.TransportationCostBase,
+                     cost.CustomsCostBase,
+                     cost.ShippingCostBase,
+                     cost.PartOutCostBase,
+                     cost.RepairsCostBase,
+                     cost.FullCostBase,
+                     linked.PartsRemovedCount,
+                     linked.PartsRemovedValueBase,
+                     sales.PartsSoldQuantity,
+                     sales.PartsSoldAmountBase,
+                     sales.PartsSoldAmountBase AS SalePriceBase,
+                     stock.RemainingStockQuantity,
+                     stock.RemainingStockValueBase,
+                     profit.NetProfitLossBase
               FROM dbo.UsedCars uc
               LEFT JOIN dbo.Suppliers s ON s.Id = uc.SupplierId
               INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
               INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
               LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
+              CROSS APPLY
+              (
+                  SELECT CounterRateToBase = CASE WHEN ISNULL(uc.CounterRateToBase, 0) > 0 THEN uc.CounterRateToBase ELSE 1 END
+              ) rate
+              OUTER APPLY
+              (
+                  SELECT PartsRemovedCount = COUNT(1),
+                         PartsRemovedValueBase = ISNULL(SUM(COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0)), 0)
+                  FROM dbo.Parts p
+                  WHERE p.UsedCarId = uc.Id
+              ) linked
+              OUTER APPLY
+              (
+                  SELECT PartsSoldQuantity = ISNULL(SUM(CASE WHEN t.IsReturn = 1 THEN -ABS(ISNULL(ti.Quantity, 0)) ELSE ABS(ISNULL(ti.Quantity, 0)) END), 0),
+                         PartsSoldAmountBase = ISNULL(SUM(CASE WHEN t.IsReturn = 1 THEN -ISNULL(ti.BaseAmount, ti.LineTotal) ELSE ISNULL(ti.BaseAmount, ti.LineTotal) END), 0)
+                  FROM dbo.Transactions t
+                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = N'sale'
+                  INNER JOIN dbo.TransactionItems ti ON ti.TransactionId = t.Id
+                  INNER JOIN dbo.Parts p ON p.Id = ti.PartId
+                  WHERE p.UsedCarId = uc.Id
+                    AND ti.PartId IS NOT NULL
+              ) sales
+              OUTER APPLY
+              (
+                  SELECT RemainingStockQuantity = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4))), 0),
+                         RemainingStockValueBase = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0)), 0)
+                  FROM dbo.Parts p
+                  LEFT JOIN dbo.Stock st ON st.PartId = p.Id
+                  WHERE p.UsedCarId = uc.Id
+              ) stock
+              CROSS APPLY
+              (
+                  SELECT PurchaseCostBase = ISNULL(uc.PriceBase, 0),
+                         TransportationCostBase = ROUND(ISNULL(uc.Transportation, 0) * rate.CounterRateToBase, 2),
+                         CustomsCostBase = ROUND(ISNULL(uc.Customs, 0) * rate.CounterRateToBase, 2),
+                         ShippingCostBase = ROUND(ISNULL(uc.Shipping, 0) * rate.CounterRateToBase, 2),
+                         PartOutCostBase = ROUND(ISNULL(uc.PartOutAmount, 0) * rate.CounterRateToBase, 2),
+                         RepairsCostBase = ROUND(ISNULL(uc.Repairs, 0) * rate.CounterRateToBase, 2),
+                         FullCostBase = ROUND(ISNULL(uc.PriceBase, 0) + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * rate.CounterRateToBase), 2)
+              ) cost
+              CROSS APPLY
+              (
+                  SELECT NetProfitLossBase = ROUND(ISNULL(sales.PartsSoldAmountBase, 0) + ISNULL(stock.RemainingStockValueBase, 0) - cost.FullCostBase, 2)
+              ) profit
               ORDER BY cb.Name, cm.Name, uc.ModelYear DESC, uc.Id DESC;");
     }
 
@@ -88,12 +149,13 @@ public sealed class UsedCarsService
 
         var usedCarId = session.Connection.ExecuteScalar<int>(
             @"INSERT INTO dbo.UsedCars
-                (SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId)
+                (Barcode, SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, Repairs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId)
               VALUES
-                (@SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId);
+                (@Barcode, @SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @Repairs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
+                snapshot.Barcode,
                 snapshot.SupplierId,
                 snapshot.CarModelId,
                 snapshot.ModelYear,
@@ -109,6 +171,7 @@ public sealed class UsedCarsService
                 snapshot.PartOut,
                 snapshot.Shipping,
                 snapshot.Customs,
+                snapshot.Repairs,
                 snapshot.TotalBeforeShipping,
                 snapshot.GrandTotalBase,
                 snapshot.GrandTotalCounter,
@@ -118,6 +181,14 @@ public sealed class UsedCarsService
                 ReceivedAt = receivedAt,
                 UserId = userId
             },
+            session.Transaction);
+
+        session.Connection.Execute(
+            @"UPDATE dbo.UsedCars
+              SET Barcode = @Barcode
+              WHERE Id = @Id
+                AND (Barcode IS NULL OR LTRIM(RTRIM(Barcode)) = N'');",
+            new { Id = usedCarId, Barcode = $"UC-{usedCarId}" },
             session.Transaction);
 
         if (snapshot.IsReceived && receivedAt.HasValue)
@@ -153,7 +224,8 @@ public sealed class UsedCarsService
 
         var updated = session.Connection.Execute(
             @"UPDATE dbo.UsedCars
-              SET SupplierId = @SupplierId,
+              SET Barcode = @Barcode,
+                  SupplierId = @SupplierId,
                   CarModelId = @CarModelId,
                   ModelYear = @ModelYear,
                   PriceCurrency = @PriceCurrency,
@@ -168,6 +240,7 @@ public sealed class UsedCarsService
                   PartOutAmount = @PartOut,
                   Shipping = @Shipping,
                   Customs = @Customs,
+                  Repairs = @Repairs,
                   TotalBeforeShipping = @TotalBeforeShipping,
                   GrandTotalBase = @GrandTotalBase,
                   GrandTotalCounter = @GrandTotalCounter,
@@ -181,6 +254,7 @@ public sealed class UsedCarsService
             new
             {
                 Id = id,
+                snapshot.Barcode,
                 snapshot.SupplierId,
                 snapshot.CarModelId,
                 snapshot.ModelYear,
@@ -196,6 +270,7 @@ public sealed class UsedCarsService
                 snapshot.PartOut,
                 snapshot.Shipping,
                 snapshot.Customs,
+                snapshot.Repairs,
                 snapshot.TotalBeforeShipping,
                 snapshot.GrandTotalBase,
                 snapshot.GrandTotalCounter,
@@ -362,6 +437,7 @@ public sealed class UsedCarsService
         var roundedPartOut = decimal.Round(request.PartOut, 2, MidpointRounding.AwayFromZero);
         var roundedShipping = decimal.Round(request.Shipping, 2, MidpointRounding.AwayFromZero);
         var roundedCustoms = decimal.Round(request.Customs, 2, MidpointRounding.AwayFromZero);
+        var roundedRepairs = decimal.Round(request.Repairs, 2, MidpointRounding.AwayFromZero);
 
         var priceBase = decimal.Round(roundedPrice * priceToBaseRate, 2, MidpointRounding.AwayFromZero);
         var priceCounter = counterToBaseRate > 0
@@ -369,12 +445,13 @@ public sealed class UsedCarsService
             : priceBase;
         var transportation = decimal.Round(selectedLocation.ShippingFees * locationToCounterRate, 2, MidpointRounding.AwayFromZero);
         var totalBeforeShipping = decimal.Round(priceCounter + transportation, 2, MidpointRounding.AwayFromZero);
-        var expensesCounterTotal = transportation + roundedPartOut + roundedShipping + roundedCustoms;
+        var expensesCounterTotal = transportation + roundedPartOut + roundedShipping + roundedCustoms + roundedRepairs;
         var grandTotalCounter = decimal.Round(priceCounter + expensesCounterTotal, 2, MidpointRounding.AwayFromZero);
         var grandTotalBase = decimal.Round(priceBase + (expensesCounterTotal * counterToBaseRate), 2, MidpointRounding.AwayFromZero);
 
         return new UsedCarSnapshot
         {
+            Barcode = NormalizeOptional(request.Barcode),
             SupplierId = request.SupplierId,
             CarModelId = request.CarModelId,
             ModelYear = request.ModelYear,
@@ -391,6 +468,7 @@ public sealed class UsedCarsService
             PartOut = roundedPartOut,
             Shipping = roundedShipping,
             Customs = roundedCustoms,
+            Repairs = roundedRepairs,
             TotalBeforeShipping = totalBeforeShipping,
             GrandTotalBase = grandTotalBase,
             GrandTotalCounter = grandTotalCounter,
@@ -427,7 +505,7 @@ public sealed class UsedCarsService
             throw new ValidationException("Location is required.");
         }
 
-        if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0)
+        if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0 || request.Repairs < 0)
         {
             throw new ValidationException("Expense values cannot be negative.");
         }
@@ -614,6 +692,9 @@ public sealed class UsedCarsService
         return normalized.Length == 3 ? normalized : null;
     }
 
+    private static string? NormalizeOptional(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
     private static ExistingUsedCarState? GetExistingState(DbSession session, int id)
         => session.Connection.QuerySingleOrDefault<ExistingUsedCarState>(
             @"SELECT Id,
@@ -627,6 +708,7 @@ public sealed class UsedCarsService
                      PartOutAmount AS PartOut,
                      Shipping,
                      Customs,
+                     Repairs,
                      TotalBeforeShipping,
                      GrandTotalBase,
                      GrandTotalCounter,
@@ -804,6 +886,15 @@ public sealed class UsedCarsService
             snapshot.CounterRateToBase,
             snapshot.CounterCurrencyCode);
 
+        AddCounterJournalLinePlan(
+            linePlans,
+            AccountingSettingKeys.UsedCarRepairs,
+            "Repairs",
+            ResolveRequiredPostingAccountId(postingAccounts, AccountingSettingKeys.UsedCarRepairs, "Used Car Repairs"),
+            snapshot.Repairs,
+            snapshot.CounterRateToBase,
+            snapshot.CounterCurrencyCode);
+
         return linePlans;
     }
 
@@ -919,6 +1010,7 @@ public sealed class UsedCarsService
             || decimal.Round(existing.PartOut, 2, MidpointRounding.AwayFromZero) != snapshot.PartOut
             || decimal.Round(existing.Shipping, 2, MidpointRounding.AwayFromZero) != snapshot.Shipping
             || decimal.Round(existing.Customs, 2, MidpointRounding.AwayFromZero) != snapshot.Customs
+            || decimal.Round(existing.Repairs, 2, MidpointRounding.AwayFromZero) != snapshot.Repairs
             || decimal.Round(existing.TotalBeforeShipping, 2, MidpointRounding.AwayFromZero) != snapshot.TotalBeforeShipping
             || decimal.Round(existing.GrandTotalBase, 2, MidpointRounding.AwayFromZero) != snapshot.GrandTotalBase
             || decimal.Round(existing.GrandTotalCounter, 2, MidpointRounding.AwayFromZero) != snapshot.GrandTotalCounter

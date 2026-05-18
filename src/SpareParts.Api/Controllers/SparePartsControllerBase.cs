@@ -19,6 +19,9 @@ public abstract class SparePartsControllerBase : ControllerBase
         }
     }
 
+    protected string CurrentRoleName
+        => User.FindFirst(ClaimTypes.Role)?.Value?.Trim() ?? string.Empty;
+
     protected static (int Page, int PageSize) NormalizePagination(int page, int pageSize, int maxPageSize = 500)
         => (Math.Max(1, page), Math.Clamp(pageSize, 1, maxPageSize));
 

@@ -31,6 +31,7 @@ namespace SpareParts.Infrastructure.Data
                                      TransactionTypeId,
                                      ReferenceId,
                                      TransactionNumber,
+                                     ScanCode,
                                      TransactionDate,
                                      SupplierId,
                                      WarehouseId,
@@ -52,6 +53,7 @@ namespace SpareParts.Infrastructure.Data
                                      @TransactionTypeId,
                                      0,
                                      @PurchaseNumber,
+                                     @ScanCode,
                                      @PurchaseDate,
                                      @SupplierId,
                                      @WarehouseId,
@@ -84,6 +86,7 @@ namespace SpareParts.Infrastructure.Data
                 {
                     TypeKey = TransactionTypeKeys.Purchase,
                     invoice.PurchaseNumber,
+                    ScanCode = string.IsNullOrWhiteSpace(invoice.ScanCode) ? invoice.PurchaseNumber : invoice.ScanCode.Trim(),
                     invoice.PurchaseDate,
                     invoice.SupplierId,
                     invoice.WarehouseId,
@@ -187,6 +190,7 @@ namespace SpareParts.Infrastructure.Data
             const string sql = @"SELECT TOP (200)
                                         t.ReferenceId AS PurchaseId,
                                         t.TransactionNumber AS PurchaseNumber,
+                                        t.ScanCode,
                                         t.TransactionDate AS PurchaseDate,
                                         t.SupplierId,
                                         t.WarehouseId,
@@ -197,6 +201,7 @@ namespace SpareParts.Infrastructure.Data
                                  WHERE tt.TypeKey = @TypeKey
                                    AND (@Query IS NULL OR @Query = N''
                                         OR t.TransactionNumber LIKE N'%' + @Query + N'%'
+                                        OR t.ScanCode LIKE N'%' + @Query + N'%'
                                         OR CAST(t.ReferenceId AS NVARCHAR(50)) LIKE N'%' + @Query + N'%')
                                  ORDER BY t.TransactionDate DESC, t.ReferenceId DESC;";
 
@@ -215,6 +220,7 @@ namespace SpareParts.Infrastructure.Data
             const string invoiceSql = @"SELECT
                                                t.ReferenceId AS PurchaseId,
                                                t.TransactionNumber AS PurchaseNumber,
+                                               t.ScanCode,
                                                t.TransactionDate AS PurchaseDate,
                                                t.SupplierId,
                                                t.WarehouseId,
@@ -260,6 +266,7 @@ namespace SpareParts.Infrastructure.Data
                     PurchaseId = purchaseId
                 },
                 _session.Transaction).ToList();
+            invoice.Timeline = new TransactionTimelineReader(_session).Build(TransactionTypeKeys.Purchase, purchaseId);
 
             return invoice;
         }
@@ -282,6 +289,7 @@ namespace SpareParts.Infrastructure.Data
                                                   TotalAmount = @TotalAmount,
                                                   PaidAmount = @PaidAmount,
                                                   PaymentStatus = @PaymentStatus,
+                                                  ScanCode = COALESCE(NULLIF(@ScanCode, N''), NULLIF(t.ScanCode, N''), t.TransactionNumber),
                                                   TotalBaseAmount = @TotalAmount,
                                                   TotalCounterAmount = @TotalAmount,
                                                   PaidCounterAmount = @PaidAmount,
@@ -302,6 +310,7 @@ namespace SpareParts.Infrastructure.Data
                 invoice.TotalAmount,
                 invoice.PaidAmount,
                 invoice.PaymentStatus,
+                ScanCode = string.IsNullOrWhiteSpace(invoice.ScanCode) ? invoice.PurchaseNumber : invoice.ScanCode.Trim(),
                 ModifiedAt = DateTime.UtcNow,
                 ModifiedByUserId = userId
             }, _session.Transaction);

@@ -1,0 +1,225 @@
+const { Platform } = require("react-native");
+
+const storageKeys = {
+  apiBaseUrl: "spareparts.mobile.apiBaseUrl",
+  token: "spareparts.mobile.token",
+  user: "spareparts.mobile.user",
+  theme: "spareparts.mobile.theme",
+  language: "spareparts.mobile.language"
+};
+
+const CommunicationChannel = {
+  WhatsApp: 0,
+  Sms: 1
+};
+
+const CommunicationRecipientKind = {
+  Customer: 0,
+  Supplier: 1,
+  Manual: 2
+};
+
+const CommunicationTemplateKey = {
+  SalesInvoice: 0,
+  PaymentReminder: 2,
+  PartAvailability: 4,
+  FreeText: 6
+};
+
+const defaultApiBaseUrl =
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  (Platform.OS === "android" ? "http://10.0.2.2:5000" : "http://localhost:5000");
+const defaultThemeKey = "default";
+const defaultLanguageKey = "en";
+const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
+const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "";
+const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "";
+const googleWebClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || googleClientId;
+const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "";
+const webAppRoleId = 4;
+const webAppRoleName = "Web App User";
+
+const wpfThemes = [
+  {
+    key: "default",
+    name: "Default",
+    colors: {
+      bg: "#101114",
+      surface: "#17191f",
+      surface2: "#20232b",
+      sidebar: "#121318",
+      input: "#0f1014",
+      line: "#313642",
+      text: "#f4f5f7",
+      muted: "#a9afbd",
+      soft: "#737b8c",
+      accent: "#ff5722",
+      whatsapp: "#25d366",
+      danger: "#ff6b5f"
+    }
+  },
+  {
+    key: "amg",
+    name: "AMG",
+    colors: {
+      bg: "#111114",
+      surface: "#1A1A1E",
+      surface2: "#242428",
+      sidebar: "#151518",
+      input: "#101014",
+      line: "#3f3f48",
+      text: "#F0F0F2",
+      muted: "#8888A0",
+      soft: "#6f6f82",
+      accent: "#C8C8D0",
+      whatsapp: "#25d366",
+      danger: "#ff6b5f"
+    }
+  },
+  {
+    key: "bmw-m",
+    name: "BMW M",
+    colors: {
+      bg: "#0D0D12",
+      surface: "#14141C",
+      surface2: "#1E1E2C",
+      sidebar: "#101018",
+      input: "#0a0a10",
+      line: "#283d66",
+      text: "#E8EAED",
+      muted: "#8899BB",
+      soft: "#66779a",
+      accent: "#1C69D4",
+      whatsapp: "#25d366",
+      danger: "#ff6b5f"
+    }
+  },
+  {
+    key: "lambo",
+    name: "Lambo",
+    colors: {
+      bg: "#090909",
+      surface: "#131313",
+      surface2: "#1E1E1E",
+      sidebar: "#0f0f0f",
+      input: "#0a0a0a",
+      line: "#3f3a18",
+      text: "#F5F5F0",
+      muted: "#888878",
+      soft: "#6e6e5e",
+      accent: "#FFD600",
+      whatsapp: "#25d366",
+      danger: "#ff6b5f"
+    }
+  },
+  {
+    key: "neon-glow",
+    name: "Neon Glow",
+    colors: {
+      bg: "#080810",
+      surface: "#0D0D1A",
+      surface2: "#141428",
+      sidebar: "#0a0a16",
+      input: "#070712",
+      line: "#114759",
+      text: "#E0F7FA",
+      muted: "#4DD0E1",
+      soft: "#3497a8",
+      accent: "#00E5FF",
+      whatsapp: "#25d366",
+      danger: "#ff6b8a"
+    }
+  },
+  {
+    key: "porsche-rs",
+    name: "Porsche RS",
+    colors: {
+      bg: "#0C0C0E",
+      surface: "#181818",
+      surface2: "#222222",
+      sidebar: "#111111",
+      input: "#0b0b0c",
+      line: "#4d1b20",
+      text: "#F2F2F2",
+      muted: "#888888",
+      soft: "#707070",
+      accent: "#E30613",
+      whatsapp: "#25d366",
+      danger: "#ff6b5f"
+    }
+  }
+];
+
+const themeMap = new Map(wpfThemes.map((theme) => [theme.key, theme]));
+
+const appLanguages = [
+  { key: "en", name: "English", shortName: "EN" },
+  { key: "ar", name: "Arabic", shortName: "AR" },
+  { key: "fr", name: "French", shortName: "FR" }
+];
+
+const languageMap = new Map(appLanguages.map((language) => [language.key, language]));
+
+const managementSections = [
+  { key: "customers", label: "Customers", endpoint: "/api/customers?page=1&pageSize=100" },
+  { key: "suppliers", label: "Suppliers", endpoint: "/api/suppliers?page=1&pageSize=100" },
+  { key: "brands", label: "Brands", endpoint: "/api/brands?page=1&pageSize=100" },
+  { key: "parts", label: "Parts", endpoint: "/api/parts?page=1&pageSize=100" },
+  { key: "part-requests", label: "Part Requests", endpoint: "/api/partrequests" },
+  { key: "car-brands", label: "Car Brands", endpoint: "/api/carbrands?page=1&pageSize=100" },
+  { key: "car-models", label: "Car Models", endpoint: "/api/carmodels?page=1&pageSize=100" },
+  { key: "users", label: "Users", endpoint: "/api/users" },
+  { key: "warehouses", label: "Warehouses", endpoint: "/api/warehouses" },
+  { key: "locations", label: "Locations", endpoint: "/api/locations" },
+  { key: "currencies", label: "Currencies", endpoint: "/api/currencies" },
+  { key: "roles", label: "Roles", endpoint: "/api/roles" },
+  { key: "transaction-types", label: "Transaction Types", endpoint: "/api/transactiontypes" },
+  { key: "categories", label: "Categories", endpoint: "/api/categories" }
+];
+
+const featureModules = [
+  { key: "compatibility", label: "Compatibility", title: "Part Compatibility", endpoint: "/api/parts + /api/usedcars", capabilities: ["Visual part-to-vehicle graph", "OEM and donor-car fitment evidence", "Model/year sales assist"] },
+  { key: "part-requests", label: "Part Requests", title: "Parts Request Board", endpoint: "/api/partrequests", capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"] },
+  { key: "purchase-parts", label: "Part Purchases", title: "Part Purchases", endpoint: "/api/purchases", capabilities: ["Purchase invoice history", "Purchase invoice details", "Create and update purchase invoices"] },
+  { key: "used-car-purchases", label: "Used Car Purchases", title: "Used Car Purchases", endpoint: "/api/purchases/used-cars", capabilities: ["Used car purchase history", "Post purchased vehicles", "Delete draft purchases"] },
+  { key: "used-cars", label: "Used Cars", title: "Used Cars", endpoint: "/api/usedcars", capabilities: ["Used car records", "Vehicle image galleries", "Vehicle-linked parts"] },
+  { key: "repair-prep", label: "Repair / Prep", title: "Repair / Prep Board", endpoint: "/api/usedcars", capabilities: ["Repair prep lanes", "Per-car task checklist", "Prep cost tracking"] },
+  { key: "stock", label: "Stock", title: "Stock Management", endpoint: "/api/parts?page=1&pageSize=100", capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"] },
+  { key: "dead-stock", label: "Dead Stock", title: "Dead Stock Recovery", endpoint: "/api/parts/dead-stock", capabilities: ["Dormant stock candidates", "Recovery actions", "Shelf-value summary"] },
+  { key: "accounting", label: "Accounting", title: "Accounting Review", endpoint: "/api/accounting/trial-balance", capabilities: ["Ledger", "Trial balance", "Statements of account"] },
+  { key: "manual-journal", label: "Manual Journal", title: "Manual Journal", endpoint: "/api/accounting/journal-entries", capabilities: ["Journal entry history", "Manual journal posting", "Account configuration"] },
+  { key: "report-builder", label: "Report Builder", title: "Report Builder", endpoint: "/api/reportbuilder/saved-reports", capabilities: ["Schema explorer", "Saved reports", "Background runs"] },
+  { key: "business-assistant", label: "AI Assistant", title: "AI Business Assistant", endpoint: "/api/business-assistant/ask", capabilities: ["Turn answers into actions", "Create reports and customer reminders", "Draft purchase orders and campaigns", "Build natural-language stock reports"] },
+  { key: "ar", label: "Barcode / QR", title: "Barcode / QR Mode", endpoint: "/api/scans/resolve", capabilities: ["Generate printable part labels", "Sell and move scanned parts", "Connect physical labels to stock and used cars"] }
+];
+
+const navigationGroups = [
+  { title: "Core", keys: ["dashboard", "invoices", "parts", "compatibility", "contacts", "management", "settings"] },
+  { title: "Operations", keys: ["part-requests", "purchase-parts", "used-car-purchases", "used-cars", "repair-prep", "stock", "dead-stock"] },
+  { title: "Finance", keys: ["accounting", "manual-journal", "report-builder"] },
+  { title: "Tools", keys: ["whatsapp", "business-assistant", "ar"] }
+];
+
+module.exports = {
+  CommunicationChannel,
+  CommunicationRecipientKind,
+  CommunicationTemplateKey,
+  appLanguages,
+  defaultApiBaseUrl,
+  defaultLanguageKey,
+  defaultThemeKey,
+  facebookAppId,
+  featureModules,
+  googleAndroidClientId,
+  googleClientId,
+  googleIosClientId,
+  googleWebClientId,
+  managementSections,
+  navigationGroups,
+  storageKeys,
+  languageMap,
+  themeMap,
+  webAppRoleId,
+  webAppRoleName,
+  wpfThemes
+};

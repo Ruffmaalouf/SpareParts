@@ -30,6 +30,7 @@ BEGIN
         PartOutAmount DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_PartOutAmount DEFAULT (0),
         Shipping DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_Shipping DEFAULT (0),
         Customs DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_Customs DEFAULT (0),
+        Repairs DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_Repairs DEFAULT (0),
         TotalBeforeShipping DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_TotalBeforeShipping DEFAULT (0),
         GrandTotalBase DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_GrandTotalBase DEFAULT (0),
         GrandTotalCounter DECIMAL(18, 2) NOT NULL CONSTRAINT DF_UsedCars_GrandTotalCounter DEFAULT (0),
@@ -97,6 +98,11 @@ IF COL_LENGTH('dbo.UsedCars', 'ReceivedAt') IS NULL
 BEGIN
     ALTER TABLE dbo.UsedCars ADD ReceivedAt DATETIME2(0) NULL;
 END;
+
+IF COL_LENGTH('dbo.UsedCars', 'Repairs') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCars ADD Repairs DECIMAL(18, 2) NULL;
+END;
 ");
 
         conn.Execute(
@@ -142,6 +148,27 @@ BEGIN TRY
 END TRY
 BEGIN CATCH
 END CATCH;
+
+UPDATE dbo.UsedCars
+SET Repairs = 0
+WHERE Repairs IS NULL;
+
+BEGIN TRY
+    ALTER TABLE dbo.UsedCars ALTER COLUMN Repairs DECIMAL(18, 2) NOT NULL;
+END TRY
+BEGIN CATCH
+END CATCH;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.default_constraints dc
+    INNER JOIN sys.columns c ON c.default_object_id = dc.object_id
+    WHERE dc.parent_object_id = OBJECT_ID('dbo.UsedCars')
+      AND c.name = 'Repairs')
+BEGIN
+    ALTER TABLE dbo.UsedCars
+        ADD CONSTRAINT DF_UsedCars_Repairs DEFAULT (0) FOR Repairs;
+END;
 
 DECLARE @UsedCarsBaseCurrencyCode CHAR(3) = 'USD';
 DECLARE @UsedCarsCounterCurrencyCode CHAR(3) = 'USD';

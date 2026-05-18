@@ -4,6 +4,7 @@ namespace SpareParts.Domain.Purchases
     {
         public int PurchaseId { get; set; }
         public string PurchaseNumber { get; set; } = string.Empty;
+        public string? ScanCode { get; set; }
         public DateTime PurchaseDate { get; set; }
         public int SupplierId { get; set; }
         public int WarehouseId { get; set; }

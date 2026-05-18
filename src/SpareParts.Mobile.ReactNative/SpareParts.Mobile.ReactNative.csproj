@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="**\*" Exclude="bin\**;obj\**;node_modules\**;.expo\**" />
+  </ItemGroup>
+
+  <Target Name="ShowReactNativeInstructions" AfterTargets="Build">
+    <Message Importance="High" Text="React Native mobile app files are in src\SpareParts.Mobile.ReactNative. Run npm install, then npx expo start." />
+  </Target>
+
+</Project>

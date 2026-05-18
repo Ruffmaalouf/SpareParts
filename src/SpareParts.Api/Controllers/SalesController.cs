@@ -54,5 +54,12 @@ namespace SpareParts.Api.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("{invoiceId:int}/payments")]
+        public ActionResult<IssueSalePaymentResponse> IssuePayment(int invoiceId, [FromBody] IssueSalePaymentRequest request)
+        {
+            var result = _salesService.IssuePayment(invoiceId, request, CurrentUserId);
+            return Ok(result);
+        }
     }
 }

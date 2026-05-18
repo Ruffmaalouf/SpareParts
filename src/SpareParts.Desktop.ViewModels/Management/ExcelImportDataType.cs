@@ -8,6 +8,8 @@ namespace SpareParts.Desktop.Wpf.Management
         Boolean,
         Currency,
         Lookup,
-        Enum
+        Enum,
+        Date,
+        Identifier
     }
 }

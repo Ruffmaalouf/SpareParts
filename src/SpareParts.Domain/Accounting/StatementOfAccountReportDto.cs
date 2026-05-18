@@ -20,10 +20,25 @@ namespace SpareParts.Domain.Accounting
         public decimal TotalCredit { get; set; }
         public decimal TotalCounterDebit { get; set; }
         public decimal TotalCounterCredit { get; set; }
+        public string SubjectType { get; set; } = "Account";
+        public int? SubjectId { get; set; }
+        public string SubjectName { get; set; } = string.Empty;
+        public decimal PartnerOpeningBalance { get; set; }
+        public decimal PartnerOpeningCounterBalance { get; set; }
+        public decimal RemainingBalance { get; set; }
+        public decimal RemainingCounterBalance { get; set; }
+        public decimal TotalInvoiceAmount { get; set; }
+        public decimal TotalPaymentAmount { get; set; }
+        public decimal TotalJournalAmount { get; set; }
         public List<StatementOfAccountRowDto> Entries { get; set; } = new();
+        public List<StatementCurrencyTotalDto> CurrencyTotals { get; set; } = new();
 
         public string AccountDisplay => string.IsNullOrWhiteSpace(AccountCode)
             ? AccountName
             : $"{AccountCode} · {AccountName}";
+
+        public string SubjectDisplay => string.IsNullOrWhiteSpace(SubjectName)
+            ? AccountDisplay
+            : SubjectName;
     }
 }

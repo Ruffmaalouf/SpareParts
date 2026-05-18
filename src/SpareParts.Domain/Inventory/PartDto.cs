@@ -15,6 +15,9 @@ namespace SpareParts.Domain.Inventory
         public decimal? AveragePrice { get; set; }
         public string Currency { get; set; } = "USD";
         public int MinStock { get; set; }
+        public int StockQuantity { get; set; }
+        public int ReservedQuantity { get; set; }
+        public int AvailableQuantity { get; set; }
         public string? Notes { get; set; }
         public int? UsedCarId { get; set; }
         public bool IsActive { get; set; }

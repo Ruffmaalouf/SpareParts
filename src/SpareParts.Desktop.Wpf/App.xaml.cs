@@ -1,11 +1,15 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using SpareParts.Desktop.Abstractions.Dialogs;
+using SpareParts.Desktop.Abstractions.UsedCars;
 using SpareParts.Desktop.Wpf.Interfaces;
+using SpareParts.Desktop.Wpf.Services.Dialogs;
+using SpareParts.Desktop.Wpf.Services.UsedCars;
 using SpareParts.Desktop.Wpf.ViewModels;
 
 namespace SpareParts.Desktop.Wpf
 {
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         public static ServiceProvider Services { get; private set; } = null!;
 
@@ -29,6 +33,10 @@ namespace SpareParts.Desktop.Wpf
             services.AddSingleton<IArRenderingService, ArRenderingService>();
             services.AddSingleton<IArDeviceBridge, ArDeviceBridge>();
 
+            services.AddTransient<IFilePickerService, FilePickerService>();
+            services.AddTransient<IUserNotificationService, UserNotificationService>();
+            services.AddTransient<IUsedCarWorkspaceService, UsedCarWorkspaceService>();
+
             services.AddTransient<IAuthApiClient, AuthApiClient>();
             services.AddTransient<IAccountingApiClient, AccountingApiClient>();
             services.AddTransient<IApiSessionClient, ApiSessionClient>();
@@ -40,6 +48,9 @@ namespace SpareParts.Desktop.Wpf
             services.AddTransient<ISalesApiClient, SalesApiClient>();
             services.AddTransient<IUserApiClient, UsersApiClient>();
             services.AddTransient<IWarehouseApiClient, WarehousesApiClient>();
+            services.AddTransient<IOwnerCockpitApiClient, OwnerCockpitApiClient>();
+            services.AddTransient<IBusinessAssistantApiClient, BusinessAssistantApiClient>();
+            services.AddTransient<IReportBuilderApiClient, ReportBuilderApiClient>();
             services.AddTransient<ICrudApiClient, CrudApiClient>();
 
             services.AddTransient<LoginViewModel>();

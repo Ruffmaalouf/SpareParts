@@ -21,6 +21,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 ExcelImportDataType.Currency => "Currency",
                 ExcelImportDataType.Lookup => "Lookup",
                 ExcelImportDataType.Enum => "Option",
+                ExcelImportDataType.Date => "Date",
+                ExcelImportDataType.Identifier => "Identifier",
                 _ => "Text"
             };
 

@@ -1,0 +1,381 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.DeadStockResurrectionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="720"
+             d:DesignWidth="1280">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="DeadStockListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0 0 0 8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Root"
+                                Padding="12"
+                                Background="{DynamicResource AppBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Margin="0 0 0 14"
+                Padding="14"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="{Binding Status}"
+                               Foreground="{Binding StatusBrush}"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding ThresholdSummary}"
+                               Margin="0 4 0 0"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Days"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 0 8 0"/>
+                    <TextBox Text="{Binding MinDormantDays, UpdateSourceTrigger=PropertyChanged}"
+                             Width="70"
+                             Height="34"
+                             Padding="8 0"
+                             VerticalContentAlignment="Center"
+                             Margin="0 0 12 0"/>
+                    <TextBlock Text="Rows"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 0 8 0"/>
+                    <TextBox Text="{Binding Take, UpdateSourceTrigger=PropertyChanged}"
+                             Width="58"
+                             Height="34"
+                             Padding="8 0"
+                             VerticalContentAlignment="Center"
+                             Margin="0 0 12 0"/>
+                    <Button Content="Refresh"
+                            Command="{Binding RefreshCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Width="110"
+                            Height="36"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="390"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Padding="16"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0 0 0 14">
+                        <TextBlock Text="Aged Stock Queue"
+                                   FontSize="18"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="Parts with on-hand inventory and no recent movement."
+                                   Margin="0 4 0 0"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <TextBox Grid.Row="1"
+                             Height="42"
+                             Padding="12 0"
+                             Margin="0 0 0 12"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <ListBox Grid.Row="2"
+                             ItemsSource="{Binding FilteredItems}"
+                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                             ItemContainerStyle="{StaticResource DeadStockListBoxItemStyle}"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <DockPanel Grid.Row="0">
+                                        <TextBlock DockPanel.Dock="Left"
+                                                   Text="{Binding PartName}"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock DockPanel.Dock="Right"
+                                                   Text="{Binding DormancyLabel}"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontWeight="SemiBold"
+                                                   Margin="10 0 0 0"/>
+                                    </DockPanel>
+                                    <TextBlock Grid.Row="1"
+                                               Text="{Binding DisplayCode, StringFormat=Code {0}}"
+                                               Margin="0 5 0 0"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <DockPanel Grid.Row="2" Margin="0 8 0 0">
+                                        <TextBlock DockPanel.Dock="Left"
+                                                   Text="{Binding StockValueLabel}"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock DockPanel.Dock="Right"
+                                                   Text="{Binding PrimaryAction}"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   TextAlignment="Right"/>
+                                    </DockPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <ProgressBar Grid.Row="0"
+                             Height="8"
+                             IsIndeterminate="True"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                             Foreground="{DynamicResource AccentBrush}"
+                             Background="#22000000"
+                             Margin="0 0 0 12"/>
+
+                <ItemsControl Grid.Row="1"
+                              ItemsSource="{Binding MetricTiles}"
+                              Margin="0 0 0 14">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0 0 10 0"
+                                    Padding="14"
+                                    Background="{DynamicResource CardBackgroundBrush}"
+                                    BorderBrush="{Binding AccentBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Label}"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="12"/>
+                                    <TextBlock Text="{Binding Value}"
+                                               Margin="0 4 0 0"
+                                               FontSize="24"
+                                               FontWeight="Bold"
+                                               Foreground="{Binding AccentBrush}"/>
+                                    <TextBlock Text="{Binding Detail}"
+                                               Margin="0 4 0 0"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.05*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="1.1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            Padding="16"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                        <StackPanel>
+                            <TextBlock Text="Selected Candidate"
+                                       FontSize="18"
+                                       FontWeight="Bold"/>
+                            <TextBlock Text="{Binding SelectedPartTitle}"
+                                       Margin="0 12 0 0"
+                                       FontSize="24"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedPartSubtitle}"
+                                       Margin="0 6 0 0"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedDormancyDetail}"
+                                       Margin="0 14 0 0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+
+                            <Border Margin="0 18 0 0"
+                                    Padding="12"
+                                    Background="{DynamicResource AppBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
+                                <Grid DataContext="{Binding SelectedItem}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                               Text="Stock"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 18 8"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                               Text="{Binding StockLabel}"
+                                               Margin="0 0 0 8"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                               Text="Value"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 18 8"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1"
+                                               Text="{Binding StockValueLabel}"
+                                               Margin="0 0 0 8"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0"
+                                               Text="Sale"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 18 8"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1"
+                                               Text="{Binding SalePriceLabel}"
+                                               Margin="0 0 0 8"/>
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0"
+                                               Text="Cost"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0 0 18 0"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1"
+                                               Text="{Binding CostLabel}"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2"
+                            Padding="16"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Margin="0 0 0 14">
+                                <TextBlock Text="Recovery Actions"
+                                           FontSize="18"
+                                           FontWeight="Bold"/>
+                                <TextBlock Text="Discount, bundle, campaign, supplier return, or marketplace listing."
+                                           Margin="0 4 0 0"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding SelectedItem.SuggestedActions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0 0 0 10"
+                                                    Padding="12"
+                                                    Background="{DynamicResource AppBackgroundBrush}"
+                                                    BorderBrush="{Binding ToneBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8">
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Left"
+                                                                   Text="{Binding Label}"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                        <TextBlock DockPanel.Dock="Right"
+                                                                   Text="{Binding Tone}"
+                                                                   Foreground="{Binding ToneBrush}"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"/>
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding Detail}"
+                                                               Margin="0 7 0 0"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

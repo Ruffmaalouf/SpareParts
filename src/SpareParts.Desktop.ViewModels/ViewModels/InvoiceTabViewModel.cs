@@ -1,7 +1,9 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf;
+using SpareParts.Domain.Communications;
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Sales;
+using SpareParts.Domain.Transactions;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
@@ -26,6 +28,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
         public ObservableCollection<TransactionTypeDto> TransactionTypes { get; } = new();
         public ObservableCollection<string> CurrencyCodes { get; } = new();
+        public ObservableCollection<TransactionTimelineStepDto> PostingTimeline { get; } = new();
 
         // ── Invoice header ────────────────────────────────────────────────────
 
@@ -59,16 +62,22 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 _paidAmount = value;
                 OnPropertyChanged(nameof(PaidAmount));
                 OnPropertyChanged(nameof(PaidAmountBase));
+                OnPropertyChanged(nameof(RemainingAmountCounter));
                 OnPropertyChanged(nameof(RemainingAmountUsd));
                 OnPropertyChanged(nameof(RemainingAmountBase));
+                OnPropertyChanged(nameof(CanIssueSalePayment));
             }
         }
 
         public decimal TotalAmount => Items.Sum(i => i.LineTotal);
         public decimal BaseAmountTotal => Items.Sum(i => i.BaseAmount);
         public decimal PaidAmountBase => PaidAmount * SelectedCounterRate;
-        public decimal RemainingAmountUsd => TotalAmount - PaidAmount;
+        public decimal RemainingAmountCounter => TotalAmount - PaidAmount;
+        public decimal RemainingAmountUsd => RemainingAmountCounter;
         public decimal RemainingAmountBase => BaseAmountTotal - PaidAmountBase;
+        public string TotalCounterLabel => $"Total ({SelectedCurrencyCode}):";
+        public string PaidCounterLabel => $"Paid ({SelectedCurrencyCode}):";
+        public string RemainingCounterLabel => $"Remaining ({SelectedCurrencyCode}):";
 
         // ── New-line entry fields (bound from PartSearchControl + manual) ─────
 
@@ -118,7 +127,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(IsModifyMode));
                 OnPropertyChanged(nameof(SaleModeTitle));
                 OnPropertyChanged(nameof(SaleModeSubtitle));
+                OnPropertyChanged(nameof(IsCommunicationEnabled));
                 OnPropertyChanged(nameof(IsInvoiceContentEnabled));
+                OnPropertyChanged(nameof(CanIssueSalePayment));
             }
         }
 
@@ -138,19 +149,73 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 OnPropertyChanged(nameof(IsEditEnabled));
                 OnPropertyChanged(nameof(IsSaveEnabled));
                 OnPropertyChanged(nameof(IsResetEnabled));
+                OnPropertyChanged(nameof(IsCommunicationEnabled));
                 OnPropertyChanged(nameof(IsInvoiceContentEnabled));
+                OnPropertyChanged(nameof(CanIssueSalePayment));
             }
         }
 
         public bool IsEditEnabled => IsLoadedFromSearch && !IsInEditMode;
         public bool IsSaveEnabled => IsLoadedFromSearch && IsInEditMode;
         public bool IsResetEnabled => IsLoadedFromSearch && IsInEditMode;
+        public bool IsCommunicationEnabled => IsLoadedFromSearch && !IsInEditMode && InvoiceId is > 0;
         public bool IsInvoiceContentEnabled => !IsLoadedFromSearch || IsInEditMode;
+        public bool CanIssueSalePayment => IsLoadedFromSearch && !IsInEditMode && InvoiceId is > 0 && PaymentAmount > 0m && RemainingAmountCounter > 0m;
         public bool IsModifyMode => IsLoadedFromSearch;
+        public bool HasPostingTimeline => PostingTimeline.Count > 0;
         public string SaleModeTitle => IsModifyMode ? "Modify Sale" : "New Sale";
         public string SaleModeSubtitle => IsModifyMode
             ? "Review and modify invoice details below"
             : "Enter invoice details below";
+
+        private decimal _paymentAmount;
+        public decimal PaymentAmount
+        {
+            get => _paymentAmount;
+            set
+            {
+                if (_paymentAmount == value) return;
+                _paymentAmount = value;
+                OnPropertyChanged(nameof(PaymentAmount));
+                OnPropertyChanged(nameof(CanIssueSalePayment));
+            }
+        }
+
+        private DateTime? _paymentDate = DateTime.Today;
+        public DateTime? PaymentDate
+        {
+            get => _paymentDate;
+            set
+            {
+                if (_paymentDate == value) return;
+                _paymentDate = value;
+                OnPropertyChanged(nameof(PaymentDate));
+            }
+        }
+
+        private string _paymentMethod = "Cash";
+        public string PaymentMethod
+        {
+            get => _paymentMethod;
+            set
+            {
+                if (_paymentMethod == value) return;
+                _paymentMethod = value;
+                OnPropertyChanged(nameof(PaymentMethod));
+            }
+        }
+
+        private string _paymentNotes = string.Empty;
+        public string PaymentNotes
+        {
+            get => _paymentNotes;
+            set
+            {
+                if (_paymentNotes == value) return;
+                _paymentNotes = value;
+                OnPropertyChanged(nameof(PaymentNotes));
+            }
+        }
 
         private int? _selectedTransactionTypeId;
         public int? SelectedTransactionTypeId
@@ -182,6 +247,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 _selectedCurrencyCode = value;
                 OnPropertyChanged(nameof(SelectedCurrencyCode));
+                OnPropertyChanged(nameof(TotalCounterLabel));
+                OnPropertyChanged(nameof(PaidCounterLabel));
+                OnPropertyChanged(nameof(RemainingCounterLabel));
 
                 if (!_isSynchronizingSelection)
                 {
@@ -210,6 +278,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand EditInvoiceCommand  { get; }
         public ICommand SaveInvoiceCommand  { get; }
         public ICommand ResetInvoiceCommand { get; }
+        public ICommand IssueSalePaymentCommand { get; }
+        public ICommand SendWhatsAppInvoiceCommand { get; }
+        public ICommand SendSmsReminderCommand { get; }
 
         public InvoiceTabViewModel(ISalesApiClient salesApi, ICrudApiClient crudApi)
         {
@@ -220,6 +291,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());
             SaveInvoiceCommand  = new RelayCommand(_ => SaveEditsAsync().SafeFireAndForget(HandleBackgroundException));
             ResetInvoiceCommand = new RelayCommand(_ => ResetEdits());
+            IssueSalePaymentCommand = new RelayCommand(_ => IssueSalePaymentAsync().SafeFireAndForget(HandleBackgroundException));
+            SendWhatsAppInvoiceCommand = new RelayCommand(_ =>
+                SendBusinessMessageAsync(CommunicationChannel.WhatsApp, CommunicationTemplateKey.SalesInvoice)
+                    .SafeFireAndForget(HandleBackgroundException));
+            SendSmsReminderCommand = new RelayCommand(_ =>
+                SendBusinessMessageAsync(CommunicationChannel.Sms, CommunicationTemplateKey.PaymentReminder)
+                    .SafeFireAndForget(HandleBackgroundException));
 
             Items.CollectionChanged += (_, _) =>
             {
@@ -248,6 +326,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             OnPropertyChanged(nameof(IsEditEnabled));
             OnPropertyChanged(nameof(IsSaveEnabled));
             OnPropertyChanged(nameof(IsResetEnabled));
+            OnPropertyChanged(nameof(IsCommunicationEnabled));
+            OnPropertyChanged(nameof(CanIssueSalePayment));
 
             if (_snapshot == null)
             {
@@ -260,11 +340,14 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             InvoiceId = invoice.InvoiceId;
             _invoiceNumber = invoice.InvoiceNumber;
             OnPropertyChanged(nameof(Header));
+            OnPropertyChanged(nameof(IsCommunicationEnabled));
+            OnPropertyChanged(nameof(CanIssueSalePayment));
 
             CustomerId = invoice.CustomerId;
             WarehouseId = invoice.WarehouseId;
             InvoiceDate = invoice.InvoiceDate;
             PaidAmount = invoice.PaidAmount;
+            ApplyInvoiceCurrency(invoice.CounterCurrencyCode, invoice.CounterRateToBase);
 
             Items.Clear();
             foreach (var line in invoice.Items)
@@ -279,7 +362,142 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 });
             }
 
+            ReplaceTimeline(invoice.Timeline);
             MarkOpenedFromSearch();
+            _snapshot = CreateSnapshot();
+            ResetPaymentDraft();
+        }
+
+        private void ApplyInvoiceCurrency(string? counterCurrencyCode, decimal counterRateToBase)
+        {
+            var normalizedCurrency = string.IsNullOrWhiteSpace(counterCurrencyCode)
+                ? _defaultCounterCurrencyCode
+                : counterCurrencyCode.Trim().ToUpperInvariant();
+
+            _isSynchronizingSelection = true;
+            _selectedCurrencyCode = normalizedCurrency;
+            OnPropertyChanged(nameof(SelectedCurrencyCode));
+            OnPropertyChanged(nameof(TotalCounterLabel));
+            OnPropertyChanged(nameof(PaidCounterLabel));
+            OnPropertyChanged(nameof(RemainingCounterLabel));
+            SelectedCounterRate = counterRateToBase > 0m ? counterRateToBase : _defaultCounterRate;
+            _isSynchronizingSelection = false;
+
+            RecalculateBaseAmounts();
+            RaiseTotalsChanged();
+        }
+
+        private void ResetPaymentDraft()
+        {
+            PaymentDate = DateTime.Today;
+            PaymentMethod = "Cash";
+            PaymentNotes = string.Empty;
+            PaymentAmount = Math.Max(0m, decimal.Round(RemainingAmountCounter, 4, MidpointRounding.AwayFromZero));
+            OnPropertyChanged(nameof(CanIssueSalePayment));
+        }
+
+        private async Task SendBusinessMessageAsync(CommunicationChannel channel, CommunicationTemplateKey templateKey)
+        {
+            if (!IsCommunicationEnabled || InvoiceId is not > 0)
+            {
+                AppNotificationCenter.Instance.Publish("Cannot send before loading a saved invoice.", false);
+                return;
+            }
+
+            try
+            {
+                var request = new SendBusinessMessageRequest
+                {
+                    Channel = channel,
+                    TemplateKey = templateKey,
+                    RecipientKind = CommunicationRecipientKind.Customer,
+                    SalesInvoiceId = InvoiceId.Value
+                };
+
+                var response = await _crudApi.PostAsync<SendBusinessMessageResponse>("api/communications/send", request);
+                var status = string.Equals(response.Status, "Sent", StringComparison.OrdinalIgnoreCase)
+                    ? "sent"
+                    : "prepared";
+
+                AppNotificationCenter.Instance.Publish(
+                    $"Invoice message {status} for {response.RecipientName} via {response.Channel}.",
+                    true);
+            }
+            catch (ApiClientException ex)
+            {
+                CustomMessageBox.Show($"Error: {ex.Message}", "Communication Error", "Error");
+                AppNotificationCenter.Instance.Publish($"Communication API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                CustomMessageBox.Show("Unexpected error while sending message.", "Communication Error", "Error");
+                AppNotificationCenter.Instance.Publish("Unexpected error while sending message.", false);
+            }
+        }
+
+        private async Task IssueSalePaymentAsync()
+        {
+            if (InvoiceId is not > 0)
+            {
+                AppNotificationCenter.Instance.Publish("Load a saved invoice before issuing payment.", false);
+                return;
+            }
+
+            if (IsInEditMode)
+            {
+                AppNotificationCenter.Instance.Publish("Save or reset invoice edits before issuing payment.", false);
+                return;
+            }
+
+            var remainingAmount = decimal.Round(RemainingAmountCounter, 4, MidpointRounding.AwayFromZero);
+            var paymentAmount = decimal.Round(PaymentAmount, 4, MidpointRounding.AwayFromZero);
+            if (paymentAmount <= 0m)
+            {
+                AppNotificationCenter.Instance.Publish("Payment amount must be greater than zero.", false);
+                return;
+            }
+
+            if (paymentAmount > remainingAmount)
+            {
+                AppNotificationCenter.Instance.Publish($"Payment cannot exceed remaining balance ({remainingAmount:N2}).", false);
+                return;
+            }
+
+            try
+            {
+                var response = await _salesApi.IssuePaymentAsync(InvoiceId.Value, new IssueSalePaymentRequest
+                {
+                    PaymentDate = PaymentDate ?? DateTime.Today,
+                    Amount = paymentAmount,
+                    PaymentMethod = PaymentMethod,
+                    Notes = PaymentNotes
+                });
+
+                var refreshedInvoice = await _salesApi.GetInvoiceByIdAsync(InvoiceId.Value);
+                if (refreshedInvoice != null)
+                {
+                    LoadFromDatabase(refreshedInvoice);
+                }
+                else
+                {
+                    PaidAmount = response.PaidAmount;
+                    ResetPaymentDraft();
+                }
+
+                AppNotificationCenter.Instance.Publish(
+                    $"Sale payment posted for {response.InvoiceNumber}: {response.PaymentAmount:N2}. Remaining {response.RemainingAmount:N2}.",
+                    true);
+            }
+            catch (ApiClientException ex)
+            {
+                CustomMessageBox.Show($"Error: {ex.Message}", "Sale Payment Error", "Error");
+                AppNotificationCenter.Instance.Publish($"Sale payment API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                CustomMessageBox.Show("Unexpected error while issuing sale payment.", "Sale Payment Error", "Error");
+                AppNotificationCenter.Instance.Publish("Unexpected error while issuing sale payment.", false);
+            }
         }
 
         // ── Add line ──────────────────────────────────────────────────────────
@@ -385,6 +603,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 };
 
                 await _salesApi.UpdateSaleAsync(InvoiceId.Value, request);
+                var refreshedInvoice = await _salesApi.GetInvoiceByIdAsync(InvoiceId.Value);
+                if (refreshedInvoice != null)
+                {
+                    LoadFromDatabase(refreshedInvoice);
+                }
+                else
+                {
+                    _snapshot = CreateSnapshot();
+                    IsInEditMode = false;
+                }
             }
             catch (ApiClientException ex)
             {
@@ -399,8 +627,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 return;
             }
 
-            _snapshot = CreateSnapshot();
-            IsInEditMode = false;
             AppNotificationCenter.Instance.Publish($"✓ Changes saved to database for {Header}.", true);
         }
 
@@ -553,6 +779,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 _selectedCurrencyCode = _defaultCounterCurrencyCode;
                 OnPropertyChanged(nameof(SelectedCurrencyCode));
+                OnPropertyChanged(nameof(TotalCounterLabel));
+                OnPropertyChanged(nameof(PaidCounterLabel));
+                OnPropertyChanged(nameof(RemainingCounterLabel));
                 SelectedCounterRate = _defaultCounterRate;
                 RecalculateBaseAmounts();
                 RaiseTotalsChanged();
@@ -562,6 +791,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             _selectedCurrencyCode = selected.CurrencyCode;
             OnPropertyChanged(nameof(SelectedCurrencyCode));
+            OnPropertyChanged(nameof(TotalCounterLabel));
+            OnPropertyChanged(nameof(PaidCounterLabel));
+            OnPropertyChanged(nameof(RemainingCounterLabel));
             SelectedCounterRate = selected.CounterRate;
             RecalculateBaseAmounts();
             RaiseTotalsChanged();
@@ -628,6 +860,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             IsInEditMode = false;
+            ResetPaymentDraft();
             AppNotificationCenter.Instance.Publish($"↺ {Header} restored to last saved values.", true);
         }
 
@@ -720,8 +953,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             OnPropertyChanged(nameof(TotalAmount));
             OnPropertyChanged(nameof(BaseAmountTotal));
             OnPropertyChanged(nameof(PaidAmountBase));
+            OnPropertyChanged(nameof(RemainingAmountCounter));
             OnPropertyChanged(nameof(RemainingAmountUsd));
             OnPropertyChanged(nameof(RemainingAmountBase));
+            OnPropertyChanged(nameof(CanIssueSalePayment));
+        }
+
+        private void ReplaceTimeline(IEnumerable<TransactionTimelineStepDto>? steps)
+        {
+            PostingTimeline.Clear();
+            foreach (var step in steps ?? Enumerable.Empty<TransactionTimelineStepDto>())
+            {
+                PostingTimeline.Add(step);
+            }
+
+            OnPropertyChanged(nameof(HasPostingTimeline));
         }
 
         private void RecalculateBaseAmounts()

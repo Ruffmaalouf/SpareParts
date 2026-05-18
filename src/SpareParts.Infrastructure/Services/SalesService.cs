@@ -1,7 +1,9 @@
+using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Sales;
+using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
 using SpareParts.Infrastructure.Interfaces;
@@ -10,12 +12,16 @@ namespace SpareParts.Infrastructure.Services
 {
     public class SalesService
     {
+        private const string SalePaymentReferenceType = "SalePayment";
+
         private readonly ICreateSaleHandler _createSaleHandler;
         private readonly ISqlConnectionFactory _factory;
         private readonly IInventoryService _inventoryService;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
         private readonly IAccountingStrategy<SalesInvoice> _accountingStrategy;
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
+        private readonly AccountingSettingsProvider _settingsProvider;
+        private readonly CustomerAccountResolver _customerAccountResolver;
 
         public SalesService(
             ICreateSaleHandler createSaleHandler,
@@ -23,7 +29,9 @@ namespace SpareParts.Infrastructure.Services
             IInventoryService inventoryService,
             IPaymentStatusPolicy paymentStatusPolicy,
             IAccountingStrategy<SalesInvoice> accountingStrategy,
-            IInvoiceTotalsCalculator totalsCalculator)
+            IInvoiceTotalsCalculator totalsCalculator,
+            AccountingSettingsProvider settingsProvider,
+            CustomerAccountResolver customerAccountResolver)
         {
             _createSaleHandler = createSaleHandler;
             _factory = factory;
@@ -31,6 +39,8 @@ namespace SpareParts.Infrastructure.Services
             _paymentStatusPolicy = paymentStatusPolicy;
             _accountingStrategy = accountingStrategy;
             _totalsCalculator = totalsCalculator;
+            _settingsProvider = settingsProvider;
+            _customerAccountResolver = customerAccountResolver;
         }
 
         public CreateSaleResponse CreateSale(CreateSaleRequest request, int userId)
@@ -48,6 +58,65 @@ namespace SpareParts.Infrastructure.Services
             using var session = new DbSession(_factory);
             var salesRepository = new SalesRepository(session);
             return salesRepository.GetInvoiceById(invoiceId);
+        }
+
+        public IssueSalePaymentResponse IssuePayment(int invoiceId, IssueSalePaymentRequest request, int userId)
+        {
+            if (request.Amount <= 0m)
+            {
+                throw new ValidationException("Payment amount must be greater than zero.");
+            }
+
+            using var session = new DbSession(_factory);
+            var repositories = RepositoryCatalog.For(session);
+            var salesRepository = repositories.Sales.Invoices;
+            var journalRepository = repositories.Accounting.Journal;
+
+            var invoice = salesRepository.GetInvoiceById(invoiceId)
+                ?? throw new NotFoundException("Sale invoice not found.");
+
+            var remainingAmount = decimal.Round(invoice.TotalAmount - invoice.PaidAmount, 4, MidpointRounding.AwayFromZero);
+            if (remainingAmount <= 0m)
+            {
+                throw new ValidationException("This sale invoice is already fully paid.");
+            }
+
+            var paymentAmount = decimal.Round(request.Amount, 4, MidpointRounding.AwayFromZero);
+            if (paymentAmount > remainingAmount)
+            {
+                throw new ValidationException($"Payment amount cannot be greater than the remaining balance ({remainingAmount:N2}).");
+            }
+
+            var paidAmount = decimal.Round(invoice.PaidAmount + paymentAmount, 4, MidpointRounding.AwayFromZero);
+            var paymentStatus = _paymentStatusPolicy.Resolve(invoice.TotalAmount, paidAmount).ToString();
+            var updated = salesRepository.ApplyPayment(invoiceId, paidAmount, paymentStatus, request.PaymentMethod, userId);
+            if (!updated)
+            {
+                throw new NotFoundException("Sale invoice not found.");
+            }
+
+            CreatePaymentJournalEntryForSale(
+                session,
+                journalRepository,
+                invoice.CustomerId,
+                invoice.InvoiceNumber,
+                invoiceId,
+                request.PaymentDate == default ? DateTime.Today : request.PaymentDate,
+                paymentAmount,
+                request.Notes,
+                userId);
+
+            session.Commit();
+
+            return new IssueSalePaymentResponse
+            {
+                InvoiceId = invoiceId,
+                InvoiceNumber = invoice.InvoiceNumber,
+                PaymentAmount = paymentAmount,
+                PaidAmount = paidAmount,
+                RemainingAmount = decimal.Round(invoice.TotalAmount - paidAmount, 4, MidpointRounding.AwayFromZero),
+                PaymentStatus = paymentStatus
+            };
         }
 
         public bool UpdateInvoice(int invoiceId, UpdateSaleRequest request, int userId)
@@ -74,6 +143,7 @@ namespace SpareParts.Infrastructure.Services
             var invoice = new SalesInvoice
             {
                 InvoiceNumber = existingInvoice.InvoiceNumber,
+                ScanCode = existingInvoice.ScanCode,
                 InvoiceDate = request.InvoiceDate,
                 CustomerId = request.CustomerId,
                 WarehouseId = request.WarehouseId,
@@ -96,7 +166,9 @@ namespace SpareParts.Infrastructure.Services
 
             ApplyStockAdjustmentsForUpdate(inventoryRepository, existingInvoice, request, parts, invoiceId, userId);
             journalRepository.DeleteEntriesByReference(DomainReferenceType.Sale.ToString(), invoiceId);
+            journalRepository.DeleteEntriesByReference(SalePaymentReferenceType, invoiceId);
             CreateJournalEntryForSale(journalRepository, invoice, invoiceId, userId);
+            CreatePaymentJournalEntryForSale(session, journalRepository, invoice, invoiceId, userId);
 
             session.Commit();
             return updated;
@@ -310,6 +382,142 @@ namespace SpareParts.Infrastructure.Services
             var lines = _accountingStrategy.BuildJournalLines(invoice, userId);
             var entryId = journalRepository.InsertEntry(entry);
             journalRepository.InsertLines(entryId, lines);
+        }
+
+        private void CreatePaymentJournalEntryForSale(
+            DbSession session,
+            IJournalRepository journalRepository,
+            SalesInvoice invoice,
+            int invoiceId,
+            int userId)
+        {
+            CreatePaymentJournalEntryForSale(
+                session,
+                journalRepository,
+                invoice.CustomerId,
+                invoice.InvoiceNumber,
+                invoiceId,
+                invoice.InvoiceDate,
+                invoice.PaidAmount,
+                null,
+                userId,
+                allowMissingCustomerAccount: true);
+        }
+
+        private void CreatePaymentJournalEntryForSale(
+            DbSession session,
+            IJournalRepository journalRepository,
+            int? customerId,
+            string invoiceNumber,
+            int invoiceId,
+            DateTime paymentDate,
+            decimal paymentAmount,
+            string? notes,
+            int userId,
+            bool allowMissingCustomerAccount = false)
+        {
+            if (paymentAmount <= 0m)
+            {
+                return;
+            }
+
+            var customerAccountId = _customerAccountResolver.ResolveAccountId(customerId);
+            if (customerAccountId is not > 0)
+            {
+                if (allowMissingCustomerAccount)
+                {
+                    return;
+                }
+
+                throw new ValidationException("Cannot issue sale payment because the selected customer has no accounting account.");
+            }
+
+            var settings = _settingsProvider.GetSnapshot();
+            var currencyContext = ResolveSaleCurrencyContext(session, invoiceId);
+            var lines = new List<JournalLine>
+            {
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(settings.SalesCashAccountId, paymentAmount, 0m, currencyContext, userId),
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(customerAccountId.Value, 0m, paymentAmount, currencyContext, userId)
+            };
+
+            var entry = new JournalEntry
+            {
+                EntryDate = paymentDate,
+                ReferenceType = SalePaymentReferenceType,
+                ReferenceId = invoiceId,
+                Description = FormatSalePaymentDescription(invoiceNumber, notes),
+                CreatedAt = DateTime.UtcNow,
+                CreatedByUserId = userId
+            };
+
+            var entryId = journalRepository.InsertEntry(entry);
+            journalRepository.InsertLines(entryId, lines);
+        }
+
+        private AccountingCurrencyContext ResolveSaleCurrencyContext(DbSession session, int invoiceId)
+        {
+            var fallback = AccountingCurrencyContextResolver.Resolve(session);
+            const string sql = @"SELECT TOP (1)
+                                        ISNULL(NULLIF(t.BaseCurrencyCode, N''), @FallbackBaseCurrencyCode) AS BaseCurrencyCode,
+                                        ISNULL(NULLIF(t.CounterCurrencyCode, N''), @FallbackCounterCurrencyCode) AS CounterCurrencyCode,
+                                        CASE
+                                            WHEN ISNULL(t.TotalCounterAmount, 0) > 0 AND ISNULL(t.TotalBaseAmount, 0) > 0
+                                            THEN ROUND(t.TotalBaseAmount / t.TotalCounterAmount, 8)
+                                            ELSE @FallbackCounterRateToBase
+                                        END AS CounterRateToBase
+                                 FROM dbo.Transactions t
+                                 INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+                                 WHERE tt.TypeKey = @TypeKey
+                                   AND t.ReferenceId = @InvoiceId;";
+
+            var context = session.Connection.QuerySingleOrDefault<SalePaymentCurrencyContext>(sql, new
+            {
+                TypeKey = TransactionTypeKeys.Sale,
+                InvoiceId = invoiceId,
+                FallbackBaseCurrencyCode = fallback.BaseCurrencyCode,
+                FallbackCounterCurrencyCode = fallback.CounterCurrencyCode,
+                FallbackCounterRateToBase = fallback.CounterRateToBase
+            }, session.Transaction);
+
+            if (context == null)
+            {
+                return fallback;
+            }
+
+            return new AccountingCurrencyContext
+            {
+                BaseCurrencyCode = NormalizeCurrencyCode(context.BaseCurrencyCode, fallback.BaseCurrencyCode),
+                CounterCurrencyCode = NormalizeCurrencyCode(context.CounterCurrencyCode, fallback.CounterCurrencyCode),
+                CounterRateToBase = context.CounterRateToBase > 0m
+                    ? decimal.Round(context.CounterRateToBase, 8, MidpointRounding.AwayFromZero)
+                    : fallback.CounterRateToBase
+            };
+        }
+
+        private static string NormalizeCurrencyCode(string? value, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return fallback;
+            }
+
+            var normalized = value.Trim().ToUpperInvariant();
+            return normalized.Length == 3 ? normalized : fallback;
+        }
+
+        private static string FormatSalePaymentDescription(string invoiceNumber, string? notes)
+        {
+            var trimmedNotes = notes?.Trim();
+            return string.IsNullOrWhiteSpace(trimmedNotes)
+                ? $"Sale payment {invoiceNumber}"
+                : $"Sale payment {invoiceNumber} - {trimmedNotes}";
+        }
+
+        private sealed class SalePaymentCurrencyContext
+        {
+            public string BaseCurrencyCode { get; set; } = "USD";
+            public string CounterCurrencyCode { get; set; } = "USD";
+            public decimal CounterRateToBase { get; set; } = 1m;
         }
     }
 }

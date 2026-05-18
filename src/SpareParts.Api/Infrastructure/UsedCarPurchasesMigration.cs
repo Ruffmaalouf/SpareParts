@@ -233,6 +233,7 @@ SET CounterAmount = CASE
     WHEN l.DetailKey = 'used_car_partout' THEN ISNULL(uc.PartOutAmount, 0)
     WHEN l.DetailKey = 'used_car_shipping' THEN ISNULL(uc.Shipping, 0)
     WHEN l.DetailKey = 'used_car_customs' THEN ISNULL(uc.Customs, 0)
+    WHEN l.DetailKey = 'used_car_repairs' THEN ISNULL(uc.Repairs, 0)
     WHEN uc.CounterRateToBase > 0 THEN ROUND(l.BaseAmount / uc.CounterRateToBase, 4)
     ELSE l.BaseAmount
 END

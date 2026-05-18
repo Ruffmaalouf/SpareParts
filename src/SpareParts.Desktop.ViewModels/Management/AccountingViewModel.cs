@@ -1,12 +1,21 @@
+using Microsoft.Win32;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf.ViewModels;
 using SpareParts.Domain.Accounting;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -15,6 +24,7 @@ namespace SpareParts.Desktop.Wpf.Management
     public sealed class AccountingViewModel : INotifyPropertyChanged
     {
         private readonly IAccountingApiClient _accountingApi;
+        private readonly List<StatementPartyDto> _allStatementParties = new();
         private bool _suppressJournalSelectionLoad;
         private bool _suppressLedgerRefresh;
         private bool _suppressStatementRefresh;
@@ -31,6 +41,13 @@ namespace SpareParts.Desktop.Wpf.Management
         public ObservableCollection<LedgerRowDto> LedgerEntries { get; } = new();
         public ObservableCollection<TrialBalanceRowDto> TrialBalanceRows { get; } = new();
         public ObservableCollection<StatementOfAccountRowDto> StatementEntries { get; } = new();
+        public ObservableCollection<StatementCurrencyTotalDto> StatementCurrencyTotals { get; } = new();
+        public ObservableCollection<StatementPartyDto> StatementParties { get; } = new();
+        public ObservableCollection<StatementPartyTypeOption> StatementPartyTypes { get; } = new()
+        {
+            new StatementPartyTypeOption { Key = "Customer", Label = "Customers" },
+            new StatementPartyTypeOption { Key = "Supplier", Label = "Suppliers" }
+        };
 
         private AccountDto? _selectedAccount;
         public AccountDto? SelectedAccount
@@ -289,6 +306,46 @@ namespace SpareParts.Desktop.Wpf.Management
             }
         }
 
+        private string _selectedStatementPartyTypeKey = "Customer";
+        public string SelectedStatementPartyTypeKey
+        {
+            get => _selectedStatementPartyTypeKey;
+            set
+            {
+                var normalized = NormalizeStatementPartyType(value);
+                if (string.Equals(_selectedStatementPartyTypeKey, normalized, StringComparison.OrdinalIgnoreCase)) return;
+                _selectedStatementPartyTypeKey = normalized;
+                OnPropertyChanged(nameof(SelectedStatementPartyTypeKey));
+
+                var wasSuppressed = _suppressStatementRefresh;
+                _suppressStatementRefresh = true;
+                ApplyStatementPartyFilter(null);
+                _suppressStatementRefresh = wasSuppressed;
+
+                if (!_suppressStatementRefresh)
+                {
+                    _ = RefreshStatementAsync();
+                }
+            }
+        }
+
+        private StatementPartyDto? _selectedStatementParty;
+        public StatementPartyDto? SelectedStatementParty
+        {
+            get => _selectedStatementParty;
+            set
+            {
+                if (ReferenceEquals(_selectedStatementParty, value)) return;
+                _selectedStatementParty = value;
+                OnPropertyChanged(nameof(SelectedStatementParty));
+                OnPropertyChanged(nameof(StatementPartyAccountText));
+                if (!_suppressStatementRefresh)
+                {
+                    _ = RefreshStatementAsync();
+                }
+            }
+        }
+
         private DateTime? _statementDateFrom;
         public DateTime? StatementDateFrom
         {
@@ -311,7 +368,7 @@ namespace SpareParts.Desktop.Wpf.Management
             {
                 _statementReport = value;
                 OnPropertyChanged(nameof(StatementReport));
-                OnPropertyChanged(nameof(StatementSummary));
+                RaiseStatementMetricsChanged();
             }
         }
 
@@ -406,8 +463,31 @@ namespace SpareParts.Desktop.Wpf.Management
             ? "No trial balance activity in the selected period."
             : $"Base debit {TrialBalanceTotalDebit:N2} | Base credit {TrialBalanceTotalCredit:N2}  ·  Counter debit {TrialBalanceRows.Sum(row => row.TotalCounterDebit):N2} | Counter credit {TrialBalanceRows.Sum(row => row.TotalCounterCredit):N2}";
         public string StatementSummary => StatementReport == null
-            ? "Choose an account to review its statement."
-            : $"Base {StatementReport.BaseCurrencyCode}: open {StatementReport.OpeningBalance:N2} | close {StatementReport.ClosingBalance:N2}  ·  Counter {StatementReport.CounterCurrencyCode}: open {StatementReport.OpeningCounterBalance:N2} | close {StatementReport.ClosingCounterBalance:N2}";
+            ? "Choose a customer or supplier to review its statement."
+            : $"{StatementReport.SubjectDisplay}  ·  {StatementEntries.Count} movement(s)  ·  {StatementReport.BaseCurrencyCode} remaining {StatementReport.RemainingBalance:N2}";
+        public string StatementPartyAccountText => SelectedStatementParty == null
+            ? "No business partner selected."
+            : SelectedStatementParty.AccountId is > 0
+                ? $"Linked account: {SelectedStatementParty.AccountDisplay}"
+                : "This business partner is not linked to an accounting account.";
+        public string StatementOpeningBalanceText => StatementReport == null
+            ? "0.00"
+            : $"{NormalizeStatementFacingAmount(StatementReport.OpeningBalance):N2} {StatementReport.BaseCurrencyCode}";
+        public string StatementInvoiceTotalText => StatementReport == null
+            ? "0.00"
+            : $"{StatementReport.TotalInvoiceAmount:N2} {StatementReport.BaseCurrencyCode}";
+        public string StatementPaymentTotalText => StatementReport == null
+            ? "0.00"
+            : $"{StatementReport.TotalPaymentAmount:N2} {StatementReport.BaseCurrencyCode}";
+        public string StatementJournalTotalText => StatementReport == null
+            ? "0.00"
+            : $"{StatementReport.TotalJournalAmount:N2} {StatementReport.BaseCurrencyCode}";
+        public string StatementRemainingBalanceText => StatementReport == null
+            ? "0.00"
+            : $"{StatementReport.RemainingBalance:N2} {StatementReport.BaseCurrencyCode}";
+        public string StatementCounterRemainingBalanceText => StatementReport == null
+            ? string.Empty
+            : $"{StatementReport.RemainingCounterBalance:N2} {StatementReport.CounterCurrencyCode}";
 
         public ICommand LoadCommand { get; }
         public ICommand LoadSetupCommand { get; }
@@ -430,6 +510,8 @@ namespace SpareParts.Desktop.Wpf.Management
         public ICommand RefreshLedgerCommand { get; }
         public ICommand RefreshTrialBalanceCommand { get; }
         public ICommand RefreshStatementCommand { get; }
+        public ICommand ExportStatementCommand { get; }
+        public ICommand PrintStatementCommand { get; }
 
         public AccountingViewModel(IAccountingApiClient accountingApi)
         {
@@ -456,6 +538,8 @@ namespace SpareParts.Desktop.Wpf.Management
             RefreshLedgerCommand = new RelayCommand(_ => _ = RefreshLedgerAsync());
             RefreshTrialBalanceCommand = new RelayCommand(_ => _ = RefreshTrialBalanceAsync());
             RefreshStatementCommand = new RelayCommand(_ => _ = RefreshStatementAsync());
+            ExportStatementCommand = new RelayCommand(parameter => ExportStatement(parameter as string));
+            PrintStatementCommand = new RelayCommand(_ => PrintStatement());
 
             EnsureManualJournalSeedLines();
         }
@@ -488,6 +572,8 @@ namespace SpareParts.Desktop.Wpf.Management
                 var preservedAccountId = accountIdToSelect ?? SelectedAccount?.Id;
                 var preservedLedgerAccountId = SelectedLedgerAccountId;
                 var preservedStatementAccountId = SelectedStatementAccountId;
+                var preservedStatementPartyTypeKey = SelectedStatementPartyTypeKey;
+                var preservedStatementPartyId = SelectedStatementParty?.PartyId;
                 var preservedJournalId = journalIdToSelect ?? SelectedJournalEntry?.Id;
                 var preservedAccountTypeDefinitionKey = SelectedAccountTypeDefinition?.TypeKey;
                 var preservedPostingRoleKey = SelectedPostingRoleDefinition?.RoleKey;
@@ -498,6 +584,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 Task<List<PostingRoleDefinitionDto>>? postingRolesTask = null;
                 Task<List<JournalEntrySummaryDto>>? journalsTask = null;
                 Task<TrialBalanceReportDto>? trialBalanceTask = null;
+                Task<List<StatementPartyDto>>? statementPartiesTask = null;
 
                 if (scope is AccountingLoadScope.Setup or AccountingLoadScope.Review or AccountingLoadScope.ManualJournal)
                 {
@@ -515,6 +602,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 {
                     journalsTask = _accountingApi.GetJournalEntriesAsync(JournalDateFrom, JournalDateTo);
                     trialBalanceTask = _accountingApi.GetTrialBalanceAsync(TrialBalanceDateFrom, TrialBalanceDateTo);
+                    statementPartiesTask = _accountingApi.GetStatementPartiesAsync();
                 }
 
                 var tasks = new List<Task>();
@@ -524,6 +612,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 if (postingRolesTask != null) tasks.Add(postingRolesTask);
                 if (journalsTask != null) tasks.Add(journalsTask);
                 if (trialBalanceTask != null) tasks.Add(trialBalanceTask);
+                if (statementPartiesTask != null) tasks.Add(statementPartiesTask);
 
                 await Task.WhenAll(tasks);
 
@@ -545,6 +634,11 @@ namespace SpareParts.Desktop.Wpf.Management
                 if (settingsTask != null)
                 {
                     ApplyPostingSettings(settingsTask.Result);
+                }
+
+                if (statementPartiesTask != null)
+                {
+                    ApplyStatementParties(statementPartiesTask.Result, preservedStatementPartyTypeKey, preservedStatementPartyId);
                 }
 
                 if (journalsTask != null && trialBalanceTask != null)
@@ -642,6 +736,31 @@ namespace SpareParts.Desktop.Wpf.Management
             }).ToList());
 
             OnPropertyChanged(nameof(PostingSettingsSummary));
+        }
+
+        private void ApplyStatementParties(IEnumerable<StatementPartyDto> parties, string? preservedTypeKey, int? preservedPartyId)
+        {
+            _allStatementParties.Clear();
+            _allStatementParties.AddRange(parties.OrderBy(party => party.PartyType).ThenBy(party => party.Name));
+
+            _suppressStatementRefresh = true;
+            _selectedStatementPartyTypeKey = ResolveStatementPartyTypeSelection(preservedTypeKey);
+            OnPropertyChanged(nameof(SelectedStatementPartyTypeKey));
+            ApplyStatementPartyFilter(preservedPartyId);
+            _suppressStatementRefresh = false;
+        }
+
+        private void ApplyStatementPartyFilter(int? preservedPartyId)
+        {
+            var filtered = _allStatementParties
+                .Where(party => string.Equals(party.PartyType, SelectedStatementPartyTypeKey, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(party => party.Name)
+                .ToList();
+
+            Replace(StatementParties, filtered);
+            SelectedStatementParty = preservedPartyId is > 0
+                ? filtered.FirstOrDefault(party => party.PartyId == preservedPartyId) ?? filtered.FirstOrDefault()
+                : filtered.FirstOrDefault();
         }
 
         private void ApplyReviewData(
@@ -981,29 +1100,298 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             try
             {
-                if (SelectedStatementAccountId is not int accountId || accountId <= 0)
+                if (SelectedStatementParty == null)
                 {
                     StatementReport = null;
                     Replace(StatementEntries, Array.Empty<StatementOfAccountRowDto>());
+                    Replace(StatementCurrencyTotals, Array.Empty<StatementCurrencyTotalDto>());
+                    if (!silent)
+                    {
+                        SetStatus("Select a customer or supplier to build a statement.", false);
+                    }
                     return;
                 }
 
-                var report = await _accountingApi.GetStatementOfAccountAsync(accountId, StatementDateFrom, StatementDateTo);
+                if (SelectedStatementParty.AccountId is not > 0)
+                {
+                    StatementReport = null;
+                    Replace(StatementEntries, Array.Empty<StatementOfAccountRowDto>());
+                    Replace(StatementCurrencyTotals, Array.Empty<StatementCurrencyTotalDto>());
+                    SetStatus($"{SelectedStatementParty.Name} is not linked to an accounting account.", false);
+                    return;
+                }
+
+                var report = await _accountingApi.GetStatementOfAccountForPartyAsync(
+                    SelectedStatementParty.PartyType,
+                    SelectedStatementParty.PartyId,
+                    StatementDateFrom,
+                    StatementDateTo);
                 StatementReport = report;
                 Replace(StatementEntries, report.Entries);
-                OnPropertyChanged(nameof(StatementSummary));
+                Replace(StatementCurrencyTotals, report.CurrencyTotals);
+                RaiseStatementMetricsChanged();
 
                 if (!silent)
                 {
-                    SetStatus("Statement of account refreshed.", true);
+                    SetStatus("Business partner statement refreshed.", true);
                 }
             }
             catch (Exception ex)
             {
                 StatementReport = null;
                 Replace(StatementEntries, Array.Empty<StatementOfAccountRowDto>());
-                SetStatus($"Refreshing statement of account failed: {ex.Message}", false);
+                Replace(StatementCurrencyTotals, Array.Empty<StatementCurrencyTotalDto>());
+                SetStatus($"Refreshing statement failed: {ex.Message}", false);
             }
+        }
+
+        private void ExportStatement(string? formatKey)
+        {
+            if (StatementReport == null)
+            {
+                SetStatus("Build a statement before exporting.", false);
+                return;
+            }
+
+            var format = NormalizeExportFormat(formatKey);
+            var dialog = BuildStatementExportDialog(format);
+            if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.FileName))
+            {
+                return;
+            }
+
+            try
+            {
+                var table = BuildStatementExportTable();
+                var view = table.DefaultView;
+                var title = $"Statement - {StatementReport.SubjectDisplay}";
+                var summary = BuildStatementPrintSummary();
+
+                switch (format)
+                {
+                    case "pdf":
+                        ReportExportWriter.WritePdf(view, dialog.FileName, title, summary, DateTime.Now);
+                        break;
+                    case "json":
+                        ReportExportWriter.WriteJson(view, dialog.FileName);
+                        break;
+                    case "csv":
+                        ReportExportWriter.WriteCsv(view, dialog.FileName);
+                        break;
+                    default:
+                        ReportExportWriter.WriteExcelXml(view, dialog.FileName, "Statement", title, summary, DateTime.Now);
+                        break;
+                }
+
+                SetStatus($"Statement exported to {Path.GetFileName(dialog.FileName)}.", true);
+            }
+            catch (Exception ex)
+            {
+                SetStatus($"Exporting statement failed: {ex.Message}", false);
+            }
+        }
+
+        private void PrintStatement()
+        {
+            if (StatementReport == null)
+            {
+                SetStatus("Build a statement before printing.", false);
+                return;
+            }
+
+            try
+            {
+                var dialog = new PrintDialog();
+                if (dialog.ShowDialog() != true)
+                {
+                    return;
+                }
+
+                var document = BuildStatementPrintDocument();
+                document.PageWidth = dialog.PrintableAreaWidth;
+                document.PageHeight = dialog.PrintableAreaHeight;
+                document.PagePadding = new Thickness(36);
+                document.ColumnWidth = dialog.PrintableAreaWidth;
+
+                dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, $"Statement - {StatementReport.SubjectDisplay}");
+                SetStatus("Statement sent to printer.", true);
+            }
+            catch (Exception ex)
+            {
+                SetStatus($"Printing statement failed: {ex.Message}", false);
+            }
+        }
+
+        private DataTable BuildStatementExportTable()
+        {
+            var table = new DataTable("Statement");
+            table.Columns.Add("Date", typeof(DateTime));
+            table.Columns.Add("Type", typeof(string));
+            table.Columns.Add("Document", typeof(string));
+            table.Columns.Add("Description", typeof(string));
+            table.Columns.Add("Currency", typeof(string));
+            table.Columns.Add("Original Amount", typeof(decimal));
+            table.Columns.Add("Debit", typeof(decimal));
+            table.Columns.Add("Credit", typeof(decimal));
+            table.Columns.Add("Balance", typeof(decimal));
+            table.Columns.Add("Counter Balance", typeof(decimal));
+
+            foreach (var entry in StatementEntries)
+            {
+                table.Rows.Add(
+                    entry.EntryDate,
+                    entry.ActivityType,
+                    entry.DocumentNumber,
+                    entry.Description ?? string.Empty,
+                    entry.CurrencyCode,
+                    entry.OriginalAmount,
+                    entry.Debit,
+                    entry.Credit,
+                    NormalizeStatementFacingAmount(entry.RunningBalance),
+                    NormalizeStatementFacingAmount(entry.RunningCounterBalance));
+            }
+
+            return table;
+        }
+
+        private FlowDocument BuildStatementPrintDocument()
+        {
+            var document = new FlowDocument
+            {
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 10
+            };
+
+            document.Blocks.Add(new Paragraph(new Run($"Statement - {StatementReport!.SubjectDisplay}"))
+            {
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+
+            document.Blocks.Add(new Paragraph(new Run(BuildStatementPrintSummary()))
+            {
+                Margin = new Thickness(0, 0, 0, 12)
+            });
+
+            var table = new System.Windows.Documents.Table
+            {
+                CellSpacing = 0
+            };
+
+            foreach (var width in new[] { 82, 70, 92, 220, 78, 78, 86 })
+            {
+                table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+            }
+
+            var rowGroup = new TableRowGroup();
+            table.RowGroups.Add(rowGroup);
+            var header = new TableRow();
+            rowGroup.Rows.Add(header);
+            AddPrintCell(header, "Date", bold: true);
+            AddPrintCell(header, "Type", bold: true);
+            AddPrintCell(header, "Document", bold: true);
+            AddPrintCell(header, "Description", bold: true);
+            AddPrintCell(header, "Debit", bold: true, alignRight: true);
+            AddPrintCell(header, "Credit", bold: true, alignRight: true);
+            AddPrintCell(header, "Balance", bold: true, alignRight: true);
+
+            foreach (var entry in StatementEntries)
+            {
+                var row = new TableRow();
+                rowGroup.Rows.Add(row);
+                AddPrintCell(row, entry.EntryDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                AddPrintCell(row, entry.ActivityType);
+                AddPrintCell(row, entry.DocumentNumber);
+                AddPrintCell(row, entry.Description ?? string.Empty);
+                AddPrintCell(row, entry.Debit.ToString("N2", CultureInfo.CurrentCulture), alignRight: true);
+                AddPrintCell(row, entry.Credit.ToString("N2", CultureInfo.CurrentCulture), alignRight: true);
+                AddPrintCell(row, NormalizeStatementFacingAmount(entry.RunningBalance).ToString("N2", CultureInfo.CurrentCulture), alignRight: true);
+            }
+
+            document.Blocks.Add(table);
+            return document;
+        }
+
+        private string BuildStatementPrintSummary()
+        {
+            var builder = new StringBuilder();
+            builder.Append("Opening: ");
+            builder.Append(StatementOpeningBalanceText);
+            builder.Append(" | Invoices: ");
+            builder.Append(StatementInvoiceTotalText);
+            builder.Append(" | Payments: ");
+            builder.Append(StatementPaymentTotalText);
+            builder.Append(" | Journals: ");
+            builder.Append(StatementJournalTotalText);
+            builder.Append(" | Remaining: ");
+            builder.Append(StatementRemainingBalanceText);
+
+            if (!string.IsNullOrWhiteSpace(StatementCounterRemainingBalanceText))
+            {
+                builder.Append(" | Counter remaining: ");
+                builder.Append(StatementCounterRemainingBalanceText);
+            }
+
+            return builder.ToString();
+        }
+
+        private static void AddPrintCell(TableRow row, string text, bool bold = false, bool alignRight = false)
+        {
+            var paragraph = new Paragraph(new Run(text ?? string.Empty))
+            {
+                Margin = new Thickness(3),
+                TextAlignment = alignRight ? TextAlignment.Right : TextAlignment.Left
+            };
+
+            if (bold)
+            {
+                paragraph.FontWeight = FontWeights.Bold;
+            }
+
+            row.Cells.Add(new TableCell(paragraph)
+            {
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(0, 0, 0, 0.5)
+            });
+        }
+
+        private SaveFileDialog BuildStatementExportDialog(string format)
+        {
+            return new SaveFileDialog
+            {
+                AddExtension = true,
+                CheckPathExists = true,
+                OverwritePrompt = true,
+                DefaultExt = $".{format}",
+                Filter = format switch
+                {
+                    "pdf" => "PDF (*.pdf)|*.pdf|All files (*.*)|*.*",
+                    "json" => "JSON (*.json)|*.json|All files (*.*)|*.*",
+                    "csv" => "CSV (*.csv)|*.csv|All files (*.*)|*.*",
+                    _ => "Excel 2003 XML (*.xls)|*.xls|All files (*.*)|*.*"
+                },
+                FileName = BuildDefaultStatementExportFileName(format),
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+        }
+
+        private string BuildDefaultStatementExportFileName(string format)
+        {
+            var name = StatementReport?.SubjectDisplay ?? "Statement";
+            var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
+            return $"{(string.IsNullOrWhiteSpace(safeName) ? "Statement" : safeName)}-statement-{DateTime.Now:yyyyMMdd-HHmmss}.{format}";
+        }
+
+        private static string NormalizeExportFormat(string? formatKey)
+        {
+            return formatKey?.Trim().ToLowerInvariant() switch
+            {
+                "pdf" => "pdf",
+                "json" => "json",
+                "csv" => "csv",
+                _ => "xls"
+            };
         }
 
         private void StartNewAccount()
@@ -1177,6 +1565,40 @@ namespace SpareParts.Desktop.Wpf.Management
             ManualJournalReferenceType = "Manual";
             ManualJournalLines.Clear();
             EnsureManualJournalSeedLines();
+        }
+
+        private void RaiseStatementMetricsChanged()
+        {
+            OnPropertyChanged(nameof(StatementSummary));
+            OnPropertyChanged(nameof(StatementOpeningBalanceText));
+            OnPropertyChanged(nameof(StatementInvoiceTotalText));
+            OnPropertyChanged(nameof(StatementPaymentTotalText));
+            OnPropertyChanged(nameof(StatementJournalTotalText));
+            OnPropertyChanged(nameof(StatementRemainingBalanceText));
+            OnPropertyChanged(nameof(StatementCounterRemainingBalanceText));
+        }
+
+        private decimal NormalizeStatementFacingAmount(decimal amount)
+        {
+            return StatementReport != null
+                && string.Equals(StatementReport.SubjectType, "Supplier", StringComparison.OrdinalIgnoreCase)
+                    ? -amount
+                    : amount;
+        }
+
+        private static string NormalizeStatementPartyType(string? value)
+        {
+            return string.Equals(value, "Supplier", StringComparison.OrdinalIgnoreCase)
+                ? "Supplier"
+                : "Customer";
+        }
+
+        private string ResolveStatementPartyTypeSelection(string? value)
+        {
+            var normalized = NormalizeStatementPartyType(value);
+            return _allStatementParties.Any(party => string.Equals(party.PartyType, normalized, StringComparison.OrdinalIgnoreCase))
+                ? normalized
+                : _allStatementParties.FirstOrDefault()?.PartyType ?? normalized;
         }
 
         private void SetStatus(string message, bool isSuccess)

@@ -20,16 +20,59 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style x:Key="ThemeComboBoxItemStyle" TargetType="ComboBoxItem">
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="12 8"/>
+                <Setter Property="MinHeight" Value="34"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBoxItem">
+                            <Border x:Name="ItemBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="{TemplateBinding Padding}"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsHighlighted" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                    <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                    <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.55"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style x:Key="AccountingComboBoxStyle" TargetType="ComboBox">
-                <Setter Property="MinHeight" Value="42"/>
-                <Setter Property="Padding" Value="14 0"/>
+                <Setter Property="MinHeight" Value="40"/>
+                <Setter Property="Padding" Value="13 0"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                 <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="MaxDropDownHeight" Value="280"/>
                 <Setter Property="ItemContainerStyle" Value="{DynamicResource ThemeComboBoxItemStyle}"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -57,17 +100,19 @@
 
                                         <Border x:Name="IndicatorBorder"
                                                 Grid.Column="1"
-                                                Margin="0 6 6 6"
-                                                Padding="10 0"
-                                                Background="{DynamicResource CardHighlightBrush}"
-                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                Width="30"
+                                                Height="30"
+                                                Margin="0 5 5 5"
+                                                Background="Transparent"
+                                                BorderBrush="Transparent"
                                                 BorderThickness="1"
-                                                CornerRadius="8"
-                                                VerticalAlignment="Stretch">
+                                                CornerRadius="9"
+                                                VerticalAlignment="Center">
                                             <TextBlock Text="&#xE70D;"
                                                        FontFamily="Segoe MDL2 Assets"
                                                        FontSize="10"
                                                        Foreground="{DynamicResource AccentBrush}"
+                                                       Opacity="0.9"
                                                        HorizontalAlignment="Center"
                                                        VerticalAlignment="Center"/>
                                         </Border>
@@ -85,7 +130,14 @@
                                             Background="{DynamicResource CardBackgroundBrush}"
                                             BorderBrush="{DynamicResource CardBorderBrush}"
                                             BorderThickness="1"
-                                            CornerRadius="12">
+                                            CornerRadius="12"
+                                            SnapsToDevicePixels="True">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="Black"
+                                                              BlurRadius="18"
+                                                              ShadowDepth="6"
+                                                              Opacity="0.28"/>
+                                        </Border.Effect>
                                         <ScrollViewer Margin="6"
                                                       MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                             <StackPanel IsItemsHost="True"
@@ -100,16 +152,19 @@
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="IndicatorBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    <Setter TargetName="IndicatorBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                                    <Setter TargetName="IndicatorBorder" Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                     <Setter TargetName="OuterBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
                                     <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    <Setter TargetName="IndicatorBorder" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
                                     <Setter TargetName="IndicatorBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsDropDownOpen" Value="True">
                                     <Setter TargetName="OuterBorder" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
                                     <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                    <Setter TargetName="IndicatorBorder" Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
                                     <Setter TargetName="IndicatorBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">

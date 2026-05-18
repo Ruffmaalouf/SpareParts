@@ -8,6 +8,8 @@ namespace SpareParts.Domain.Accounting
         public DateTime EntryDate { get; set; }
         public string? ReferenceType { get; set; }
         public int? ReferenceId { get; set; }
+        public string ActivityType { get; set; } = "Journal";
+        public string DocumentNumber { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string BaseCurrencyCode { get; set; } = "USD";
         public string CounterCurrencyCode { get; set; } = "USD";
@@ -19,5 +21,7 @@ namespace SpareParts.Domain.Accounting
         public decimal CounterCredit { get; set; }
         public decimal RunningBalance { get; set; }
         public decimal RunningCounterBalance { get; set; }
+        public decimal BalanceImpact => Debit - Credit;
+        public decimal CounterBalanceImpact => CounterDebit - CounterCredit;
     }
 }

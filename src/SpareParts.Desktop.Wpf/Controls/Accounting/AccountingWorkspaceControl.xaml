@@ -1,0 +1,449 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.AccountingWorkspaceControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SpareParts.Desktop.Wpf;assembly=SpareParts.Desktop.Controls">
+    <UserControl.Resources>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource AccountingComboBoxStyle}"/>
+    </UserControl.Resources>
+
+    <TabControl Background="Transparent" BorderThickness="0">
+        <TabItem Header="Journals">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0 0 0 14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <controls:SaleDatePickerControl Grid.Column="0"
+                                                    Label="FROM"
+                                                    PopupTitle="SELECT JOURNAL START DATE"
+                                                    DisplayFormat="dd MMM yyyy"
+                                                    PlaceholderText="Start date"
+                                                    SelectedDate="{Binding JournalDateFrom, Mode=TwoWay}"
+                                                    VerticalAlignment="Top"/>
+                    <controls:SaleDatePickerControl Grid.Column="2"
+                                                    Label="TO"
+                                                    PopupTitle="SELECT JOURNAL END DATE"
+                                                    DisplayFormat="dd MMM yyyy"
+                                                    PlaceholderText="End date"
+                                                    SelectedDate="{Binding JournalDateTo, Mode=TwoWay}"
+                                                    VerticalAlignment="Top"/>
+                    <Button Grid.Column="4"
+                            Content="Refresh"
+                            Command="{Binding RefreshJournalCommand}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Width="120"
+                            VerticalAlignment="Bottom"/>
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.2*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0"
+                                       Text="{Binding JournalSummary}"
+                                       FontSize="12"
+                                       Margin="0 0 0 12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                            <DataGrid Grid.Row="1"
+                                      ItemsSource="{Binding JournalEntries}"
+                                      SelectedItem="{Binding SelectedJournalEntry, Mode=TwoWay}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding Id, Mode=OneWay}" Width="60"/>
+                                    <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
+                                    <DataGridTextColumn Header="Reference" Binding="{Binding ReferenceType, Mode=OneWay}" Width="110"/>
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=OneWay}" Width="*"/>
+                                    <DataGridTextColumn Header="Debit" Binding="{Binding TotalDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                                    <DataGridTextColumn Header="Credit" Binding="{Binding TotalCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="Selected Journal Entry" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding SelectedJournalDetailSummary}"
+                                       Margin="0 6 0 12"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SelectedJournalDetail.Description, Mode=OneWay}"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"/>
+
+                            <DataGrid ItemsSource="{Binding SelectedJournalLines}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      BorderThickness="0"
+                                      Margin="0 12 0 0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Account" Binding="{Binding AccountDisplay, Mode=OneWay}" Width="*"/>
+                                    <DataGridTextColumn Header="Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                                    <DataGridTextColumn Header="Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Ledger">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="280"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding Accounts}"
+                                  SelectedValue="{Binding SelectedLedgerAccountId, Mode=TwoWay}"
+                                  SelectedValuePath="Id"
+                                  DisplayMemberPath="DisplayName"
+                                  Margin="0 23 0 0"/>
+                        <controls:SaleDatePickerControl Grid.Column="2"
+                                                        Label="FROM"
+                                                        PopupTitle="SELECT LEDGER START DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="Start date"
+                                                        SelectedDate="{Binding LedgerDateFrom, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"/>
+                        <controls:SaleDatePickerControl Grid.Column="4"
+                                                        Label="TO"
+                                                        PopupTitle="SELECT LEDGER END DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="End date"
+                                                        SelectedDate="{Binding LedgerDateTo, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"/>
+                        <Button Grid.Column="6"
+                                Content="Refresh"
+                                Command="{Binding RefreshLedgerCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"
+                                VerticalAlignment="Bottom"/>
+                    </Grid>
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding LedgerSummary}"
+                               Margin="0 12 0 12"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding LedgerEntries}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Entry" Binding="{Binding JournalEntryId, Mode=OneWay}" Width="70"/>
+                            <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="110"/>
+                            <DataGridTextColumn Header="Reference" Binding="{Binding ReferenceType, Mode=OneWay}" Width="110"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=OneWay}" Width="*"/>
+                            <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode, Mode=OneWay}" Width="90"/>
+                            <DataGridTextColumn Header="Original" Binding="{Binding OriginalAmount, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Base Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Base Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="110"/>
+                            <DataGridTextColumn Header="Counter Debit" Binding="{Binding CounterDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Credit" Binding="{Binding CounterCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Balance" Binding="{Binding RunningBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Balance" Binding="{Binding RunningCounterBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </TabItem>
+
+        <TabItem Header="Trial Balance">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="240"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="240"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <controls:SaleDatePickerControl Grid.Column="0"
+                                                        Label="FROM"
+                                                        PopupTitle="SELECT TRIAL BALANCE START DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="Start date"
+                                                        SelectedDate="{Binding TrialBalanceDateFrom, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"/>
+                        <controls:SaleDatePickerControl Grid.Column="2"
+                                                        Label="TO"
+                                                        PopupTitle="SELECT TRIAL BALANCE END DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="End date"
+                                                        SelectedDate="{Binding TrialBalanceDateTo, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"/>
+                        <Button Grid.Column="4"
+                                Content="Refresh"
+                                Command="{Binding RefreshTrialBalanceCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"
+                                VerticalAlignment="Bottom"/>
+                    </Grid>
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding TrialBalanceSummary}"
+                               Margin="0 12 0 12"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding TrialBalanceRows}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Code" Binding="{Binding AccountCode, Mode=OneWay}" Width="90"/>
+                            <DataGridTextColumn Header="Account" Binding="{Binding AccountName, Mode=OneWay}" Width="*"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding AccountType, Mode=OneWay}" Width="120"/>
+                            <DataGridTextColumn Header="Base Debit" Binding="{Binding TotalDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Credit" Binding="{Binding TotalCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Dr Bal" Binding="{Binding DebitBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Base Cr Bal" Binding="{Binding CreditBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="120"/>
+                            <DataGridTextColumn Header="Counter Debit" Binding="{Binding TotalCounterDebit, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
+                            <DataGridTextColumn Header="Counter Credit" Binding="{Binding TotalCounterCredit, Mode=OneWay, StringFormat={}{0:N2}}" Width="130"/>
+                            <DataGridTextColumn Header="Counter Dr Bal" Binding="{Binding CounterDebitBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="135"/>
+                            <DataGridTextColumn Header="Counter Cr Bal" Binding="{Binding CounterCreditBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="135"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </TabItem>
+
+        <TabItem Header="Smart Statement">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0" VerticalAlignment="Top">
+                        <StackPanel Width="150" Margin="0 0 12 0">
+                            <TextBlock Text="TYPE"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding StatementPartyTypes}"
+                                      SelectedValue="{Binding SelectedStatementPartyTypeKey, Mode=TwoWay}"
+                                      SelectedValuePath="Key"
+                                      DisplayMemberPath="Label"
+                                      Margin="0 6 0 0"/>
+                        </StackPanel>
+
+                        <StackPanel Width="320" Margin="0 0 12 0">
+                            <TextBlock Text="BUSINESS PARTNER"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding StatementParties}"
+                                      SelectedItem="{Binding SelectedStatementParty, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"
+                                      Margin="0 6 0 0"/>
+                        </StackPanel>
+
+                        <controls:SaleDatePickerControl Width="190"
+                                                        Label="FROM"
+                                                        PopupTitle="SELECT STATEMENT START DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="Start date"
+                                                        SelectedDate="{Binding StatementDateFrom, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"
+                                                        Margin="0 0 12 0"/>
+                        <controls:SaleDatePickerControl Width="190"
+                                                        Label="TO"
+                                                        PopupTitle="SELECT STATEMENT END DATE"
+                                                        DisplayFormat="dd MMM yyyy"
+                                                        PlaceholderText="End date"
+                                                        SelectedDate="{Binding StatementDateTo, Mode=TwoWay}"
+                                                        VerticalAlignment="Top"
+                                                        Margin="0 0 12 0"/>
+                        <Button Content="Refresh"
+                                Command="{Binding RefreshStatementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="108"
+                                Margin="0 23 8 0"/>
+                        <Button Content="Export"
+                                Command="{Binding ExportStatementCommand}"
+                                CommandParameter="xls"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="94"
+                                Margin="0 23 8 0"/>
+                        <Button Content="PDF"
+                                Command="{Binding ExportStatementCommand}"
+                                CommandParameter="pdf"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="76"
+                                Margin="0 23 8 0"/>
+                        <Button Content="Print"
+                                Command="{Binding PrintStatementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="82"
+                                Margin="0 23 0 0"/>
+                    </WrapPanel>
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding StatementSummary}"
+                               Margin="0 12 0 12"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="300"/>
+                        </Grid.ColumnDefinitions>
+
+                        <UniformGrid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Columns="5" Margin="0 0 0 14">
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0 0 8 0">
+                                <StackPanel>
+                                    <TextBlock Text="Opening" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding StatementOpeningBalanceText}" FontSize="18" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0 0 8 0">
+                                <StackPanel>
+                                    <TextBlock Text="Invoices" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding StatementInvoiceTotalText}" FontSize="18" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0 0 8 0">
+                                <StackPanel>
+                                    <TextBlock Text="Payments" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding StatementPaymentTotalText}" FontSize="18" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0 0 8 0">
+                                <StackPanel>
+                                    <TextBlock Text="Journals" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding StatementJournalTotalText}" FontSize="18" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                <StackPanel>
+                                    <TextBlock Text="Remaining" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding StatementRemainingBalanceText}" FontSize="18" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding StatementCounterRemainingBalanceText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <DataGrid Grid.Row="1"
+                                  Grid.Column="0"
+                                  ItemsSource="{Binding StatementEntries}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="105"/>
+                                <DataGridTextColumn Header="Type" Binding="{Binding ActivityType, Mode=OneWay}" Width="86"/>
+                                <DataGridTextColumn Header="Document" Binding="{Binding DocumentNumber, Mode=OneWay}" Width="130"/>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=OneWay}" Width="*"/>
+                                <DataGridTextColumn Header="Currency" Binding="{Binding CurrencyCode, Mode=OneWay}" Width="86"/>
+                                <DataGridTextColumn Header="Original" Binding="{Binding OriginalAmount, Mode=OneWay, StringFormat={}{0:N2}}" Width="105"/>
+                                <DataGridTextColumn Header="Debit" Binding="{Binding Debit, Mode=OneWay, StringFormat={}{0:N2}}" Width="105"/>
+                                <DataGridTextColumn Header="Credit" Binding="{Binding Credit, Mode=OneWay, StringFormat={}{0:N2}}" Width="105"/>
+                                <DataGridTextColumn Header="Balance" Binding="{Binding RunningBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="115"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Grid.Row="1" Grid.Column="2">
+                            <TextBlock Text="Currency Totals" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding StatementPartyAccountText}"
+                                       Margin="0 4 0 12"
+                                       FontSize="11"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <DataGrid ItemsSource="{Binding StatementCurrencyTotals}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Scope" Binding="{Binding Label, Mode=OneWay}" Width="70"/>
+                                    <DataGridTextColumn Header="Cur" Binding="{Binding CurrencyCode, Mode=OneWay}" Width="54"/>
+                                    <DataGridTextColumn Header="Opening" Binding="{Binding OpeningBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="84"/>
+                                    <DataGridTextColumn Header="Closing" Binding="{Binding ClosingBalance, Mode=OneWay, StringFormat={}{0:N2}}" Width="84"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </TabItem>
+    </TabControl>
+</UserControl>

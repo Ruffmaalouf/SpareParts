@@ -2,6 +2,7 @@ namespace SpareParts.Infrastructure.Services
 {
     internal sealed class UsedCarSnapshot
     {
+        public string? Barcode { get; init; }
         public int SupplierId { get; init; }
         public int CarModelId { get; init; }
         public int ModelYear { get; init; }
@@ -18,6 +19,7 @@ namespace SpareParts.Infrastructure.Services
         public decimal PartOut { get; init; }
         public decimal Shipping { get; init; }
         public decimal Customs { get; init; }
+        public decimal Repairs { get; init; }
         public decimal TotalBeforeShipping { get; init; }
         public decimal GrandTotalBase { get; init; }
         public decimal GrandTotalCounter { get; init; }

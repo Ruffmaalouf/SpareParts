@@ -70,6 +70,8 @@ src/
   SpareParts.Desktop.Helpers          API clients, DI helpers, theme/state utilities
   SpareParts.Desktop.Controls         Reusable WPF controls
   SpareParts.Desktop.Interfaces       Cross-assembly desktop contracts
+  SpareParts.Web.React                ASP.NET Core-hosted React web client
+  SpareParts.Mobile.ReactNative       Expo React Native Android/iOS client
 
 tests/
   SpareParts.ArchitectureTests        Layering + critical-path behavior tests
@@ -149,6 +151,8 @@ Each split API uses the same shared composition root (`SpareParts.Api.Hosting`) 
 - **Language/runtime:** C# / .NET 8
 - **API framework:** ASP.NET Core
 - **Desktop:** WPF (`net8.0-windows`)
+- **Web client:** React hosted by ASP.NET Core
+- **Mobile client:** Expo React Native for Android and iOS
 - **Data access:** SQL Server + Dapper/repository patterns
 - **Authentication:** JWT Bearer tokens
 - **Password hashing:** BCrypt
@@ -168,7 +172,21 @@ Each split API uses the same shared composition root (`SpareParts.Api.Hosting`) 
 | `Jwt:Audience` | Yes | Token audience | Defaults to `SpareParts.Desktop`. |
 | `Jwt:ExpiryHours` | Yes | Token lifetime | Default `12`. |
 | `Accounting:*` | Yes | Account ID mapping for journal strategies | Must align with chart of accounts. |
+| `Communications:WebhookUrl` | No | WhatsApp/SMS bridge endpoint | If empty, messages are prepared and logged but not delivered. |
+| `Communications:WebhookSecret` | No | Shared secret sent as `X-SpareParts-Communication-Secret` | Use a provider, gateway, or automation bridge to fan out to WhatsApp/SMS. |
+| `Communications:TimeoutSeconds` | No | Delivery webhook timeout | Defaults to `15`. |
+| `ExternalAuth:GoogleClientId` | Required for Google login | Google OAuth client ID used to verify browser Google ID tokens | Must match the web client Google client ID. |
+| `ExternalAuth:FacebookAppId` | Required for Facebook login | Facebook app ID used to verify access tokens | Must match the web client Facebook app ID. |
+| `ExternalAuth:FacebookAppSecret` | Required for Facebook login | Facebook app secret used by the API token debugger call | Store as an environment secret outside source control. |
 | `Cors:AllowedOrigins` | Recommended | Restrict client origins | If absent: permissive in Development. |
+
+### Web customer login and checkout
+
+- External Google/Facebook logins call `POST /api/auth/external-login`.
+- New external-login users are automatically created or updated as database role ID `4`.
+- API startup ensures role ID `4` exists and is named `Web App User`.
+- `Web App User` JWTs are restricted to `GET /api/auth/me` and `/api/web-catalog/*`.
+- Available parts are read from the checkout warehouse only. Set `AppConstants.WebCheckoutWarehouseId` to force a warehouse; otherwise the API uses the main/first warehouse.
 
 ### API secure configuration baseline
 
@@ -182,6 +200,20 @@ Each split API uses the same shared composition root (`SpareParts.Api.Hosting`) 
 | Key | Required | Purpose | Default |
 |---|---|---|---|
 | `ApiBaseUrl` | Yes | Base URL for API clients | `http://localhost:5000/` |
+
+## React web configuration (`src/SpareParts.Web.React/wwwroot/config.js`)
+
+| Key | Required | Purpose | Notes |
+|---|---|---|---|
+| `defaultApiBaseUrl` | Yes | Default backend API shown on login | Usually `http://localhost:5000` locally. |
+| `googleClientId` | Required for Google login | Browser Google sign-in client ID | Must match `ExternalAuth:GoogleClientId` in the API. |
+| `facebookAppId` | Required for Facebook login | Browser Facebook SDK app ID | Must match `ExternalAuth:FacebookAppId` in the API. |
+
+## Mobile configuration (`src/SpareParts.Mobile.ReactNative/.env`)
+
+| Key | Required | Purpose | Notes |
+|---|---|---|---|
+| `EXPO_PUBLIC_API_BASE_URL` | Recommended | Base URL for the API used by Android/iOS | Use your computer LAN IP for a physical phone. Android emulator can use `http://10.0.2.2:5000`; iOS simulator can use `http://localhost:5000`. |
 
 ---
 
@@ -200,6 +232,13 @@ Each split API uses the same shared composition root (`SpareParts.Api.Hosting`) 
 - .NET SDK 8.x
 
 > API work can be done on non-Windows systems; WPF app execution requires Windows.
+
+### Web and mobile development/runtime
+
+- Node.js LTS
+- Expo CLI via `npx expo`
+- Android Studio/emulator for Android builds
+- macOS with Xcode for local iOS simulator/builds, or EAS Build for cloud iOS builds
 
 ## Step 1: restore dependencies
 
@@ -238,6 +277,25 @@ dotnet run --project src/SpareParts.Desktop.Wpf/SpareParts.Desktop.Wpf.csproj
 
 Before login, confirm `ApiBaseUrl` matches running API address.
 
+## Step 5: run React web client
+
+```bash
+dotnet run --project src/SpareParts.Web.React/SpareParts.Web.React.csproj
+```
+
+Open `http://localhost:5075`. The login screen defaults to `http://localhost:5000` for the backend API.
+
+## Step 6: run Android/iOS mobile client
+
+```bash
+cd src/SpareParts.Mobile.ReactNative
+npm install
+copy .env.example .env
+npx expo start
+```
+
+For a real Android or iPhone on the same Wi-Fi network, set `EXPO_PUBLIC_API_BASE_URL` in `.env` to the LAN address of the API host, for example `http://192.168.1.20:5000`.
+
 ---
 
 ## API surface map
@@ -256,9 +314,11 @@ The following controller groups are available under `src/SpareParts.Api/Controll
 | Brands / Categories / Parts | `/api/brands`, `/api/categories`, `/api/parts` | Inventory master data. |
 | Car brands / models | `/api/carbrands`, `/api/carmodels` | Includes media endpoints. |
 | Sales | `/api/sales` | Create/search/update invoice workflows. |
+| Web catalog | `/api/web-catalog/parts`, `/api/web-catalog/checkout` | Web App User role only; available parts, cart checkout. |
 | Purchases | `/api/purchases` | Purchase creation workflow. |
 | Transaction types | `/api/transactiontypes` | Lookup and maintenance. |
 | Currencies | `/api/currencies` | Currency rate retrieval endpoint. |
+| Communications | `/api/communications` | Sends/previews WhatsApp/SMS business messages and records outbound logs. |
 
 For exact request/response contracts, inspect each controller and its domain DTOs.
 
@@ -327,6 +387,45 @@ For exact request/response contracts, inspect each controller and its domain DTO
 ---
 
 ## Testing and quality gates
+
+## React web client
+
+The solution includes a React-based web client in `src/SpareParts.Web.React`.
+
+Run the API first:
+
+```bash
+dotnet run --project src/SpareParts.Api/SpareParts.Api.csproj
+```
+
+Then run the web client:
+
+```bash
+dotnet run --project src/SpareParts.Web.React/SpareParts.Web.React.csproj
+```
+
+Open `http://localhost:5075`. The login screen defaults to `http://localhost:5000` for the backend API and stores the API URL plus JWT in browser local storage. Internal roles see the WPF-style shell navigation. `Web App User` role logins see only the customer storefront: available parts, cart, and checkout. The web client mirrors the WPF shell navigation for owner cockpit, POS/sales, inventory, contacts, management setup, part purchases, used car purchases, used cars, stock, accounting, manual journal, report builder, WhatsApp conversations, AI assistant, and AR/scans. It also includes the WPF theme catalog: Default, AMG, BMW M, Lambo, Neon Glow, and Porsche RS.
+
+## React Native mobile client
+
+The solution also includes an Expo React Native client in `src/SpareParts.Mobile.ReactNative` for Android and iOS. It calls the same protected backend routes as the web client and includes mobile screens for dashboard KPIs, invoices, parts, contacts, management setup, WPF parity modules, and WhatsApp-style conversations. The mobile client uses the same WPF theme catalog as the web client.
+
+Both React clients follow the same client-side pattern:
+
+- `ApiClient` owns authenticated backend calls.
+- Session store classes own persisted API URL/JWT/user state.
+- `CommunicationPayloadFactory` owns WhatsApp/SMS request payload construction.
+- `ScreenRegistry` owns app navigation metadata.
+- WPF feature/theme catalogs keep desktop, web, and mobile navigation visually aligned.
+- Reusable UI components such as headers, status text, fields, buttons, panels, lists, and tables keep screens thin.
+
+For production app builds:
+
+```bash
+cd src/SpareParts.Mobile.ReactNative
+npx eas build --platform android
+npx eas build --platform ios
+```
 
 ## Primary automated suite
 

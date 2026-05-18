@@ -6,6 +6,7 @@ namespace SpareParts.Desktop.Wpf.Management
     public class UsedCarEntry : INotifyPropertyChanged
     {
         private int _id;
+        private string? _barcode;
         private int? _supplierId;
         private int? _carModelId;
         private int? _locationId;
@@ -23,14 +24,36 @@ namespace SpareParts.Desktop.Wpf.Management
         private decimal _partOut;
         private decimal _shipping;
         private decimal _customs;
+        private decimal _repairs;
         private decimal _totalBeforeShipping;
         private decimal _grandTotalBase;
         private decimal _grandTotalCounter;
+        private decimal _purchaseCostBase;
+        private decimal _transportationCostBase;
+        private decimal _customsCostBase;
+        private decimal _shippingCostBase;
+        private decimal _partOutCostBase;
+        private decimal _repairsCostBase;
+        private decimal _fullCostBase;
+        private int _partsRemovedCount;
+        private decimal _partsRemovedValueBase;
+        private decimal _partsSoldQuantity;
+        private decimal _partsSoldAmountBase;
+        private decimal _salePriceBase;
+        private decimal _remainingStockQuantity;
+        private decimal _remainingStockValueBase;
+        private decimal _netProfitLossBase;
 
         public int Id
         {
             get => _id;
             set => SetField(ref _id, value);
+        }
+
+        public string? Barcode
+        {
+            get => _barcode;
+            set => SetField(ref _barcode, value);
         }
 
         public int? SupplierId
@@ -141,6 +164,12 @@ namespace SpareParts.Desktop.Wpf.Management
             set => SetField(ref _customs, value);
         }
 
+        public decimal Repairs
+        {
+            get => _repairs;
+            set => SetField(ref _repairs, value);
+        }
+
         public decimal GrandTotalBase
         {
             get => _grandTotalBase;
@@ -151,6 +180,96 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             get => _grandTotalCounter;
             set => SetField(ref _grandTotalCounter, value);
+        }
+
+        public decimal PurchaseCostBase
+        {
+            get => _purchaseCostBase;
+            set => SetField(ref _purchaseCostBase, value);
+        }
+
+        public decimal TransportationCostBase
+        {
+            get => _transportationCostBase;
+            set => SetField(ref _transportationCostBase, value);
+        }
+
+        public decimal CustomsCostBase
+        {
+            get => _customsCostBase;
+            set => SetField(ref _customsCostBase, value);
+        }
+
+        public decimal ShippingCostBase
+        {
+            get => _shippingCostBase;
+            set => SetField(ref _shippingCostBase, value);
+        }
+
+        public decimal PartOutCostBase
+        {
+            get => _partOutCostBase;
+            set => SetField(ref _partOutCostBase, value);
+        }
+
+        public decimal RepairsCostBase
+        {
+            get => _repairsCostBase;
+            set => SetField(ref _repairsCostBase, value);
+        }
+
+        public decimal FullCostBase
+        {
+            get => _fullCostBase;
+            set => SetField(ref _fullCostBase, value);
+        }
+
+        public int PartsRemovedCount
+        {
+            get => _partsRemovedCount;
+            set => SetField(ref _partsRemovedCount, value);
+        }
+
+        public decimal PartsRemovedValueBase
+        {
+            get => _partsRemovedValueBase;
+            set => SetField(ref _partsRemovedValueBase, value);
+        }
+
+        public decimal PartsSoldQuantity
+        {
+            get => _partsSoldQuantity;
+            set => SetField(ref _partsSoldQuantity, value);
+        }
+
+        public decimal PartsSoldAmountBase
+        {
+            get => _partsSoldAmountBase;
+            set => SetField(ref _partsSoldAmountBase, value);
+        }
+
+        public decimal SalePriceBase
+        {
+            get => _salePriceBase;
+            set => SetField(ref _salePriceBase, value);
+        }
+
+        public decimal RemainingStockQuantity
+        {
+            get => _remainingStockQuantity;
+            set => SetField(ref _remainingStockQuantity, value);
+        }
+
+        public decimal RemainingStockValueBase
+        {
+            get => _remainingStockValueBase;
+            set => SetField(ref _remainingStockValueBase, value);
+        }
+
+        public decimal NetProfitLossBase
+        {
+            get => _netProfitLossBase;
+            set => SetField(ref _netProfitLossBase, value);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

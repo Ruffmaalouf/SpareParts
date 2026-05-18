@@ -2,7 +2,10 @@ using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using SpareParts.Api.Controllers;
 using SpareParts.Domain.Accounting;
+using SpareParts.Domain.Auth;
 using SpareParts.Domain.Common;
+using SpareParts.Domain.Inventory;
+using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.ArchitectureTests;
@@ -103,7 +106,7 @@ public class SecurityAndDataIntegrityTests
             InventoryAccountId = 301,
             CashOrApAccountId = 999
         });
-        var strategy = new SaleAccountingStrategy(settingsProvider, new CustomerAccountResolver(factory));
+        var strategy = new SaleAccountingStrategy(factory, settingsProvider, new CustomerAccountResolver(factory));
         var invoice = new SalesInvoice
         {
             CustomerId = null,

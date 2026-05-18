@@ -56,6 +56,22 @@ public class CriticalPathTests
     }
 
     [Fact]
+    public void StockMovement_Transfer_ShouldMoveQuantityBetweenWarehouses()
+    {
+        var repo = new FakeInventoryRepository();
+        var service = new InventoryService();
+
+        service.AdjustStock(repo, partId: 10, warehouseId: 1, quantityChange: 3, StockMovementType.Purchase, DomainReferenceType.Purchase, 100, 20m, userId: 7);
+        service.AdjustStock(repo, partId: 10, warehouseId: 1, quantityChange: -2, StockMovementType.TransferOut, DomainReferenceType.Transfer, null, 20m, userId: 7);
+        service.AdjustStock(repo, partId: 10, warehouseId: 2, quantityChange: 2, StockMovementType.TransferIn, DomainReferenceType.Transfer, null, 20m, userId: 7);
+
+        Assert.Equal(1, repo.GetStock(10, 1)?.Quantity);
+        Assert.Equal(2, repo.GetStock(10, 2)?.Quantity);
+        Assert.Contains(repo.Movements, movement => movement.MovementType == StockMovementType.TransferOut);
+        Assert.Contains(repo.Movements, movement => movement.MovementType == StockMovementType.TransferIn);
+    }
+
+    [Fact]
     public void JournalPosting_SaleAccountingStrategy_ShouldBalance()
     {
         var strategy = CreateSaleAccountingStrategy();
@@ -169,6 +185,17 @@ public class CriticalPathTests
         Assert.Equal(1, quantities[10]);
     }
 
+    [Theory]
+    [InlineData(" spareparts://part/P-100 ", "part:P-100")]
+    [InlineData("https://scanner.local/read?scan=warehouse%3AWH-2", "warehouse:WH-2")]
+    [InlineData("PUR-20260430-000001", "PUR-20260430-000001")]
+    public void Scanning_NormalizeScannedText_ShouldAcceptQrPayloads(string scannedText, string expected)
+    {
+        var normalized = ScanLookupService.NormalizeScannedText(scannedText);
+
+        Assert.Equal(expected, normalized);
+    }
+
     private static SaleAccountingStrategy CreateSaleAccountingStrategy()
     {
         var factory = new InMemorySqliteConnectionFactory();
@@ -184,6 +211,6 @@ public class CriticalPathTests
         });
 
         var customerResolver = new CustomerAccountResolver(factory);
-        return new SaleAccountingStrategy(settingsProvider, customerResolver);
+        return new SaleAccountingStrategy(factory, settingsProvider, customerResolver);
     }
 }

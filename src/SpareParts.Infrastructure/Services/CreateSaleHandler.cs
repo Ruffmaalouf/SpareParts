@@ -9,12 +9,16 @@ namespace SpareParts.Infrastructure.Services
 {
     public class CreateSaleHandler : ICreateSaleHandler
     {
+        private const string SalePaymentReferenceType = "SalePayment";
+
         private readonly ISqlConnectionFactory _factory;
         private readonly IInventoryService _inventoryService;
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
         private readonly IAccountingStrategy<SalesInvoice> _accountingStrategy;
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
+        private readonly AccountingSettingsProvider _settingsProvider;
+        private readonly CustomerAccountResolver _customerAccountResolver;
 
         public CreateSaleHandler(
             ISqlConnectionFactory factory,
@@ -22,7 +26,9 @@ namespace SpareParts.Infrastructure.Services
             IInvoiceNumberGenerator invoiceNumberGenerator,
             IPaymentStatusPolicy paymentStatusPolicy,
             IAccountingStrategy<SalesInvoice> accountingStrategy,
-            IInvoiceTotalsCalculator totalsCalculator)
+            IInvoiceTotalsCalculator totalsCalculator,
+            AccountingSettingsProvider settingsProvider,
+            CustomerAccountResolver customerAccountResolver)
         {
             _factory = factory;
             _inventoryService = inventoryService;
@@ -30,6 +36,8 @@ namespace SpareParts.Infrastructure.Services
             _paymentStatusPolicy = paymentStatusPolicy;
             _accountingStrategy = accountingStrategy;
             _totalsCalculator = totalsCalculator;
+            _settingsProvider = settingsProvider;
+            _customerAccountResolver = customerAccountResolver;
         }
 
         public CreateSaleResponse Handle(CreateSaleRequest request, int userId)
@@ -52,6 +60,7 @@ namespace SpareParts.Infrastructure.Services
             var invoice = new SalesInvoice
             {
                 InvoiceNumber = invoiceNumber,
+                ScanCode = invoiceNumber,
                 InvoiceDate = request.InvoiceDate,
                 CustomerId = request.CustomerId,
                 WarehouseId = request.WarehouseId,
@@ -75,6 +84,7 @@ namespace SpareParts.Infrastructure.Services
 
             AdjustStockForSale(inventoryRepository, invoiceId, request, items, parts, userId);
             CreateJournalEntryForSale(journalRepository, invoice, invoiceId, userId);
+            CreatePaymentJournalEntryForSale(session, journalRepository, invoice, invoiceId, userId);
 
             session.Commit();
 
@@ -201,6 +211,46 @@ namespace SpareParts.Infrastructure.Services
             };
 
             var lines = _accountingStrategy.BuildJournalLines(invoice, userId);
+            var entryId = journalRepository.InsertEntry(entry);
+            journalRepository.InsertLines(entryId, lines);
+        }
+
+        private void CreatePaymentJournalEntryForSale(
+            DbSession session,
+            IJournalRepository journalRepository,
+            SalesInvoice invoice,
+            int invoiceId,
+            int userId)
+        {
+            if (invoice.PaidAmount <= 0m)
+            {
+                return;
+            }
+
+            var customerAccountId = _customerAccountResolver.ResolveAccountId(invoice.CustomerId);
+            if (customerAccountId is not > 0)
+            {
+                return;
+            }
+
+            var settings = _settingsProvider.GetSnapshot();
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
+            var lines = new List<JournalLine>
+            {
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(settings.SalesCashAccountId, invoice.PaidAmount, 0m, currencyContext, userId),
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(customerAccountId.Value, 0m, invoice.PaidAmount, currencyContext, userId)
+            };
+
+            var entry = new JournalEntry
+            {
+                EntryDate = invoice.InvoiceDate,
+                ReferenceType = SalePaymentReferenceType,
+                ReferenceId = invoiceId,
+                Description = $"Sale payment {invoice.InvoiceNumber}",
+                CreatedAt = DateTime.UtcNow,
+                CreatedByUserId = userId
+            };
+
             var entryId = journalRepository.InsertEntry(entry);
             journalRepository.InsertLines(entryId, lines);
         }

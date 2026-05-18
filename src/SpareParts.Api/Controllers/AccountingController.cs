@@ -17,6 +17,10 @@ namespace SpareParts.Api.Controllers
             _service = service;
         }
 
+        [HttpGet("accounts")]
+        public ActionResult<IEnumerable<AccountDto>> GetAccounts()
+            => Ok(_service.GetAccounts());
+
         [HttpGet("account-types")]
         public ActionResult<IEnumerable<AccountTypeDefinitionDto>> GetAccountTypes()
             => Ok(_service.GetAccountTypes());
@@ -100,8 +104,20 @@ namespace SpareParts.Api.Controllers
         public ActionResult<TrialBalanceReportDto> GetTrialBalance([FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null)
             => Ok(_service.GetTrialBalance(dateFrom, dateTo));
 
+        [HttpGet("statement-parties")]
+        public ActionResult<IEnumerable<StatementPartyDto>> GetStatementParties()
+            => Ok(_service.GetStatementParties());
+
         [HttpGet("statement-of-account")]
         public ActionResult<StatementOfAccountReportDto> GetStatementOfAccount([FromQuery] int accountId, [FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null)
             => Ok(_service.GetStatementOfAccount(accountId, dateFrom, dateTo));
+
+        [HttpGet("statement-of-account/party")]
+        public ActionResult<StatementOfAccountReportDto> GetStatementOfAccountForParty(
+            [FromQuery] string partyType,
+            [FromQuery] int partyId,
+            [FromQuery] DateTime? dateFrom = null,
+            [FromQuery] DateTime? dateTo = null)
+            => Ok(_service.GetStatementOfAccountForParty(partyType, partyId, dateFrom, dateTo));
     }
 }

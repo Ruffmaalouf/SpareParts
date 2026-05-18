@@ -1,15 +1,21 @@
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Sales;
+using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Infrastructure.Services
 {
     public class SaleAccountingStrategy : IAccountingStrategy<SalesInvoice>
     {
+        private readonly ISqlConnectionFactory _factory;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
 
-        public SaleAccountingStrategy(AccountingSettingsProvider settingsProvider, CustomerAccountResolver customerAccountResolver)
+        public SaleAccountingStrategy(
+            ISqlConnectionFactory factory,
+            AccountingSettingsProvider settingsProvider,
+            CustomerAccountResolver customerAccountResolver)
         {
+            _factory = factory;
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
         }
@@ -22,13 +28,15 @@ namespace SpareParts.Infrastructure.Services
             }
 
             var settings = _settingsProvider.GetSnapshot();
+            using var session = new DbSession(_factory);
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var debitAccountId = _customerAccountResolver.ResolveAccountId(invoice.CustomerId) ?? settings.SalesCashAccountId;
             var lines = new List<JournalLine>
             {
-                new() { AccountId = debitAccountId, Debit = invoice.TotalAmount, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = settings.SalesRevenueAccountId, Debit = 0, Credit = invoice.TotalAmount, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = settings.CogsAccountId, Debit = invoice.TotalCost, Credit = 0, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId },
-                new() { AccountId = settings.InventoryAccountId, Debit = 0, Credit = invoice.TotalCost, CreatedAt = DateTime.UtcNow, CreatedByUserId = userId }
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(debitAccountId, invoice.TotalAmount, 0m, currencyContext, userId),
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(settings.SalesRevenueAccountId, 0m, invoice.TotalAmount, currencyContext, userId),
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(settings.CogsAccountId, invoice.TotalCost, 0m, currencyContext, userId),
+                AccountingJournalLineFactory.CreateCounterCurrencyLine(settings.InventoryAccountId, 0m, invoice.TotalCost, currencyContext, userId)
             };
 
             var totalDebit = decimal.Round(lines.Sum(x => x.Debit), 4, MidpointRounding.AwayFromZero);

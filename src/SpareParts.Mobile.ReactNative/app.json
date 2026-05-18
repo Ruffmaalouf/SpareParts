@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Maalouf Auto Parts",
+    "slug": "spareparts-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": [
+      "spareparts",
+      "com.maalouf.spareparts"
+    ],
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.maalouf.spareparts"
+    },
+    "android": {
+      "package": "com.maalouf.spareparts",
+      "adaptiveIcon": {
+        "backgroundColor": "#101114"
+      }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Maalouf Auto Parts to choose used-car photos for the admin gallery."
+        }
+      ]
+    ],
+    "extra": {
+      "apiBaseUrlHint": "Set EXPO_PUBLIC_API_BASE_URL in .env for devices.",
+      "eas": {
+        "projectId": "7a2fd859-585e-426b-a22d-a8083045e702"
+      }
+    }
+  }
+}

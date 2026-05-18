@@ -6,10 +6,13 @@ using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
 using SpareParts.Api.Errors;
 using SpareParts.Api.Infrastructure;
+using SpareParts.Api.Middleware;
+using SpareParts.Api.Notifications;
 using SpareParts.Api.Services;
 using SpareParts.Domain.Purchases;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Services;
 using System.Net.Http.Headers;
 using System.Text;
@@ -18,14 +21,63 @@ namespace SpareParts.Api.Hosting;
 
 public static class SparePartsApiComposition
 {
+    public const string NotificationsHubPath = "/hubs/notifications";
+
+    public static readonly IReadOnlyList<ServiceProfile> ExpectedServiceProfiles =
+    [
+        new("SpareParts.Api",
+        [
+            ServiceCapability.Sales,
+            ServiceCapability.Purchases,
+            ServiceCapability.Inventory,
+            ServiceCapability.Accounting,
+            ServiceCapability.Identity,
+            ServiceCapability.Catalog,
+            ServiceCapability.Reporting,
+            ServiceCapability.Health
+        ]),
+        new("SpareParts.Sales.Api", [ServiceCapability.Sales, ServiceCapability.Health]),
+        new("SpareParts.Purchases.Api", [ServiceCapability.Purchases, ServiceCapability.Health]),
+        new("SpareParts.Inventory.Api", [ServiceCapability.Inventory, ServiceCapability.Health]),
+        new("SpareParts.Identity.Api", [ServiceCapability.Identity, ServiceCapability.Health]),
+        new("SpareParts.Catalog.Api", [ServiceCapability.Catalog, ServiceCapability.Health])
+    ];
+
+    public static readonly IReadOnlyList<string> MigrationNames =
+    [
+        nameof(InvoiceNumberingMigration),
+        nameof(AccountingMigration),
+        nameof(WebAppUserRoleMigration),
+        nameof(MenuAccessMigration),
+        nameof(TransactionTypesMigration),
+        nameof(PartAveragePriceMigration),
+        nameof(PartUsedCarMigration),
+        nameof(CurrencyRatesMigration),
+        nameof(AppConstantsMigration),
+        nameof(CarModelsMigration),
+        nameof(LocationsMigration),
+        nameof(UsedCarsMigration),
+        nameof(UsedCarPurchasesMigration),
+        nameof(TransactionsMigration),
+        nameof(BarcodeScanningMigration),
+        nameof(PartRequestsMigration),
+        nameof(PartUsedCarStockMigration),
+        nameof(UsedCarImagesMigration),
+        nameof(CommunicationsMigration),
+        nameof(WhatsAppCampaignsMigration),
+        nameof(ReportBuilderLinksMigration),
+        nameof(ReportBuilderAdvancedMigration)
+    ];
+
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController)],
-        [ServiceCapability.Inventory] = [nameof(PartsController), nameof(WarehousesController), nameof(TransactionTypesController)],
+        [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
         [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController)],
-        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController)],
+        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController)],
+        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController)],
         [ServiceCapability.Health] = [nameof(HealthController)]
     };
 
@@ -49,14 +101,31 @@ public static class SparePartsApiComposition
         var jwtSettings = ResolveJwtSettings(builder.Configuration);
         var accountingOptions = builder.Configuration.GetSection("Accounting").Get<AccountingOptions>() ?? new AccountingOptions();
         var openAiOptions = ResolveOpenAiOptions(builder.Configuration);
+        var communicationOptions = ResolveCommunicationOptions(builder.Configuration);
+        var externalAuthSettings = builder.Configuration.GetSection("ExternalAuth").Get<ExternalAuthSettings>() ?? new ExternalAuthSettings();
 
         builder.Services.AddSingleton(accountingOptions);
         builder.Services.AddSingleton(openAiOptions);
+        builder.Services.AddSingleton(communicationOptions);
+        builder.Services.AddSingleton(externalAuthSettings);
 
         builder.Services.AddSingleton<ISqlConnectionFactory>(_ => new SqlConnectionFactory(connString));
         builder.Services.AddSingleton<IExceptionLogWriter, SqlExceptionLogWriter>();
         builder.Services.AddSingleton(jwtSettings);
         builder.Services.AddSingleton<AccountingSettingsProvider>();
+
+        if (communicationOptions.HasWebhook)
+        {
+            builder.Services
+                .AddHttpClient<ICommunicationDeliveryClient, WebhookCommunicationDeliveryClient>(client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(communicationOptions.TimeoutSeconds);
+                });
+        }
+        else
+        {
+            builder.Services.AddSingleton<ICommunicationDeliveryClient, DisabledCommunicationDeliveryClient>();
+        }
 
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -73,9 +142,26 @@ public static class SparePartsApiComposition
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
+                opt.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"].ToString();
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrWhiteSpace(accessToken) &&
+                            path.StartsWithSegments("/hubs/notifications"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         builder.Services.AddAuthorization();
+        builder.Services.AddSignalR();
 
         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
         var isDevelopment = builder.Environment.IsDevelopment();
@@ -104,12 +190,14 @@ public static class SparePartsApiComposition
             services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>
             {
                 return new SaleAccountingStrategy(
+                    sp.GetRequiredService<ISqlConnectionFactory>(),
                     sp.GetRequiredService<AccountingSettingsProvider>(),
                     sp.GetRequiredService<CustomerAccountResolver>());
             });
 
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
             services.AddScoped<SalesService>();
+            services.AddScoped<WebCatalogService>();
             RegisterSharedInvoiceServices(services);
             services.AddScoped<CustomersService>();
         }
@@ -142,8 +230,10 @@ public static class SparePartsApiComposition
             });
 
             services.AddScoped<PartsService>();
+            services.AddScoped<PartRequestsService>();
             services.AddScoped<WarehousesService>();
             services.AddScoped<TransactionTypesService>();
+            services.AddScoped<ScanLookupService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Accounting))
@@ -155,7 +245,7 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Identity))
         {
-            services.AddScoped<AuthService>();
+            services.AddHttpClient<AuthService>();
             services.AddScoped<UsersService>();
             services.AddScoped<RolesService>();
         }
@@ -171,6 +261,19 @@ public static class SparePartsApiComposition
             services.AddScoped<UsedCarImagesService>();
             services.AddScoped<CurrenciesService>();
             services.AddScoped<AppConstantsService>();
+            services.AddScoped<ExcelImportService>();
+        }
+
+        if (distinctCapabilities.Contains(ServiceCapability.Reporting))
+        {
+            services.TryAddScoped<AccountingService>();
+            services.TryAddScoped<ScanLookupService>();
+            services.AddScoped<BusinessAssistantService>();
+            services.AddScoped<CommunicationsService>();
+            services.AddScoped<WhatsAppCampaignService>();
+            services.AddScoped<ReportBuilderService>();
+            services.AddScoped<OwnerCockpitService>();
+            services.AddScoped<SmartSearchService>();
         }
     }
 
@@ -203,6 +306,7 @@ public static class SparePartsApiComposition
         var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
         InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
         AccountingMigration.EnsureApplied(sqlConnectionFactory);
+        WebAppUserRoleMigration.EnsureApplied(sqlConnectionFactory);
         MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
         TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
         PartAveragePriceMigration.EnsureApplied(sqlConnectionFactory);
@@ -214,12 +318,21 @@ public static class SparePartsApiComposition
         UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
         TransactionsMigration.EnsureApplied(sqlConnectionFactory);
+        BarcodeScanningMigration.EnsureApplied(sqlConnectionFactory);
+        PartRequestsMigration.EnsureApplied(sqlConnectionFactory);
+        PartUsedCarStockMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
+        CommunicationsMigration.EnsureApplied(sqlConnectionFactory);
+        WhatsAppCampaignsMigration.EnsureApplied(sqlConnectionFactory);
+        ReportBuilderLinksMigration.EnsureApplied(sqlConnectionFactory);
+        ReportBuilderAdvancedMigration.EnsureApplied(sqlConnectionFactory);
 
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
         app.UseAuthentication();
+        app.UseMiddleware<WebAppUserRestrictionMiddleware>();
         app.UseAuthorization();
+        app.MapHub<NotificationsHub>(NotificationsHubPath);
         app.MapControllers();
     }
 
@@ -288,6 +401,22 @@ public static class SparePartsApiComposition
             ApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey.Trim(),
             BaseUrl = baseUrl,
             Model = string.IsNullOrWhiteSpace(section["Model"]) ? "gpt-5-mini" : section["Model"]!.Trim(),
+            TimeoutSeconds = timeoutSeconds
+        };
+    }
+
+    private static CommunicationOptions ResolveCommunicationOptions(IConfiguration configuration)
+    {
+        var section = configuration.GetSection("Communications");
+        var timeoutSeconds = int.TryParse(section["TimeoutSeconds"], out var configuredTimeout)
+            ? Math.Clamp(configuredTimeout, 3, 120)
+            : 15;
+
+        return new CommunicationOptions
+        {
+            Provider = string.IsNullOrWhiteSpace(section["Provider"]) ? "Webhook" : section["Provider"]!.Trim(),
+            WebhookUrl = string.IsNullOrWhiteSpace(section["WebhookUrl"]) ? null : section["WebhookUrl"]!.Trim(),
+            WebhookSecret = string.IsNullOrWhiteSpace(section["WebhookSecret"]) ? null : section["WebhookSecret"]!.Trim(),
             TimeoutSeconds = timeoutSeconds
         };
     }

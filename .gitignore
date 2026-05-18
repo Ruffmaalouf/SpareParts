@@ -57,3 +57,21 @@ src/SpareParts.Desktop.Interfaces/bin/
 /src/SpareParts.Purchases.Api/bin/Debug/net8.0
 /src/SpareParts.Sales.Api/bin/Debug/net8.0
 /src/SpareParts.Sales.Api/obj
+
+# React web and mobile generated artifacts
+src/SpareParts.Web.React/bin/
+src/SpareParts.Web.React/obj/
+src/SpareParts.Mobile.ReactNative/bin/
+src/SpareParts.Mobile.ReactNative/obj/
+src/SpareParts.Mobile.ReactNative/node_modules/
+src/SpareParts.Mobile.ReactNative/.expo/
+src/SpareParts.Mobile.ReactNative/dist/
+src/SpareParts.Mobile.ReactNative/web-build/
+
+artifacts/
+
+# Local mobile credentials and oversized database dumps
+src/SpareParts.Mobile.ReactNative/.env
+src/SpareParts.Mobile.ReactNative/*.jks
+src/SpareParts.Mobile.ReactNative/credentials/
+docs/DBScrpit.sql

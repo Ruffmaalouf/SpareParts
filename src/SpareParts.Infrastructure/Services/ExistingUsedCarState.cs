@@ -13,6 +13,7 @@ namespace SpareParts.Infrastructure.Services
         public decimal PartOut { get; init; }
         public decimal Shipping { get; init; }
         public decimal Customs { get; init; }
+        public decimal Repairs { get; init; }
         public decimal TotalBeforeShipping { get; init; }
         public decimal GrandTotalBase { get; init; }
         public decimal GrandTotalCounter { get; init; }

@@ -129,7 +129,8 @@ USING
         ('used_car_transportation', 'Used Car Transportation', 'Default account for transportation charges on used-car purchase posting.', 70, 1),
         ('used_car_partout', 'Used Car Part-Out', 'Default account for part-out charges on used-car purchase posting.', 80, 1),
         ('used_car_shipping', 'Used Car Shipping', 'Default account for shipping charges on used-car purchase posting.', 90, 1),
-        ('used_car_customs', 'Used Car Customs', 'Default account for customs charges on used-car purchase posting.', 100, 1)
+        ('used_car_customs', 'Used Car Customs', 'Default account for customs charges on used-car purchase posting.', 100, 1),
+        ('used_car_repairs', 'Used Car Repairs', 'Default account for repair charges on used-car purchase posting.', 110, 1)
 ) AS source (RoleKey, Label, Description, SortOrder, IsActive)
 ON target.RoleKey = source.RoleKey
 WHEN MATCHED THEN
@@ -451,6 +452,12 @@ BEGIN
     VALUES ('5240', 'Used Car Customs', 4, 'expense', 7, SYSUTCDATETIME());
 END;
 
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '5250')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('5250', 'Used Car Repairs', 4, 'expense', 7, SYSUTCDATETIME());
+END;
+
 DECLARE @SalesCashAccountId INT;
 DECLARE @SalesRevenueAccountId INT;
 DECLARE @CogsAccountId INT;
@@ -461,6 +468,7 @@ DECLARE @UsedCarTransportationAccountId INT;
 DECLARE @UsedCarPartOutAccountId INT;
 DECLARE @UsedCarShippingAccountId INT;
 DECLARE @UsedCarCustomsAccountId INT;
+DECLARE @UsedCarRepairsAccountId INT;
 
 SELECT @SalesCashAccountId = Id FROM dbo.Accounts WHERE Code = '1000';
 SELECT @SalesRevenueAccountId = Id FROM dbo.Accounts WHERE Code = '4000';
@@ -472,6 +480,7 @@ SELECT @UsedCarTransportationAccountId = Id FROM dbo.Accounts WHERE Code = '5210
 SELECT @UsedCarPartOutAccountId = Id FROM dbo.Accounts WHERE Code = '5220';
 SELECT @UsedCarShippingAccountId = Id FROM dbo.Accounts WHERE Code = '5230';
 SELECT @UsedCarCustomsAccountId = Id FROM dbo.Accounts WHERE Code = '5240';
+SELECT @UsedCarRepairsAccountId = Id FROM dbo.Accounts WHERE Code = '5250';
 
 MERGE dbo.AccountingPostingSettings AS target
 USING
@@ -486,7 +495,8 @@ USING
         ('used_car_transportation', @UsedCarTransportationAccountId),
         ('used_car_partout', @UsedCarPartOutAccountId),
         ('used_car_shipping', @UsedCarShippingAccountId),
-        ('used_car_customs', @UsedCarCustomsAccountId)
+        ('used_car_customs', @UsedCarCustomsAccountId),
+        ('used_car_repairs', @UsedCarRepairsAccountId)
 ) AS source (SettingKey, AccountId)
 ON target.SettingKey = source.SettingKey
 WHEN MATCHED AND target.AccountId IS NULL AND source.AccountId IS NOT NULL THEN

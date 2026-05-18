@@ -81,6 +81,7 @@ namespace SpareParts.Infrastructure.Services
             var invoice = new PurchaseInvoice
             {
                 PurchaseNumber = existingInvoice.PurchaseNumber,
+                ScanCode = existingInvoice.ScanCode,
                 PurchaseDate = request.PurchaseDate,
                 SupplierId = request.SupplierId,
                 WarehouseId = request.WarehouseId,

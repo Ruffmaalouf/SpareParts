@@ -6,6 +6,7 @@ namespace SpareParts.Domain.Purchases
     {
         public int Id { get; set; }
         public string PurchaseNumber { get; set; } = string.Empty;
+        public string? ScanCode { get; set; }
         public DateTime PurchaseDate { get; set; }
         public int UsedCarId { get; set; }
         public string UsedCar { get; set; } = string.Empty;

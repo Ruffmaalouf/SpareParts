@@ -14,6 +14,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public required IEnumerable<CarBrandDto> CarBrands { get; init; }
         public required IEnumerable<CategoryDto> Categories { get; init; }
         public required IEnumerable<PartDto> Parts { get; init; }
+        public required IEnumerable<PartRequestDto> PartRequests { get; init; }
         public required IEnumerable<CarModelDto> CarModels { get; init; }
         public required IEnumerable<LocationDto> Locations { get; init; }
         public required IEnumerable<UsedCarDto> UsedCars { get; init; }

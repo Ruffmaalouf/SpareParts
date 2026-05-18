@@ -25,7 +25,8 @@ namespace SpareParts.Infrastructure.Data
             new() { RoleKey = "used_car_transportation", Label = "Used Car Transportation", Description = "Default account for transportation charges on used-car purchase posting.", SortOrder = 70, IsActive = true },
             new() { RoleKey = "used_car_partout", Label = "Used Car Part-Out", Description = "Default account for part-out charges on used-car purchase posting.", SortOrder = 80, IsActive = true },
             new() { RoleKey = "used_car_shipping", Label = "Used Car Shipping", Description = "Default account for shipping charges on used-car purchase posting.", SortOrder = 90, IsActive = true },
-            new() { RoleKey = "used_car_customs", Label = "Used Car Customs", Description = "Default account for customs charges on used-car purchase posting.", SortOrder = 100, IsActive = true }
+            new() { RoleKey = "used_car_customs", Label = "Used Car Customs", Description = "Default account for customs charges on used-car purchase posting.", SortOrder = 100, IsActive = true },
+            new() { RoleKey = "used_car_repairs", Label = "Used Car Repairs", Description = "Default account for repair charges on used-car purchase posting.", SortOrder = 110, IsActive = true }
         ];
 
         private readonly DbSession _session;

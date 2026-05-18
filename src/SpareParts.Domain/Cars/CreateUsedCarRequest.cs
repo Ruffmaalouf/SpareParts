@@ -2,6 +2,7 @@ namespace SpareParts.Domain.Cars
 {
     public sealed class CreateUsedCarRequest
     {
+        public string? Barcode { get; set; }
         public int SupplierId { get; set; }
         public int CarModelId { get; set; }
         public int ModelYear { get; set; }
@@ -13,5 +14,6 @@ namespace SpareParts.Domain.Cars
         public decimal PartOut { get; set; }
         public decimal Shipping { get; set; }
         public decimal Customs { get; set; }
+        public decimal Repairs { get; set; }
     }
 }

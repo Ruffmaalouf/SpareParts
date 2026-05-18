@@ -60,6 +60,7 @@ namespace SpareParts.Infrastructure.Services
             var purchase = new PurchaseInvoice
             {
                 PurchaseNumber = purchaseNumber,
+                ScanCode = purchaseNumber,
                 PurchaseDate = request.PurchaseDate,
                 SupplierId = request.SupplierId,
                 WarehouseId = request.WarehouseId,

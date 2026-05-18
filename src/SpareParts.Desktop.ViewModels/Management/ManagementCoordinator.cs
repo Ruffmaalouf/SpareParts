@@ -37,6 +37,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var carBrands = await _carCatalogApi.GetCarBrandsAsync();
             var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
             var parts = await _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");
+            var partRequests = await _crudApi.GetAllAsync<PartRequestDto>("api/partrequests");
             var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
             var locations = await _crudApi.GetAllAsync<LocationDto>("api/locations");
             var usedCars = await _crudApi.GetAllAsync<UsedCarDto>("api/usedcars");
@@ -44,6 +45,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var currencyRates = await _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
             var transactionTypes = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
             var appConstants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
+            await _excelImportCoordinator.LoadTargetsAsync();
             await rolesVm.LoadAsync();
 
             return new ManagementLoadResult
@@ -54,6 +56,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 CarBrands = carBrands,
                 Categories = categories,
                 Parts = parts,
+                PartRequests = partRequests,
                 CarModels = carModels,
                 Locations = locations,
                 UsedCars = usedCars,
@@ -165,11 +168,11 @@ namespace SpareParts.Desktop.Wpf.Management
             return DeleteAsync($"api/brands/{selected.Id}", "Brand");
         }
 
-        public Task<ManagementOperationResult> SavePartAsync(PartManagementViewModel feature)
+        public async Task<ManagementOperationResult> SavePartAsync(PartManagementViewModel feature)
         {
             if (string.IsNullOrWhiteSpace(feature.NewPartCode) || string.IsNullOrWhiteSpace(feature.NewPartName))
             {
-                return Task.FromResult(ToFailure(new DomainValidationException("Part code and name are required.", "part_required_fields_missing"), "saving Part"));
+                return ToFailure(new DomainValidationException("Part code and name are required.", "part_required_fields_missing"), "saving Part");
             }
 
             decimal? averagePrice;
@@ -179,12 +182,13 @@ namespace SpareParts.Desktop.Wpf.Management
             }
             catch (DomainValidationException exception)
             {
-                return Task.FromResult(ToFailure(exception, "saving Part"));
+                return ToFailure(exception, "saving Part");
             }
 
             var payload = new CreatePartRequest
             {
                 InternalCode = feature.NewPartCode,
+                Barcode = NormalizeOptional(feature.NewPartBarcode),
                 Name = feature.NewPartName,
                 OEMNumber = feature.NewPartOEM,
                 Condition = feature.SelectedPart?.Condition ?? PartCondition.New,
@@ -199,12 +203,20 @@ namespace SpareParts.Desktop.Wpf.Management
                 UsedCarId = feature.SelectedPart?.UsedCarId
             };
 
-            return SaveAsync(
-                feature.SelectedPart is { Id: > 0 },
+            var isEditing = feature.SelectedPart is { Id: > 0 };
+            var result = await SaveAsync(
+                isEditing,
                 feature.SelectedPart?.Id,
                 "api/parts",
                 payload,
                 "Part");
+
+            if (!result.Success || isEditing)
+            {
+                return result;
+            }
+
+            return Success($"Part added: {payload.Name} - {FormatCurrency(payload.SalePrice, payload.Currency)}.");
         }
 
         public Task<ManagementOperationResult> DeletePartAsync(PartDto? selected)
@@ -217,11 +229,82 @@ namespace SpareParts.Desktop.Wpf.Management
             return DeleteAsync($"api/parts/{selected.Id}", "Part");
         }
 
+        public Task<ManagementOperationResult> SavePartRequestAsync(PartRequestsManagementViewModel feature)
+        {
+            if (string.IsNullOrWhiteSpace(feature.NewRequestCustomerName))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Customer name is required.", "part_request_customer_required"), "saving part request"));
+            }
+
+            if (string.IsNullOrWhiteSpace(feature.NewRequestPartName))
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Requested part name is required.", "part_request_name_required"), "saving part request"));
+            }
+
+            var payload = new CreatePartRequestItemRequest
+            {
+                PartId = feature.NewRequestPartId,
+                CustomerId = feature.NewRequestCustomerId,
+                CustomerName = feature.NewRequestCustomerName.Trim(),
+                CustomerPhone = NormalizeOptional(feature.NewRequestCustomerPhone),
+                RequestedPartName = feature.NewRequestPartName.Trim(),
+                RequestedOemNumber = NormalizeOptional(feature.NewRequestOem),
+                VehicleDetails = NormalizeOptional(feature.NewRequestVehicleDetails),
+                Quantity = Math.Max(1, feature.NewRequestQuantity),
+                Notes = NormalizeOptional(feature.NewRequestNotes)
+            };
+
+            return SaveAsync(
+                isEditing: false,
+                selectedId: null,
+                "api/partrequests",
+                payload,
+                "Part request");
+        }
+
+        public Task<ManagementOperationResult> UpdatePartRequestStatusAsync(PartRequestDto? selected, string status)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a part request first.", "part_request_selection_required"), "updating part request"));
+            }
+
+            return UpdatePartRequestStatusCoreAsync(selected.Id, status);
+        }
+
+        public Task<ManagementOperationResult> DeletePartRequestAsync(PartRequestDto? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Select a part request to delete.", "part_request_selection_required"), "deleting part request"));
+            }
+
+            return DeleteAsync($"api/partrequests/{selected.Id}", "Part request");
+        }
+
+        private async Task<ManagementOperationResult> UpdatePartRequestStatusCoreAsync(int id, string status)
+        {
+            try
+            {
+                await _crudApi.PutAsync(
+                    $"api/partrequests/{id}/status",
+                    new UpdatePartRequestStatusRequest { Status = status });
+                return Success("✓ Part request updated.");
+            }
+            catch (Exception ex)
+            {
+                return ToFailure(ex, "updating part request");
+            }
+        }
+
         public Task<List<PartDto>> GetAllPartsAsync()
             => _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");
 
         public IReadOnlyList<ExcelImportTargetOption> GetExcelImportTargets()
             => _excelImportCoordinator.GetTargets();
+
+        public Task LoadExcelImportTargetsAsync()
+            => _excelImportCoordinator.LoadTargetsAsync();
 
         public IReadOnlyList<ExcelImportFieldDefinition> GetExcelImportFields(string targetKey)
             => _excelImportCoordinator.GetFields(targetKey);
@@ -261,8 +344,10 @@ namespace SpareParts.Desktop.Wpf.Management
             IReadOnlyCollection<BrandDto> brands)
         {
             var appConstants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
+            await _excelImportCoordinator.LoadTargetsAsync();
+            var partsTargetKey = _excelImportCoordinator.GetTargetKeyForTable("Parts") ?? "dbo.Parts";
             var importResult = await _excelImportCoordinator.ImportAsync(
-                ExcelImportTargetKeys.Parts,
+                partsTargetKey,
                 filePath,
                 new ExcelImportExecutionContext
                 {
@@ -455,6 +540,7 @@ namespace SpareParts.Desktop.Wpf.Management
             var payload = new CreateWarehouseRequest
             {
                 Name = feature.NewWarehouseName.Trim(),
+                Barcode = NormalizeOptional(feature.NewWarehouseBarcode),
                 Address = string.IsNullOrWhiteSpace(feature.NewWarehouseAddress)
                     ? null
                     : feature.NewWarehouseAddress.Trim(),
@@ -506,7 +592,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 return Task.FromResult(ToFailure(new DomainValidationException("Location is required.", "used_car_location_required"), "saving Used car"));
             }
 
-            if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0)
+            if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0 || request.Repairs < 0)
             {
                 return Task.FromResult(ToFailure(new DomainValidationException("Expense values cannot be negative.", "used_car_expenses_invalid"), "saving Used car"));
             }
@@ -635,6 +721,9 @@ namespace SpareParts.Desktop.Wpf.Management
         private static ManagementOperationResult Fail(string message) => new() { Success = false, Message = message };
         private static string? NormalizeOptional(string? value)
             => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static string FormatCurrency(decimal value, string? currency)
+            => $"{(string.IsNullOrWhiteSpace(currency) ? "USD" : currency.Trim())} {value.ToString("N2", CultureInfo.CurrentCulture)}";
 
         private static CreatePartRequest BuildImportedPartRequest(
             PartExcelImportRow row,

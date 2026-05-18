@@ -1,0 +1,419 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.PartPurchasesControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:SpareParts.Desktop.Wpf;assembly=SpareParts.Desktop.Controls"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource AccountingComboBoxStyle}"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Margin="0 0 0 16"
+                Padding="14"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10">
+            <DockPanel>
+                <TextBlock Text="{Binding Status}"
+                           Foreground="{Binding StatusBrush}"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           DockPanel.Dock="Left"/>
+                <TextBlock Text="{Binding SearchSummary}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center"
+                           DockPanel.Dock="Right"/>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="360"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Padding="16"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0 0 0 14">
+                        <TextBlock Text="Saved Purchases"
+                                   FontSize="18"
+                                   FontWeight="Bold"/>
+                        <TextBlock Text="Search, open, and modify purchases from the unified transaction table."
+                                   Margin="0 4 0 0"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1" Margin="0 0 0 12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="42"
+                                 Padding="12 0"
+                                 VerticalContentAlignment="Center"/>
+
+                        <Button Grid.Column="1"
+                                Margin="8 0 0 0"
+                                Width="96"
+                                Content="Search"
+                                Command="{Binding RefreshSearchCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"/>
+                    </Grid>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding RecentPurchases}"
+                              SelectedItem="{Binding SelectedPurchase, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#"
+                                                Binding="{Binding PurchaseNumber, Mode=OneWay}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Date"
+                                                Binding="{Binding PurchaseDate, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}"
+                                                Width="110"/>
+                            <DataGridTextColumn Header="Supplier"
+                                                Binding="{Binding SupplierId, Mode=OneWay}"
+                                                Width="80"/>
+                            <DataGridTextColumn Header="Total"
+                                                Binding="{Binding TotalAmount, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                Width="90"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Padding="18"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="{Binding EditorTitle}"
+                                       FontSize="22"
+                                       FontWeight="Bold"/>
+                            <TextBlock Text="{Binding EditorSubtitle}"
+                                       Margin="0 4 0 0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button Content="↻ Refresh"
+                                    Command="{Binding LoadCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="110"
+                                    Margin="0 0 10 0"/>
+                            <Button Content="＋ New"
+                                    Command="{Binding NewPurchaseCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="110"
+                                    Margin="0 0 10 0"/>
+                            <Button Content="✎ Edit"
+                                    Command="{Binding EditCommand}"
+                                    IsEnabled="{Binding IsEditEnabled}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Width="110"
+                                    Margin="0 0 10 0"/>
+                            <Button Content="💾 Save"
+                                    Command="{Binding SubmitCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Width="110"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <Grid Grid.Row="1"
+                          Margin="0 0 0 14"
+                          IsEnabled="{Binding IsEditorEnabled}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Supplier"
+                                       Margin="0 0 0 6"
+                                       FontSize="11"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <ComboBox ItemsSource="{Binding Suppliers}"
+                                      SelectedValuePath="Id"
+                                      DisplayMemberPath="Name"
+                                      SelectedValue="{Binding SupplierId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <controls:WarehouseSearchControl Grid.Column="2"
+                                                         SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"/>
+
+                        <controls:SaleDatePickerControl Grid.Column="4"
+                                                        Label="PURCHASE DATE"
+                                                        PlaceholderText="Pick purchase date"
+                                                        PopupTitle="SELECT PURCHASE DATE"
+                                                        DisplayFormat="dddd, dd MMM yyyy"
+                                                        SelectedDate="{Binding PurchaseDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+
+                    <Grid Grid.Row="2"
+                          Margin="0 0 0 14"
+                          IsEnabled="{Binding IsEditorEnabled}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <controls:PartSearchControl Grid.Column="0"
+                                                    SelectedPartId="{Binding NewPartId, Mode=TwoWay}"
+                                                    SelectedPartDescription="{Binding NewPartDescription, Mode=TwoWay}"
+                                                    SelectedPartCostPrice="{Binding NewUnitCost, Mode=TwoWay}"/>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="QTY"
+                                       Margin="0 0 0 6"
+                                       FontSize="11"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBox Text="{Binding NewQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="52"
+                                     Padding="12 0"
+                                     VerticalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="UNIT COST"
+                                       Margin="0 0 0 6"
+                                       FontSize="11"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBox Text="{Binding NewUnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                     Height="52"
+                                     Padding="12 0"
+                                     VerticalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="6">
+                            <TextBlock Text="PAID"
+                                       Margin="0 0 0 6"
+                                       FontSize="11"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                     Height="52"
+                                     Padding="12 0"
+                                     VerticalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="8"
+                                Content="Add Line"
+                                Command="{Binding AddItemCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="110"
+                                Height="42"
+                                VerticalAlignment="Bottom"/>
+                    </Grid>
+
+                    <Border Grid.Row="3"
+                            Margin="0 0 0 14"
+                            Padding="12"
+                            Background="{DynamicResource AppBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Visibility="{Binding HasPostingTimeline, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <DockPanel Margin="0 0 0 10">
+                                <TextBlock Text="Auto Posting Timeline"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           DockPanel.Dock="Left"/>
+                                <TextBlock Text="{Binding PurchaseNumber}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           DockPanel.Dock="Right"/>
+                            </DockPanel>
+
+                            <ItemsControl ItemsSource="{Binding PostingTimeline}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Width="196"
+                                                MinHeight="110"
+                                                Margin="0 0 10 10"
+                                                Padding="11"
+                                                Background="{DynamicResource CardBackgroundBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <DockPanel Grid.Row="0">
+                                                    <Border x:Name="StepDot"
+                                                            Width="22"
+                                                            Height="22"
+                                                            CornerRadius="11"
+                                                            Background="#FF757575"
+                                                            DockPanel.Dock="Left">
+                                                        <TextBlock Text="{Binding Sequence}"
+                                                                   FontSize="11"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="White"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock x:Name="StatusText"
+                                                               Text="{Binding Status}"
+                                                               FontSize="10"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               HorizontalAlignment="Right"
+                                                               DockPanel.Dock="Right"/>
+                                                </DockPanel>
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{Binding Title}"
+                                                           Margin="0 8 0 0"
+                                                           FontWeight="Bold"/>
+                                                <TextBlock Grid.Row="2"
+                                                           Text="{Binding OccurredAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Grid.Row="3"
+                                                           Text="{Binding Detail}"
+                                                           Margin="0 7 0 0"
+                                                           FontSize="11"
+                                                           TextWrapping="Wrap"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </Grid>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Status}" Value="Complete">
+                                                <Setter TargetName="StepDot" Property="Background" Value="#FF4CAF50"/>
+                                                <Setter TargetName="StatusText" Property="Foreground" Value="#FF81C784"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="Partial">
+                                                <Setter TargetName="StepDot" Property="Background" Value="#FFFFA000"/>
+                                                <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFCC80"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid Grid.Row="4"
+                              ItemsSource="{Binding Items}"
+                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              BorderThickness="0"
+                              IsReadOnly="{Binding IsItemsGridReadOnly}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Part #"
+                                                Binding="{Binding PartId, Mode=OneWay}"
+                                                Width="80"
+                                                IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Description"
+                                                Binding="{Binding Description, Mode=OneWay}"
+                                                Width="*"
+                                                IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Qty"
+                                                Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="80"/>
+                            <DataGridTextColumn Header="Unit Cost"
+                                                Binding="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Line Total"
+                                                Binding="{Binding LineTotal, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                Width="120"
+                                                IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <DockPanel Grid.Row="5" Margin="0 14 0 0">
+                        <Button Content="🗑 Remove Selected"
+                                Command="{Binding RemoveItemCommand}"
+                                IsEnabled="{Binding CanRemoveItem}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="160"
+                                DockPanel.Dock="Left"/>
+                        <Button Content="↺ Reset"
+                                Command="{Binding ResetCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="110"
+                                DockPanel.Dock="Right"/>
+                        <TextBlock Text="{Binding TotalAmount, StringFormat=Total: {0:N2}}"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"
+                                   Margin="0 0 16 0"
+                                   DockPanel.Dock="Right"/>
+                    </DockPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

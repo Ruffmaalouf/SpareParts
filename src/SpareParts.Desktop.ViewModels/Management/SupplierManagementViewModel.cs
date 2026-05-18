@@ -1,19 +1,117 @@
 using SpareParts.Domain.BusinessPartners;
+using SpareParts.Desktop.Wpf.Helpers;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Input;
 
 namespace SpareParts.Desktop.Wpf.Management
 {
-    public class SupplierManagementViewModel
+    public sealed class SupplierManagementViewModel : ManagementFeatureViewModelBase
     {
-        public ObservableCollection<SupplierDto> Suppliers { get; } = new();
-        public SupplierDto? SelectedSupplier { get; set; }
+        private readonly SupplierPermissionState _permissions = new();
+        private ManagementCoordinator? _coordinator;
+        private Func<Task>? _refreshAsync;
+        private Action<string, bool>? _setStatus;
+        private SupplierDto? _selectedSupplier;
+        private string _newSupplierName = string.Empty;
+        private string _newSupplierPhone = string.Empty;
+        private string _newSupplierEmail = string.Empty;
+        private string _newSupplierAddress = string.Empty;
+        private string _newSupplierTax = string.Empty;
+        private decimal _newSupplierBalance;
 
-        public string NewSupplierName { get; set; } = string.Empty;
-        public string NewSupplierPhone { get; set; } = string.Empty;
-        public string NewSupplierEmail { get; set; } = string.Empty;
-        public string NewSupplierAddress { get; set; } = string.Empty;
-        public string NewSupplierTax { get; set; } = string.Empty;
-        public decimal NewSupplierBalance { get; set; }
+        public SupplierManagementViewModel()
+        {
+            _permissions.PropertyChanged += PermissionsOnPropertyChanged;
+        }
+
+        public ObservableCollection<SupplierDto> Suppliers { get; } = new();
+        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
+
+        public bool CanViewSupplierTab => _permissions.CanViewSupplierTab;
+        public bool CanEditSupplier => _permissions.CanEditSupplier;
+        public bool CanModifySupplier => _permissions.CanModifySupplier;
+        public bool CanDeleteSupplier => _permissions.CanDeleteSupplier;
+        public bool CanSaveSupplier => _permissions.CanSaveSupplier;
+
+        public void Configure(
+            ManagementCoordinator coordinator,
+            Func<Task> refreshAsync,
+            Action<string, bool> setStatus,
+            ICommand? importTableCommand = null)
+        {
+            _coordinator = coordinator;
+            _refreshAsync = refreshAsync;
+            _setStatus = setStatus;
+            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand = new RelayCommand(_ => StartNew());
+            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.Suppliers"));
+        }
+
+        public void SetPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
+            => _permissions.Set(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
+
+        public SupplierDto? SelectedSupplier
+        {
+            get => _selectedSupplier;
+            set
+            {
+                if (!SetProperty(ref _selectedSupplier, value))
+                {
+                    return;
+                }
+
+                _permissions.IsEditingSupplier = value != null;
+                OnPropertyChanged(nameof(CanSaveSupplier));
+
+                if (value != null)
+                {
+                    PopulateForm(value);
+                }
+            }
+        }
+
+        public string NewSupplierName
+        {
+            get => _newSupplierName;
+            set => SetProperty(ref _newSupplierName, value);
+        }
+
+        public string NewSupplierPhone
+        {
+            get => _newSupplierPhone;
+            set => SetProperty(ref _newSupplierPhone, value);
+        }
+
+        public string NewSupplierEmail
+        {
+            get => _newSupplierEmail;
+            set => SetProperty(ref _newSupplierEmail, value);
+        }
+
+        public string NewSupplierAddress
+        {
+            get => _newSupplierAddress;
+            set => SetProperty(ref _newSupplierAddress, value);
+        }
+
+        public string NewSupplierTax
+        {
+            get => _newSupplierTax;
+            set => SetProperty(ref _newSupplierTax, value);
+        }
+
+        public decimal NewSupplierBalance
+        {
+            get => _newSupplierBalance;
+            set => SetProperty(ref _newSupplierBalance, value);
+        }
 
         public void PopulateForm(SupplierDto s)
         {
@@ -30,6 +128,90 @@ namespace SpareParts.Desktop.Wpf.Management
             NewSupplierName = NewSupplierPhone = NewSupplierEmail = NewSupplierAddress = NewSupplierTax = string.Empty;
             NewSupplierBalance = 0;
             SelectedSupplier = null;
+        }
+
+        public void StartNew()
+        {
+            ClearForm();
+            _permissions.IsEditingSupplier = false;
+            OnPropertyChanged(nameof(CanSaveSupplier));
+        }
+
+        private async Task SaveAsync()
+        {
+            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
+            {
+                return;
+            }
+
+            if (!CanViewSupplierTab)
+            {
+                _setStatus("✗ You do not have permission to view the supplier tab.", false);
+                return;
+            }
+
+            var isEditing = SelectedSupplier != null;
+            if (!isEditing && !CanEditSupplier)
+            {
+                _setStatus("✗ You do not have permission to create suppliers.", false);
+                return;
+            }
+
+            if (isEditing && !CanModifySupplier)
+            {
+                _setStatus("✗ You do not have permission to modify suppliers.", false);
+                return;
+            }
+
+            var result = await _coordinator.SaveSupplierAsync(this);
+            _setStatus(result.Message, result.Success);
+            if (!result.Success)
+            {
+                return;
+            }
+
+            await _refreshAsync();
+            StartNew();
+        }
+
+        private async Task DeleteAsync()
+        {
+            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
+            {
+                return;
+            }
+
+            if (!CanViewSupplierTab)
+            {
+                _setStatus("✗ You do not have permission to view the supplier tab.", false);
+                return;
+            }
+
+            if (!CanDeleteSupplier)
+            {
+                _setStatus("✗ You do not have permission to delete suppliers.", false);
+                return;
+            }
+
+            var result = await _coordinator.DeleteSupplierAsync(SelectedSupplier);
+            _setStatus(result.Message, result.Success);
+            if (!result.Success)
+            {
+                return;
+            }
+
+            await _refreshAsync();
+            StartNew();
+        }
+
+        private void PermissionsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                return;
+            }
+
+            OnPropertyChanged(e.PropertyName);
         }
     }
 }

@@ -19,6 +19,15 @@ internal sealed class RecordingCrudApiClient : ICrudApiClient
         return Task.CompletedTask;
     }
 
+    public Task<TResponse> PostAsync<TResponse>(string url, object payload)
+        where TResponse : notnull
+    {
+        LastMethod = "POST";
+        LastUrl = url;
+        LastPayload = payload;
+        return Task.FromResult(default(TResponse)!);
+    }
+
     public Task PutAsync(string url, object payload)
     {
         LastMethod = "PUT";

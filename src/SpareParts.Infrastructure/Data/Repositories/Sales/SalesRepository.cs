@@ -26,11 +26,43 @@ namespace SpareParts.Infrastructure.Data
                                      THROW 51000, 'Sale transaction type is not configured.', 1;
                                  END;
 
+                                 DECLARE @BaseCurrencyCode CHAR(3) = 'USD';
+                                 DECLARE @CounterCurrencyCode CHAR(3) = 'USD';
+                                 DECLARE @CounterRateToBase DECIMAL(19, 8) = 1;
+
+                                 SELECT TOP (1) @BaseCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+                                 FROM dbo.AppConstants
+                                 WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode')
+                                 ORDER BY CASE WHEN [Key] = 'BaseCurrencyCode' THEN 0 ELSE 1 END;
+
+                                 SELECT TOP (1) @CounterCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+                                 FROM dbo.AppConstants
+                                 WHERE [Key] = 'CounterCurrencyCode';
+
+                                 SELECT TOP (1) @CounterRateToBase = TRY_CONVERT(DECIMAL(19, 8), [Value])
+                                 FROM dbo.AppConstants
+                                 WHERE [Key] = 'DefaultCounterRate';
+
+                                 SET @BaseCurrencyCode = COALESCE(NULLIF(@BaseCurrencyCode, ''), 'USD');
+                                 SET @CounterCurrencyCode = COALESCE(NULLIF(@CounterCurrencyCode, ''), @BaseCurrencyCode);
+                                 SET @CounterRateToBase = CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END;
+
+                                 DECLARE @TotalBaseAmount DECIMAL(19, 4) = CASE
+                                     WHEN @BaseCurrencyCode = @CounterCurrencyCode THEN @TotalAmount
+                                     ELSE ROUND(@TotalAmount * @CounterRateToBase, 4)
+                                 END;
+
+                                 DECLARE @PaidBaseAmount DECIMAL(19, 4) = CASE
+                                     WHEN @BaseCurrencyCode = @CounterCurrencyCode THEN @PaidAmount
+                                     ELSE ROUND(@PaidAmount * @CounterRateToBase, 4)
+                                 END;
+
                                  INSERT INTO dbo.Transactions
                                  (
                                      TransactionTypeId,
                                      ReferenceId,
                                      TransactionNumber,
+                                     ScanCode,
                                      TransactionDate,
                                      CustomerId,
                                      WarehouseId,
@@ -57,6 +89,7 @@ namespace SpareParts.Infrastructure.Data
                                      @TransactionTypeId,
                                      0,
                                      @InvoiceNumber,
+                                     @ScanCode,
                                      @InvoiceDate,
                                      @CustomerId,
                                      @WarehouseId,
@@ -71,15 +104,14 @@ namespace SpareParts.Infrastructure.Data
                                      @IsReturn,
                                      @ParentInvoiceId,
                                      @TotalCost,
-                                     tt.CurrencyCode,
-                                     tt.CurrencyCode,
-                                     @TotalAmount,
+                                     @BaseCurrencyCode,
+                                     @CounterCurrencyCode,
+                                     @TotalBaseAmount,
                                      @TotalAmount,
                                      @PaidAmount,
                                      @CreatedAt,
                                      @CreatedByUserId
-                                 FROM dbo.TransactionTypes tt
-                                 WHERE tt.Id = @TransactionTypeId;
+                                 ;
 
                                  DECLARE @TransactionId INT = CAST(SCOPE_IDENTITY() AS INT);
                                  UPDATE dbo.Transactions
@@ -94,6 +126,7 @@ namespace SpareParts.Infrastructure.Data
                 {
                     TypeKey = TransactionTypeKeys.Sale,
                     invoice.InvoiceNumber,
+                    ScanCode = string.IsNullOrWhiteSpace(invoice.ScanCode) ? invoice.InvoiceNumber : invoice.ScanCode.Trim(),
                     invoice.InvoiceDate,
                     invoice.CustomerId,
                     invoice.WarehouseId,
@@ -117,7 +150,7 @@ namespace SpareParts.Infrastructure.Data
         public void InsertItems(int invoiceId, IList<SalesInvoiceItem> items)
         {
             var transactionId = ResolveTransactionId(invoiceId);
-            var counterCurrencyCode = ResolveCounterCurrencyCode(transactionId);
+            var currencyContext = ResolveTransactionCurrencyContext(transactionId);
 
             const string sql = @"INSERT INTO dbo.TransactionItems
                                  (
@@ -150,8 +183,8 @@ namespace SpareParts.Infrastructure.Data
                                      @Amount,
                                      @LineTotal,
                                      @CurrencyCode,
-                                     1,
-                                     @LineTotal,
+                                     @RateToBase,
+                                     @BaseAmount,
                                      @LineTotal,
                                      @SortOrder,
                                      @CreatedAt,
@@ -174,7 +207,9 @@ namespace SpareParts.Infrastructure.Data
                     item.TaxRate,
                     Amount = decimal.Round(item.Quantity * item.UnitPrice, 4, MidpointRounding.AwayFromZero),
                     item.LineTotal,
-                    CurrencyCode = counterCurrencyCode,
+                    CurrencyCode = currencyContext.CounterCurrencyCode,
+                    RateToBase = currencyContext.CounterRateToBase,
+                    BaseAmount = decimal.Round(item.LineTotal * currencyContext.CounterRateToBase, 4, MidpointRounding.AwayFromZero),
                     SortOrder = index + 1,
                     item.CreatedAt,
                     item.CreatedByUserId
@@ -187,16 +222,19 @@ namespace SpareParts.Infrastructure.Data
             const string sql = @"SELECT TOP (200)
                                         t.ReferenceId AS InvoiceId,
                                         t.TransactionNumber AS InvoiceNumber,
+                                        t.ScanCode,
                                         t.TransactionDate AS InvoiceDate,
                                         t.CustomerId,
                                         t.WarehouseId,
                                         t.TotalAmount,
-                                        t.PaidAmount
+                                        t.PaidAmount,
+                                        ISNULL(NULLIF(t.CounterCurrencyCode, N''), N'USD') AS CounterCurrencyCode
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
                                    AND (@Query IS NULL OR @Query = N''
                                         OR t.TransactionNumber LIKE N'%' + @Query + N'%'
+                                        OR t.ScanCode LIKE N'%' + @Query + N'%'
                                         OR CAST(t.ReferenceId AS NVARCHAR(50)) LIKE N'%' + @Query + N'%')
                                  ORDER BY t.TransactionDate DESC, t.ReferenceId DESC;";
 
@@ -215,11 +253,19 @@ namespace SpareParts.Infrastructure.Data
             const string invoiceSql = @"SELECT
                                                t.ReferenceId AS InvoiceId,
                                                t.TransactionNumber AS InvoiceNumber,
+                                               t.ScanCode,
                                                t.TransactionDate AS InvoiceDate,
                                                t.CustomerId,
                                                t.WarehouseId,
                                                t.TotalAmount,
-                                               t.PaidAmount
+                                               t.PaidAmount,
+                                               ISNULL(NULLIF(t.BaseCurrencyCode, N''), N'USD') AS BaseCurrencyCode,
+                                               ISNULL(NULLIF(t.CounterCurrencyCode, N''), N'USD') AS CounterCurrencyCode,
+                                               CASE
+                                                   WHEN ISNULL(t.TotalCounterAmount, 0) > 0 AND ISNULL(t.TotalBaseAmount, 0) > 0
+                                                   THEN ROUND(t.TotalBaseAmount / t.TotalCounterAmount, 8)
+                                                   ELSE 1
+                                               END AS CounterRateToBase
                                         FROM dbo.Transactions t
                                         INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                         WHERE tt.TypeKey = @TypeKey
@@ -260,6 +306,7 @@ namespace SpareParts.Infrastructure.Data
                     InvoiceId = invoiceId
                 },
                 _session.Transaction).ToList();
+            invoice.Timeline = new TransactionTimelineReader(_session).Build(TransactionTypeKeys.Sale, invoiceId);
 
             return invoice;
         }
@@ -290,7 +337,28 @@ namespace SpareParts.Infrastructure.Data
                 return false;
             }
 
-            const string updateInvoiceSql = @"UPDATE t
+            const string updateInvoiceSql = @"DECLARE @BaseCurrencyCode CHAR(3) = 'USD';
+                                              DECLARE @CounterCurrencyCode CHAR(3) = 'USD';
+                                              DECLARE @CounterRateToBase DECIMAL(19, 8) = 1;
+
+                                              SELECT TOP (1) @BaseCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+                                              FROM dbo.AppConstants
+                                              WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode')
+                                              ORDER BY CASE WHEN [Key] = 'BaseCurrencyCode' THEN 0 ELSE 1 END;
+
+                                              SELECT TOP (1) @CounterCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+                                              FROM dbo.AppConstants
+                                              WHERE [Key] = 'CounterCurrencyCode';
+
+                                              SELECT TOP (1) @CounterRateToBase = TRY_CONVERT(DECIMAL(19, 8), [Value])
+                                              FROM dbo.AppConstants
+                                              WHERE [Key] = 'DefaultCounterRate';
+
+                                              SET @BaseCurrencyCode = COALESCE(NULLIF(@BaseCurrencyCode, ''), 'USD');
+                                              SET @CounterCurrencyCode = COALESCE(NULLIF(@CounterCurrencyCode, ''), @BaseCurrencyCode);
+                                              SET @CounterRateToBase = CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END;
+
+                                              UPDATE t
                                               SET TransactionDate = @InvoiceDate,
                                                   CustomerId = @CustomerId,
                                                   WarehouseId = @WarehouseId,
@@ -300,8 +368,14 @@ namespace SpareParts.Infrastructure.Data
                                                   TotalAmount = @TotalAmount,
                                                   PaidAmount = @PaidAmount,
                                                   PaymentStatus = @PaymentStatus,
+                                                  ScanCode = COALESCE(NULLIF(@ScanCode, N''), NULLIF(t.ScanCode, N''), t.TransactionNumber),
                                                   TotalCost = @TotalCost,
-                                                  TotalBaseAmount = @TotalAmount,
+                                                  BaseCurrencyCode = @BaseCurrencyCode,
+                                                  CounterCurrencyCode = @CounterCurrencyCode,
+                                                  TotalBaseAmount = CASE
+                                                      WHEN @BaseCurrencyCode = @CounterCurrencyCode THEN @TotalAmount
+                                                      ELSE ROUND(@TotalAmount * @CounterRateToBase, 4)
+                                                  END,
                                                   TotalCounterAmount = @TotalAmount,
                                                   PaidCounterAmount = @PaidAmount,
                                                   ModifiedAt = @ModifiedAt,
@@ -321,6 +395,7 @@ namespace SpareParts.Infrastructure.Data
                 invoice.TotalAmount,
                 invoice.PaidAmount,
                 invoice.PaymentStatus,
+                ScanCode = string.IsNullOrWhiteSpace(invoice.ScanCode) ? invoice.InvoiceNumber : invoice.ScanCode.Trim(),
                 invoice.TotalCost,
                 ModifiedAt = DateTime.UtcNow,
                 ModifiedByUserId = userId
@@ -337,6 +412,34 @@ namespace SpareParts.Infrastructure.Data
             _session.Connection.Execute(deleteItemsSql, new { TransactionId = transactionId }, _session.Transaction);
             InsertItems(invoiceId, items);
             return true;
+        }
+
+        public bool ApplyPayment(int invoiceId, decimal paidAmount, string paymentStatus, string? paymentMethod, int userId)
+        {
+            var transactionId = ResolveTransactionIdOrDefault(invoiceId);
+            if (transactionId <= 0)
+            {
+                return false;
+            }
+
+            const string sql = @"UPDATE dbo.Transactions
+                                 SET PaidAmount = @PaidAmount,
+                                     PaidCounterAmount = @PaidAmount,
+                                     PaymentStatus = @PaymentStatus,
+                                     PaymentMethod = COALESCE(NULLIF(@PaymentMethod, N''), PaymentMethod),
+                                     ModifiedAt = @ModifiedAt,
+                                     ModifiedByUserId = @ModifiedByUserId
+                                 WHERE Id = @TransactionId;";
+
+            return _session.Connection.Execute(sql, new
+            {
+                TransactionId = transactionId,
+                PaidAmount = paidAmount,
+                PaymentStatus = paymentStatus,
+                PaymentMethod = paymentMethod?.Trim(),
+                ModifiedAt = DateTime.UtcNow,
+                ModifiedByUserId = userId
+            }, _session.Transaction) > 0;
         }
 
         private int ResolveTransactionId(int invoiceId)
@@ -368,16 +471,35 @@ namespace SpareParts.Infrastructure.Data
                 _session.Transaction);
         }
 
-        private string ResolveCounterCurrencyCode(int transactionId)
+        private SalesTransactionCurrencyContext ResolveTransactionCurrencyContext(int transactionId)
         {
-            const string sql = @"SELECT ISNULL(NULLIF(t.CounterCurrencyCode, N''), N'USD')
+            const string sql = @"SELECT
+                                     CounterCurrencyCode = ISNULL(NULLIF(t.CounterCurrencyCode, N''), N'USD'),
+                                     CounterRateToBase = CASE
+                                         WHEN ISNULL(t.TotalCounterAmount, 0) > 0 AND ISNULL(t.TotalBaseAmount, 0) > 0
+                                         THEN ROUND(t.TotalBaseAmount / t.TotalCounterAmount, 8)
+                                         ELSE 1
+                                     END
                                  FROM dbo.Transactions t
                                  WHERE t.Id = @TransactionId;";
 
-            return _session.Connection.QuerySingle<string>(
+            var context = _session.Connection.QuerySingle<SalesTransactionCurrencyContext>(
                 sql,
                 new { TransactionId = transactionId },
                 _session.Transaction);
+
+            if (context.CounterRateToBase <= 0m)
+            {
+                context.CounterRateToBase = 1m;
+            }
+
+            return context;
+        }
+
+        private sealed class SalesTransactionCurrencyContext
+        {
+            public string CounterCurrencyCode { get; set; } = "USD";
+            public decimal CounterRateToBase { get; set; } = 1m;
         }
     }
 }

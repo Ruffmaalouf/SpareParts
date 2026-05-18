@@ -31,6 +31,7 @@ namespace SpareParts.Infrastructure.Data
                                      TransactionTypeId,
                                      ReferenceId,
                                      TransactionNumber,
+                                     ScanCode,
                                      TransactionDate,
                                      SupplierId,
                                      UsedCarId,
@@ -53,6 +54,7 @@ namespace SpareParts.Infrastructure.Data
                                  (
                                      @TransactionTypeId,
                                      0,
+                                     @PurchaseNumber,
                                      @PurchaseNumber,
                                      @PurchaseDate,
                                      @SupplierId,
@@ -177,6 +179,7 @@ namespace SpareParts.Infrastructure.Data
         {
             const string sql = @"SELECT t.ReferenceId AS Id,
                                         t.TransactionNumber AS PurchaseNumber,
+                                        t.ScanCode,
                                         t.TransactionDate AS PurchaseDate,
                                         t.UsedCarId,
                                         CASE
@@ -213,6 +216,7 @@ namespace SpareParts.Infrastructure.Data
                                  WHERE tt.TypeKey = @TypeKey
                                  GROUP BY t.ReferenceId,
                                           t.TransactionNumber,
+                                          t.ScanCode,
                                           t.TransactionDate,
                                           t.UsedCarId,
                                           cb.Name,
@@ -385,6 +389,7 @@ namespace SpareParts.Infrastructure.Data
             var headerSql = $@"SELECT TOP (1)
                                       t.ReferenceId AS Id,
                                       t.TransactionNumber AS PurchaseNumber,
+                                      t.ScanCode,
                                       t.TransactionDate AS PurchaseDate,
                                       t.UsedCarId,
                                       CASE
@@ -423,6 +428,7 @@ namespace SpareParts.Infrastructure.Data
                                  AND {whereClause}
                                GROUP BY t.ReferenceId,
                                         t.TransactionNumber,
+                                        t.ScanCode,
                                         t.TransactionDate,
                                         t.UsedCarId,
                                         cb.Name,
@@ -481,6 +487,7 @@ namespace SpareParts.Infrastructure.Data
                     detail.Id
                 },
                 _session.Transaction).ToList();
+            detail.Timeline = new TransactionTimelineReader(_session).Build(TransactionTypeKeys.UsedCarPurchase, detail.Id);
 
             return detail;
         }

@@ -6,19 +6,26 @@ namespace SpareParts.ArchitectureTests;
 
 internal sealed class InMemorySqliteConnectionFactory : ISqlConnectionFactory, IDisposable
 {
-    private readonly SqliteConnection _connection;
+    private readonly string _connectionString;
+    private readonly SqliteConnection _keeperConnection;
 
     public InMemorySqliteConnectionFactory()
     {
-        _connection = new SqliteConnection("Data Source=:memory:");
-        _connection.Open();
+        _connectionString = $"Data Source=SparePartsArchitectureTests-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
+        _keeperConnection = new SqliteConnection(_connectionString);
+        _keeperConnection.Open();
     }
 
-    public IDbConnection CreateConnection() => _connection;
+    public IDbConnection CreateConnection()
+    {
+        var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        return connection;
+    }
 
     public void InitializeSchema()
     {
-        using var command = _connection.CreateCommand();
+        using var command = _keeperConnection.CreateCommand();
         command.CommandText = """
             CREATE TABLE IF NOT EXISTS Users (
                 Id INTEGER PRIMARY KEY,
@@ -43,6 +50,6 @@ internal sealed class InMemorySqliteConnectionFactory : ISqlConnectionFactory, I
 
     public void Dispose()
     {
-        _connection.Dispose();
+        _keeperConnection.Dispose();
     }
 }
