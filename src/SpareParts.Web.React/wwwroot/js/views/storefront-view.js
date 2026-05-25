@@ -1,5 +1,4 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { webAppRoleName } from "../core/config.js";
 import { initials, money } from "../core/formatters.js";
 import { BrandMark, LanguagePicker, ThemePicker } from "../components/layout.js";
 import { StatusLine } from "../components/shared.js";
@@ -9,27 +8,19 @@ const paymentGatewayOptions = [
   { value: "Areeba Gateway", title: "Areeba", subtitle: "Secure card payment gateway" },
   { value: "Whish Gateway", title: "Whish", subtitle: "Wallet payment gateway" }
 ];
-const storeTabs = [
-  { key: "garage", labelKey: "store.garage", fallback: "Garage" },
-  { key: "parts", labelKey: "store.parts", fallback: "Parts" },
-  { key: "cart", labelKey: "store.cart", fallback: "Cart" },
-  { key: "checkout", labelKey: "store.checkout", fallback: "Pay" },
-  { key: "account", labelKey: "store.account", fallback: "Driver" }
+const storeNavItems = [
+  { key: "shop", label: "Shop" },
+  { key: "cart", label: "Cart" },
+  { key: "checkout", label: "Checkout" },
+  { key: "account", label: "Account" }
 ];
-
-const storeIconPaths = {
-  garage: "M4 12h16l-2-5H6l-2 5Zm1 0v7h14v-7M8 16h2M14 16h2",
-  parts: "M7 7h10v10H7V7Zm-3 3h3M17 10h3M10 4v3M14 4v3M10 17v3M14 17v3",
-  cart: "M5 5h2l2 10h8l2-7H8M10 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm7 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
-  checkout: "M4 7h16v10H4V7Zm3 4h5M15 14h2",
-  account: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"
-};
-
-function StoreIcon({ name }) {
-  return h("svg", { className: "store-tab-icon", viewBox: "0 0 24 24", "aria-hidden": "true" },
-    h("path", { d: storeIconPaths[name] })
-  );
-}
+const petrolheadFilters = [
+  { label: "Boost", query: "turbo", detail: "Turbo, intake, sensors" },
+  { label: "Braking", query: "brake", detail: "Pads, discs, hydraulics" },
+  { label: "Service", query: "filter", detail: "Oil, cabin, DSG kits" },
+  { label: "Ignition", query: "coil", detail: "Coils, plugs, modules" }
+];
+const heroSpecs = ["OEM numbers", "German fitment", "Fast checkout"];
 
 function partVisualLabel(part) {
   return String(part.internalCode || part.oemNumber || part.name || "DE").slice(0, 3).toUpperCase();
@@ -46,29 +37,62 @@ function partAvailability(part) {
   return "Check availability";
 }
 
-function QuickAction({ title, body, onClick }) {
-  return h("button", { className: "quick-action", type: "button", onClick },
-    h("strong", null, title),
-    h("span", null, body)
-  );
-}
-
 function CartRows({ cartRows, updateQuantity, t }) {
-  return h("div", { className: "cart-list" },
+  return h("div", { className: "store-cart-list" },
     cartRows.map((item) =>
-      h("div", { className: "cart-row", key: item.partId },
-        h("div", null,
+      h("div", { className: "store-cart-row", key: item.partId },
+        h("div", { className: "store-cart-row-copy" },
           h("strong", null, item.part?.name || "Part"),
           h("span", null, money(item.lineTotal, item.part?.currency || "USD"))
         ),
-        h("div", { className: "quantity-stepper" },
-          h("button", { type: "button", onClick: () => updateQuantity(item.partId, -1) }, "-"),
+        h("div", { className: "quantity-stepper store-quantity-stepper" },
+          h("button", { type: "button", onClick: () => updateQuantity(item.partId, -1), "aria-label": "Decrease quantity" }, "-"),
           h("span", null, item.quantity),
-          h("button", { type: "button", onClick: () => updateQuantity(item.partId, 1) }, "+")
+          h("button", { type: "button", onClick: () => updateQuantity(item.partId, 1), "aria-label": "Increase quantity" }, "+")
         )
       )
     ),
-    cartRows.length === 0 && h("p", { className: "empty-state" }, t("store.emptyCart", "Your selected German parts will appear here."))
+    cartRows.length === 0 && h("p", { className: "store-empty-note" }, t("store.emptyCart", "Your selected German parts will appear here."))
+  );
+}
+
+function CartPanel({ cartRows, cartItemCount, cartTotal, updateQuantity, onCheckout, onShop, t }) {
+  const currency = cartRows[0]?.part?.currency || "USD";
+  return h("aside", { className: "store-cart-rail" },
+    h("div", { className: "store-cart-heading" },
+      h("span", null, t("store.currentOrder", "Current order")),
+      h("strong", null, t("store.itemCount", "{count} items", { count: cartItemCount }))
+    ),
+    h(CartRows, { cartRows, updateQuantity, t }),
+    h("div", { className: "store-cart-total" },
+      h("span", null, t("store.total", "Total")),
+      h("strong", null, money(cartTotal, currency))
+    ),
+    h("div", { className: "store-cart-actions" },
+      h("button", { className: "secondary-button", type: "button", onClick: onShop }, t("store.continueShopping", "Continue shopping")),
+      h("button", { className: "primary-button", type: "button", onClick: onCheckout, disabled: cartRows.length === 0 }, t("store.checkout", "Checkout"))
+    )
+  );
+}
+
+function PartCard({ part, inCart, addToCart, t }) {
+  return h("article", { className: "store-product-card" },
+    h("div", { className: "store-product-media", "aria-hidden": "true" },
+      h("span", null, partVisualLabel(part)),
+      h("b", null, "Bench checked")
+    ),
+    h("div", { className: "store-product-copy" },
+      h("span", { className: "store-product-code" }, part.internalCode || part.oemNumber || "German Part"),
+      h("h3", null, part.name),
+      h("p", null, partFitment(part, t))
+    ),
+    h("div", { className: "store-product-meta" },
+      h("strong", null, money(part.salePrice, part.currency)),
+      h("span", null, partAvailability(part))
+    ),
+    h("button", { className: "primary-button", type: "button", onClick: () => addToCart(part) },
+      inCart > 0 ? t("store.addAnother", "Add another") : t("store.addToCart", "Add to cart")
+    )
   );
 }
 
@@ -82,7 +106,7 @@ export function CustomerStorefrontView({
   onLogout,
   t
 }) {
-  const [activeTab, setActiveTab] = useState("garage");
+  const [activeView, setActiveView] = useState("shop");
   const [parts, setParts] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
@@ -127,7 +151,15 @@ export function CustomerStorefrontView({
   }), [cart, parts]);
   const cartTotal = useMemo(() => cartRows.reduce((sum, item) => sum + item.lineTotal, 0), [cartRows]);
   const cartItemCount = cartRows.reduce((sum, item) => sum + item.quantity, 0);
-  const availableCount = parts.reduce((count, part) => count + Number(part.availableQuantity > 0 ? 1 : 0), 0);
+  const availableCount = parts.reduce((count, part) => count + (Number(part.availableQuantity ?? part.stockQuantity ?? 0) > 0 ? 1 : 0), 0);
+  const featuredParts = parts.slice(0, 8);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeView]);
+
+  const goShop = useCallback(() => setActiveView("shop"), []);
+  const goCheckout = useCallback(() => setActiveView(cartRows.length ? "checkout" : "shop"), [cartRows.length]);
 
   const addToCart = useCallback((part) => {
     setCart((current) => {
@@ -156,7 +188,7 @@ export function CustomerStorefrontView({
   const checkout = useCallback(async () => {
     if (cart.length === 0) {
       setStatus(t("store.addPartsFirst", "Add parts to the cart first."));
-      setActiveTab("parts");
+      setActiveView("shop");
       return;
     }
     if (!customerName.trim() || !customerPhone.trim()) {
@@ -193,7 +225,7 @@ export function CustomerStorefrontView({
         method: paymentMethod,
         total: money(response.totalAmount)
       }));
-      setActiveTab("garage");
+      setActiveView("shop");
     } catch (error) {
       setStatus(error.message || t("store.checkoutFailed", "Checkout failed."));
     } finally {
@@ -218,107 +250,160 @@ export function CustomerStorefrontView({
     t
   ]);
 
-  const renderParts = () => h("section", { className: "store-tab-panel catalog-pane" },
-    h("header", { className: "catalog-header" },
-      h("div", null,
-        h("span", { className: "eyebrow" }, t("store.liveCatalog", "Live Catalog")),
-        h("h2", null, t("store.catalogTitle", "Parts ready to quote and checkout"))
+  const runSearch = useCallback(() => {
+    setActiveView("shop");
+    load();
+  }, [load]);
+
+  const renderShop = () => h("section", { className: "store-shop-view" },
+    h("section", { className: "store-hero-redesign" },
+      h("div", { className: "store-hero-copy" },
+        h("h1", null, "Maalouf German Parts for petrolheads"),
+        h("p", null, "OEM-grade German parts for the driver who knows the sound, the chassis code, and the part number before the dashboard light does."),
+        h("div", { className: "store-hero-search" },
+          h("input", {
+            value: search,
+            onChange: (event) => setSearch(event.target.value),
+            onKeyDown: (event) => event.key === "Enter" && runSearch(),
+            placeholder: "Search N54 coil, W205 pads, DSG kit, OEM code..."
+          }),
+          h("button", { className: "primary-button", type: "button", onClick: runSearch, disabled: isLoading },
+            isLoading ? t("store.searching", "Searching") : t("common.search", "Search")
+          )
+        ),
+        h("div", { className: "store-hero-specs", "aria-label": "Store capabilities" },
+          heroSpecs.map((spec) => h("span", { key: spec }, spec))
+        ),
+        h("div", { className: "store-brand-filters" },
+          germanBrandFilters.map((brand) =>
+            h("button", {
+              key: brand,
+              type: "button",
+              onClick: () => {
+                setSearch(brand);
+                setActiveView("shop");
+              }
+            }, brand)
+          )
+        )
       ),
-      h("div", { className: "toolbar catalog-search" },
-        h("input", {
-          value: search,
-          onChange: (event) => setSearch(event.target.value),
-          onKeyDown: (event) => event.key === "Enter" && load(),
-          placeholder: t("store.searchPlaceholder", "Search BMW sensor, Audi filter, OEM code...")
-        }),
-        h("button", { className: "secondary-button", onClick: load, disabled: isLoading }, isLoading ? t("store.searching", "Searching") : t("common.search", "Search"))
+      h("div", { className: "store-hero-visual", "aria-hidden": "true" },
+        h("div", { className: "store-hero-photo" }),
+        h("div", { className: "store-hero-proof" },
+          h("span", null, "Garage stock"),
+          h("strong", null, availableCount || parts.length || "--"),
+          h("small", null, "Matched by OEM, chassis clue, barcode, or part name")
+        )
       )
     ),
-    h(StatusLine, { status }),
-    cartItemCount > 0 && h("button", { className: "cart-summary-bar", type: "button", onClick: () => setActiveTab("cart") },
-      h("strong", null, t("store.currentOrder", "Current order")),
-      h("span", null, `${t("store.itemCount", "{count} items", { count: cartItemCount })} / ${money(cartTotal, cartRows[0]?.part?.currency || "USD")}`)
-    ),
-    h("div", { className: "catalog-grid" },
-      parts.map((part) => {
-        const inCart = cartRows.find((item) => item.partId === part.id)?.quantity || 0;
-        return h("article", { className: "part-card", key: part.id },
-          h("div", { className: "part-visual", "aria-hidden": "true" }, h("span", null, partVisualLabel(part))),
-          h("div", { className: "part-card-copy" },
-            h("span", { className: "part-code" }, part.internalCode || "German Part"),
-            h("h3", null, part.name),
-            h("p", null, partFitment(part, t))
-          ),
-          h("div", { className: "part-meta" },
-            h("strong", null, money(part.salePrice, part.currency)),
-            h("span", null, partAvailability(part))
-          ),
-          inCart > 0 && h("span", { className: "in-cart-pill" }, t("store.inCartCount", "{count} in cart", { count: inCart })),
-          h("button", { className: "primary-button", onClick: () => addToCart(part) }, inCart > 0 ? t("store.addAnother", "Add another") : t("store.addToCart", "Add to Cart"))
-        );
-      }),
-      parts.length === 0 && h("div", { className: "catalog-empty" },
-        h("strong", null, t("store.noPartsMatch", "No parts matched that search.")),
-        h("span", null, t("store.trySearch", "Try a German brand, OEM number, internal code, or part name.")),
-        h("button", { className: "secondary-button", type: "button", onClick: () => { setSearch(""); load(); } }, t("store.clearSearch", "Clear search"))
+    h("section", { className: "store-petrolhead-strip", "aria-label": "Performance part categories" },
+      petrolheadFilters.map((filter) =>
+        h("button", {
+          key: filter.label,
+          type: "button",
+          onClick: () => {
+            setSearch(filter.query);
+            setActiveView("shop");
+          }
+        },
+          h("strong", null, filter.label),
+          h("span", null, filter.detail)
+        )
       )
+    ),
+    h("section", { className: "store-commerce-grid" },
+      h("div", { className: "store-catalog-section" },
+        h("div", { className: "store-section-heading" },
+          h("div", null,
+            h("span", null, t("store.liveCatalog", "Live catalog")),
+            h("h2", null, "Parts with garage credibility")
+          ),
+          h("button", { className: "secondary-button", type: "button", onClick: () => { setSearch(""); load(); } }, t("store.clearSearch", "Clear search"))
+        ),
+        h(StatusLine, { status }),
+        h("div", { className: "store-product-grid" },
+          featuredParts.map((part) => {
+            const inCart = cartRows.find((item) => item.partId === part.id)?.quantity || 0;
+            return h(PartCard, { key: part.id, part, inCart, addToCart, t });
+          }),
+          featuredParts.length === 0 && h("div", { className: "store-empty-panel" },
+            h("strong", null, t("store.noPartsMatch", "No parts matched that search.")),
+            h("span", null, t("store.trySearch", "Try a German brand, OEM number, internal code, or part name."))
+          )
+        )
+      ),
+      h(CartPanel, {
+        cartRows,
+        cartItemCount,
+        cartTotal,
+        updateQuantity,
+        onCheckout: goCheckout,
+        onShop: goShop,
+        t
+      })
     )
   );
 
-  const renderCart = () => h("section", { className: "store-tab-panel cart-tab-panel" },
-    h("div", { className: "cart-heading" },
-      h("span", { className: "eyebrow" }, t("store.orderSummary", "Order summary")),
-      h("h2", null, t("store.cart", "Cart")),
-      h("strong", null, t("store.itemCount", "{count} items", { count: cartItemCount }))
+  const renderCart = () => h("section", { className: "store-simple-view" },
+    h("div", { className: "store-page-title" },
+      h("span", null, t("store.currentOrder", "Current order")),
+      h("h1", null, t("store.cart", "Cart"))
     ),
-    h(CartRows, { cartRows, updateQuantity, t }),
-    h("div", { className: "cart-total" }, h("span", null, t("store.total", "Total")), h("strong", null, money(cartTotal, cartRows[0]?.part?.currency || "USD"))),
-    h("div", { className: "hero-actions" },
-      h("button", { className: "secondary-button", type: "button", onClick: () => setActiveTab("parts") }, t("store.continueShopping", "Continue shopping")),
-      h("button", { className: "primary-button", type: "button", onClick: () => setActiveTab(cartRows.length ? "checkout" : "parts") }, cartRows.length ? t("store.checkout", "Pay") : t("store.addBeforeCheckout", "Add parts to the cart before checkout."))
-    )
+    h(CartPanel, {
+      cartRows,
+      cartItemCount,
+      cartTotal,
+      updateQuantity,
+      onCheckout: goCheckout,
+      onShop: goShop,
+      t
+    })
   );
 
-  const renderCheckout = () => h("section", { className: "store-tab-panel checkout-layout" },
-    h("aside", { className: "cart-pane inline-cart" },
-      h("div", { className: "cart-heading" },
-        h("span", { className: "eyebrow" }, t("store.orderSummary", "Order summary")),
-        h("h2", null, t("store.cart", "Cart")),
-        h("strong", null, t("store.itemCount", "{count} items", { count: cartItemCount }))
+  const renderCheckout = () => h("section", { className: "store-checkout-view" },
+    h(CartPanel, {
+      cartRows,
+      cartItemCount,
+      cartTotal,
+      updateQuantity,
+      onCheckout: checkout,
+      onShop: goShop,
+      t
+    }),
+    h("div", { className: "store-checkout-form" },
+      h("div", { className: "store-page-title" },
+        h("span", null, t("store.checkout", "Checkout")),
+        h("h1", null, t("store.finishOrder", "Finish order"))
       ),
-      h(CartRows, { cartRows, updateQuantity, t }),
-      h("div", { className: "cart-total" }, h("span", null, t("store.total", "Total")), h("strong", null, money(cartTotal, cartRows[0]?.part?.currency || "USD")))
-    ),
-    h("div", { className: "checkout-form" },
-      h("section", { className: "checkout-section" },
-        h("h3", null, t("store.contact", "Contact")),
-        h("div", { className: "checkout-grid two" },
+      h("section", { className: "store-form-section" },
+        h("h2", null, t("store.contact", "Contact")),
+        h("div", { className: "store-field-grid two" },
           h("label", null, "Name", h("input", { value: customerName, onChange: (event) => setCustomerName(event.target.value), autoComplete: "name" })),
           h("label", null, "Phone", h("input", { value: customerPhone, onChange: (event) => setCustomerPhone(event.target.value), autoComplete: "tel" }))
         ),
         h("label", null, "Email", h("input", { value: customerEmail, onChange: (event) => setCustomerEmail(event.target.value), autoComplete: "email" }))
       ),
-      h("section", { className: "checkout-section" },
-        h("h3", null, t("store.shippingAddress", "Shipping Address")),
+      h("section", { className: "store-form-section" },
+        h("h2", null, t("store.shippingAddress", "Shipping address")),
         h("label", null, "Address line 1", h("input", { value: shippingAddressLine1, onChange: (event) => setShippingAddressLine1(event.target.value), autoComplete: "shipping address-line1" })),
         h("label", null, "Address line 2", h("input", { value: shippingAddressLine2, onChange: (event) => setShippingAddressLine2(event.target.value), autoComplete: "shipping address-line2" })),
-        h("div", { className: "checkout-grid two" },
+        h("div", { className: "store-field-grid two" },
           h("label", null, "City", h("input", { value: shippingCity, onChange: (event) => setShippingCity(event.target.value), autoComplete: "shipping address-level2" })),
           h("label", null, "Region", h("input", { value: shippingRegion, onChange: (event) => setShippingRegion(event.target.value), autoComplete: "shipping address-level1" }))
         ),
-        h("div", { className: "checkout-grid two" },
+        h("div", { className: "store-field-grid two" },
           h("label", null, "Postal code", h("input", { value: shippingPostalCode, onChange: (event) => setShippingPostalCode(event.target.value), autoComplete: "shipping postal-code" })),
           h("label", null, "Country", h("input", { value: shippingCountry, onChange: (event) => setShippingCountry(event.target.value), autoComplete: "shipping country-name" }))
         ),
         h("label", null, "Delivery instructions", h("textarea", { value: deliveryInstructions, onChange: (event) => setDeliveryInstructions(event.target.value) }))
       ),
-      h("section", { className: "checkout-section" },
-        h("h3", null, t("store.paymentGateway", "Payment Gateway")),
-        h("div", { className: "payment-options" },
+      h("section", { className: "store-form-section" },
+        h("h2", null, t("store.paymentGateway", "Payment gateway")),
+        h("div", { className: "store-payment-options" },
           paymentGatewayOptions.map((option) =>
             h("button", {
               key: option.value,
-              className: option.value === paymentMethod ? "payment-option active" : "payment-option",
+              className: option.value === paymentMethod ? "store-payment-option active" : "store-payment-option",
               type: "button",
               onClick: () => setPaymentMethod(option.value)
             },
@@ -330,95 +415,71 @@ export function CustomerStorefrontView({
         h("label", null, paymentMethod === "Whish Gateway" ? "Whish reference" : "Areeba reference",
           h("input", { value: paymentReference, onChange: (event) => setPaymentReference(event.target.value) })
         ),
-        h("p", { className: "payment-note" }, t("store.paymentNote", "Payment is confirmed through the selected gateway before fulfillment."))
+        h("p", { className: "store-payment-note" }, t("store.paymentNote", "Payment is confirmed through the selected gateway before fulfillment."))
       ),
-      h("button", { className: "primary-button checkout-button", onClick: checkout, disabled: isLoading || cart.length === 0 },
+      h(StatusLine, { status }),
+      h("button", { className: "primary-button store-place-order", onClick: checkout, disabled: isLoading || cart.length === 0 },
         t("store.payWith", "Pay with {method}", { method: paymentMethod.replace(" Gateway", "") })
       )
     )
   );
 
-  const renderGarage = () => h("section", { className: "store-tab-panel" },
-    h("section", { className: "storefront-hero" },
-      h("div", { className: "hero-copy" },
-        h("span", { className: "eyebrow" }, "BMW · Mercedes-Benz · Audi · Porsche · Volkswagen"),
-        h("h1", null, t("store.heroTitle", "German Performance Parts")),
-        h("p", null, t("store.heroBody", "Find verified replacement parts, fast-moving service items, and OEM-grade fitment for German vehicles.")),
-        h("div", { className: "hero-actions" },
-          h("button", { className: "primary-button", type: "button", onClick: () => setActiveTab("parts") }, t("store.browseParts", "Browse Parts")),
-          h("button", { className: "secondary-button", type: "button", onClick: () => setActiveTab("cart") }, t("store.myCart", "My Cart"))
-        )
-      ),
-      h("div", { className: "hero-stats" },
-        h("div", null, h("strong", null, availableCount || parts.length), h("span", null, "parts ready")),
-        h("div", null, h("strong", null, "OEM"), h("span", null, "fitment checks")),
-        h("div", null, h("strong", null, "24h"), h("span", null, "order response"))
-      )
+  const renderAccount = () => h("section", { className: "store-account-view" },
+    h("div", { className: "store-page-title" },
+      h("span", null, t("store.account", "Account")),
+      h("h1", null, user.fullName || t("store.driver", "Driver"))
     ),
-    h("section", { className: "quick-actions" },
-      h(QuickAction, { title: t("store.findFast", "Find fast"), body: t("store.findFastSubtitle", "Search by OEM, barcode, internal code, or brand."), onClick: () => setActiveTab("parts") }),
-      h(QuickAction, { title: t("store.reviewCart", "Review cart"), body: t("store.reviewCartSubtitle", "Tune quantities before checkout."), onClick: () => setActiveTab("cart") }),
-      h(QuickAction, { title: t("store.finishOrder", "Finish order"), body: t("store.finishOrderSubtitle", "Confirm delivery and payment gateway."), onClick: () => setActiveTab("checkout") })
-    ),
-    h("section", { className: "fitment-strip" },
-      h("div", null,
-        h("span", null, "Find by code, OEM, barcode, or part name"),
-        h("strong", null, "Built for precise German fitment")
+    h("div", { className: "store-account-grid" },
+      h("article", { className: "store-account-panel" },
+        h("div", { className: "store-account-card" },
+          h("span", { className: "avatar" }, initials(user.fullName)),
+          h("div", null,
+            h("span", null, `Role ID ${user.roleId ?? user.RoleId ?? 4}`),
+            h("strong", null, user.fullName),
+            h("small", null, user.email || user.username || "")
+          )
+        ),
+        h("button", { className: "primary-button danger-button", type: "button", onClick: onLogout }, t("common.signOut", "Sign out"))
       ),
-      h("div", { className: "brand-filter-row" },
-        germanBrandFilters.map((brand) => h("button", { key: brand, className: "brand-filter", onClick: () => { setSearch(brand); setActiveTab("parts"); } }, brand))
-      )
+      h("article", { className: "store-account-panel" }, h(ThemePicker, { value: themeKey, onChange: onTheme, t })),
+      h("article", { className: "store-account-panel" }, h(LanguagePicker, { value: languageKey, onChange: onLanguage, t }))
     )
-  );
-
-  const renderAccount = () => h("section", { className: "store-tab-panel account-tab-panel" },
-    h("article", { className: "settings-panel account-settings-panel" },
-      h("div", { className: "account-card" },
-        h("span", { className: "avatar" }, initials(user.fullName)),
-        h("div", null,
-          h("span", null, webAppRoleName),
-          h("strong", null, user.fullName),
-          h("small", null, user.role || "")
-        )
-      ),
-      h("button", { className: "primary-button danger-button", type: "button", onClick: onLogout }, t("common.signOut", "Sign out"))
-    ),
-    h("article", { className: "settings-panel" }, h(ThemePicker, { value: themeKey, onChange: onTheme, t })),
-    h("article", { className: "settings-panel" }, h(LanguagePicker, { value: languageKey, onChange: onLanguage, t }))
   );
 
   const activePanel = {
     account: renderAccount,
     cart: renderCart,
     checkout: renderCheckout,
-    garage: renderGarage,
-    parts: renderParts
-  }[activeTab] || renderGarage;
+    shop: renderShop
+  }[activeView] || renderShop;
 
-  return h("main", { className: "storefront-shell german-parts-site" },
-    h("header", { className: "storefront-header store-header-clean" },
-      h("div", { className: "storefront-brand" },
+  return h("main", { className: "storefront-shell german-parts-site store-redesign" },
+    h("header", { className: "storefront-header store-header-redesign" },
+      h("button", { className: "storefront-brand store-brand-button", type: "button", onClick: goShop },
         h(BrandMark, { size: "small", variant: "german", label: t("store.brandTitle", "Maalouf German Parts") }),
         h("div", null,
           h("strong", null, t("store.brandTitle", "Maalouf German Parts")),
-          h("span", null, t("store.brandSubtitle", "OEM-grade German car parts"))
+          h("span", null, t("store.brandSubtitle", "German car parts store"))
         )
+      ),
+      h("nav", { className: "store-header-nav", "aria-label": "Store navigation" },
+        storeNavItems.map((item) =>
+          h("button", {
+            key: item.key,
+            className: activeView === item.key ? "active" : "",
+            type: "button",
+            onClick: () => setActiveView(item.key)
+          }, item.label)
+        )
+      ),
+      h("button", { className: "store-header-cart", type: "button", onClick: () => setActiveView(cartItemCount ? "cart" : "shop") },
+        h("span", null, t("store.cart", "Cart")),
+        h("strong", null, cartItemCount)
+      ),
+      h("button", { className: "store-header-user", type: "button", onClick: () => setActiveView("account"), "aria-label": "Account" },
+        initials(user.fullName)
       )
     ),
-    h("section", { className: "storefront-content" }, activePanel()),
-    h("nav", { className: "store-bottom-tabs", "aria-label": "Store tabs" },
-      storeTabs.map((tab) =>
-        h("button", {
-          key: tab.key,
-          className: tab.key === activeTab ? "store-tab active" : "store-tab",
-          type: "button",
-          onClick: () => setActiveTab(tab.key)
-        },
-          h(StoreIcon, { name: tab.key }),
-          h("span", null, t(tab.labelKey, tab.fallback)),
-          tab.key === "cart" && cartItemCount > 0 && h("b", null, cartItemCount)
-        )
-      )
-    )
+    h("section", { className: "storefront-content store-content-redesign" }, activePanel())
   );
 }

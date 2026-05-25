@@ -28,7 +28,7 @@ internal sealed class ThrowOnMovementInsertInventoryRepository : IInventoryRepos
     public bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId)
     {
         var stock = _stocks.First(x => x.Id == stockId);
-        if (stock.Quantity + delta < 0)
+        if (stock.Quantity + delta < stock.ReservedQuantity)
         {
             return false;
         }

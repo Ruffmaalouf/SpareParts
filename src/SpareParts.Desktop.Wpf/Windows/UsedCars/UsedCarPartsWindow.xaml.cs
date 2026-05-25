@@ -46,6 +46,8 @@ namespace SpareParts.Desktop.Wpf
 
         public ObservableCollection<PartDto> AssignedParts { get; } = new();
 
+        public ObservableCollection<UsedCarPartRecommendation> RecommendedParts { get; } = new();
+
         public string WindowTitle => $"Used Car Parts - {_request.UsedCarName}";
 
         public string WindowSubtitle => $"Used car #{_request.UsedCarId} - manage linked parts from the main parts table";
@@ -104,6 +106,8 @@ namespace SpareParts.Desktop.Wpf
 
         public bool HasAssignedParts => AssignedParts.Count > 0;
 
+        public bool HasRecommendedParts => RecommendedParts.Count > 0;
+
         public bool CanAssignPart => !_isBusy && SelectedAvailablePart is { Id: > 0 };
 
         public bool CanRemovePart => !_isBusy && SelectedAssignedPart is { Id: > 0 };
@@ -113,6 +117,10 @@ namespace SpareParts.Desktop.Wpf
         public string AvailableSummary => $"{AvailableParts.Count} unassigned part(s) available to link.";
 
         public string AssignedSummary => $"{AssignedParts.Count} part(s) currently linked to this used car.";
+
+        public string RecommendationSummary => HasRecommendedParts
+            ? $"{RecommendedParts.Count} high-value next part(s) from the current list."
+            : "No stocked parts match the current list.";
 
         public string SearchSummary => string.IsNullOrWhiteSpace(SearchText)
             ? "Search by code, name, or OEM number."
@@ -264,6 +272,24 @@ namespace SpareParts.Desktop.Wpf
             Close();
         }
 
+        private void SelectRecommendation_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as FrameworkElement)?.DataContext is not UsedCarPartRecommendation recommendation)
+            {
+                return;
+            }
+
+            if (recommendation.IsAssigned)
+            {
+                SelectedAssignedPart = AssignedParts.FirstOrDefault(part => part.Id == recommendation.PartId);
+                SelectedAvailablePart = null;
+                return;
+            }
+
+            SelectedAvailablePart = AvailableParts.FirstOrDefault(part => part.Id == recommendation.PartId);
+            SelectedAssignedPart = null;
+        }
+
         private async Task LoadPartsAsync()
         {
             try
@@ -318,6 +344,24 @@ namespace SpareParts.Desktop.Wpf
             OnPropertyChanged(nameof(AvailableSummary));
             OnPropertyChanged(nameof(AssignedSummary));
             OnPropertyChanged(nameof(SearchSummary));
+            RefreshRecommendations();
+        }
+
+        private void RefreshRecommendations()
+        {
+            var recommendations = AssignedParts
+                .Select(part => UsedCarPartRecommendation.FromPart(part, isAssigned: true))
+                .Concat(AvailableParts.Select(part => UsedCarPartRecommendation.FromPart(part, isAssigned: false)))
+                .Where(recommendation => recommendation.QuantityAvailable > 0 && recommendation.SalePrice > 0m)
+                .OrderByDescending(recommendation => recommendation.Score)
+                .ThenByDescending(recommendation => recommendation.MarginValue)
+                .ThenBy(recommendation => recommendation.Name, StringComparer.OrdinalIgnoreCase)
+                .Take(3);
+
+            ReplaceCollection(RecommendedParts, recommendations);
+
+            OnPropertyChanged(nameof(HasRecommendedParts));
+            OnPropertyChanged(nameof(RecommendationSummary));
         }
 
         private bool MatchesSearch(PartDto part)
@@ -338,7 +382,7 @@ namespace SpareParts.Desktop.Wpf
             => !string.IsNullOrWhiteSpace(source)
                 && source.Contains(term, StringComparison.OrdinalIgnoreCase);
 
-        private static void ReplaceCollection(ObservableCollection<PartDto> target, IEnumerable<PartDto> items)
+        private static void ReplaceCollection<T>(ObservableCollection<T> target, IEnumerable<T> items)
         {
             target.Clear();
             foreach (var item in items)
@@ -362,5 +406,65 @@ namespace SpareParts.Desktop.Wpf
 
         private void OnPropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public sealed class UsedCarPartRecommendation
+    {
+        private UsedCarPartRecommendation()
+        {
+        }
+
+        public int PartId { get; private init; }
+
+        public string Code { get; private init; } = string.Empty;
+
+        public string Name { get; private init; } = string.Empty;
+
+        public string Currency { get; private init; } = "USD";
+
+        public decimal SalePrice { get; private init; }
+
+        public int QuantityAvailable { get; private init; }
+
+        public decimal OpportunityValue { get; private init; }
+
+        public decimal MarginValue { get; private init; }
+
+        public bool IsAssigned { get; private init; }
+
+        public decimal Score => OpportunityValue + (MarginValue > 0m ? MarginValue : 0m);
+
+        public string SourceLabel => IsAssigned ? "Linked stock" : "Candidate";
+
+        public string ActionLabel => IsAssigned ? "Plan removal" : "Assign candidate";
+
+        public string QuantityLabel => $"{QuantityAvailable:N0} available";
+
+        public string OpportunityLabel => $"{Currency} {OpportunityValue:N2} opportunity";
+
+        public string MarginLabel => $"{Currency} {MarginValue:N2} margin";
+
+        public static UsedCarPartRecommendation FromPart(PartDto part, bool isAssigned)
+        {
+            var quantity = part.AvailableQuantity > 0
+                ? part.AvailableQuantity
+                : Math.Max(0, part.StockQuantity - part.ReservedQuantity);
+
+            return new UsedCarPartRecommendation
+            {
+                PartId = part.Id,
+                Code = part.InternalCode,
+                Name = part.Name,
+                Currency = part.Currency,
+                SalePrice = part.SalePrice,
+                QuantityAvailable = quantity,
+                OpportunityValue = RoundMoney(part.SalePrice * quantity),
+                MarginValue = RoundMoney((part.SalePrice - part.CostPrice) * quantity),
+                IsAssigned = isAssigned
+            };
+        }
+
+        private static decimal RoundMoney(decimal amount)
+            => decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
     }
 }

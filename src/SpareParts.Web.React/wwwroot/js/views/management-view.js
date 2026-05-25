@@ -4,6 +4,7 @@ import { asRows, pickFirst, rowAmount } from "../core/formatters.js";
 import { crudConfigs } from "../admin/crud-config.js";
 import { emptyForm, formFromRow, matchesRow, rowId, rowSubtitle, rowTitle } from "../admin/resource-utils.js";
 import { CrudResourceService, ResourceService } from "../services/resource-service.js";
+import { PricingCoachCard, smartPricingCoach } from "../services/pricing-coach.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
 const workspaceKeys = [
@@ -11,6 +12,7 @@ const workspaceKeys = [
   "compatibility",
   "purchase-parts",
   "used-car-purchases",
+  "stock-arrival",
   "used-cars",
   "repair-prep",
   "stock",
@@ -97,6 +99,7 @@ function ResourceListPanel({ section, sectionLabel, crudConfig, rows, search, se
 
 function ResourceEditorPanel({
   sectionLabel,
+  sectionKey,
   crudConfig,
   form,
   isSaving,
@@ -107,6 +110,10 @@ function ResourceEditorPanel({
   onSave,
   t
 }) {
+  const pricingCoach = sectionKey === "parts"
+    ? smartPricingCoach(Object.assign({}, selectedRow || {}, form), 0)
+    : null;
+
   if (!crudConfig) {
     return h("section", { className: "admin-panel resource-editor-panel" },
       h("h3", null, sectionLabel),
@@ -150,7 +157,8 @@ function ResourceEditorPanel({
             ]
         )
       )
-    )
+    ),
+    pricingCoach && h(PricingCoachCard, { h, coach: pricingCoach, compact: true })
   );
 }
 
@@ -309,6 +317,7 @@ export function ManagementWorkspaceView({ api, activeView, onView, t }) {
         }),
         h(ResourceEditorPanel, {
           sectionLabel,
+          sectionKey: section.key,
           crudConfig,
           form,
           isSaving,

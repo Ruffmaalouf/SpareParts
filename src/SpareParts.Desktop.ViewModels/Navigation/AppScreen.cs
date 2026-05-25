@@ -11,6 +11,7 @@ namespace SpareParts.Desktop.Wpf
         PartPurchases,
         Purchases,
         PurchaseHistory,
+        StockArrivalTheater,
         RepairPrepBoard,
         StockManagement,
         DeadStockResurrection,

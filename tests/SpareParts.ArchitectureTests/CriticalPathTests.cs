@@ -42,6 +42,45 @@ public class CriticalPathTests
     }
 
     [Fact]
+    public void StockMovement_GetAvailableStock_ShouldExcludeReservedQuantity()
+    {
+        var repo = new FakeInventoryRepository();
+        var service = new InventoryService();
+
+        repo.StockRows.Add(new Stock
+        {
+            Id = 1,
+            PartId = 10,
+            WarehouseId = 3,
+            Quantity = 5,
+            ReservedQuantity = 2
+        });
+
+        var available = service.GetAvailableStock(repo, partId: 10, warehouseId: 3);
+
+        Assert.Equal(3, available);
+    }
+
+    [Fact]
+    public void ReservationClock_DefaultExpiry_ShouldUseTomorrowAtSixPmLocalTime()
+    {
+        var now = new DateTimeOffset(2026, 5, 20, 10, 30, 0, TimeSpan.FromHours(3));
+
+        var expiresAt = PartReservationClock.DefaultExpiresAtUtc(now);
+
+        Assert.Equal(new DateTime(2026, 5, 21, 15, 0, 0, DateTimeKind.Utc), expiresAt);
+    }
+
+    [Theory]
+    [InlineData("autorelease", PartReservationExpirationAction.AutoRelease)]
+    [InlineData("StaffReminder", PartReservationExpirationAction.StaffReminder)]
+    [InlineData(null, PartReservationExpirationAction.AutoRelease)]
+    public void ReservationClock_NormalizeAction_ShouldReturnKnownDeadlineAction(string? value, string expected)
+    {
+        Assert.Equal(expected, PartReservationExpirationAction.Normalize(value));
+    }
+
+    [Fact]
     public void StockMovement_AdjustStock_ShouldRejectNegativeQuantity()
     {
         var repo = new FakeInventoryRepository();
@@ -194,6 +233,21 @@ public class CriticalPathTests
         var normalized = ScanLookupService.NormalizeScannedText(scannedText);
 
         Assert.Equal(expected, normalized);
+    }
+
+    [Fact]
+    public void VisualSearch_ExtractSearchTokens_ShouldFavorPartHintsAndVisibleCodes()
+    {
+        var tokens = VisualPartSearchService.ExtractSearchTokens(
+            "BMW brake disc sensor",
+            "IMG_ATE-3434-front-rotor.jpg",
+            "front brake rotor");
+
+        Assert.Contains("bmw", tokens);
+        Assert.Contains("brake", tokens);
+        Assert.Contains("disc", tokens);
+        Assert.Contains("ate", tokens);
+        Assert.DoesNotContain("part", tokens);
     }
 
     private static SaleAccountingStrategy CreateSaleAccountingStrategy()

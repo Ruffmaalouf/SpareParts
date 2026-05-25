@@ -1,10 +1,12 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { money } from "../core/formatters.js";
+import { asRows, money } from "../core/formatters.js";
 import { CommunicationPayloadFactory } from "../services/communication-payload-factory.js";
+import { PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
 export function InventoryView({ api }) {
   const [parts, setParts] = useState([]);
+  const [partRequests, setPartRequests] = useState([]);
   const [filter, setFilter] = useState("");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
@@ -15,9 +17,15 @@ export function InventoryView({ api }) {
     setIsLoading(true);
     setStatus("Loading inventory...");
     try {
-      setParts(await api.get("/api/parts?page=1&pageSize=120"));
+      const [nextParts, nextRequests] = await Promise.all([
+        api.get("/api/parts?page=1&pageSize=120"),
+        api.get("/api/partrequests?status=Active").catch(() => [])
+      ]);
+      setParts(asRows(nextParts));
+      setPartRequests(asRows(nextRequests));
       setStatus("Inventory loaded.");
     } catch (error) {
+      setPartRequests([]);
       setStatus(error.message || "Could not load inventory.");
     } finally {
       setIsLoading(false);
@@ -35,6 +43,11 @@ export function InventoryView({ api }) {
       )
     );
   }, [parts, filter]);
+
+  const waitingByPart = useMemo(
+    () => waitingCustomersByPart(partRequests),
+    [partRequests]
+  );
 
   const sendAvailability = useCallback(async (part) => {
     if (!phone.trim()) {
@@ -74,6 +87,14 @@ export function InventoryView({ api }) {
           { key: "oem", label: "OEM", render: (part) => part.oemNumber || "" },
           { key: "cost", label: "Cost", render: (part) => money(part.costPrice, part.currency) },
           { key: "sale", label: "Sale", render: (part) => money(part.salePrice, part.currency) },
+          {
+            key: "coach",
+            label: "Coach",
+            render: (part) => h(PricingCoachSignal, {
+              h,
+              coach: smartPricingCoach(part, waitingByPart.get(String(part.id)) || 0)
+            })
+          },
           { key: "status", label: "Status", render: (part) => part.isActive ? "Active" : "Inactive" },
           { key: "action", label: "Action", render: (part) => h("button", { onClick: () => sendAvailability(part) }, "Send Availability") }
         ],

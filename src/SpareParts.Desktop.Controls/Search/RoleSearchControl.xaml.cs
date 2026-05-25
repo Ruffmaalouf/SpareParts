@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,14 +11,10 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class RoleSearchControl : UserControl
     {
-        private readonly List<RoleItem> _allRoles = new()
-        {
-            new RoleItem { Name = "Admin",   Description = "Full system access",                    BadgeColor = "#22FF5722", BadgeTextColor = "#FF7043" },
-            new RoleItem { Name = "Manager", Description = "Operations access, no user management", BadgeColor = "#2200E5FF", BadgeTextColor = "#00E5FF" },
-            new RoleItem { Name = "Cashier", Description = "POS sales only",                        BadgeColor = "#2244FF44", BadgeTextColor = "#44FF44" },
-        };
+        private readonly List<RoleItem> _allRoles = new();
 
         private bool _suppressClose;
+        private INotifyCollectionChanged? _availableRolesCollection;
 
         // ── Dependency Properties ─────────────────────────────────────────────
 
@@ -32,6 +29,30 @@ namespace SpareParts.Desktop.Wpf
         {
             get => (string?)GetValue(SelectedRoleProperty);
             set => SetValue(SelectedRoleProperty, value);
+        }
+
+        public static readonly DependencyProperty SelectedRoleIdProperty =
+            DependencyProperty.Register(nameof(SelectedRoleId), typeof(int?),
+                typeof(RoleSearchControl),
+                new FrameworkPropertyMetadata(null,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                    OnSelectedRoleIdChanged));
+
+        public int? SelectedRoleId
+        {
+            get => (int?)GetValue(SelectedRoleIdProperty);
+            set => SetValue(SelectedRoleIdProperty, value);
+        }
+
+        public static readonly DependencyProperty AvailableRolesProperty =
+            DependencyProperty.Register(nameof(AvailableRoles), typeof(IEnumerable<RoleItem>),
+                typeof(RoleSearchControl),
+                new PropertyMetadata(null, OnAvailableRolesChanged));
+
+        public IEnumerable<RoleItem>? AvailableRoles
+        {
+            get => (IEnumerable<RoleItem>?)GetValue(AvailableRolesProperty);
+            set => SetValue(AvailableRolesProperty, value);
         }
 
         public static readonly DependencyProperty RoleSearchTextProperty =
@@ -104,28 +125,60 @@ namespace SpareParts.Desktop.Wpf
         {
             if (d is not RoleSearchControl ctrl) return;
 
-            if (e.NewValue is string role && !string.IsNullOrEmpty(role))
+            if (ctrl.SelectedRoleId is > 0)
             {
-                // Make sure the role exists in the list (add if custom)
-                var found = ctrl._allRoles.FirstOrDefault(r =>
-                    string.Equals(r.Name, role, StringComparison.OrdinalIgnoreCase));
-
-                if (found == null)
+                var found = ctrl._allRoles.FirstOrDefault(role => role.Id == ctrl.SelectedRoleId);
+                if (found != null)
                 {
-                    found = new RoleItem { Name = role, Description = "Custom role",
-                                          BadgeColor = "#22AAAAAA", BadgeTextColor = "#CCCCCC" };
-                    ctrl._allRoles.Add(found);
-                    ctrl.ResultsList.ItemsSource = null;
-                    ctrl.ResultsList.ItemsSource = ctrl._allRoles;
+                    ctrl.ApplySelectionVisuals(found);
+                    return;
+                }
+            }
+
+            ctrl.ResetVisuals();
+        }
+
+        private static void OnSelectedRoleIdChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not RoleSearchControl ctrl) return;
+
+            if (e.NewValue is int roleId && roleId > 0)
+            {
+                var found = ctrl._allRoles.FirstOrDefault(role => role.Id == roleId);
+                if (found != null)
+                {
+                    ctrl.SetCurrentValue(SelectedRoleProperty, found.Name);
+                    ctrl.ApplySelectionVisuals(found);
+                    return;
                 }
 
-                ctrl.ApplySelectionVisuals(found);
-            }
-            else
-            {
                 ctrl.ResetVisuals();
+                return;
             }
+
+            ctrl.SetCurrentValue(SelectedRoleProperty, null);
+            ctrl.ResetVisuals();
         }
+
+        private static void OnAvailableRolesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is not RoleSearchControl ctrl) return;
+            if (ctrl._availableRolesCollection != null)
+            {
+                ctrl._availableRolesCollection.CollectionChanged -= ctrl.AvailableRoles_CollectionChanged;
+            }
+
+            ctrl._availableRolesCollection = e.NewValue as INotifyCollectionChanged;
+            if (ctrl._availableRolesCollection != null)
+            {
+                ctrl._availableRolesCollection.CollectionChanged += ctrl.AvailableRoles_CollectionChanged;
+            }
+
+            ctrl.ApplyAvailableRoles(e.NewValue as IEnumerable<RoleItem>);
+        }
+
+        private void AvailableRoles_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+            => ApplyAvailableRoles(AvailableRoles);
 
         // ── Event Handlers ────────────────────────────────────────────────────
 
@@ -182,6 +235,7 @@ namespace SpareParts.Desktop.Wpf
         private void ClearRole_Click(object sender, RoutedEventArgs e)
         {
             // Use SetCurrentValue to avoid re-entering OnSelectedRoleChanged
+            SetCurrentValue(SelectedRoleIdProperty, null);
             SetCurrentValue(SelectedRoleProperty, null);
             ResetVisuals();
         }
@@ -217,6 +271,43 @@ namespace SpareParts.Desktop.Wpf
             if (filtered.Count > 0) ResultsPopup.IsOpen = true;
         }
 
+        private void ApplyAvailableRoles(IEnumerable<RoleItem>? roles)
+        {
+            if (roles == null)
+            {
+                return;
+            }
+
+            _allRoles.Clear();
+            foreach (var role in roles)
+            {
+                if (role.Id <= 0 || string.IsNullOrWhiteSpace(role.Name))
+                {
+                    continue;
+                }
+
+                _allRoles.Add(new RoleItem
+                {
+                    Id = role.Id,
+                    Name = role.Name,
+                    Description = role.Description,
+                    BadgeColor = role.BadgeColor,
+                    BadgeTextColor = role.BadgeTextColor
+                });
+            }
+
+            ResultsList.ItemsSource = null;
+            ResultsList.ItemsSource = _allRoles;
+            if (SelectedRoleId is > 0)
+            {
+                OnSelectedRoleIdChanged(this, new DependencyPropertyChangedEventArgs(SelectedRoleIdProperty, null, SelectedRoleId));
+            }
+            else if (!string.IsNullOrWhiteSpace(SelectedRole))
+            {
+                OnSelectedRoleChanged(this, new DependencyPropertyChangedEventArgs(SelectedRoleProperty, null, SelectedRole));
+            }
+        }
+
         private List<RoleItem> GetFiltered()
         {
             var q = (RoleSearchText ?? "").Trim();
@@ -227,7 +318,13 @@ namespace SpareParts.Desktop.Wpf
 
         private void SelectRole(RoleItem role)
         {
+            if (role.Id <= 0)
+            {
+                return;
+            }
+
             // Set via SetCurrentValue so the DP callback does NOT re-fire ApplySelectionVisuals
+            SetCurrentValue(SelectedRoleIdProperty, (int?)role.Id);
             SetCurrentValue(SelectedRoleProperty, role.Name);
             ApplySelectionVisuals(role);
             ClosePopup();

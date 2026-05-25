@@ -10,6 +10,7 @@ namespace SpareParts.Desktop.Wpf
 {
     public class RoleItem
     {
+        public int Id                  { get; set; }
         public string Name           { get; set; } = string.Empty;
         public string Description    { get; set; } = string.Empty;
         public string BadgeColor     { get; set; } = "#22FFFFFF";

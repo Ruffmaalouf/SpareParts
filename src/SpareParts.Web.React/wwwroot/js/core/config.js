@@ -11,7 +11,6 @@ export const googleClientId = window.SparePartsWebConfig?.googleClientId || "";
 export const facebookAppId = window.SparePartsWebConfig?.facebookAppId || "";
 export const defaultThemeKey = "default";
 export const defaultLanguageKey = "en";
-export const webAppRoleName = "Web App User";
 
 export const languageOptions = [
   { key: "en", name: "English" },
@@ -214,6 +213,14 @@ export const featureModules = [
     capabilities: ["Used car purchase history", "Post purchased vehicles", "Delete draft purchases"]
   },
   {
+    key: "stock-arrival",
+    label: "Stock Arrival",
+    title: "Stock Arrival Theater",
+    source: "Purchase and used-car arrival workflow",
+    endpoint: "/api/parts + /api/partrequests + /api/communications/campaign-assets",
+    capabilities: ["New opportunity board", "Photo and pricing queues", "Waiting customer and campaign signals"]
+  },
+  {
     key: "used-cars",
     label: "Used Cars",
     title: "Used Cars and Galleries",
@@ -287,11 +294,11 @@ export const featureModules = [
   },
   {
     key: "ar",
-    label: "Barcode / QR",
-    title: "Barcode / QR Mode",
+    label: "AR Search",
+    title: "AR Picture Search",
     source: "MainWindow AR Experience",
-    endpoint: "/api/scans/resolve",
-    capabilities: ["Generate printable part labels", "Sell and move scanned parts", "Connect physical labels to stock and used cars"]
+    endpoint: "/api/scans/resolve + /api/scans/visual-search",
+    capabilities: ["Search parts by camera photo", "Overlay ranked matches on the captured image", "Generate printable labels and sell scanned parts"]
   }
 ];
 

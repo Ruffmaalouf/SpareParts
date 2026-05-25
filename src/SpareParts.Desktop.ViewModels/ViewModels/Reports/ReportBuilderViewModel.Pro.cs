@@ -351,14 +351,15 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             if (ReportRoleAccess.Count == 0)
             {
                 ReportRoleAccess.Clear();
-                foreach (var roleName in securityOptions.RoleNames)
+                foreach (var role in securityOptions.Roles)
                 {
                     ReportRoleAccess.Add(new ReportBuilderRoleAccessRow
                     {
-                        RoleName = roleName,
-                        CanView = string.Equals(roleName, securityOptions.CurrentRoleName, StringComparison.OrdinalIgnoreCase),
-                        CanEdit = string.Equals(roleName, securityOptions.CurrentRoleName, StringComparison.OrdinalIgnoreCase),
-                        CanExport = string.Equals(roleName, securityOptions.CurrentRoleName, StringComparison.OrdinalIgnoreCase)
+                        RoleId = role.RoleId,
+                        RoleName = role.RoleName,
+                        CanView = role.RoleId == securityOptions.CurrentRoleId,
+                        CanEdit = role.RoleId == securityOptions.CurrentRoleId,
+                        CanExport = role.RoleId == securityOptions.CurrentRoleId
                     });
                 }
             }
@@ -430,6 +431,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     .Where(row => row.CanView || row.CanEdit || row.CanExport)
                     .Select(row => new ReportSavedReportRoleAccessDto
                     {
+                        RoleId = row.RoleId,
                         RoleName = row.RoleName,
                         CanView = row.CanView,
                         CanEdit = row.CanEdit,
@@ -771,11 +773,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             SelectedExportFormat = detail?.DefaultExportFormat ?? "xls";
             SelectedChartType = NormalizeChartType(detail?.PreferredChartType);
 
-            var savedAccess = detail?.AccessRules?.ToDictionary(rule => rule.RoleName, StringComparer.OrdinalIgnoreCase)
-                ?? new Dictionary<string, ReportSavedReportRoleAccessDto>(StringComparer.OrdinalIgnoreCase);
+            var savedAccess = detail?.AccessRules?.ToDictionary(rule => rule.RoleId)
+                ?? new Dictionary<int, ReportSavedReportRoleAccessDto>();
             foreach (var row in ReportRoleAccess)
             {
-                if (savedAccess.TryGetValue(row.RoleName, out var accessRule))
+                if (savedAccess.TryGetValue(row.RoleId, out var accessRule))
                 {
                     row.CanView = accessRule.CanView;
                     row.CanEdit = accessRule.CanEdit;

@@ -54,7 +54,7 @@ namespace SpareParts.Infrastructure.Data
                                      ModifiedAt = @ModifiedAt,
                                      ModifiedByUserId = @ModifiedByUserId
                                  WHERE Id = @Id
-                                   AND Quantity + @Delta >= 0";
+                                   AND Quantity + @Delta >= ISNULL(ReservedQuantity, 0)";
 
             var affectedRows = _session.Connection.Execute(sql, new
             {

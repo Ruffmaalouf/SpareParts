@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace SpareParts.Desktop.Wpf.Management
 {
@@ -43,6 +45,25 @@ namespace SpareParts.Desktop.Wpf.Management
         private decimal _remainingStockQuantity;
         private decimal _remainingStockValueBase;
         private decimal _netProfitLossBase;
+
+        private static readonly HashSet<string> ProfitProjectSourceProperties = new(StringComparer.Ordinal)
+        {
+            nameof(PurchaseCostBase),
+            nameof(TransportationCostBase),
+            nameof(CustomsCostBase),
+            nameof(ShippingCostBase),
+            nameof(PartOutCostBase),
+            nameof(RepairsCostBase),
+            nameof(FullCostBase),
+            nameof(PartsRemovedCount),
+            nameof(PartsRemovedValueBase),
+            nameof(PartsSoldQuantity),
+            nameof(PartsSoldAmountBase),
+            nameof(SalePriceBase),
+            nameof(RemainingStockQuantity),
+            nameof(RemainingStockValueBase),
+            nameof(NetProfitLossBase)
+        };
 
         public int Id
         {
@@ -272,9 +293,29 @@ namespace SpareParts.Desktop.Wpf.Management
             set => SetField(ref _netProfitLossBase, value);
         }
 
+        public decimal TeardownCostBase => RoundMoney(TransportationCostBase + CustomsCostBase + ShippingCostBase + PartOutCostBase + RepairsCostBase);
+
+        public decimal ProfitMapSoldValueBase => RoundMoney(PartsSoldAmountBase != 0m ? PartsSoldAmountBase : SalePriceBase);
+
+        public decimal ProfitMapRecoveredValueBase => RoundMoney(ProfitMapSoldValueBase + RemainingStockValueBase);
+
+        public decimal ProfitMapBreakEvenGapBase => RoundMoney(FullCostBase > ProfitMapRecoveredValueBase ? FullCostBase - ProfitMapRecoveredValueBase : 0m);
+
+        public decimal ProfitMapRecoveredPercent => FullCostBase <= 0m
+            ? 0m
+            : decimal.Round(ProfitMapRecoveredValueBase / FullCostBase * 100m, 0, MidpointRounding.AwayFromZero);
+
+        public double ProfitMapRecoveredPercentCapped => (double)(ProfitMapRecoveredPercent > 100m ? 100m : ProfitMapRecoveredPercent);
+
+        public string ProfitMapRecoveredPercentText => $"{ProfitMapRecoveredPercent:N0}% recovered";
+
+        public string ProfitMapBreakEvenStatus => ProfitMapBreakEvenGapBase > 0m
+            ? $"{ProfitMapBreakEvenGapBase:N2} to break even"
+            : "Break-even reached";
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private bool SetField<T>(ref T field, T value, string? propertyName = null)
+        private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
             {
@@ -283,8 +324,28 @@ namespace SpareParts.Desktop.Wpf.Management
 
             field = value;
             OnPropertyChanged(propertyName);
+            if (propertyName == null || ProfitProjectSourceProperties.Contains(propertyName))
+            {
+                RaiseProfitProjectProperties();
+            }
+
             return true;
         }
+
+        private void RaiseProfitProjectProperties()
+        {
+            OnPropertyChanged(nameof(TeardownCostBase));
+            OnPropertyChanged(nameof(ProfitMapSoldValueBase));
+            OnPropertyChanged(nameof(ProfitMapRecoveredValueBase));
+            OnPropertyChanged(nameof(ProfitMapBreakEvenGapBase));
+            OnPropertyChanged(nameof(ProfitMapRecoveredPercent));
+            OnPropertyChanged(nameof(ProfitMapRecoveredPercentCapped));
+            OnPropertyChanged(nameof(ProfitMapRecoveredPercentText));
+            OnPropertyChanged(nameof(ProfitMapBreakEvenStatus));
+        }
+
+        private static decimal RoundMoney(decimal amount)
+            => decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
 
         private void OnPropertyChanged(string? propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

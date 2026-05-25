@@ -158,10 +158,10 @@
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="#2200E5FF"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Role}" Value="Admin">
+                                                <DataTrigger Binding="{Binding RoleId}" Value="1">
                                                     <Setter Property="Background" Value="#22FF5722"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Role}" Value="Manager">
+                                                <DataTrigger Binding="{Binding RoleId}" Value="2">
                                                     <Setter Property="Background" Value="#221C69D4"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
@@ -172,12 +172,12 @@
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Foreground" Value="#FF00E5FF"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Role}" Value="Admin">
-                                                        <Setter Property="Foreground" Value="#FFFF7043"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Role}" Value="Manager">
-                                                        <Setter Property="Foreground" Value="#FF64B5F6"/>
-                                                    </DataTrigger>
+                                                <DataTrigger Binding="{Binding RoleId}" Value="1">
+                                                    <Setter Property="Foreground" Value="#FFFF7043"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding RoleId}" Value="2">
+                                                    <Setter Property="Foreground" Value="#FF64B5F6"/>
+                                                </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
@@ -299,6 +299,8 @@
                     <!-- Role — search control instead of ComboBox -->
                     <TextBlock Text="ROLE" Style="{StaticResource FieldLabel}"/>
                     <local:RoleSearchControl
+                        AvailableRoles="{Binding RoleOptions}"
+                        SelectedRoleId="{Binding FormRoleId, Mode=TwoWay}"
                         SelectedRole="{Binding FormRole, Mode=TwoWay}"/>
 
                     <!-- Password -->

@@ -9,6 +9,10 @@
       {
         "Path": "src\\SpareParts.Desktop.Wpf\\SpareParts.Desktop.Wpf.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "src\\SpareParts.Web.React\\SpareParts.Web.React.csproj",
+        "Action": "Start"
       }
     ]
   }

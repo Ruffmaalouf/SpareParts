@@ -63,7 +63,7 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
       el(View, { style: styles.sideAvatar }, el(Text, { style: styles.sideAvatarText }, initials(user.fullName))),
       el(View, { style: styles.sideUserCopy },
         el(Text, { style: styles.sideUserName, numberOfLines: 1 }, user.fullName),
-        el(Text, { style: styles.sideUserRole, numberOfLines: 1 }, user.role)
+        el(Text, { style: styles.sideUserRole, numberOfLines: 1 }, (user.roleId ?? user.RoleId) ? `Role ID ${user.roleId ?? user.RoleId}` : "Role ID")
       ),
       el(Pressable, { style: styles.sideLogoutButton, onPress: onLogout },
         el(Text, { style: styles.sideLogoutText }, t("common.signOut", "Sign out"))

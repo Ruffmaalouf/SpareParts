@@ -5,6 +5,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
     public sealed class ReportBuilderRoleAccessRow : INotifyPropertyChanged
     {
         private string _roleName = string.Empty;
+        private int _roleId;
         private bool _canView;
         private bool _canEdit;
         private bool _canExport;
@@ -17,6 +18,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 if (_roleName == value) return;
                 _roleName = value;
                 OnPropertyChanged(nameof(RoleName));
+            }
+        }
+
+        public int RoleId
+        {
+            get => _roleId;
+            set
+            {
+                if (_roleId == value) return;
+                _roleId = value;
+                OnPropertyChanged(nameof(RoleId));
             }
         }
 

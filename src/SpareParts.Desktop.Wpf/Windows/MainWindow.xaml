@@ -762,6 +762,12 @@
                                         Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
                                         Content="🚘  Used Car Purchases"/>
 
+                                <Button Command="{Binding GoToStockArrivalCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewStockArrivalScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="Stock Arrival Theater"/>
+
                                 <Button Command="{Binding GoToRepairPrepCommand}"
                                         Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
@@ -820,7 +826,7 @@
                                         Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
                                         Visibility="{Binding CanViewBarcodeQrScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="▦  Barcode / QR Mode"/>
+                                        Content="▦  AR Search"/>
                             </StackPanel>
                         </Border>
                     </Popup>
@@ -1456,6 +1462,10 @@
                                 Command="{Binding GoToPurchaseHistoryCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Width="160" Margin="0 0 10 0"/>
+                        <Button Content="Stock Arrival"
+                                Command="{Binding GoToStockArrivalCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="150" Margin="0 0 10 0"/>
                         <Button Content="Repair / Prep"
                                 Command="{Binding GoToRepairPrepCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
@@ -1780,6 +1790,49 @@
                 </Border>
             </Grid>
 
+            <!-- ── Stock Arrival Theater ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=StockArrivalTheater}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Stock Arrival Theater" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="When inventory lands, turn it into photos, customer follow-ups, campaigns, and pricing work."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Part Purchases"
+                                Command="{Binding GoToPurchasesCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="150" Margin="0 0 10 0"/>
+                        <Button Content="Used Car Purchases"
+                                Command="{Binding GoToUsedCarPurchasesCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="180" Margin="0 0 10 0"/>
+                        <Button Content="Repair / Prep"
+                                Command="{Binding GoToRepairPrepCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="140" Margin="0 0 10 0"/>
+                        <Button Content="Open Stock"
+                                Command="{Binding GoToStockManagementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="130" Margin="0 0 10 0"/>
+                        <Button Content="WhatsApp"
+                                Command="{Binding GoToWhatsAppCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="120"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <local:StockArrivalTheaterControl Grid.Row="1"
+                                                  DataContext="{Binding StockArrivalVm}"/>
+            </Grid>
+
             <!-- ── Repair / Prep Board ── -->
             <Grid Margin="20"
                   Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=RepairPrepBoard}">
@@ -1800,10 +1853,10 @@
                                 Command="{Binding GoToUsedCarPurchasesCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Width="180" Margin="0 0 10 0"/>
-                        <Button Content="Repair / Prep"
-                                Command="{Binding GoToRepairPrepCommand}"
+                        <Button Content="Stock Arrival"
+                                Command="{Binding GoToStockArrivalCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
-                                Width="140" Margin="0 0 10 0"/>
+                                Width="150" Margin="0 0 10 0"/>
                         <Button Content="⟵ Home"
                                 Command="{Binding GoToHomeCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
@@ -1835,10 +1888,19 @@
                                 Command="{Binding GoToHomeCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Width="120" Margin="0 0 10 0"/>
+                        <Button Content="Refresh Stock"
+                                Command="{Binding GoToStockManagementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="140" Margin="0 0 10 0"/>
                         <Button Content="Open Part Purchases"
                                 Command="{Binding GoToPurchasesCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 Width="170"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Stock Arrival"
+                                Command="{Binding GoToStockArrivalCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="150"
                                 Margin="0 0 10 0"/>
                         <Button Content="Dead Stock"
                                 Command="{Binding GoToDeadStockCommand}"
@@ -1859,8 +1921,10 @@
                             <DataGridTextColumn Header="Part Name" Binding="{Binding PartName, Mode=OneWay}" Width="*"/>
                             <DataGridTextColumn Header="Warehouse" Binding="{Binding Warehouse, Mode=OneWay}" Width="220"/>
                             <DataGridTextColumn Header="On Hand" Binding="{Binding OnHand, Mode=OneWay}" Width="100"/>
+                            <DataGridTextColumn Header="Available" Binding="{Binding Available, Mode=OneWay}" Width="100"/>
                             <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock, Mode=OneWay}" Width="100"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" Width="120"/>
+                            <DataGridTextColumn Header="Smart Pricing Coach" Binding="{Binding PricingCoachMessage, Mode=OneWay}" Width="320"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
@@ -1944,8 +2008,8 @@
 
                 <DockPanel Grid.Row="0" Margin="0 0 0 20">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Barcode / QR Mode" FontSize="30" FontWeight="Bold"/>
-                        <TextBlock Text="Generate labels, resolve scans, sell parts, move warehouse stock, and link parts to used cars."
+                        <TextBlock Text="AR Picture Search" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Search parts by picture, resolve scans, sell parts, move warehouse stock, and link parts to used cars."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
@@ -2037,6 +2101,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="150"/>
                                 <RowDefinition Height="145"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
@@ -2108,7 +2173,66 @@
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" Margin="0 12 0 0">
+                            <Border Grid.Row="4"
+                                    Background="{DynamicResource InputBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="10"
+                                    Margin="0 12 0 0">
+                                <StackPanel>
+                                    <TextBlock Text="AR Picture Search" FontSize="18" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding BarcodeModeVm.VisualSearchSummary}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"
+                                               Margin="0 4 0 8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="130"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Text="{Binding BarcodeModeVm.VisualHint, UpdateSourceTrigger=PropertyChanged}"
+                                                 Height="34"
+                                                 Padding="8 0"
+                                                 VerticalContentAlignment="Center"
+                                                 ToolTip="Optional hint, for example BMW headlight or brake sensor"/>
+                                        <Button Grid.Column="2"
+                                                Content="Search Picture"
+                                                Command="{Binding BarcodeModeVm.SearchByPictureCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"/>
+                                    </Grid>
+                                    <DataGrid ItemsSource="{Binding BarcodeModeVm.VisualMatches}"
+                                              SelectedItem="{Binding BarcodeModeVm.SelectedVisualMatch, Mode=TwoWay}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              GridLinesVisibility="Horizontal"
+                                              Height="118"
+                                              Margin="0 8 0 0">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Code" Binding="{Binding InternalCode, Mode=OneWay}" Width="90"/>
+                                            <DataGridTextColumn Header="Part" Binding="{Binding PartName, Mode=OneWay}" Width="*"/>
+                                            <DataGridTextColumn Header="Avail" Binding="{Binding AvailableQuantity, Mode=OneWay}" Width="55"/>
+                                            <DataGridTemplateColumn Header="" Width="60">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Button Content="Use"
+                                                                Command="{Binding DataContext.BarcodeModeVm.SelectVisualMatchCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                                Padding="8 2"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <ScrollViewer Grid.Row="5" VerticalScrollBarVisibility="Auto" Margin="0 12 0 0">
                                 <StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>

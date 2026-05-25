@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Inventory;
 using SpareParts.Infrastructure.Services;
 
@@ -27,6 +28,17 @@ namespace SpareParts.Api.Controllers
         public ActionResult<int> Create([FromBody] CreatePartRequestItemRequest request)
             => Ok(_service.Create(request, CurrentUserId));
 
+        [HttpPost("{id:int}/reserve")]
+        public ActionResult<PartRequestReservationDto> Reserve(int id, [FromBody] ReservePartRequestRequest request)
+            => Ok(_service.Reserve(id, request, CurrentUserId));
+
+        [HttpPost("{id:int}/release-reservation")]
+        public IActionResult ReleaseReservation(int id, [FromBody] ReleasePartRequestReservationRequest request)
+        {
+            _service.ReleaseReservation(id, request, CurrentUserId);
+            return NoContent();
+        }
+
         [HttpPut("{id:int}/status")]
         public IActionResult UpdateStatus(int id, [FromBody] UpdatePartRequestStatusRequest request)
         {
@@ -35,7 +47,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult Delete(int id)
         {
             _service.Delete(id);

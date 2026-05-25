@@ -175,9 +175,9 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <!-- Add custom role -->
                     <Border Grid.Row="2" BorderBrush="#1AFFFFFF" BorderThickness="0 1 0 0"
-                            CornerRadius="0 0 12 12" Padding="12 10">
+                            CornerRadius="0 0 12 12" Padding="12 10"
+                            Visibility="Collapsed">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>

@@ -10,7 +10,7 @@ const { StatusBar } = require("expo-status-bar");
 const { useSafeAreaInsets } = require("react-native-safe-area-context");
 const { Field } = require("../components/ui");
 const { initials, money } = require("../core/formatters");
-const { appLanguages, webAppRoleName, wpfThemes } = require("../core/app-config");
+const { appLanguages, wpfThemes } = require("../core/app-config");
 const { useTheme } = require("../theme/theme-context");
 
 const { useCallback, useEffect, useMemo, useState } = React;
@@ -535,7 +535,7 @@ function CustomerStorefrontScreen({ activeSection, api, embedded, languageKey, o
         el(View, { style: styles.storeAvatar }, el(Text, { style: styles.storeAvatarText }, initials(user.fullName))),
         el(View, { style: styles.storeUserCopy },
           el(Text, { style: styles.storeUserName }, user.fullName),
-          el(Text, { style: styles.storeUserRole }, webAppRoleName)
+          el(Text, { style: styles.storeUserRole }, `Role ID ${user.roleId ?? user.RoleId ?? 4}`)
         )
       ),
       el(CheckoutSection, { title: t("settings.language", "Language") },

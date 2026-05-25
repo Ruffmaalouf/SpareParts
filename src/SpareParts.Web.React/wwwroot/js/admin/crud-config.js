@@ -74,7 +74,7 @@ export const crudConfigs = {
       { key: "username", label: "Username", required: true, update: false },
       { key: "fullName", label: "Full Name", required: true },
       { key: "email", label: "Email", optional: true, type: "email" },
-      { key: "role", label: "Role", required: true },
+      { key: "roleId", label: "Role ID", type: "number", required: true, defaultValue: 3 },
       { key: "password", label: "Password", createKey: "password", updateKey: "newPassword", secure: true, optionalUpdate: true },
       { key: "isActive", label: "Active", type: "bool", defaultValue: true, create: false }
     ]

@@ -6,6 +6,7 @@ using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Sales;
 using SpareParts.Domain.Scanning;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,8 +37,11 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
     private string _statusMessage = "Scan or select a part to start.";
     private string _partFilterText = string.Empty;
     private string _scanText = string.Empty;
+    private string _visualHint = string.Empty;
+    private string _visualSearchSummary = "Choose a part photo to search the catalog.";
     private PartDto? _selectedPart;
     private ScanLookupResultDto? _selectedScanResult;
+    private VisualPartMatchDto? _selectedVisualMatch;
     private BarcodeLabelItem? _previewLabel;
     private int _actionQuantity = 1;
     private int? _sellWarehouseId;
@@ -59,6 +63,8 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
         LoadCommand = new RelayCommand(_ => LoadAsync().SafeFireAndForget(HandleBackgroundException));
         ResolveScanCommand = new RelayCommand(_ => ResolveScanAsync().SafeFireAndForget(HandleBackgroundException));
         SelectScanResultCommand = new RelayCommand(result => SelectScanResult(result as ScanLookupResultDto));
+        SearchByPictureCommand = new RelayCommand(_ => SearchByPictureAsync().SafeFireAndForget(HandleBackgroundException));
+        SelectVisualMatchCommand = new RelayCommand(result => SelectVisualMatch(result as VisualPartMatchDto));
         GenerateSelectedLabelCommand = new RelayCommand(_ => GenerateSelectedLabel());
         GenerateVisibleLabelsCommand = new RelayCommand(_ => GenerateVisibleLabels());
         ClearLabelsCommand = new RelayCommand(_ => ClearLabels());
@@ -72,6 +78,7 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
 
     public ObservableCollection<PartDto> Parts { get; } = new();
     public ObservableCollection<ScanLookupResultDto> ScanResults { get; } = new();
+    public ObservableCollection<VisualPartMatchDto> VisualMatches { get; } = new();
     public ObservableCollection<BarcodeStockRow> StockRows { get; } = new();
     public ObservableCollection<WarehouseDto> Warehouses { get; } = new();
     public ObservableCollection<UsedCarDto> UsedCars { get; } = new();
@@ -80,6 +87,8 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
     public ICommand LoadCommand { get; }
     public ICommand ResolveScanCommand { get; }
     public ICommand SelectScanResultCommand { get; }
+    public ICommand SearchByPictureCommand { get; }
+    public ICommand SelectVisualMatchCommand { get; }
     public ICommand GenerateSelectedLabelCommand { get; }
     public ICommand GenerateVisibleLabelsCommand { get; }
     public ICommand ClearLabelsCommand { get; }
@@ -122,6 +131,18 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
         set => SetProperty(ref _scanText, value);
     }
 
+    public string VisualHint
+    {
+        get => _visualHint;
+        set => SetProperty(ref _visualHint, value);
+    }
+
+    public string VisualSearchSummary
+    {
+        get => _visualSearchSummary;
+        private set => SetProperty(ref _visualSearchSummary, value);
+    }
+
     public PartDto? SelectedPart
     {
         get => _selectedPart;
@@ -154,6 +175,23 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
             if (value != null)
             {
                 SelectScanResult(value);
+            }
+        }
+    }
+
+    public VisualPartMatchDto? SelectedVisualMatch
+    {
+        get => _selectedVisualMatch;
+        set
+        {
+            if (!SetProperty(ref _selectedVisualMatch, value))
+            {
+                return;
+            }
+
+            if (value != null)
+            {
+                SelectVisualMatch(value);
             }
         }
     }
@@ -202,7 +240,7 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
     public async Task LoadAsync()
     {
         IsLoading = true;
-        SetStatus("Loading barcode workspace...", true);
+        SetStatus("Loading AR search workspace...", true);
 
         try
         {
@@ -224,7 +262,7 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
             FromWarehouseId ??= defaultWarehouse?.Id;
             ToWarehouseId ??= Warehouses.FirstOrDefault(item => item.Id != FromWarehouseId)?.Id ?? defaultWarehouse?.Id;
 
-            SetStatus($"Barcode workspace loaded with {Parts.Count:N0} part(s).", true);
+            SetStatus($"AR search workspace loaded with {Parts.Count:N0} part(s).", true);
         }
         catch (ApiClientException ex)
         {
@@ -284,6 +322,58 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
         }
     }
 
+    private async Task SearchByPictureAsync()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Search parts by picture",
+            Filter = "Image files (*.jpg;*.jpeg;*.png;*.webp;*.heic;*.heif)|*.jpg;*.jpeg;*.png;*.webp;*.heic;*.heif|All files (*.*)|*.*"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        IsLoading = true;
+        SetStatus("Searching catalog from picture...", true);
+        VisualSearchSummary = "Reading picture and ranking catalog matches...";
+
+        try
+        {
+            var response = await _partsApi.SearchPartsByImageAsync(dialog.FileName, VisualHint, 10);
+            Replace(VisualMatches, response.Matches);
+            VisualSearchSummary = string.IsNullOrWhiteSpace(response.SearchText)
+                ? response.Message
+                : $"{response.SearchText} | {response.Message}";
+
+            if (VisualMatches.Count == 0)
+            {
+                SetStatus("No catalog parts matched that picture.", false);
+                return;
+            }
+
+            SelectedVisualMatch = VisualMatches[0];
+            SetStatus($"Picture search found {VisualMatches.Count:N0} match(es).", true);
+        }
+        catch (ApiClientException ex)
+        {
+            VisualMatches.Clear();
+            VisualSearchSummary = ex.Message;
+            SetStatus($"Picture search failed ({ex.Code}): {ex.Message}", false);
+        }
+        catch (Exception ex)
+        {
+            VisualMatches.Clear();
+            VisualSearchSummary = ex.Message;
+            SetStatus("Unexpected error while searching by picture.", false);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
     private void SelectScanResult(ScanLookupResultDto? result)
     {
         if (result == null)
@@ -310,6 +400,28 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
                 SetStatus($"Scan opened {result.DisplayText}.", true);
                 break;
         }
+    }
+
+    private void SelectVisualMatch(VisualPartMatchDto? match)
+    {
+        if (match == null)
+        {
+            return;
+        }
+
+        var scanRow = new ScanLookupResultDto
+        {
+            TargetType = ScanTargetTypes.Part,
+            TargetId = match.PartId,
+            Code = string.IsNullOrWhiteSpace(match.Barcode) ? match.InternalCode : match.Barcode,
+            DisplayText = $"{match.InternalCode} - {match.PartName}",
+            SecondaryText = match.MatchReason,
+            ApiRoute = $"api/parts?visual={match.PartId}"
+        };
+
+        ScanResults.Clear();
+        ScanResults.Add(scanRow);
+        SelectScanResult(scanRow);
     }
 
     private void SelectPartById(int partId)
@@ -424,7 +536,7 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
                 WarehouseId = SellWarehouseId.Value,
                 PaymentMethod = "Barcode scan",
                 PaidAmount = 0,
-                Notes = $"Created from Barcode / QR Mode for {part.InternalCode}.",
+                Notes = $"Created from AR Search for {part.InternalCode}.",
                 Items = new List<SaleItemDto>
                 {
                     new()

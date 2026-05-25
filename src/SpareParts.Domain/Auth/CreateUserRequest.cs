@@ -12,7 +12,7 @@ namespace SpareParts.Domain.Auth
         public string? Email { get; set; }
         [Required, MinLength(8), MaxLength(128)]
         public string Password { get; set; } = string.Empty;
-        [Required, MaxLength(50)]
-        public string Role { get; set; } = "Cashier";
+        [Range(1, int.MaxValue)]
+        public int? RoleId { get; set; }
     }
 }

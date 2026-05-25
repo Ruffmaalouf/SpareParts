@@ -21,15 +21,26 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
     private string _newRequestVehicleDetails = string.Empty;
     private int _newRequestQuantity = 1;
     private string _newRequestNotes = string.Empty;
+    private bool _reserveOnCreate;
+    private DateTime _reservationExpiresAt = DefaultReservationExpiresAt();
+    private string _reservationExpirationAction = PartReservationExpirationAction.AutoRelease;
 
     public ObservableCollection<PartRequestDto> Requests { get; } = new();
     public ObservableCollection<CustomerDto> Customers { get; } = new();
     public ObservableCollection<PartDto> Parts { get; } = new();
+    public IReadOnlyList<string> ReservationExpirationActions { get; } =
+    [
+        PartReservationExpirationAction.AutoRelease,
+        PartReservationExpirationAction.StaffReminder
+    ];
 
     public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
     public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
     public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
     public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
+    public ICommand ReserveAutoReleaseCommand { get; private set; } = new RelayCommand(_ => { });
+    public ICommand ReserveReminderCommand { get; private set; } = new RelayCommand(_ => { });
+    public ICommand ReleaseReservationCommand { get; private set; } = new RelayCommand(_ => { });
     public ICommand MarkContactedCommand { get; private set; } = new RelayCommand(_ => { });
     public ICommand MarkFulfilledCommand { get; private set; } = new RelayCommand(_ => { });
     public ICommand CancelCommand { get; private set; } = new RelayCommand(_ => { });
@@ -37,18 +48,33 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
 
     public int OpenRequestCount => Requests.Count(request => PartRequestStatus.IsActive(request.Status));
     public int ReadyRequestCount => Requests.Count(request => request.IsReadyToContact);
+    public int ReservedRequestCount => Requests.Count(request => request.IsReserved);
+    public int ReminderDueCount => Requests.Count(request => request.IsReservationReminderDue);
     public int ReadyCustomerCount => Requests
         .Where(request => request.IsReadyToContact)
         .GroupBy(request => request.PartId ?? -request.Id)
         .Sum(group => Math.Max(1, group.Max(request => request.WaitingCustomerCount)));
     public string BoardSummary => ReadyRequestCount == 0
-        ? $"{OpenRequestCount} active request(s)."
-        : $"{ReadyCustomerCount} customer(s) were waiting for parts now in stock.";
+        ? $"{OpenRequestCount} active request(s), {ReservedRequestCount} reserved."
+        : $"{ReadyCustomerCount} customer(s) were waiting for parts now in stock; {ReservedRequestCount} reserved.";
+    public string SelectedReservationSummary => SelectedRequest is not { IsReserved: true }
+        ? "No active reservation selected."
+        : SelectedRequest.ReservationExpiresAt is DateTime expiresAt
+            ? $"{SelectedRequest.ReservedQuantity:N0} reserved until {expiresAt.ToLocalTime():yyyy-MM-dd HH:mm}."
+            : $"{SelectedRequest.ReservedQuantity:N0} reserved.";
 
     public PartRequestDto? SelectedRequest
     {
         get => _selectedRequest;
-        set => SetProperty(ref _selectedRequest, value);
+        set
+        {
+            if (!SetProperty(ref _selectedRequest, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(SelectedReservationSummary));
+        }
     }
 
     public int? NewRequestPartId
@@ -121,6 +147,24 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
         set => SetProperty(ref _newRequestNotes, value);
     }
 
+    public bool ReserveOnCreate
+    {
+        get => _reserveOnCreate;
+        set => SetProperty(ref _reserveOnCreate, value);
+    }
+
+    public DateTime ReservationExpiresAt
+    {
+        get => _reservationExpiresAt;
+        set => SetProperty(ref _reservationExpiresAt, value);
+    }
+
+    public string ReservationExpirationAction
+    {
+        get => _reservationExpirationAction;
+        set => SetProperty(ref _reservationExpirationAction, PartReservationExpirationAction.Normalize(value));
+    }
+
     public void Configure(
         ManagementCoordinator coordinator,
         Func<Task> refreshAsync,
@@ -133,6 +177,9 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
         DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
         StartNewCommand = new RelayCommand(_ => StartNew());
         RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
+        ReserveAutoReleaseCommand = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.AutoRelease));
+        ReserveReminderCommand = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.StaffReminder));
+        ReleaseReservationCommand = new RelayCommand(_ => _ = ReleaseSelectedReservationAsync());
         MarkContactedCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Contacted));
         MarkFulfilledCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Fulfilled));
         CancelCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Cancelled));
@@ -162,6 +209,9 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
         NewRequestVehicleDetails = string.Empty;
         NewRequestQuantity = 1;
         NewRequestNotes = string.Empty;
+        ReserveOnCreate = false;
+        ReservationExpiresAt = DefaultReservationExpiresAt();
+        ReservationExpirationAction = PartReservationExpirationAction.AutoRelease;
         SelectedRequest = null;
     }
 
@@ -181,6 +231,37 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
 
         await _refreshAsync();
         StartNew();
+    }
+
+    private async Task ReserveSelectedAsync(string expirationAction)
+    {
+        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
+        {
+            return;
+        }
+
+        ReservationExpirationAction = expirationAction;
+        var result = await _coordinator.ReservePartRequestAsync(SelectedRequest, ReservationExpiresAt, ReservationExpirationAction);
+        _setStatus(result.Message, result.Success);
+        if (result.Success)
+        {
+            await _refreshAsync();
+        }
+    }
+
+    private async Task ReleaseSelectedReservationAsync()
+    {
+        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
+        {
+            return;
+        }
+
+        var result = await _coordinator.ReleasePartRequestReservationAsync(SelectedRequest);
+        _setStatus(result.Message, result.Success);
+        if (result.Success)
+        {
+            await _refreshAsync();
+        }
     }
 
     private async Task UpdateStatusAsync(string status)
@@ -242,8 +323,17 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
     {
         OnPropertyChanged(nameof(OpenRequestCount));
         OnPropertyChanged(nameof(ReadyRequestCount));
+        OnPropertyChanged(nameof(ReservedRequestCount));
+        OnPropertyChanged(nameof(ReminderDueCount));
         OnPropertyChanged(nameof(ReadyCustomerCount));
         OnPropertyChanged(nameof(BoardSummary));
+        OnPropertyChanged(nameof(SelectedReservationSummary));
+    }
+
+    private static DateTime DefaultReservationExpiresAt()
+    {
+        var tomorrow = DateTime.Now.Date.AddDays(1);
+        return tomorrow.AddHours(18);
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)

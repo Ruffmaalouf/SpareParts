@@ -35,14 +35,15 @@ class CommunicationPayloadFactory {
     };
   }
 
-  static freeText({ recipientName, recipientPhone, body }) {
+  static freeText({ recipientName, recipientPhone, body, attachments }) {
     return {
       channel: CommunicationChannel.WhatsApp,
       templateKey: CommunicationTemplateKey.FreeText,
       recipientKind: CommunicationRecipientKind.Manual,
       recipientNameOverride: recipientName,
       recipientPhoneOverride: recipientPhone,
-      messageBody: body
+      messageBody: body,
+      attachments: attachments || []
     };
   }
 }

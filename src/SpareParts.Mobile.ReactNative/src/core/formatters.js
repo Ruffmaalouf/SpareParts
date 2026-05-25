@@ -35,6 +35,8 @@ function rowSubtitle(row) {
 }
 
 function rowAmount(row) {
+  if (row?.isReservationReminderDue) return "Reminder due";
+  if (row?.isReserved) return row.reservationExpiresAt ? `Until ${shortDateTime(row.reservationExpiresAt)}` : "Reserved";
   if (row?.isReadyToContact) return `${row.waitingCustomerCount || 1} waiting`;
   if (pickFirst(row, ["requestedPartName"])) {
     const quantity = pickFirst(row, ["quantity"]);

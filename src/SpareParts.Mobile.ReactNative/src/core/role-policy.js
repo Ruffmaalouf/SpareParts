@@ -1,4 +1,4 @@
-const { webAppRoleId, webAppRoleName } = require("./app-config");
+const { webAppRoleId } = require("./app-config");
 
 function isWebAppUser(user) {
   if (!user) return false;
@@ -7,8 +7,7 @@ function isWebAppUser(user) {
   if (roleId === webAppRoleId) {
     return true;
   }
-
-  return String(user.role || user.Role || "").trim().toLowerCase() === webAppRoleName.toLowerCase();
+  return false;
 }
 
 module.exports = { isWebAppUser };

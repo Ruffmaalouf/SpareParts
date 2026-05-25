@@ -229,16 +229,21 @@ namespace SpareParts.Desktop.Wpf.Management
             return DeleteAsync($"api/parts/{selected.Id}", "Part");
         }
 
-        public Task<ManagementOperationResult> SavePartRequestAsync(PartRequestsManagementViewModel feature)
+        public async Task<ManagementOperationResult> SavePartRequestAsync(PartRequestsManagementViewModel feature)
         {
             if (string.IsNullOrWhiteSpace(feature.NewRequestCustomerName))
             {
-                return Task.FromResult(ToFailure(new DomainValidationException("Customer name is required.", "part_request_customer_required"), "saving part request"));
+                return ToFailure(new DomainValidationException("Customer name is required.", "part_request_customer_required"), "saving part request");
             }
 
             if (string.IsNullOrWhiteSpace(feature.NewRequestPartName))
             {
-                return Task.FromResult(ToFailure(new DomainValidationException("Requested part name is required.", "part_request_name_required"), "saving part request"));
+                return ToFailure(new DomainValidationException("Requested part name is required.", "part_request_name_required"), "saving part request");
+            }
+
+            if (feature.ReserveOnCreate && feature.NewRequestPartId is null)
+            {
+                return ToFailure(new DomainValidationException("Match a catalog part before starting a reservation clock.", "part_request_reservation_part_required"), "saving part request");
             }
 
             var payload = new CreatePartRequestItemRequest
@@ -254,12 +259,75 @@ namespace SpareParts.Desktop.Wpf.Management
                 Notes = NormalizeOptional(feature.NewRequestNotes)
             };
 
-            return SaveAsync(
-                isEditing: false,
-                selectedId: null,
-                "api/partrequests",
-                payload,
-                "Part request");
+            try
+            {
+                var requestId = await _crudApi.PostAsync<int>("api/partrequests", payload);
+                if (feature.ReserveOnCreate)
+                {
+                    await ReservePartRequestCoreAsync(
+                        requestId,
+                        Math.Max(1, feature.NewRequestQuantity),
+                        feature.ReservationExpiresAt,
+                        feature.ReservationExpirationAction);
+                    return Success("✓ Part request saved and reserved.");
+                }
+
+                return Success("✓ Part request saved.");
+            }
+            catch (Exception ex)
+            {
+                return ToFailure(ex, "saving part request");
+            }
+        }
+
+        public async Task<ManagementOperationResult> ReservePartRequestAsync(
+            PartRequestDto? selected,
+            DateTime expiresAt,
+            string expirationAction)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return ToFailure(new DomainValidationException("Select a part request first.", "part_request_selection_required"), "reserving part request");
+            }
+
+            if (selected.PartId is null)
+            {
+                return ToFailure(new DomainValidationException("Match a catalog part before starting a reservation clock.", "part_request_reservation_part_required"), "reserving part request");
+            }
+
+            try
+            {
+                var reservation = await ReservePartRequestCoreAsync(
+                    selected.Id,
+                    Math.Max(1, selected.Quantity),
+                    expiresAt,
+                    expirationAction);
+                return Success($"✓ Reserved {reservation.Quantity:N0} item(s) until {reservation.ExpiresAt.ToLocalTime():yyyy-MM-dd HH:mm}.");
+            }
+            catch (Exception ex)
+            {
+                return ToFailure(ex, "reserving part request");
+            }
+        }
+
+        public async Task<ManagementOperationResult> ReleasePartRequestReservationAsync(PartRequestDto? selected)
+        {
+            if (selected is not { Id: > 0 })
+            {
+                return ToFailure(new DomainValidationException("Select a part request first.", "part_request_selection_required"), "releasing reservation");
+            }
+
+            try
+            {
+                await _crudApi.PostAsync(
+                    $"api/partrequests/{selected.Id}/release-reservation",
+                    new ReleasePartRequestReservationRequest { Reason = "Released from WPF" });
+                return Success("✓ Reservation released.");
+            }
+            catch (Exception ex)
+            {
+                return ToFailure(ex, "releasing reservation");
+            }
         }
 
         public Task<ManagementOperationResult> UpdatePartRequestStatusAsync(PartRequestDto? selected, string status)
@@ -296,6 +364,20 @@ namespace SpareParts.Desktop.Wpf.Management
                 return ToFailure(ex, "updating part request");
             }
         }
+
+        private Task<PartRequestReservationDto> ReservePartRequestCoreAsync(
+            int id,
+            int quantity,
+            DateTime expiresAt,
+            string expirationAction)
+            => _crudApi.PostAsync<PartRequestReservationDto>(
+                $"api/partrequests/{id}/reserve",
+                new ReservePartRequestRequest
+                {
+                    Quantity = Math.Max(1, quantity),
+                    ExpiresAt = expiresAt,
+                    ExpirationAction = PartReservationExpirationAction.Normalize(expirationAction)
+                });
 
         public Task<List<PartDto>> GetAllPartsAsync()
             => _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");

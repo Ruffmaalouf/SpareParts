@@ -1556,6 +1556,61 @@ function createStyles(palette) {
     fontWeight: "900",
     textTransform: "uppercase"
   },
+  visualActionRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  visualPreviewFrame: {
+    position: "relative",
+    minHeight: 260,
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input
+  },
+  visualPreviewImage: {
+    width: "100%",
+    height: 300,
+    resizeMode: "cover"
+  },
+  visualPreviewEmpty: {
+    minHeight: 260,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: 18
+  },
+  visualPreviewEmptyTitle: {
+    color: palette.text,
+    fontSize: 16,
+    fontWeight: "900",
+    textAlign: "center"
+  },
+  visualPreviewEmptyText: {
+    color: palette.muted,
+    fontSize: 12,
+    textAlign: "center"
+  },
+  visualPin: {
+    position: "absolute",
+    width: 36,
+    height: 36,
+    marginLeft: -18,
+    marginTop: -18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: palette.text,
+    backgroundColor: palette.accent
+  },
+  visualPinText: {
+    color: palette.text,
+    fontSize: 12,
+    fontWeight: "900"
+  },
   segmentRail: {
     gap: 8,
     paddingVertical: 2
@@ -1605,6 +1660,196 @@ function createStyles(palette) {
   screenListContent: {
     gap: 8,
     padding: 8
+  },
+  mechanicHero: {
+    minHeight: 108,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14
+  },
+  mechanicHeroCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 5
+  },
+  mechanicHeroTitle: {
+    color: palette.text,
+    fontSize: 24,
+    lineHeight: 28,
+    fontWeight: "900"
+  },
+  mechanicHeroMeta: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "800"
+  },
+  mechanicHeroMark: {
+    width: 82,
+    height: 82,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.accent,
+    backgroundColor: palette.input
+  },
+  mechanicHeroMarkText: {
+    color: palette.text,
+    fontSize: 24,
+    fontWeight: "900"
+  },
+  mechanicHeroMarkLabel: {
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  mechanicResultStack: {
+    gap: 5
+  },
+  mechanicPickerFrame: {
+    height: 260,
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input
+  },
+  mechanicPartCard: {
+    minHeight: 72,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10
+  },
+  mechanicPartMark: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor: palette.accent
+  },
+  mechanicPartMarkText: {
+    color: palette.text,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  mechanicPartCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4
+  },
+  mechanicPartTitle: {
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  mechanicPartMeta: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17
+  },
+  mechanicMetricRow: {
+    flexDirection: "row",
+    gap: 8
+  },
+  mechanicMetric: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 72,
+    justifyContent: "space-between",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input,
+    padding: 10
+  },
+  mechanicMetricGood: {
+    borderColor: palette.whatsapp,
+    backgroundColor: "rgba(37,211,102,0.11)"
+  },
+  mechanicMetricLabel: {
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  mechanicMetricValue: {
+    color: palette.text,
+    fontSize: 20,
+    fontWeight: "900"
+  },
+  mechanicWarehouseChip: {
+    width: 154,
+    minHeight: 58,
+    justifyContent: "center",
+    gap: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input,
+    paddingHorizontal: 10
+  },
+  mechanicWarehouseChipActive: {
+    borderColor: palette.accent,
+    backgroundColor: palette.surface2
+  },
+  mechanicWarehouseName: {
+    color: palette.text,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  mechanicWarehouseNameActive: {
+    color: palette.accent
+  },
+  mechanicWarehouseMeta: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  mechanicPhotoFrame: {
+    height: 228,
+    overflow: "hidden",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input
+  },
+  mechanicPhoto: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover"
+  },
+  mechanicPhotoEmpty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: 18
+  },
+  mechanicPhotoEmptyTitle: {
+    color: palette.text,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  mechanicPhotoEmptyText: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: "center"
   },
   deadStockControls: {
     flexDirection: "row",

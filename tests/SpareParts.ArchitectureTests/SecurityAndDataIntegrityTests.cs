@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Api.Controllers;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Auth;
@@ -24,14 +25,14 @@ public class SecurityAndDataIntegrityTests
     [InlineData(typeof(AccountingController), nameof(AccountingController.DeletePostingRole))]
     [InlineData(typeof(AccountingController), nameof(AccountingController.UpdatePostingSettings))]
     [InlineData(typeof(AccountingController), nameof(AccountingController.CreateManualJournal))]
-    public void AccountingMutationEndpoints_ShouldRequireAdminOrManager(Type controllerType, string methodName)
+    public void AccountingMutationEndpoints_ShouldRequireAdminOrManagerRoleIdPolicy(Type controllerType, string methodName)
     {
         var method = controllerType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
         Assert.NotNull(method);
 
         var authorize = method!.GetCustomAttributes<AuthorizeAttribute>(inherit: true).FirstOrDefault();
         Assert.NotNull(authorize);
-        Assert.Equal("Admin,Manager", authorize!.Roles);
+        Assert.Equal(AuthorizationPolicies.AdminOrManager, authorize!.Policy);
     }
 
     [Fact]
@@ -45,7 +46,7 @@ public class SecurityAndDataIntegrityTests
         {
             FullName = "Missing User",
             Email = "missing@example.com",
-            Role = "Manager",
+            RoleId = 2,
             IsActive = true
         };
 

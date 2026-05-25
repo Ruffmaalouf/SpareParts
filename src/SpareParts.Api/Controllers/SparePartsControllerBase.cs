@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 
 namespace SpareParts.Api.Controllers;
 
@@ -19,8 +20,9 @@ public abstract class SparePartsControllerBase : ControllerBase
         }
     }
 
-    protected string CurrentRoleName
-        => User.FindFirst(ClaimTypes.Role)?.Value?.Trim() ?? string.Empty;
+    protected int CurrentRoleId
+        => AuthorizationPolicies.GetRoleId(User)
+           ?? throw new UnauthorizedAccessException("Role ID claim is missing.");
 
     protected static (int Page, int PageSize) NormalizePagination(int page, int pageSize, int maxPageSize = 500)
         => (Math.Max(1, page), Math.Clamp(pageSize, 1, maxPageSize));

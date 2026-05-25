@@ -6,8 +6,8 @@ const { DashboardScreen } = require("./dashboard-screen");
 const { DeadStockScreen } = require("./dead-stock-screen");
 const { InvoicesScreen } = require("./invoices-screen");
 const { ManagementScreen } = require("./management-screen");
+const { MechanicModeScreen } = require("./mechanic-mode-screen");
 const { PartCompatibilityScreen } = require("./part-compatibility-screen");
-const { PartsScreen } = require("./parts-screen");
 const { RepairPrepScreen } = require("./repair-prep-screen");
 const { SettingsScreen } = require("./settings-screen");
 const { UsedCarsScreen } = require("./used-cars-screen");
@@ -21,7 +21,7 @@ function moduleByKey(key) {
 const screenRegistry = new ScreenRegistry([
   { key: "dashboard", label: "Dashboard", component: DashboardScreen },
   { key: "invoices", label: "POS / Sales", component: InvoicesScreen },
-  { key: "parts", label: "Parts", component: PartsScreen },
+  { key: "parts", label: "Mechanic", component: MechanicModeScreen },
   { key: "compatibility", label: "Compatibility", component: PartCompatibilityScreen },
   { key: "contacts", label: "Contacts", component: ContactsScreen },
   { key: "management", label: "Management", component: ManagementScreen },
@@ -38,7 +38,7 @@ const screenRegistry = new ScreenRegistry([
   { key: "report-builder", label: "Report Builder", component: createModuleScreen(moduleByKey("report-builder")) },
   { key: "whatsapp", label: "WhatsApp", component: WhatsAppScreen },
   { key: "business-assistant", label: "AI Assistant", component: createModuleScreen(moduleByKey("business-assistant")) },
-  { key: "ar", label: "Barcode / QR", component: createModuleScreen(moduleByKey("ar")) }
+  { key: "ar", label: "AR Search", component: createModuleScreen(moduleByKey("ar")) }
 ]);
 
 module.exports = { screenRegistry };

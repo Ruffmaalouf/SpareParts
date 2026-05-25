@@ -3,7 +3,9 @@ using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Scanning;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using RestSharp;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -21,6 +23,24 @@ namespace SpareParts.Desktop.Wpf
 
         public Task<List<ScanLookupResultDto>> ResolveScanAsync(string code)
             => RetrieveAsync<ScanLookupResultDto>($"api/scans/resolve?code={Uri.EscapeDataString(code ?? string.Empty)}");
+
+        public async Task<VisualPartSearchResponseDto> SearchPartsByImageAsync(string imagePath, string? hint = null, int limit = 10)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+            {
+                throw new FileNotFoundException("Choose an image file before searching.", imagePath);
+            }
+
+            var request = CreateRequest("api/scans/visual-search", Method.Post);
+            request.AlwaysMultipartFormData = true;
+            request.AddFile("image", imagePath);
+            request.AddParameter("hint", hint ?? string.Empty);
+            request.AddParameter("limit", limit);
+
+            var response = await Client.ExecuteAsync<VisualPartSearchResponseDto>(request);
+            ApiClientBase.EnsureSuccess(response, "POST api/scans/visual-search failed.");
+            return response.Data ?? new VisualPartSearchResponseDto { Message = "Picture search returned no response." };
+        }
 
         public Task<List<PartStockDto>> GetPartStockAsync(int partId)
             => RetrieveAsync<PartStockDto>($"api/parts/{partId}/stock");

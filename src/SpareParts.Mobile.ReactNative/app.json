@@ -23,7 +23,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Maalouf Auto Parts to choose used-car photos for the admin gallery."
+          "photosPermission": "Allow Maalouf Auto Parts to choose photos for galleries and AR part search.",
+          "cameraPermission": "Allow Maalouf Auto Parts to capture part photos for AR search."
         }
       ]
     ],

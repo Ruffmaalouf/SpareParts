@@ -10,7 +10,9 @@ namespace SpareParts.Infrastructure.Services
         public int GetAvailableStock(IInventoryRepository inventoryRepository, int partId, int warehouseId)
         {
             var stock = inventoryRepository.GetStock(partId, warehouseId);
-            return stock?.Quantity ?? 0;
+            return stock == null
+                ? 0
+                : Math.Max(0, stock.Quantity - stock.ReservedQuantity);
         }
 
         public void AdjustStock(

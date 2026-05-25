@@ -37,7 +37,6 @@ const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "";
 const googleWebClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || googleClientId;
 const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "";
 const webAppRoleId = 4;
-const webAppRoleName = "Web App User";
 
 const wpfThemes = [
   {
@@ -190,7 +189,7 @@ const featureModules = [
   { key: "manual-journal", label: "Manual Journal", title: "Manual Journal", endpoint: "/api/accounting/journal-entries", capabilities: ["Journal entry history", "Manual journal posting", "Account configuration"] },
   { key: "report-builder", label: "Report Builder", title: "Report Builder", endpoint: "/api/reportbuilder/saved-reports", capabilities: ["Schema explorer", "Saved reports", "Background runs"] },
   { key: "business-assistant", label: "AI Assistant", title: "AI Business Assistant", endpoint: "/api/business-assistant/ask", capabilities: ["Turn answers into actions", "Create reports and customer reminders", "Draft purchase orders and campaigns", "Build natural-language stock reports"] },
-  { key: "ar", label: "Barcode / QR", title: "Barcode / QR Mode", endpoint: "/api/scans/resolve", capabilities: ["Generate printable part labels", "Sell and move scanned parts", "Connect physical labels to stock and used cars"] }
+  { key: "ar", label: "AR Search", title: "AR Picture Search", endpoint: "/api/scans/resolve + /api/scans/visual-search", capabilities: ["Search parts by camera photo", "Overlay ranked matches on the captured image", "Generate printable labels and sell scanned parts"] }
 ];
 
 const navigationGroups = [
@@ -220,6 +219,5 @@ module.exports = {
   languageMap,
   themeMap,
   webAppRoleId,
-  webAppRoleName,
   wpfThemes
 };

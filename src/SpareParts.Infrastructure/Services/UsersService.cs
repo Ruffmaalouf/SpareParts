@@ -18,7 +18,18 @@ public sealed class UsersService
     {
         using var conn = _factory.CreateConnection();
         return conn.Query<UserDto>(
-            "SELECT Id, Username, FullName, Email, Role, IsActive, LastLoginAt, CreatedAt FROM Users ORDER BY FullName");
+            @"SELECT u.Id,
+                     u.Username,
+                     u.FullName,
+                     u.Email,
+                     u.RoleId,
+                     COALESCE(r.Name, 'User') AS Role,
+                     u.IsActive,
+                     u.LastLoginAt,
+                     u.CreatedAt
+              FROM Users u
+              LEFT JOIN Roles r ON r.Id = u.RoleId
+              ORDER BY u.FullName");
     }
 
     public int Create(CreateUserRequest request)
@@ -31,9 +42,10 @@ public sealed class UsersService
         var hash = BCrypt.Net.BCrypt.HashPassword(request.Password.Trim(), workFactor: 12);
 
         using var conn = _factory.CreateConnection();
+        var roleId = ResolveRoleId(conn, request.RoleId);
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Users (Username, FullName, Email, PasswordHash, Role, IsActive, CreatedAt)
-              VALUES (@Username, @FullName, @Email, @Hash, @Role, 1, @Now);
+            @"INSERT INTO Users (Username, FullName, Email, PasswordHash, RoleId, IsActive, CreatedAt)
+              VALUES (@Username, @FullName, @Email, @Hash, @RoleId, 1, @Now);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
@@ -41,7 +53,7 @@ public sealed class UsersService
                 request.FullName,
                 request.Email,
                 Hash = hash,
-                request.Role,
+                RoleId = roleId,
                 Now = DateTime.UtcNow
             });
     }
@@ -49,12 +61,13 @@ public sealed class UsersService
     public void Update(int id, UpdateUserRequest request)
     {
         using var conn = _factory.CreateConnection();
+        var roleId = ResolveRoleId(conn, request.RoleId);
 
         if (!string.IsNullOrWhiteSpace(request.NewPassword))
         {
             var hash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword.Trim(), workFactor: 12);
             var affectedRows = conn.Execute(
-                @"UPDATE Users SET FullName = @FullName, Email = @Email, Role = @Role,
+                @"UPDATE Users SET FullName = @FullName, Email = @Email, RoleId = @RoleId,
                                    IsActive = @IsActive, PasswordHash = @Hash,
                                    ModifiedAt = @Now
                   WHERE Id = @Id",
@@ -62,7 +75,7 @@ public sealed class UsersService
                 {
                     request.FullName,
                     request.Email,
-                    request.Role,
+                    RoleId = roleId,
                     request.IsActive,
                     Hash = hash,
                     Now = DateTime.UtcNow,
@@ -78,10 +91,10 @@ public sealed class UsersService
         }
 
         var updatedRows = conn.Execute(
-            @"UPDATE Users SET FullName = @FullName, Email = @Email, Role = @Role,
+            @"UPDATE Users SET FullName = @FullName, Email = @Email, RoleId = @RoleId,
                                IsActive = @IsActive, ModifiedAt = @Now
               WHERE Id = @Id",
-            new { request.FullName, request.Email, request.Role, request.IsActive, Now = DateTime.UtcNow, Id = id });
+            new { request.FullName, request.Email, RoleId = roleId, request.IsActive, Now = DateTime.UtcNow, Id = id });
 
         if (updatedRows == 0)
         {
@@ -100,5 +113,23 @@ public sealed class UsersService
         {
             throw new NotFoundException("User not found.");
         }
+    }
+
+    private static int ResolveRoleId(System.Data.IDbConnection conn, int? roleId)
+    {
+        if (roleId.HasValue && roleId.Value > 0)
+        {
+            var exists = conn.ExecuteScalar<int>(
+                "SELECT COUNT(1) FROM Roles WHERE Id = @RoleId AND IsActive = 1",
+                new { RoleId = roleId.Value });
+            if (exists == 0)
+            {
+                throw new ValidationException("Role ID was not found.");
+            }
+
+            return roleId.Value;
+        }
+
+        throw new ValidationException("Role ID is required.");
     }
 }

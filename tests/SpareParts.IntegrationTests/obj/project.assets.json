@@ -1186,7 +1186,7 @@
         "dependencies": {
           "BCrypt.Net-Next": "4.1.0",
           "Dapper": "2.1.35",
-          "Microsoft.Data.SqlClient": "5.2.2",
+          "Microsoft.Data.SqlClient": "6.1.2",
           "SpareParts.Domain": "1.0.0",
           "SpareParts.Infrastructure.Interfaces": "1.0.0"
         },
@@ -2957,6 +2957,7 @@
       "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
       "outputPath": "D:\\Ralph\\SpareParts\\tests\\SpareParts.IntegrationTests\\obj\\",
       "projectStyle": "PackageReference",
+      "centralPackageVersionsManagementEnabled": true,
       "fallbackFolders": [
         "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -3010,28 +3011,50 @@
         "dependencies": {
           "Dapper": {
             "target": "Package",
-            "version": "[2.1.35, )"
+            "version": "[2.1.35, )",
+            "versionCentrallyManaged": true
           },
           "Microsoft.Data.SqlClient": {
             "target": "Package",
-            "version": "[6.1.2, )"
+            "version": "[6.1.2, )",
+            "versionCentrallyManaged": true
           },
           "Microsoft.NET.Test.Sdk": {
             "target": "Package",
-            "version": "[17.11.1, )"
+            "version": "[17.11.1, )",
+            "versionCentrallyManaged": true
           },
           "Testcontainers.MsSql": {
             "target": "Package",
-            "version": "[3.9.0, )"
+            "version": "[3.9.0, )",
+            "versionCentrallyManaged": true
           },
           "xunit": {
             "target": "Package",
-            "version": "[2.9.2, )"
+            "version": "[2.9.2, )",
+            "versionCentrallyManaged": true
           },
           "xunit.runner.visualstudio": {
             "target": "Package",
-            "version": "[2.8.2, )"
+            "version": "[2.8.2, )",
+            "versionCentrallyManaged": true
           }
+        },
+        "centralPackageVersions": {
+          "BCrypt.Net-Next": "4.1.0",
+          "Dapper": "2.1.35",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+          "Microsoft.Data.SqlClient": "6.1.2",
+          "Microsoft.Data.Sqlite": "8.0.8",
+          "Microsoft.Extensions.DependencyInjection": "9.0.10",
+          "Microsoft.IdentityModel.Tokens": "8.16.0",
+          "Microsoft.NET.Test.Sdk": "17.11.1",
+          "QRCoder": "1.6.0",
+          "RestSharp": "114.0.0",
+          "System.IdentityModel.Tokens.Jwt": "8.16.0",
+          "Testcontainers.MsSql": "3.9.0",
+          "xunit": "2.9.2",
+          "xunit.runner.visualstudio": "2.8.2"
         },
         "imports": [
           "net461",

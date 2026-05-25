@@ -72,21 +72,21 @@ INSERT INTO dbo.RoleMenuAccess (RoleId, MenuId, CanView, CanEdit, CanModify, Can
 SELECT r.Id,
        m.Id,
        CASE 
-         WHEN m.MenuKey IN ('home_screen','pos_screen','car_selection_screen','part_selection_screen') AND r.Name IN ('Admin','Manager','Cashier') THEN 1
-         WHEN m.MenuKey IN ('invoice_create','invoice_search') AND r.Name IN ('Admin','Manager','Cashier') THEN 1
-         WHEN m.MenuKey IN ('whatsapp_screen','barcode_qr_screen') AND r.Name IN ('Admin','Manager','Cashier') THEN 1
+         WHEN m.MenuKey IN ('home_screen','pos_screen','car_selection_screen','part_selection_screen') AND r.Id IN (1,2,3) THEN 1
+         WHEN m.MenuKey IN ('invoice_create','invoice_search') AND r.Id IN (1,2,3) THEN 1
+         WHEN m.MenuKey IN ('whatsapp_screen','barcode_qr_screen') AND r.Id IN (1,2,3) THEN 1
          WHEN m.MenuKey IN ('web_catalog','web_checkout') AND r.Id = 4 THEN 1
-         WHEN m.MenuKey IN ('purchases_screen','stock_management_screen','accounting_screen','manual_journal_screen','report_builder_screen') AND r.Name IN ('Admin','Manager') THEN 1
-         WHEN m.MenuKey IN ('management_screen','supplier_tab','currency_tab','transaction_types_tab') AND r.Name IN ('Admin','Manager') THEN 1
+         WHEN m.MenuKey IN ('purchases_screen','stock_management_screen','accounting_screen','manual_journal_screen','report_builder_screen') AND r.Id IN (1,2) THEN 1
+         WHEN m.MenuKey IN ('management_screen','supplier_tab','currency_tab','transaction_types_tab') AND r.Id IN (1,2) THEN 1
          ELSE 0
        END AS CanView,
        CASE
-         WHEN m.MenuKey = 'invoice_create' AND r.Name IN ('Admin','Manager','Cashier') THEN 1
-         WHEN m.MenuKey = 'supplier_tab' AND r.Name IN ('Admin','Manager') THEN 1
+         WHEN m.MenuKey = 'invoice_create' AND r.Id IN (1,2,3) THEN 1
+         WHEN m.MenuKey = 'supplier_tab' AND r.Id IN (1,2) THEN 1
          ELSE 0
        END AS CanEdit,
-       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Name IN ('Admin','Manager') THEN 1 ELSE 0 END AS CanModify,
-       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Name = 'Admin' THEN 1 ELSE 0 END AS CanDelete
+       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Id IN (1,2) THEN 1 ELSE 0 END AS CanModify,
+       CASE WHEN m.MenuKey = 'supplier_tab' AND r.Id = 1 THEN 1 ELSE 0 END AS CanDelete
 FROM dbo.Roles r
 CROSS JOIN dbo.AppMenus m
 WHERE m.IsActive = 1

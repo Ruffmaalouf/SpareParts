@@ -43,7 +43,6 @@ public sealed record ClientConfigHealthDto
     public string MobileAndroidDefaultApiBaseUrl { get; init; } = "http://10.0.2.2:5000";
     public string MobileIosDefaultApiBaseUrl { get; init; } = "http://localhost:5000";
     public string MobileEnvironmentVariable { get; init; } = "EXPO_PUBLIC_API_BASE_URL";
-    public string WebAppRoleName { get; init; } = "Web App User";
     public IReadOnlyList<string> CorsAllowedOrigins { get; init; } = [];
 }
 

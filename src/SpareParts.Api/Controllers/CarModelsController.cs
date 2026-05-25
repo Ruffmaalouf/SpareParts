@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Cars;
 using SpareParts.Infrastructure.Services;
 
@@ -30,7 +31,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpPost("{id:int}/image")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public async Task<IActionResult> UploadImage(int id, IFormFile image)
         {
             if (image == null || image.Length == 0) return BadRequest("No image.");
@@ -44,12 +45,12 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public ActionResult<int> Create([FromBody] CreateCarModelRequest req)
             => Ok(_service.Create(req, CurrentUserId));
 
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult Update(int id, [FromBody] CreateCarModelRequest req)
         {
             _service.Update(id, req);
@@ -57,7 +58,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult Delete(int id)
         {
             _service.Delete(id);

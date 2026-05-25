@@ -1,5 +1,5 @@
 import { React, h, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "./core/react-runtime.js";
-import { defaultApiBaseUrl, storageKeys, webAppRoleName } from "./core/config.js";
+import { defaultApiBaseUrl, storageKeys } from "./core/config.js";
 import { ApiClient } from "./core/api-client.js";
 import { createTranslator, isRtlLanguage } from "./core/i18n.js";
 import { applyWebTheme, money, normalizeBaseUrl } from "./core/formatters.js";
@@ -63,6 +63,22 @@ export function App() {
     ].slice(0, 4));
   }, []);
 
+  const pushReservationReminder = useCallback((reminder) => {
+    const requestId = String(reminder?.partRequestId || "");
+    const id = `${requestId || "reservation"}-${Date.now()}`;
+    const partName = reminder?.requestedPartName || "Reserved part";
+    const customerName = reminder?.customerName || "Customer";
+
+    setNotifications((current) => [
+      {
+        id,
+        title: "Reservation needs attention",
+        message: `${customerName} - ${partName}`
+      },
+      ...current
+    ].slice(0, 4));
+  }, []);
+
   useEffect(() => {
     applyWebTheme(themeKey);
     themeStore.save(themeKey);
@@ -80,7 +96,8 @@ export function App() {
     const client = createPartNotificationClient({
       apiBaseUrl,
       token,
-      onPartAdded: pushPartAddedNotification
+      onPartAdded: pushPartAddedNotification,
+      onReservationReminder: pushReservationReminder
     });
 
     if (!client) return undefined;
@@ -89,7 +106,7 @@ export function App() {
     return () => {
       client.stop().catch(() => {});
     };
-  }, [apiBaseUrl, pushPartAddedNotification, token, user]);
+  }, [apiBaseUrl, pushPartAddedNotification, pushReservationReminder, token, user]);
 
   const handleLogin = useCallback((nextApiBaseUrl, response) => {
     const normalized = normalizeBaseUrl(nextApiBaseUrl);
@@ -118,7 +135,7 @@ export function App() {
   }
 
   const ActiveScreen = screenRegistry.resolve(view);
-  const isWebAppUser = Number(user.roleId ?? user.RoleId) === webAppRoleId || user.role === webAppRoleName;
+  const isWebAppUser = Number(user.roleId ?? user.RoleId) === webAppRoleId;
 
   if (isWebAppUser) {
     return h(React.Fragment, null,

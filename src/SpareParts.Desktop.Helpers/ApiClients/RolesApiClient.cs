@@ -18,9 +18,6 @@ namespace SpareParts.Desktop.Wpf
         public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessAsync(int roleId)
             => RetrieveAsync<RoleMenuAccessDto>($"api/roles/{roleId}/menu-access");
 
-        public Task<List<RoleMenuAccessDto>> GetRoleMenuAccessByNameAsync(string roleName)
-            => RetrieveAsync<RoleMenuAccessDto>($"api/roles/by-name/{Uri.EscapeDataString(roleName ?? string.Empty)}/menu-access");
-
         public Task UpdateRoleMenuAccessAsync(int roleId, UpdateRoleMenuAccessRequest req)
             => EditAsync($"api/roles/{roleId}/menu-access", req);
 

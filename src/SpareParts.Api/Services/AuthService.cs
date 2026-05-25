@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Data;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -43,7 +42,14 @@ public sealed class AuthService
 
         using var conn = _factory.CreateConnection();
         var user = conn.QueryFirstOrDefault<UserRow>(
-            "SELECT Id, Username, FullName, PasswordHash, Role, RoleId, IsActive FROM Users WHERE Username = @Username",
+            @"SELECT u.Id,
+                     u.Username,
+                     u.FullName,
+                     u.PasswordHash,
+                     u.RoleId,
+                     u.IsActive
+              FROM Users u
+              WHERE u.Username = @Username",
             new { request.Username });
 
         if (user == null || !user.IsActive)
@@ -76,20 +82,28 @@ public sealed class AuthService
     public async Task<LoginResponse> ExternalLoginAsync(ExternalLoginRequest request, CancellationToken cancellationToken = default)
     {
         var profile = await VerifyExternalProfileAsync(request, cancellationToken);
-        var roleName = ResolveWebAppUserRoleName();
+        EnsureWebAppUserRoleExists();
         var username = BuildExternalUsername(profile.Provider, profile.ProviderUserId);
 
         using var conn = _factory.CreateConnection();
         var user = conn.QueryFirstOrDefault<UserRow>(
-            "SELECT Id, Username, FullName, Email, PasswordHash, Role, RoleId, IsActive FROM Users WHERE Username = @Username",
+            @"SELECT u.Id,
+                     u.Username,
+                     u.FullName,
+                     u.Email,
+                     u.PasswordHash,
+                     u.RoleId,
+                     u.IsActive
+              FROM Users u
+              WHERE u.Username = @Username",
             new { Username = username });
 
         if (user == null)
         {
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N"), workFactor: 12);
             var userId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Users (Username, FullName, Email, PasswordHash, Role, IsActive, CreatedAt, LastLoginAt)
-                  VALUES (@Username, @FullName, @Email, @PasswordHash, @Role, 1, @Now, @Now);
+                @"INSERT INTO Users (Username, FullName, Email, PasswordHash, RoleId, IsActive, CreatedAt, LastLoginAt)
+                  VALUES (@Username, @FullName, @Email, @PasswordHash, @RoleId, 1, @Now, @Now);
                   SELECT CAST(SCOPE_IDENTITY() AS INT);",
                 new
                 {
@@ -97,7 +111,7 @@ public sealed class AuthService
                     FullName = profile.FullName,
                     profile.Email,
                     PasswordHash = passwordHash,
-                    Role = roleName,
+                    RoleId = WebAppUserRoleMigration.RoleId,
                     Now = DateTime.UtcNow
                 });
 
@@ -108,11 +122,9 @@ public sealed class AuthService
                 FullName = profile.FullName,
                 Email = profile.Email,
                 PasswordHash = passwordHash,
-                Role = roleName,
                 RoleId = WebAppUserRoleMigration.RoleId,
                 IsActive = true
             };
-            SetWebAppRoleId(conn, userId);
         }
         else
         {
@@ -120,7 +132,7 @@ public sealed class AuthService
                 @"UPDATE Users
                   SET FullName = @FullName,
                       Email = @Email,
-                      Role = @Role,
+                      RoleId = @RoleId,
                       IsActive = 1,
                       LastLoginAt = @Now,
                       ModifiedAt = @Now
@@ -130,16 +142,14 @@ public sealed class AuthService
                     user.Id,
                     FullName = profile.FullName,
                     profile.Email,
-                    Role = roleName,
+                    RoleId = WebAppUserRoleMigration.RoleId,
                     Now = DateTime.UtcNow
                 });
 
             user.FullName = profile.FullName;
             user.Email = profile.Email;
-            user.Role = roleName;
             user.RoleId = WebAppUserRoleMigration.RoleId;
             user.IsActive = true;
-            SetWebAppRoleId(conn, user.Id);
         }
 
         return CreateLoginResponse(user);
@@ -152,17 +162,13 @@ public sealed class AuthService
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var fullName = string.IsNullOrWhiteSpace(user.FullName) ? user.Username : user.FullName;
-        var role = user.RoleId == WebAppUserRoleMigration.RoleId
-            ? WebAppUserRoleMigration.RoleName
-            : string.IsNullOrWhiteSpace(user.Role) ? "User" : user.Role;
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Name, fullName),
             new Claim(ClaimTypes.Name, fullName),
-            new Claim(ClaimTypes.Role, role),
-            new Claim("roleId", user.RoleId?.ToString() ?? string.Empty),
+            new Claim(AuthorizationPolicies.RoleIdClaimType, user.RoleId?.ToString() ?? string.Empty),
             new Claim("username", user.Username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
@@ -178,7 +184,6 @@ public sealed class AuthService
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
             FullName = fullName,
-            Role = role,
             RoleId = user.RoleId,
             UserId = user.Id,
             ExpiresAt = expiry
@@ -272,33 +277,17 @@ public sealed class AuthService
             FullName: NormalizeDisplayName(me.Name, me.Email, "Facebook User"));
     }
 
-    private string ResolveWebAppUserRoleName()
+    private void EnsureWebAppUserRoleExists()
     {
         using var conn = _factory.CreateConnection();
-        var roleName = conn.ExecuteScalar<string?>(
-            "SELECT Name FROM Roles WHERE Id = @RoleId AND IsActive = 1",
+        var exists = conn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM Roles WHERE Id = @RoleId AND IsActive = 1",
             new { RoleId = WebAppUserRoleMigration.RoleId });
 
-        if (string.IsNullOrWhiteSpace(roleName))
+        if (exists == 0)
         {
             throw new ValidationException("Web App User role id 4 is not configured.");
         }
-
-        return roleName;
-    }
-
-    private static void SetWebAppRoleId(IDbConnection conn, int userId)
-    {
-        conn.Execute(
-            """
-IF COL_LENGTH('dbo.Users', 'RoleId') IS NOT NULL
-BEGIN
-    UPDATE dbo.Users
-    SET RoleId = @RoleId
-    WHERE Id = @UserId;
-END;
-""",
-            new { RoleId = WebAppUserRoleMigration.RoleId, UserId = userId });
     }
 
     private static string BuildExternalUsername(string provider, string providerUserId)

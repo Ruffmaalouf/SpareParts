@@ -8,7 +8,7 @@ namespace SpareParts.Api.Controllers
 {
     [ApiController]
     [Route("api/web-catalog")]
-    [Authorize(Roles = WebAppUserRoleMigration.RoleName)]
+    [Authorize(Policy = AuthorizationPolicies.WebAppUser)]
     public sealed class WebCatalogController : SparePartsControllerBase
     {
         private readonly WebCatalogService _service;

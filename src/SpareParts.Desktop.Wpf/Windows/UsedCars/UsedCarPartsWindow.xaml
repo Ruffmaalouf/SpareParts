@@ -203,10 +203,78 @@
                            Foreground="{DynamicResource TextPrimaryBrush}"/>
             </Border>
         </DataTemplate>
+
+        <DataTemplate x:Key="PartRecommendationTemplate">
+            <Border Background="{DynamicResource CardHighlightBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="14"
+                    Margin="0 0 12 0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" LastChildFill="False">
+                        <Border Background="{DynamicResource CardBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="9"
+                                Padding="8 3"
+                                DockPanel.Dock="Left">
+                            <TextBlock Text="{Binding SourceLabel}"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource AccentBrush}"/>
+                        </Border>
+                        <Button Content="Select"
+                                Click="SelectRecommendation_Click"
+                                Style="{StaticResource HeaderActionButtonStyle}"
+                                Height="30"
+                                MinWidth="70"
+                                Padding="10 0"
+                                FontSize="11"
+                                DockPanel.Dock="Right"/>
+                    </DockPanel>
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding Name}"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="0 10 0 0"/>
+                    <TextBlock Grid.Row="2"
+                               Text="{Binding Code}"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0 3 0 10"/>
+
+                    <UniformGrid Grid.Row="3" Columns="3">
+                        <StackPanel Margin="0 0 10 0">
+                            <TextBlock Text="Value" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding OpportunityLabel}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                        <StackPanel Margin="0 0 10 0">
+                            <TextBlock Text="Margin" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding MarginLabel}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding QuantityLabel}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid Margin="18">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -338,7 +406,67 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="2">
+        <Border Grid.Row="2"
+                Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="16"
+                Padding="18"
+                Margin="0 0 0 16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 14">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="BEST NEXT PARTS"
+                                   FontSize="10"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentBrush}"/>
+                        <TextBlock Text="Teardown Profit Map"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="0 5 0 0"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding RecommendationSummary}"
+                               DockPanel.Dock="Right"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center"
+                               TextAlignment="Right"/>
+                </DockPanel>
+
+                <Grid Grid.Row="1">
+                    <TextBlock Text="No stocked linked parts or candidates match the current search."
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasRecommendedParts}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <ItemsControl ItemsSource="{Binding RecommendedParts}"
+                                  ItemTemplate="{StaticResource PartRecommendationTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="3"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2.35*"/>
                 <ColumnDefinition Width="196"/>
@@ -544,7 +672,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3"
+        <Border Grid.Row="4"
                 Background="{DynamicResource CardBackgroundBrush}"
                 CornerRadius="14"
                 Padding="16"

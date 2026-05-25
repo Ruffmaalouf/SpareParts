@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Services;
 
@@ -24,11 +25,11 @@ namespace SpareParts.Api.Controllers
         public ActionResult<RoleDto> GetById(int id) => Ok(_service.GetById(id));
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AuthorizationPolicies.Admin)]
         public ActionResult<RoleDto> Create([FromBody] CreateRoleRequest req) => Ok(_service.Create(req));
 
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AuthorizationPolicies.Admin)]
         public ActionResult Update(int id, [FromBody] UpdateRoleRequest req)
         {
             _service.Update(id, req);
@@ -36,7 +37,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AuthorizationPolicies.Admin)]
         public ActionResult Delete(int id)
         {
             _service.Delete(id);
@@ -47,12 +48,8 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<RoleMenuAccessDto>> GetMenuAccessByRoleId(int id)
             => Ok(_service.GetMenuAccessByRoleId(id));
 
-        [HttpGet("by-name/{roleName}/menu-access")]
-        public ActionResult<IEnumerable<RoleMenuAccessDto>> GetMenuAccessByRoleName(string roleName)
-            => Ok(_service.GetMenuAccessByRoleName(roleName));
-
         [HttpPut("{id:int}/menu-access")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AuthorizationPolicies.Admin)]
         public ActionResult UpdateMenuAccess(int id, [FromBody] UpdateRoleMenuAccessRequest req)
         {
             _service.UpdateMenuAccess(id, req);

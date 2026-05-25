@@ -1,4 +1,5 @@
 using Dapper;
+using SpareParts.Domain.Auth;
 using SpareParts.Domain.Reports;
 using System.Data;
 using System.Globalization;
@@ -174,21 +175,25 @@ WHERE s.name = @SchemaName
         };
     }
 
-    public ReportSecurityOptionsDto GetSecurityOptions(string currentRoleName)
+    public ReportSecurityOptionsDto GetSecurityOptions(int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
         var (baseCurrencyCode, counterCurrencyCode) = GetConfiguredCurrencyContext(connection);
+        var roles = connection.Query<RoleSecurityOptionDto>(
+            @"SELECT Id AS RoleId, Name AS RoleName FROM dbo.Roles WHERE IsActive = 1 ORDER BY Name;")
+            .ToList();
+
         return new ReportSecurityOptionsDto
         {
-            CurrentRoleName = currentRoleName ?? string.Empty,
+            CurrentRoleId = currentRoleId,
             DefaultBaseCurrencyCode = baseCurrencyCode,
             DefaultCounterCurrencyCode = counterCurrencyCode,
-            RoleNames = connection.Query<string>("SELECT Name FROM dbo.Roles WHERE IsActive = 1 ORDER BY Name;").ToList(),
+            Roles = roles,
             CurrencyCodes = GetAvailableCurrencyCodes(connection, baseCurrencyCode, counterCurrencyCode)
         };
     }
 
-    public IReadOnlyList<ReportSavedReportSummaryDto> GetSavedReports(int currentUserId, string currentRoleName)
+    public IReadOnlyList<ReportSavedReportSummaryDto> GetSavedReports(int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
         var summaries = connection.Query<ReportSavedReportSummaryDto>(
@@ -215,7 +220,7 @@ ORDER BY [Name], Id;")
         foreach (var summary in summaries)
         {
             summary.TableDisplayName = ToDisplayName(ParseTableKey(summary.TableKey).TableName);
-            ApplySavedReportPermissions(summary, accessLookup.TryGetValue(summary.Id, out var accessRules) ? accessRules : [], favorites, currentUserId, currentRoleName);
+            ApplySavedReportPermissions(summary, accessLookup.TryGetValue(summary.Id, out var accessRules) ? accessRules : [], favorites, currentUserId, currentRoleId);
         }
 
         return summaries
@@ -225,13 +230,13 @@ ORDER BY [Name], Id;")
             .ToList();
     }
 
-    public ReportSavedReportDetailDto GetSavedReport(int id, int currentUserId, string currentRoleName)
+    public ReportSavedReportDetailDto GetSavedReport(int id, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        return GetSavedReportDetail(connection, id, currentUserId, currentRoleName, requireEdit: false);
+        return GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false);
     }
 
-    public ReportSavedReportDetailDto SaveReport(SaveReportDefinitionRequest request, int currentUserId, string currentRoleName)
+    public ReportSavedReportDetailDto SaveReport(SaveReportDefinitionRequest request, int currentUserId, int currentRoleId)
     {
         if (request == null)
         {
@@ -251,12 +256,11 @@ ORDER BY [Name], Id;")
 
         using var connection = _factory.CreateConnection();
         var existing = request.Id is > 0
-            ? GetSavedReportDetail(connection, request.Id.Value, currentUserId, currentRoleName, requireEdit: true)
+            ? GetSavedReportDetail(connection, request.Id.Value, currentUserId, currentRoleId, requireEdit: true)
             : null;
 
-        var validRoleNames = connection.Query<string>("SELECT Name FROM dbo.Roles WHERE IsActive = 1;")
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var accessRules = NormalizeAccessRules(request.AccessRules, validRoleNames);
+        var validRoleIds = connection.Query<int>("SELECT Id FROM dbo.Roles WHERE IsActive = 1;").ToHashSet();
+        var accessRules = NormalizeAccessRules(request.AccessRules, validRoleIds);
         var definitionJson = JsonSerializer.Serialize(layout, ReportJsonOptions);
         var normalizedExportFormat = NormalizeExportFormat(request.DefaultExportFormat);
         var normalizedChartType = NormalizeChartType(request.PreferredChartType);
@@ -340,12 +344,12 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
         {
             connection.Execute(
                 @"
-INSERT INTO dbo.ReportBuilderSavedReportRoles (ReportId, RoleName, CanView, CanEdit, CanExport)
-VALUES (@ReportId, @RoleName, @CanView, @CanEdit, @CanExport);",
+INSERT INTO dbo.ReportBuilderSavedReportRoles (ReportId, RoleId, CanView, CanEdit, CanExport)
+VALUES (@ReportId, @RoleId, @CanView, @CanEdit, @CanExport);",
                 new
                 {
                     ReportId = reportId,
-                    accessRule.RoleName,
+                    accessRule.RoleId,
                     accessRule.CanView,
                     accessRule.CanEdit,
                     accessRule.CanExport
@@ -353,13 +357,13 @@ VALUES (@ReportId, @RoleName, @CanView, @CanEdit, @CanExport);",
         }
 
         SetFavoriteInternal(connection, reportId, currentUserId, request.IsFavorite);
-        return GetSavedReportDetail(connection, reportId, currentUserId, currentRoleName, requireEdit: false);
+        return GetSavedReportDetail(connection, reportId, currentUserId, currentRoleId, requireEdit: false);
     }
 
-    public void DeleteSavedReport(int id, int currentUserId, string currentRoleName)
+    public void DeleteSavedReport(int id, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleName, requireEdit: true);
+        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: true);
 
         var affected = connection.Execute(
             @"
@@ -377,15 +381,15 @@ WHERE Id = @Id
         }
     }
 
-    public ReportSavedReportSummaryDto SetFavorite(int id, bool isFavorite, int currentUserId, string currentRoleName)
+    public ReportSavedReportSummaryDto SetFavorite(int id, bool isFavorite, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleName, requireEdit: false);
+        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false);
         SetFavoriteInternal(connection, id, currentUserId, isFavorite);
-        return GetSavedReportDetail(connection, id, currentUserId, currentRoleName, requireEdit: false);
+        return GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false);
     }
 
-    public BackgroundReportRunSummaryDto QueueBackgroundRun(QueueBackgroundReportRunRequest request, int currentUserId, string currentRoleName)
+    public BackgroundReportRunSummaryDto QueueBackgroundRun(QueueBackgroundReportRunRequest request, int currentUserId, int currentRoleId)
     {
         if (request == null)
         {
@@ -410,7 +414,7 @@ INSERT INTO dbo.ReportBuilderBackgroundRuns
 (
     ReportName,
     RequestedByUserId,
-    RequestedByRoleName,
+    RequestedByRoleId,
     [Status],
     ProgressPercent,
     RequestJson
@@ -419,7 +423,7 @@ VALUES
 (
     @ReportName,
     @RequestedByUserId,
-    @RequestedByRoleName,
+    @RequestedByRoleId,
     N'Queued',
     0,
     @RequestJson
@@ -430,7 +434,7 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
             {
                 ReportName = reportName,
                 RequestedByUserId = currentUserId,
-                RequestedByRoleName = NormalizeOptionalText(currentRoleName),
+                RequestedByRoleId = currentRoleId,
                 RequestJson = requestJson
             });
 
@@ -449,10 +453,10 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
         };
     }
 
-    public IReadOnlyList<BackgroundReportRunSummaryDto> GetBackgroundRuns(int currentUserId, string currentRoleName)
+    public IReadOnlyList<BackgroundReportRunSummaryDto> GetBackgroundRuns(int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        var isAdmin = string.Equals(currentRoleName, "Admin", StringComparison.OrdinalIgnoreCase);
+        var isAdmin = currentRoleId == (int)UserRole.Admin;
         var sql = isAdmin
             ? @"
 SELECT TOP (60)
@@ -491,7 +495,7 @@ ORDER BY Id DESC;";
         return connection.Query<BackgroundReportRunSummaryDto>(sql, new { UserId = currentUserId }).ToList();
     }
 
-    public ReportResultDto GetBackgroundRunResult(int id, int currentUserId, string currentRoleName)
+    public ReportResultDto GetBackgroundRunResult(int id, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
         var row = connection.QuerySingleOrDefault(
@@ -512,7 +516,7 @@ WHERE Id = @Id;",
         var requestedByUserId = ToInt32(values["RequestedByUserId"]);
         var status = Convert.ToString(values["Status"], CultureInfo.InvariantCulture) ?? string.Empty;
         var resultJson = Convert.ToString(values["ResultJson"], CultureInfo.InvariantCulture);
-        var isAdmin = string.Equals(currentRoleName, "Admin", StringComparison.OrdinalIgnoreCase);
+        var isAdmin = currentRoleId == (int)UserRole.Admin;
 
         if (!isAdmin && requestedByUserId != currentUserId)
         {
@@ -596,7 +600,7 @@ WHERE Id = @Id;",
         }
     }
 
-    private ReportSavedReportDetailDto GetSavedReportDetail(IDbConnection connection, int id, int currentUserId, string currentRoleName, bool requireEdit)
+    private ReportSavedReportDetailDto GetSavedReportDetail(IDbConnection connection, int id, int currentUserId, int currentRoleId, bool requireEdit)
     {
         var row = connection.QuerySingleOrDefault(
             @"
@@ -647,7 +651,7 @@ WHERE Id = @Id
                 : [];
 
         var favorites = GetFavoriteReportIds(connection, currentUserId);
-        ApplySavedReportPermissions(detail, detail.AccessRules, favorites, currentUserId, currentRoleName);
+        ApplySavedReportPermissions(detail, detail.AccessRules, favorites, currentUserId, currentRoleId);
 
         if (requireEdit && !detail.CanEdit)
         {
@@ -736,23 +740,22 @@ WHERE Id = @Id
         };
     }
 
-    private static List<ReportSavedReportRoleAccessDto> NormalizeAccessRules(IEnumerable<ReportSavedReportRoleAccessDto>? source, ISet<string> validRoleNames)
+    private static List<ReportSavedReportRoleAccessDto> NormalizeAccessRules(IEnumerable<ReportSavedReportRoleAccessDto>? source, ISet<int> validRoleIds)
     {
         var accessRules = new List<ReportSavedReportRoleAccessDto>();
         foreach (var item in source ?? [])
         {
-            var roleName = item.RoleName?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(roleName))
+            if (item.RoleId <= 0)
             {
                 continue;
             }
 
-            if (!validRoleNames.Contains(roleName))
+            if (!validRoleIds.Contains(item.RoleId))
             {
-                throw new ValidationException($"Role '{roleName}' was not found.");
+                throw new ValidationException($"Role ID '{item.RoleId}' was not found.");
             }
 
-            var existing = accessRules.FirstOrDefault(rule => string.Equals(rule.RoleName, roleName, StringComparison.OrdinalIgnoreCase));
+            var existing = accessRules.FirstOrDefault(rule => rule.RoleId == item.RoleId);
             if (existing != null)
             {
                 existing.CanView = item.CanView;
@@ -763,7 +766,8 @@ WHERE Id = @Id
 
             accessRules.Add(new ReportSavedReportRoleAccessDto
             {
-                RoleName = roleName,
+                RoleId = item.RoleId,
+                RoleName = item.RoleName,
                 CanView = item.CanView,
                 CanEdit = item.CanEdit,
                 CanExport = item.CanExport
@@ -778,11 +782,11 @@ WHERE Id = @Id
         IReadOnlyList<ReportSavedReportRoleAccessDto> accessRules,
         ISet<int> favoriteIds,
         int currentUserId,
-        string currentRoleName)
+        int currentRoleId)
     {
-        var isAdmin = string.Equals(currentRoleName, "Admin", StringComparison.OrdinalIgnoreCase);
+        var isAdmin = currentRoleId == (int)UserRole.Admin;
         var isOwner = summary.CreatedByUserId == currentUserId;
-        var matchingRole = accessRules.FirstOrDefault(rule => string.Equals(rule.RoleName, currentRoleName, StringComparison.OrdinalIgnoreCase));
+        var matchingRole = accessRules.FirstOrDefault(rule => rule.RoleId == currentRoleId);
         var hasCustomSecurity = accessRules.Count > 0;
 
         summary.CanView = isAdmin
@@ -839,12 +843,14 @@ END;",
         var rows = connection.Query(
             @"
 SELECT ReportId,
-       RoleName,
+       rr.RoleId,
+       r.Name AS RoleName,
        CanView,
        CanEdit,
        CanExport
-FROM dbo.ReportBuilderSavedReportRoles
-WHERE ReportId IN @Ids;",
+FROM dbo.ReportBuilderSavedReportRoles rr
+LEFT JOIN dbo.Roles r ON r.Id = rr.RoleId
+WHERE rr.ReportId IN @Ids;",
             new { Ids = ids });
 
         foreach (var row in rows)
@@ -859,6 +865,7 @@ WHERE ReportId IN @Ids;",
 
             list.Add(new ReportSavedReportRoleAccessDto
             {
+                RoleId = ToInt32(data["RoleId"]),
                 RoleName = Convert.ToString(data["RoleName"], CultureInfo.InvariantCulture) ?? string.Empty,
                 CanView = ToBoolean(data["CanView"]),
                 CanEdit = ToBoolean(data["CanEdit"]),

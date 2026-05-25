@@ -6,7 +6,6 @@ namespace SpareParts.Api.Infrastructure;
 public static class WebAppUserRoleMigration
 {
     public const int RoleId = 4;
-    public const string RoleName = "Web App User";
 
     public static void EnsureApplied(ISqlConnectionFactory factory)
     {

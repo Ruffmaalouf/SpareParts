@@ -48,6 +48,7 @@ public static class SparePartsApiComposition
         nameof(InvoiceNumberingMigration),
         nameof(AccountingMigration),
         nameof(WebAppUserRoleMigration),
+        nameof(UserRoleIdMigration),
         nameof(MenuAccessMigration),
         nameof(TransactionTypesMigration),
         nameof(PartAveragePriceMigration),
@@ -160,7 +161,7 @@ public static class SparePartsApiComposition
                 };
             });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(AuthorizationPolicies.AddRoleIdPolicies);
         builder.Services.AddSignalR();
 
         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
@@ -228,9 +229,17 @@ public static class SparePartsApiComposition
                 client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             });
+            services.AddHttpClient<VisualPartSearchService>((serviceProvider, client) =>
+            {
+                var options = serviceProvider.GetRequiredService<OpenAiOptions>();
+                client.BaseAddress = new Uri(options.BaseUrl, UriKind.Absolute);
+                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            });
 
             services.AddScoped<PartsService>();
             services.AddScoped<PartRequestsService>();
+            services.AddHostedService<PartReservationClockHostedService>();
             services.AddScoped<WarehousesService>();
             services.AddScoped<TransactionTypesService>();
             services.AddScoped<ScanLookupService>();
@@ -307,6 +316,7 @@ public static class SparePartsApiComposition
         InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
         AccountingMigration.EnsureApplied(sqlConnectionFactory);
         WebAppUserRoleMigration.EnsureApplied(sqlConnectionFactory);
+        UserRoleIdMigration.EnsureApplied(sqlConnectionFactory);
         MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
         TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
         PartAveragePriceMigration.EnsureApplied(sqlConnectionFactory);

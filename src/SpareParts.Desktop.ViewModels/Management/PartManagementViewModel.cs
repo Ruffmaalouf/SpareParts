@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Abstractions.Dialogs;
 using SpareParts.Desktop.Wpf.Helpers;
+using SpareParts.Desktop.Wpf.Pricing;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using System.Collections.ObjectModel;
@@ -28,6 +29,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private int? _newPartBrandId;
         private string _newPartNotes = string.Empty;
         private PartDto? _selectedPart;
+        private SmartPricingCoachResult _pricingCoach = SmartPricingCoach.Evaluate(null);
         private bool _isGeneratingPartNotes;
         private bool _isImportingParts;
 
@@ -72,6 +74,9 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public string PartAiButtonText => IsGeneratingPartNotes ? "AI is drafting notes..." : "✨ Draft Notes with AI";
         public string PartImportButtonText => IsImportingParts ? "Importing workbook..." : "⬆ Import Parts from Excel";
+        public string SmartPricingCoachMessage => _pricingCoach.Message;
+        public string SmartPricingCoachBadge => _pricingCoach.Badge;
+        public string SmartPricingCoachTone => _pricingCoach.Tone;
 
         public void Configure(
             ManagementCoordinator coordinator,
@@ -133,31 +138,61 @@ namespace SpareParts.Desktop.Wpf.Management
         public decimal NewPartCostPrice
         {
             get => _newPartCostPrice;
-            set => SetProperty(ref _newPartCostPrice, value);
+            set
+            {
+                if (SetProperty(ref _newPartCostPrice, value))
+                {
+                    UpdatePricingCoach();
+                }
+            }
         }
 
         public decimal NewPartSalePrice
         {
             get => _newPartSalePrice;
-            set => SetProperty(ref _newPartSalePrice, value);
+            set
+            {
+                if (SetProperty(ref _newPartSalePrice, value))
+                {
+                    UpdatePricingCoach();
+                }
+            }
         }
 
         public string NewPartAveragePrice
         {
             get => _newPartAveragePrice;
-            set => SetProperty(ref _newPartAveragePrice, value);
+            set
+            {
+                if (SetProperty(ref _newPartAveragePrice, value))
+                {
+                    UpdatePricingCoach();
+                }
+            }
         }
 
         public string NewPartCurrency
         {
             get => _newPartCurrency;
-            set => SetProperty(ref _newPartCurrency, value);
+            set
+            {
+                if (SetProperty(ref _newPartCurrency, value))
+                {
+                    UpdatePricingCoach();
+                }
+            }
         }
 
         public int NewPartMinStock
         {
             get => _newPartMinStock;
-            set => SetProperty(ref _newPartMinStock, value);
+            set
+            {
+                if (SetProperty(ref _newPartMinStock, value))
+                {
+                    UpdatePricingCoach();
+                }
+            }
         }
 
         public int NewPartCategoryId
@@ -192,6 +227,10 @@ namespace SpareParts.Desktop.Wpf.Management
                 {
                     PopulateForm(value);
                 }
+                else
+                {
+                    UpdatePricingCoach();
+                }
             }
         }
 
@@ -209,6 +248,7 @@ namespace SpareParts.Desktop.Wpf.Management
             NewPartCurrency = p.Currency;
             NewPartMinStock = p.MinStock;
             NewPartNotes = p.Notes ?? string.Empty;
+            UpdatePricingCoach();
         }
 
         public void ClearForm(string defaultCurrencyCode = "USD")
@@ -220,6 +260,7 @@ namespace SpareParts.Desktop.Wpf.Management
             NewPartCategoryId = 1;
             NewPartBrandId = null;
             SelectedPart = null;
+            UpdatePricingCoach();
         }
 
         public void StartNew() => ClearForm(_getDefaultCurrencyCode?.Invoke() ?? "USD");
@@ -338,6 +379,22 @@ namespace SpareParts.Desktop.Wpf.Management
             {
                 target.Add(item);
             }
+        }
+
+        private void UpdatePricingCoach()
+        {
+            var averagePrice = SmartPricingCoach.ParseAveragePrice(NewPartAveragePrice);
+            var availableQuantity = SelectedPart?.AvailableQuantity ?? SelectedPart?.StockQuantity ?? 0;
+            _pricingCoach = SmartPricingCoach.Evaluate(
+                NewPartCostPrice,
+                NewPartSalePrice,
+                averagePrice,
+                NewPartCurrency,
+                availableQuantity,
+                NewPartMinStock);
+            OnPropertyChanged(nameof(SmartPricingCoachMessage));
+            OnPropertyChanged(nameof(SmartPricingCoachBadge));
+            OnPropertyChanged(nameof(SmartPricingCoachTone));
         }
     }
 }

@@ -90,14 +90,94 @@ BEGIN
     CREATE TABLE dbo.ReportBuilderSavedReportRoles
     (
         ReportId INT NOT NULL,
-        RoleName NVARCHAR(100) NOT NULL,
+        RoleId INT NOT NULL,
         CanView BIT NOT NULL CONSTRAINT DF_ReportBuilderSavedReportRoles_CanView DEFAULT (1),
         CanEdit BIT NOT NULL CONSTRAINT DF_ReportBuilderSavedReportRoles_CanEdit DEFAULT (0),
         CanExport BIT NOT NULL CONSTRAINT DF_ReportBuilderSavedReportRoles_CanExport DEFAULT (1),
         CreatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_ReportBuilderSavedReportRoles_CreatedAt DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT PK_ReportBuilderSavedReportRoles PRIMARY KEY (ReportId, RoleName),
-        CONSTRAINT FK_ReportBuilderSavedReportRoles_Report FOREIGN KEY (ReportId) REFERENCES dbo.ReportBuilderSavedReports(Id) ON DELETE CASCADE
+        CONSTRAINT PK_ReportBuilderSavedReportRoles PRIMARY KEY (ReportId, RoleId),
+        CONSTRAINT FK_ReportBuilderSavedReportRoles_Report FOREIGN KEY (ReportId) REFERENCES dbo.ReportBuilderSavedReports(Id) ON DELETE CASCADE,
+        CONSTRAINT FK_ReportBuilderSavedReportRoles_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(Id)
     );
+END;
+
+IF COL_LENGTH('dbo.ReportBuilderSavedReportRoles', 'RoleId') IS NULL
+BEGIN
+    ALTER TABLE dbo.ReportBuilderSavedReportRoles ADD RoleId INT NULL;
+END;
+
+IF COL_LENGTH('dbo.ReportBuilderSavedReportRoles', 'RoleName') IS NOT NULL
+BEGIN
+    EXEC(N'
+UPDATE rr
+SET RoleId = r.Id
+FROM dbo.ReportBuilderSavedReportRoles rr
+INNER JOIN dbo.Roles r ON r.Name = rr.RoleName
+WHERE rr.RoleId IS NULL;');
+END;
+
+EXEC(N'
+DELETE rr
+FROM dbo.ReportBuilderSavedReportRoles rr
+WHERE rr.RoleId IS NULL
+   OR NOT EXISTS (SELECT 1 FROM dbo.Roles r WHERE r.Id = rr.RoleId);');
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.key_constraints
+    WHERE parent_object_id = OBJECT_ID(N'dbo.ReportBuilderSavedReportRoles')
+      AND [type] = 'PK'
+      AND name = N'PK_ReportBuilderSavedReportRoles'
+      AND EXISTS (
+          SELECT 1
+          FROM sys.index_columns ic
+          INNER JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+          WHERE ic.object_id = OBJECT_ID(N'dbo.ReportBuilderSavedReportRoles')
+            AND ic.index_id = (SELECT unique_index_id FROM sys.key_constraints WHERE parent_object_id = OBJECT_ID(N'dbo.ReportBuilderSavedReportRoles') AND name = N'PK_ReportBuilderSavedReportRoles')
+            AND c.name = N'RoleName'
+      )
+)
+BEGIN
+    ALTER TABLE dbo.ReportBuilderSavedReportRoles DROP CONSTRAINT PK_ReportBuilderSavedReportRoles;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID(N'dbo.ReportBuilderSavedReportRoles')
+      AND name = N'RoleId'
+      AND is_nullable = 1
+)
+BEGIN
+    ALTER TABLE dbo.ReportBuilderSavedReportRoles ALTER COLUMN RoleId INT NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.key_constraints
+    WHERE parent_object_id = OBJECT_ID(N'dbo.ReportBuilderSavedReportRoles')
+      AND [type] = 'PK'
+      AND name = N'PK_ReportBuilderSavedReportRoles'
+)
+BEGIN
+    ALTER TABLE dbo.ReportBuilderSavedReportRoles
+    ADD CONSTRAINT PK_ReportBuilderSavedReportRoles PRIMARY KEY (ReportId, RoleId);
+END;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE parent_object_id = OBJECT_ID(N'dbo.ReportBuilderSavedReportRoles')
+      AND name = N'FK_ReportBuilderSavedReportRoles_Roles'
+)
+BEGIN
+    ALTER TABLE dbo.ReportBuilderSavedReportRoles WITH CHECK
+    ADD CONSTRAINT FK_ReportBuilderSavedReportRoles_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(Id);
+END;
+
+IF COL_LENGTH('dbo.ReportBuilderSavedReportRoles', 'RoleName') IS NOT NULL
+BEGIN
+    ALTER TABLE dbo.ReportBuilderSavedReportRoles DROP COLUMN RoleName;
 END;
 
 IF OBJECT_ID('dbo.ReportBuilderFavoriteReports', 'U') IS NULL
@@ -119,7 +199,7 @@ BEGIN
         Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         ReportName NVARCHAR(160) NOT NULL,
         RequestedByUserId INT NOT NULL,
-        RequestedByRoleName NVARCHAR(100) NULL,
+        RequestedByRoleId INT NULL,
         [Status] NVARCHAR(30) NOT NULL CONSTRAINT DF_ReportBuilderBackgroundRuns_Status DEFAULT ('Queued'),
         ProgressPercent INT NOT NULL CONSTRAINT DF_ReportBuilderBackgroundRuns_Progress DEFAULT (0),
         RequestJson NVARCHAR(MAX) NOT NULL,
@@ -133,9 +213,21 @@ BEGIN
     );
 END;
 
-IF COL_LENGTH('dbo.ReportBuilderBackgroundRuns', 'RequestedByRoleName') IS NULL
+IF COL_LENGTH('dbo.ReportBuilderBackgroundRuns', 'RequestedByRoleId') IS NULL
 BEGIN
-    ALTER TABLE dbo.ReportBuilderBackgroundRuns ADD RequestedByRoleName NVARCHAR(100) NULL;
+    ALTER TABLE dbo.ReportBuilderBackgroundRuns ADD RequestedByRoleId INT NULL;
+END;
+
+IF COL_LENGTH('dbo.ReportBuilderBackgroundRuns', 'RequestedByRoleName') IS NOT NULL
+BEGIN
+    EXEC(N'
+UPDATE br
+SET RequestedByRoleId = r.Id
+FROM dbo.ReportBuilderBackgroundRuns br
+INNER JOIN dbo.Roles r ON r.Name = br.RequestedByRoleName
+WHERE br.RequestedByRoleId IS NULL;');
+
+    ALTER TABLE dbo.ReportBuilderBackgroundRuns DROP COLUMN RequestedByRoleName;
 END;
 
 IF COL_LENGTH('dbo.ReportBuilderBackgroundRuns', 'Status') IS NULL

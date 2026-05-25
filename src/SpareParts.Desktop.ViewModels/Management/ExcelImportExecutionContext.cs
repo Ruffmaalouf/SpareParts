@@ -22,7 +22,6 @@ namespace SpareParts.Desktop.Wpf.Management
         public IReadOnlyCollection<UsedCarEntry> UsedCars { get; init; } = Array.Empty<UsedCarEntry>();
         public IReadOnlyCollection<AccountDto> Accounts { get; init; } = Array.Empty<AccountDto>();
         public IReadOnlyCollection<AccountTypeDefinitionDto> AccountTypes { get; init; } = Array.Empty<AccountTypeDefinitionDto>();
-        public IReadOnlyCollection<string> RoleNames { get; init; } = Array.Empty<string>();
         public string BaseCurrencyCode { get; init; } = "USD";
         public string CounterCurrencyCode { get; init; } = "USD";
         public decimal DefaultCounterRate { get; init; } = 1m;

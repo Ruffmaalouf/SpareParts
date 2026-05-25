@@ -3,6 +3,7 @@ using SpareParts.Domain.Auth;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -14,6 +15,7 @@ namespace SpareParts.Desktop.Wpf
     public class UsersViewModel : INotifyPropertyChanged
     {
         public ObservableCollection<UserManagementDto> Users { get; } = new();
+        public ObservableCollection<RoleItem> RoleOptions { get; } = new();
 
         // ── Form fields ───────────────────────────────────────────────────────
         private UserManagementDto? _selectedUser;
@@ -36,6 +38,7 @@ namespace SpareParts.Desktop.Wpf
         private string _formEmail    = string.Empty;
         private string _formPassword = string.Empty;
         private string _formRole     = "Cashier";
+        private int?   _formRoleId   = (int)UserRole.Cashier;
         private bool   _formIsActive = true;
 
         public string FormUsername { get => _formUsername; set { _formUsername = value; OnPropertyChanged(nameof(FormUsername)); } }
@@ -43,9 +46,8 @@ namespace SpareParts.Desktop.Wpf
         public string FormEmail    { get => _formEmail;    set { _formEmail    = value; OnPropertyChanged(nameof(FormEmail)); } }
         public string FormPassword { get => _formPassword; set { _formPassword = value; OnPropertyChanged(nameof(FormPassword)); } }
         public string FormRole     { get => _formRole;     set { _formRole     = value; OnPropertyChanged(nameof(FormRole)); } }
+        public int?   FormRoleId   { get => _formRoleId;   set { _formRoleId   = value; OnPropertyChanged(nameof(FormRoleId)); } }
         public bool   FormIsActive { get => _formIsActive; set { _formIsActive = value; OnPropertyChanged(nameof(FormIsActive)); } }
-
-        public string[] Roles { get; } = { "Admin", "Manager", "Cashier" };
 
         private string _status = string.Empty;
         public string Status
@@ -70,15 +72,17 @@ namespace SpareParts.Desktop.Wpf
 
         // ── Dependencies / Commands ──────────────────────────────────────────
         private readonly IUserApiClient _usersApi;
+        private readonly IRoleApiClient _rolesApi;
 
         public ICommand LoadCommand       { get; }
         public ICommand NewCommand        { get; }
         public ICommand SaveCommand       { get; }
         public ICommand DeactivateCommand { get; }
 
-        public UsersViewModel(IUserApiClient usersApi)
+        public UsersViewModel(IUserApiClient usersApi, IRoleApiClient rolesApi)
         {
             _usersApi = usersApi;
+            _rolesApi = rolesApi;
 
             LoadCommand       = new RelayCommand(_ => _ = LoadAsync());
             NewCommand        = new RelayCommand(_ => ClearForm());
@@ -93,9 +97,23 @@ namespace SpareParts.Desktop.Wpf
             SetStatus(string.Empty, true);
             try
             {
+                var roles = await _rolesApi.GetRolesAsync();
                 var list = await _usersApi.GetUsersAsync();
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
+                    RoleOptions.Clear();
+                    foreach (var role in roles)
+                    {
+                        RoleOptions.Add(new RoleItem
+                        {
+                            Id = role.Id,
+                            Name = role.Name,
+                            Description = role.Description ?? string.Empty,
+                            BadgeColor = role.BadgeColor,
+                            BadgeTextColor = role.BadgeTextColor
+                        });
+                    }
+
                     Users.Clear();
                     foreach (var u in list) Users.Add(UserManagementDto.FromUser(u));
                 });
@@ -128,7 +146,7 @@ namespace SpareParts.Desktop.Wpf
                         FullName = FormFullName.Trim(),
                         Email    = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
                         Password = FormPassword,
-                        Role     = FormRole
+                        RoleId   = ResolveRoleId()
                     });
                     SetStatus($"✓ User '{FormUsername}' created.", true);
                 }
@@ -138,7 +156,7 @@ namespace SpareParts.Desktop.Wpf
                     {
                         FullName    = FormFullName.Trim(),
                         Email       = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
-                        Role        = FormRole,
+                        RoleId      = ResolveRoleId(),
                         IsActive    = FormIsActive,
                         NewPassword = string.IsNullOrWhiteSpace(FormPassword) ? null : FormPassword
                     });
@@ -149,6 +167,7 @@ namespace SpareParts.Desktop.Wpf
                 await LoadAsync();
             }
             catch (ApiClientException ex) { SetStatus($"✗ API error ({ex.Code}): {ex.Message}", false); }
+            catch (InvalidOperationException ex) { SetStatus($"✗ {ex.Message}", false); }
             catch (Exception) { SetStatus("✗ Unexpected error while saving user.", false); }
             finally { IsBusy = false; }
         }
@@ -182,7 +201,8 @@ namespace SpareParts.Desktop.Wpf
             FormFullName = u.FullName;
             FormEmail    = u.Email ?? string.Empty;
             FormPassword = string.Empty; // never pre-fill password
-            FormRole     = u.Role;
+            FormRoleId   = u.RoleId;
+            FormRole     = GetRoleName(FormRoleId) ?? u.Role;
             FormIsActive = u.IsActive;
         }
 
@@ -190,8 +210,34 @@ namespace SpareParts.Desktop.Wpf
         {
             SelectedUser = null;
             FormUsername = FormFullName = FormEmail = FormPassword = string.Empty;
-            FormRole     = "Cashier";
+            FormRoleId   = (int)UserRole.Cashier;
+            FormRole     = GetRoleName(FormRoleId) ?? string.Empty;
             FormIsActive = true;
+        }
+
+        private int ResolveRoleId()
+        {
+            if (FormRoleId is not > 0)
+            {
+                throw new InvalidOperationException("Select a valid role from Roles before saving the user.");
+            }
+
+            if (RoleOptions.Any(item => item.Id == FormRoleId.Value))
+            {
+                return FormRoleId.Value;
+            }
+
+            throw new InvalidOperationException("Select a valid role from Roles before saving the user.");
+        }
+
+        private string? GetRoleName(int? roleId)
+        {
+            if (roleId is not > 0)
+            {
+                return null;
+            }
+
+            return RoleOptions.FirstOrDefault(role => role.Id == roleId.Value)?.Name;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

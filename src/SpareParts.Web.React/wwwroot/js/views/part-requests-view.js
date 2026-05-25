@@ -1,25 +1,64 @@
-import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
+import { React, h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
 import { asRows, dateTime } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
-const statusOptions = ["Active", "Open", "Contacted", "Fulfilled", "Cancelled"];
+const statusOptions = ["Active", "Open", "Contacted", "Reserved", "Fulfilled", "Cancelled"];
+const reservationActionOptions = [
+  { value: "AutoRelease", label: "Auto release" },
+  { value: "StaffReminder", label: "Remind staff" }
+];
 
-const emptyForm = {
-  customerId: "",
-  customerName: "",
-  customerPhone: "",
-  partId: "",
-  requestedPartName: "",
-  requestedOemNumber: "",
-  vehicleDetails: "",
-  quantity: "1",
-  notes: ""
-};
+function defaultReservationDeadline() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setHours(18, 0, 0, 0);
+  return date;
+}
+
+function toLocalDateTimeInputValue(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function createEmptyForm() {
+  return {
+    customerId: "",
+    customerName: "",
+    customerPhone: "",
+    partId: "",
+    requestedPartName: "",
+    requestedOemNumber: "",
+    vehicleDetails: "",
+    quantity: "1",
+    notes: "",
+    reserveOnCreate: false,
+    reservationExpiresAt: toLocalDateTimeInputValue(defaultReservationDeadline()),
+    reservationExpirationAction: "AutoRelease"
+  };
+}
 
 function readinessLabel(request) {
+  if (request.isReservationReminderDue) return "Reminder due";
+  if (request.isReserved) return "Reserved";
   if (request.isReadyToContact) return `${request.waitingCustomerCount || 1} waiting`;
   if (request.status === "Fulfilled" || request.status === "Cancelled") return request.status;
   return "Waiting";
+}
+
+function signalClassName(request) {
+  if (request.isReservationReminderDue) return "request-signal overdue";
+  if (request.isReserved) return "request-signal reserved";
+  return request.isReadyToContact ? "request-signal ready" : "request-signal";
+}
+
+function reservationClockLabel(request) {
+  if (!request.isReserved || !request.reservationExpiresAt) return "";
+  const prefix = request.isReservationReminderDue
+    ? "Reminder due"
+    : request.isReservationOverdue
+      ? "Overdue"
+      : "Until";
+  return `${prefix} ${dateTime(request.reservationExpiresAt)}`;
 }
 
 function matchesRequest(request, query) {
@@ -40,7 +79,7 @@ export function PartRequestsView({ api }) {
   const [requests, setRequests] = useState([]);
   const [parts, setParts] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => createEmptyForm());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Active");
   const [status, setStatus] = useState("");
@@ -83,6 +122,14 @@ export function PartRequestsView({ api }) {
     () => requests.filter((request) => request.status === "Open" || request.status === "Contacted").length,
     [requests]
   );
+  const reservedCount = useMemo(
+    () => requests.filter((request) => request.isReserved).length,
+    [requests]
+  );
+  const reminderCount = useMemo(
+    () => requests.filter((request) => request.isReservationReminderDue).length,
+    [requests]
+  );
 
   const setField = useCallback((key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -108,16 +155,34 @@ export function PartRequestsView({ api }) {
     }));
   }, [parts]);
 
+  const buildReservationPayload = useCallback((quantity, expirationAction) => {
+    let expiresAt = new Date(form.reservationExpiresAt || toLocalDateTimeInputValue(defaultReservationDeadline()));
+    if (Number.isNaN(expiresAt.getTime()) || expiresAt <= new Date()) {
+      expiresAt = defaultReservationDeadline();
+    }
+
+    return {
+      quantity: Math.max(1, Number(quantity || 1)),
+      expiresAt: expiresAt.toISOString(),
+      expirationAction
+    };
+  }, [form.reservationExpiresAt]);
+
   const createRequest = useCallback(async () => {
     if (!form.customerName.trim() || !form.requestedPartName.trim()) {
       setStatus("Customer and requested part are required.");
       return;
     }
 
+    if (form.reserveOnCreate && !form.partId) {
+      setStatus("Match a catalog part before starting a reservation clock.");
+      return;
+    }
+
     setIsSaving(true);
     setStatus("Saving part request...");
     try {
-      await api.post("/api/partrequests", {
+      const requestId = await api.post("/api/partrequests", {
         partId: form.partId ? Number(form.partId) : null,
         customerId: form.customerId ? Number(form.customerId) : null,
         customerName: form.customerName.trim(),
@@ -128,15 +193,55 @@ export function PartRequestsView({ api }) {
         quantity: Math.max(1, Number(form.quantity || 1)),
         notes: form.notes.trim() || null
       });
-      setForm(emptyForm);
-      setStatus("Part request saved.");
+      if (form.reserveOnCreate) {
+        await api.post(
+          `/api/partrequests/${requestId}/reserve`,
+          buildReservationPayload(form.quantity, form.reservationExpirationAction)
+        );
+      }
+
+      setForm(createEmptyForm());
+      setStatus(form.reserveOnCreate ? "Part request saved and reserved." : "Part request saved.");
       await load();
     } catch (error) {
       setStatus(error.message || "Could not save part request.");
     } finally {
       setIsSaving(false);
     }
-  }, [api, form, load]);
+  }, [api, buildReservationPayload, form, load]);
+
+  const reserveRequest = useCallback(async (request, expirationAction) => {
+    setIsSaving(true);
+    setStatus("Starting reservation clock...");
+    try {
+      await api.post(
+        `/api/partrequests/${request.id}/reserve`,
+        buildReservationPayload(request.quantity, expirationAction)
+      );
+      setStatus(expirationAction === "StaffReminder"
+        ? "Reserved until the deadline; staff will be reminded."
+        : "Reserved until the deadline; stock will auto-release.");
+      await load();
+    } catch (error) {
+      setStatus(error.message || "Could not reserve this request.");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [api, buildReservationPayload, load]);
+
+  const releaseReservation = useCallback(async (request) => {
+    setIsSaving(true);
+    setStatus("Releasing reservation...");
+    try {
+      await api.post(`/api/partrequests/${request.id}/release-reservation`, { reason: "Released by staff" });
+      setStatus("Reservation released.");
+      await load();
+    } catch (error) {
+      setStatus(error.message || "Could not release reservation.");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [api, load]);
 
   const updateStatus = useCallback(async (request, nextStatus) => {
     setIsSaving(true);
@@ -176,7 +281,9 @@ export function PartRequestsView({ api }) {
     }),
     h("section", { className: "module-summary" },
       h("div", null, h("span", null, "Ready to contact"), h("strong", null, readyCount)),
-      h("div", null, h("span", null, "Active demand"), h("strong", null, activeCount))
+      h("div", null, h("span", null, "Active demand"), h("strong", null, activeCount)),
+      h("div", null, h("span", null, "Reserved now"), h("strong", null, reservedCount)),
+      h("div", null, h("span", null, "Staff reminders"), h("strong", null, reminderCount))
     ),
     h("section", { className: "part-request-layout" },
       h("form", {
@@ -232,6 +339,31 @@ export function PartRequestsView({ api }) {
           h("label", null,
             h("span", null, "Notes"),
             h("textarea", { value: form.notes, onChange: (event) => setField("notes", event.target.value), rows: 3 })
+          ),
+          h("label", { className: "checkbox-field" },
+            h("input", {
+              type: "checkbox",
+              checked: form.reserveOnCreate,
+              onChange: (event) => setField("reserveOnCreate", event.target.checked)
+            }),
+            h("span", null, "Start reservation clock")
+          ),
+          h("label", null,
+            h("span", null, "Reserved until"),
+            h("input", {
+              type: "datetime-local",
+              value: form.reservationExpiresAt,
+              onChange: (event) => setField("reservationExpiresAt", event.target.value)
+            })
+          ),
+          h("label", null,
+            h("span", null, "Deadline action"),
+            h("select", {
+              value: form.reservationExpirationAction,
+              onChange: (event) => setField("reservationExpirationAction", event.target.value)
+            },
+              reservationActionOptions.map((option) => h("option", { key: option.value, value: option.value }, option.label))
+            )
           )
         )
       ),
@@ -245,18 +377,26 @@ export function PartRequestsView({ api }) {
         h(StatusLine, { status }),
         h(DataTable, {
           columns: [
-            { key: "signal", label: "Signal", render: (request) => h("span", { className: request.isReadyToContact ? "request-signal ready" : "request-signal" }, readinessLabel(request)) },
+            { key: "signal", label: "Signal", render: (request) => h("span", { className: signalClassName(request) }, readinessLabel(request)) },
             { key: "customer", label: "Customer", render: (request) => h("strong", null, request.customerName) },
             { key: "phone", label: "Phone", render: (request) => request.customerPhone || "" },
             { key: "part", label: "Requested", render: (request) => request.requestedPartName },
             { key: "code", label: "Matched", render: (request) => request.partInternalCode || request.matchedPartName || "No match" },
             { key: "available", label: "Available", render: (request) => request.availableQuantity },
+            { key: "reserved", label: "Reserved", render: (request) => request.reservedQuantity || "" },
+            { key: "clock", label: "Clock", render: (request) => reservationClockLabel(request) },
             { key: "status", label: "Status", render: (request) => request.status },
             { key: "created", label: "Created", render: (request) => dateTime(request.createdAt) },
             {
               key: "actions",
               label: "Actions",
               render: (request) => h("div", { className: "row-actions" },
+                request.isReserved
+                  ? h("button", { type: "button", onClick: () => releaseReservation(request), disabled: isSaving }, "Release")
+                  : h(React.Fragment, null,
+                    h("button", { type: "button", onClick: () => reserveRequest(request, "AutoRelease"), disabled: isSaving || !request.partId }, "Reserve"),
+                    h("button", { type: "button", onClick: () => reserveRequest(request, "StaffReminder"), disabled: isSaving || !request.partId }, "Remind")
+                  ),
                 h("button", { type: "button", onClick: () => updateStatus(request, "Contacted"), disabled: isSaving }, "Contacted"),
                 h("button", { type: "button", onClick: () => updateStatus(request, "Fulfilled"), disabled: isSaving }, "Fulfilled"),
                 h("button", { type: "button", onClick: () => updateStatus(request, "Open"), disabled: isSaving }, "Reopen"),

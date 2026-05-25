@@ -69,6 +69,104 @@ function carPrice(car) {
   return money(read(car, "price"), read(car, "priceCurrency", "baseCurrencyCode") || "USD");
 }
 
+function baseCurrency(car) {
+  return read(car, "baseCurrencyCode") || "USD";
+}
+
+function baseMoney(car, value) {
+  return money(value, baseCurrency(car));
+}
+
+function percent(value, total) {
+  if (total <= 0) return 0;
+  return Math.max(0, Math.round((value / total) * 100));
+}
+
+function partUnitCost(part) {
+  return toNumber(read(part, "averagePrice")) || toNumber(read(part, "costPrice"));
+}
+
+function partAvailableQuantity(part) {
+  return Math.max(
+    toNumber(read(part, "availableQuantity")),
+    toNumber(read(part, "stockQuantity")),
+    0
+  );
+}
+
+function rankPart(part, isLinked) {
+  const salePrice = toNumber(read(part, "salePrice"));
+  const unitCost = partUnitCost(part);
+  const quantity = partAvailableQuantity(part);
+  const usefulQuantity = quantity > 0 ? quantity : 0;
+  const expectedSale = salePrice * usefulQuantity;
+  const expectedMargin = (salePrice - unitCost) * usefulQuantity;
+  const marginPercent = salePrice > 0 ? Math.round(((salePrice - unitCost) / salePrice) * 100) : 0;
+  return {
+    part,
+    isLinked,
+    quantity: usefulQuantity,
+    salePrice,
+    unitCost,
+    expectedSale,
+    expectedMargin,
+    marginPercent,
+    score: expectedSale + Math.max(expectedMargin, 0) * 0.6 + (isLinked ? 10 : 0)
+  };
+}
+
+function buildPartRecommendations(linkedParts, unassignedParts) {
+  const linkedCandidates = linkedParts
+    .map((part) => rankPart(part, true))
+    .filter((item) => item.quantity > 0 && (item.salePrice > 0 || item.unitCost > 0));
+  const source = linkedCandidates.length > 0
+    ? linkedCandidates
+    : unassignedParts
+      .map((part) => rankPart(part, false))
+      .filter((item) => item.quantity > 0 && (item.salePrice > 0 || item.unitCost > 0));
+
+  return source
+    .sort((left, right) =>
+      right.score - left.score
+      || right.expectedMargin - left.expectedMargin
+      || String(read(left.part, "name")).localeCompare(String(read(right.part, "name"))))
+    .slice(0, 5);
+}
+
+function buildProfitProject(car) {
+  const bought = toNumber(read(car, "purchaseCostBase", "priceBase"));
+  const fullCost = toNumber(read(car, "fullCostBase", "grandTotalBase"));
+  const teardownCosts = Math.max(fullCost - bought, 0);
+  const partsRemovedCount = toNumber(read(car, "partsRemovedCount"));
+  const partsRemovedValue = toNumber(read(car, "partsRemovedValueBase"));
+  const soldQuantity = toNumber(read(car, "partsSoldQuantity"));
+  const soldAmount = toNumber(read(car, "partsSoldAmountBase", "salePriceBase"));
+  const remainingQuantity = toNumber(read(car, "remainingStockQuantity"));
+  const remainingStockValue = toNumber(read(car, "remainingStockValueBase"));
+  const recoveredValue = soldAmount + remainingStockValue;
+  const netProfitLossValue = read(car, "netProfitLossBase");
+  const netProfitLoss = netProfitLossValue === "" ? recoveredValue - fullCost : toNumber(netProfitLossValue);
+  const breakEvenGap = Math.max(fullCost - recoveredValue, 0);
+
+  return {
+    bought,
+    fullCost,
+    teardownCosts,
+    partsRemovedCount,
+    partsRemovedValue,
+    soldQuantity,
+    soldAmount,
+    remainingQuantity,
+    remainingStockValue,
+    recoveredValue,
+    netProfitLoss,
+    breakEvenGap,
+    recoveredPercent: percent(recoveredValue, fullCost),
+    soldPercent: percent(soldAmount, fullCost),
+    stockPercent: percent(remainingStockValue, fullCost)
+  };
+}
+
 function InputField({ label, value, onChange, type = "text", placeholder }) {
   return h("label", null,
     h("span", null, label),
@@ -108,6 +206,154 @@ function DetailTile({ label, value }) {
   return h("div", { className: "detail-tile" },
     h("span", null, label),
     h("strong", null, value || "-")
+  );
+}
+
+function ProfitStep({ label, value, meta, tone }) {
+  return h("div", { className: `profit-flow-step ${tone || ""}` },
+    h("span", null, label),
+    h("strong", null, value),
+    meta && h("small", null, meta)
+  );
+}
+
+function ProfitMetric({ label, value, detail, tone }) {
+  return h("div", { className: `profit-metric ${tone || ""}` },
+    h("span", null, label),
+    h("strong", null, value),
+    detail && h("small", null, detail)
+  );
+}
+
+function PartRecommendation({ item, car, t, onAssign }) {
+  const part = item.part;
+  const currency = read(part, "currency") || baseCurrency(car);
+  return h("div", { className: "part-recommendation-row" },
+    h("div", { className: "part-recommendation-main" },
+      h("strong", null, read(part, "internalCode") || `#${itemId(part)}`),
+      h("span", null, `${read(part, "name") || "Part"}${read(part, "oemNumber") ? ` / ${read(part, "oemNumber")}` : ""}`)
+    ),
+    h("div", { className: "part-recommendation-metrics" },
+      h("span", null, t("usedCars.expectedSale", "Expected Sale")),
+      h("strong", null, money(item.expectedSale || item.salePrice, currency)),
+      h("small", null, `${t("usedCars.stock", "Stock")} ${item.quantity.toLocaleString()} / ${t("usedCars.margin", "Margin")} ${item.marginPercent}%`)
+    ),
+    item.isLinked
+      ? h("span", { className: "profit-status-chip" }, t("usedCars.linked", "Linked"))
+      : h("button", { className: "secondary-button", type: "button", onClick: () => onAssign(itemId(part)) }, t("usedCars.assign", "Assign"))
+  );
+}
+
+function ProfitProjectMap({ car, recommendations, onAssignPart, t }) {
+  if (!car) return null;
+
+  const project = buildProfitProject(car);
+  const resultTone = project.netProfitLoss >= 0 ? "positive" : "negative";
+  const soldWidth = Math.min(project.soldPercent, 100);
+  const stockWidth = Math.min(project.stockPercent, Math.max(100 - soldWidth, 0));
+  const flowSteps = [
+    {
+      label: t("usedCars.boughtFor", "Bought For"),
+      value: baseMoney(car, project.bought),
+      meta: carPrice(car)
+    },
+    {
+      label: t("usedCars.teardownCosts", "Teardown Costs"),
+      value: baseMoney(car, project.teardownCosts),
+      meta: t("usedCars.fullCost", "Full Cost")
+    },
+    {
+      label: t("usedCars.partsRemoved", "Parts Removed"),
+      value: baseMoney(car, project.partsRemovedValue),
+      meta: t("usedCars.partsCount", "{count} parts", { count: project.partsRemovedCount.toLocaleString() })
+    },
+    {
+      label: t("usedCars.partsSold", "Parts Sold"),
+      value: baseMoney(car, project.soldAmount),
+      meta: t("usedCars.partsCount", "{count} parts", { count: project.soldQuantity.toLocaleString() }),
+      tone: "sold"
+    },
+    {
+      label: t("usedCars.remainingStock", "Remaining Stock"),
+      value: baseMoney(car, project.remainingStockValue),
+      meta: t("usedCars.partsCount", "{count} parts", { count: project.remainingQuantity.toLocaleString() })
+    },
+    {
+      label: t("usedCars.profitLoss", "Profit/Loss"),
+      value: baseMoney(car, project.netProfitLoss),
+      meta: project.breakEvenGap > 0
+        ? t("usedCars.breakEvenGap", "{amount} to break even", { amount: baseMoney(car, project.breakEvenGap) })
+        : t("usedCars.breakEvenReached", "Break-even reached"),
+      tone: resultTone
+    }
+  ];
+
+  return h("article", { className: "panel profit-project-map" },
+    h("div", { className: "profit-map-heading" },
+      h("div", null,
+        h("h3", null, t("usedCars.profitMap", "Teardown Profit Map")),
+        h("span", null, carTitle(car, t))
+      ),
+      h("strong", { className: `profit-result-pill ${resultTone}` }, baseMoney(car, project.netProfitLoss))
+    ),
+    h("div", { className: "profit-flow-grid" },
+      flowSteps.map((step) => h(ProfitStep, {
+        key: step.label,
+        label: step.label,
+        value: step.value,
+        meta: step.meta,
+        tone: step.tone
+      }))
+    ),
+    h("div", { className: "profit-recovery-strip" },
+      h("div", { className: "profit-recovery-labels" },
+        h("span", null, t("usedCars.recovered", "Recovered")),
+        h("strong", null, `${project.recoveredPercent}%`)
+      ),
+      h("div", { className: "profit-progress-track", "aria-label": t("usedCars.recovered", "Recovered") },
+        h("span", { className: "profit-progress-segment sold", style: { width: `${soldWidth}%` } }),
+        h("span", { className: "profit-progress-segment stock", style: { width: `${stockWidth}%` } })
+      ),
+      h("div", { className: "profit-legend" },
+        h("span", null, t("usedCars.soldCash", "Sold cash")),
+        h("span", null, t("usedCars.stockValue", "Stock value"))
+      )
+    ),
+    h("div", { className: "profit-metric-grid" },
+      h(ProfitMetric, {
+        label: t("usedCars.fullCost", "Full Cost"),
+        value: baseMoney(car, project.fullCost),
+        detail: t("usedCars.buyPlusCosts", "Bought plus teardown costs")
+      }),
+      h(ProfitMetric, {
+        label: t("usedCars.recoveredValue", "Recovered Value"),
+        value: baseMoney(car, project.recoveredValue),
+        detail: t("usedCars.soldPlusStock", "Sold plus remaining stock")
+      }),
+      h(ProfitMetric, {
+        label: t("usedCars.breakEven", "Break Even"),
+        value: project.breakEvenGap > 0 ? baseMoney(car, project.breakEvenGap) : t("usedCars.done", "Done"),
+        detail: project.breakEvenGap > 0 ? t("usedCars.remaining", "Remaining") : t("usedCars.profitableProject", "Profitable project"),
+        tone: project.breakEvenGap > 0 ? "watch" : "positive"
+      })
+    ),
+    h("section", { className: "next-parts-section" },
+      h("div", { className: "profit-section-heading" },
+        h("h4", null, t("usedCars.bestNextParts", "Best Next Parts To Remove")),
+        h("span", null, t("usedCars.rankByValue", "Ranked by sale value and margin"))
+      ),
+      recommendations.length > 0
+        ? h("div", { className: "part-recommendation-list" },
+          recommendations.map((item) => h(PartRecommendation, {
+            key: `${item.isLinked ? "linked" : "candidate"}-${itemId(item.part)}`,
+            item,
+            car,
+            t,
+            onAssign: onAssignPart
+          }))
+        )
+        : h("p", { className: "empty-state" }, t("usedCars.noNextParts", "Link parts to this car to reveal next removal candidates."))
+    )
   );
 }
 
@@ -259,14 +505,23 @@ export function UsedCarsView({ api, t }) {
     () => images.find((image) => String(itemId(image)) === String(selectedImageId)) || images[0] || null,
     [images, selectedImageId]
   );
+  const selectedCarParts = useMemo(() =>
+    parts.filter((part) => String(read(part, "usedCarId") || "") === String(selectedId)),
+  [parts, selectedId]);
+  const unassignedParts = useMemo(() =>
+    parts.filter((part) => !read(part, "usedCarId")),
+  [parts]);
   const assignedParts = useMemo(() =>
-    parts.filter((part) => String(read(part, "usedCarId") || "") === String(selectedId)
-      && [read(part, "internalCode"), read(part, "name"), read(part, "oemNumber")].join(" ").toLowerCase().includes(partSearch.toLowerCase())),
-  [parts, partSearch, selectedId]);
+    selectedCarParts.filter((part) =>
+      [read(part, "internalCode"), read(part, "name"), read(part, "oemNumber")].join(" ").toLowerCase().includes(partSearch.toLowerCase())),
+  [partSearch, selectedCarParts]);
   const availableParts = useMemo(() =>
-    parts.filter((part) => !read(part, "usedCarId")
-      && [read(part, "internalCode"), read(part, "name"), read(part, "oemNumber")].join(" ").toLowerCase().includes(partSearch.toLowerCase())),
-  [parts, partSearch]);
+    unassignedParts.filter((part) =>
+      [read(part, "internalCode"), read(part, "name"), read(part, "oemNumber")].join(" ").toLowerCase().includes(partSearch.toLowerCase())),
+  [partSearch, unassignedParts]);
+  const nextPartRecommendations = useMemo(() =>
+    selectedCar ? buildPartRecommendations(selectedCarParts, unassignedParts) : [],
+  [selectedCar, selectedCarParts, unassignedParts]);
 
   const setFormValue = useCallback((key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -605,7 +860,13 @@ export function UsedCarsView({ api, t }) {
             h(DetailTile, { label: "Full Cost", value: money(read(selectedCar, "fullCostBase"), read(selectedCar, "baseCurrencyCode") || "USD") }),
             h(DetailTile, { label: "Net P/L", value: money(read(selectedCar, "netProfitLossBase"), read(selectedCar, "baseCurrencyCode") || "USD") })
           )
-        )
+        ),
+        selectedCar && h(ProfitProjectMap, {
+          car: selectedCar,
+          recommendations: nextPartRecommendations,
+          onAssignPart: (partId) => setPartUsedCar(partId, itemId(selectedCar)),
+          t
+        })
       ),
       h("aside", { className: "used-car-side" },
         h("article", { className: "panel" },

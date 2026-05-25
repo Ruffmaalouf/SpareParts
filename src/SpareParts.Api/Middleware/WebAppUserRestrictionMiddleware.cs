@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using SpareParts.Api.Infrastructure;
 
 namespace SpareParts.Api.Middleware;
@@ -28,8 +27,7 @@ public sealed class WebAppUserRestrictionMiddleware
             return;
         }
 
-        var role = context.User.FindFirst(ClaimTypes.Role)?.Value;
-        if (!string.Equals(role, WebAppUserRoleMigration.RoleName, StringComparison.OrdinalIgnoreCase))
+        if (!AuthorizationPolicies.HasAnyRoleId(context.User, AuthorizationPolicies.WebAppUserRoleId))
         {
             await _next(context);
             return;

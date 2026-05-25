@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Services;
 
@@ -7,7 +8,7 @@ namespace SpareParts.Api.Controllers
 {
     [ApiController]
     [Route("api/users")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
     public class UsersController : ControllerBase
     {
         private readonly UsersService _service;

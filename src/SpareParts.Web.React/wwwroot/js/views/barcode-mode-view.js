@@ -1,4 +1,4 @@
-import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
+import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { money } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
@@ -180,7 +180,13 @@ function ScanResultActions({ row, onUse }) {
   return h("button", { className: "secondary-button", type: "button", onClick: () => onUse(row) }, "Use");
 }
 
-export function BarcodeModeView({ api, onView, t }) {
+function visualPartTitle(match) {
+  return [read(match, "internalCode"), read(match, "partName")].filter(Boolean).join(" - ") || `Part #${read(match, "partId")}`;
+}
+
+export function BarcodeModeView({ api, onNavigate, onView, t }) {
+  const navigate = onView || onNavigate;
+  const visualFileInputRef = useRef(null);
   const [parts, setParts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [usedCars, setUsedCars] = useState([]);
@@ -197,9 +203,15 @@ export function BarcodeModeView({ api, onView, t }) {
   const [attachUsedCarId, setAttachUsedCarId] = useState("");
   const [labelSearch, setLabelSearch] = useState("");
   const [labelPartIds, setLabelPartIds] = useState([]);
+  const [visualFile, setVisualFile] = useState(null);
+  const [visualHint, setVisualHint] = useState("");
+  const [visualPreviewUrl, setVisualPreviewUrl] = useState("");
+  const [visualResponse, setVisualResponse] = useState(null);
+  const [visualResults, setVisualResults] = useState([]);
   const [status, setStatus] = useState("Scan or type a label code to start.");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isVisualSearching, setIsVisualSearching] = useState(false);
 
   const selectedPart = useMemo(
     () => parts.find((part) => String(read(part, "id")) === String(selectedPartId)) || null,
@@ -233,7 +245,7 @@ export function BarcodeModeView({ api, onView, t }) {
 
   const load = useCallback(async () => {
     setIsLoading(true);
-    setStatus("Loading Barcode / QR mode...");
+    setStatus("Loading AR search mode...");
     try {
       const [nextParts, nextWarehouses, nextUsedCars] = await Promise.all([
         api.get("/api/parts?page=1&pageSize=500"),
@@ -260,13 +272,19 @@ export function BarcodeModeView({ api, onView, t }) {
       setParts([]);
       setWarehouses([]);
       setUsedCars([]);
-      setStatus(error.message || "Could not load Barcode / QR mode.");
+      setStatus(error.message || "Could not load AR search mode.");
     } finally {
       setIsLoading(false);
     }
   }, [api]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => () => {
+    if (visualPreviewUrl) {
+      URL.revokeObjectURL(visualPreviewUrl);
+    }
+  }, [visualPreviewUrl]);
 
   useEffect(() => {
     if (!selectedPartId) {
@@ -345,6 +363,65 @@ export function BarcodeModeView({ api, onView, t }) {
       setIsLoading(false);
     }
   }, [api, scanCode, useScanResult]);
+
+  const chooseVisualFile = useCallback((files) => {
+    const file = Array.from(files || [])[0];
+    if (!file) return;
+
+    setVisualFile(file);
+    setVisualResponse(null);
+    setVisualResults([]);
+    setStatus("Picture ready. Add a hint if needed, then search.");
+
+    setVisualPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+  }, []);
+
+  const useVisualResult = useCallback((match) => {
+    const targetId = String(read(match, "partId") || "");
+    if (!targetId) return;
+
+    setSelectedPartId(targetId);
+    setLabelPartIds((current) => current.includes(targetId) ? current : [targetId, ...current].slice(0, 12));
+    setStatus(`${visualPartTitle(match)} selected from picture search.`);
+  }, []);
+
+  const searchByPicture = useCallback(async () => {
+    if (!visualFile) {
+      setStatus("Capture or choose a part picture first.");
+      return;
+    }
+
+    setIsVisualSearching(true);
+    setStatus("Searching catalog from picture...");
+    try {
+      const formData = new FormData();
+      formData.append("image", visualFile, visualFile.name || "part-picture.jpg");
+      formData.append("hint", visualHint.trim());
+      formData.append("limit", "10");
+      const response = await api.postForm("/api/scans/visual-search", formData);
+      const matches = toArray(read(response, "matches"));
+      setVisualResponse(response);
+      setVisualResults(matches);
+
+      if (matches[0]) {
+        useVisualResult(matches[0]);
+      }
+
+      setStatus(matches.length
+        ? `${matches.length} picture match(es) found.`
+        : read(response, "message") || "No part matched that picture.");
+    } catch (error) {
+      setVisualResponse(null);
+      setVisualResults([]);
+      setStatus(error.message || "Could not search by picture.");
+    } finally {
+      setIsVisualSearching(false);
+      if (visualFileInputRef.current) visualFileInputRef.current.value = "";
+    }
+  }, [api, useVisualResult, visualFile, visualHint]);
 
   const addLabelPart = useCallback((part) => {
     const id = String(read(part, "id"));
@@ -475,8 +552,8 @@ export function BarcodeModeView({ api, onView, t }) {
 
   return h("section", { className: "screen barcode-mode-screen" },
     h(PageHeader, {
-      title: "Barcode / QR Mode",
-      subtitle: "Generate labels, scan codes, and act on the part in hand.",
+      title: "AR Picture Search",
+      subtitle: "Capture a part, overlay ranked matches, and act on the part in hand.",
       action: h("button", { className: "secondary-button", type: "button", onClick: load, disabled: isLoading }, isLoading ? "Loading" : "Refresh")
     }),
     h("section", { className: "barcode-command-panel" },
@@ -509,6 +586,97 @@ export function BarcodeModeView({ api, onView, t }) {
         )
     ),
     h(StatusLine, { status }),
+    h("section", { className: "visual-search-workspace" },
+      h("article", { className: "visual-camera-panel" },
+        h("div", { className: "panel-heading-row" },
+          h("div", null,
+            h("h3", null, "Picture search"),
+            h("span", null, read(visualResponse, "source") === "ai-vision" ? "AI vision labels enabled" : "Camera photo with catalog matching")
+          ),
+          h("button", {
+            className: "secondary-button",
+            type: "button",
+            onClick: () => visualFileInputRef.current?.click()
+          }, "Camera / photo")
+        ),
+        h("input", {
+          ref: visualFileInputRef,
+          className: "hidden-file-input",
+          type: "file",
+          accept: "image/*",
+          capture: "environment",
+          onChange: (event) => chooseVisualFile(event.target.files)
+        }),
+        h("div", { className: "visual-capture-row" },
+          h("label", null, "Hint",
+            h("input", {
+              value: visualHint,
+              onChange: (event) => setVisualHint(event.target.value),
+              placeholder: "Optional: BMW headlight, brake sensor, oil filter"
+            })
+          ),
+          h("button", {
+            className: "primary-button",
+            type: "button",
+            onClick: searchByPicture,
+            disabled: isVisualSearching || !visualFile
+          }, isVisualSearching ? "Searching" : "Search picture")
+        ),
+        h("div", { className: "visual-preview-frame" },
+          visualPreviewUrl
+            ? h("img", { src: visualPreviewUrl, alt: "Captured part for AR search" })
+            : h("div", { className: "visual-preview-empty" },
+              h("strong", null, "No picture selected"),
+              h("span", null, "Use the camera or upload a part photo.")
+            ),
+          visualPreviewUrl && visualResults.slice(0, 5).map((match, index) =>
+            h("button", {
+              key: `pin-${read(match, "partId") || index}`,
+              className: "visual-ar-pin",
+              style: {
+                left: `${Math.round(toNumber(read(match, "anchorX")) * 100)}%`,
+                top: `${Math.round(toNumber(read(match, "anchorY")) * 100)}%`
+              },
+              type: "button",
+              onClick: () => useVisualResult(match),
+              title: visualPartTitle(match)
+            }, `#${index + 1}`)
+          )
+        )
+      ),
+      h("article", { className: "visual-match-panel" },
+        h("div", { className: "panel-heading-row" },
+          h("div", null,
+            h("h3", null, "Ranked matches"),
+            h("span", null, read(visualResponse, "searchText") || read(visualResponse, "message") || "Search a picture to see matches")
+          ),
+          h("span", null, `${visualResults.length} result(s)`)
+        ),
+        h("div", { className: "visual-tag-row" },
+          toArray(read(visualResponse, "visualTags")).map((tag) => h("span", { key: tag }, tag))
+        ),
+        h("div", { className: "visual-match-list" },
+          visualResults.map((match, index) => h("button", {
+            key: `visual-${read(match, "partId") || index}`,
+            className: "visual-match-row",
+            type: "button",
+            onClick: () => useVisualResult(match)
+          },
+            h("span", { className: "visual-match-rank" }, `#${index + 1}`),
+            h("span", { className: "visual-match-copy" },
+              h("strong", null, visualPartTitle(match)),
+              h("small", null, [
+                read(match, "matchReason"),
+                read(match, "oemNumber") ? `OEM ${read(match, "oemNumber")}` : "",
+                `${read(match, "availableQuantity") || 0} available`
+              ].filter(Boolean).join(" / "))
+            ),
+            h("b", null, money(read(match, "salePrice"), read(match, "currency") || "USD"))
+          )),
+          visualResults.length === 0 && h("p", { className: "empty-state" }, "Capture a part picture to match catalog inventory.")
+        )
+      )
+    ),
     h("section", { className: "barcode-action-grid" },
       h("article", { className: "scan-action-panel" },
         h("h3", null, "Open"),
@@ -516,7 +684,7 @@ export function BarcodeModeView({ api, onView, t }) {
         h("button", {
           className: "secondary-button",
           type: "button",
-          onClick: () => selectedPart && onView ? onView("inventory") : setStatus("Select a part first."),
+          onClick: () => selectedPart && navigate ? navigate("inventory") : setStatus("Select a part first."),
           disabled: !selectedPart
         }, "Open part")
       ),

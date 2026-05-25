@@ -29,7 +29,7 @@ internal sealed class FakeInventoryRepository : IInventoryRepository
     public bool TryUpdateStockQuantityAtomically(int stockId, int delta, int userId)
     {
         var stock = StockRows.First(x => x.Id == stockId);
-        if (stock.Quantity + delta < 0)
+        if (stock.Quantity + delta < stock.ReservedQuantity)
         {
             return false;
         }

@@ -579,7 +579,6 @@ namespace SpareParts.Desktop.Wpf
                 UsedCars = UsedCars.ToList(),
                 Accounts = AccountingVm.Accounts.ToList(),
                 AccountTypes = AccountingVm.AccountTypes.ToList(),
-                RoleNames = RolesVm.Roles.Select(role => role.Name).ToList(),
                 BaseCurrencyCode = _baseCurrencyCode,
                 CounterCurrencyCode = _counterCurrencyCode,
                 DefaultCounterRate = _defaultCounterRate

@@ -97,6 +97,7 @@ public class ApiCompositionTests
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(PartsService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(PartNotesAiService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(ScanLookupService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(VisualPartSearchService));
     }
 
     [Fact]

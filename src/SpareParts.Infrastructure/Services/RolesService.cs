@@ -99,7 +99,7 @@ public sealed class RolesService
         }
 
         var usersWithRole = conn.ExecuteScalar<int>(
-            "SELECT COUNT(1) FROM Users WHERE Role = @RoleName", new { RoleName = role.Name });
+            "SELECT COUNT(1) FROM Users WHERE RoleId = @RoleId", new { RoleId = id });
         if (usersWithRole > 0)
         {
             throw new ValidationException($"Cannot delete role — {usersWithRole} user(s) are assigned to it.");
@@ -124,32 +124,6 @@ public sealed class RolesService
               WHERE a.RoleId = @RoleId AND m.IsActive = 1
               ORDER BY m.SortOrder, m.Id",
             new { RoleId = id }).ToList();
-    }
-
-    public IEnumerable<RoleMenuAccessDto> GetMenuAccessByRoleName(string roleName)
-    {
-        if (string.IsNullOrWhiteSpace(roleName))
-        {
-            throw new ValidationException("Role name is required.");
-        }
-
-        using var conn = _factory.CreateConnection();
-        var roleId = conn.QueryFirstOrDefault<int?>(
-            "SELECT Id FROM Roles WHERE Name = @Name AND IsActive = 1",
-            new { Name = roleName });
-
-        if (roleId == null)
-        {
-            throw new NotFoundException("Role not found.");
-        }
-
-        return conn.Query<RoleMenuAccessDto>(
-            @"SELECT m.Id AS MenuId, m.MenuKey, m.MenuName, a.CanView, a.CanEdit, a.CanModify, a.CanDelete
-              FROM RoleMenuAccess a
-              INNER JOIN AppMenus m ON m.Id = a.MenuId
-              WHERE a.RoleId = @RoleId AND m.IsActive = 1
-              ORDER BY m.SortOrder, m.Id",
-            new { RoleId = roleId.Value }).ToList();
     }
 
     public void UpdateMenuAccess(int id, UpdateRoleMenuAccessRequest request)

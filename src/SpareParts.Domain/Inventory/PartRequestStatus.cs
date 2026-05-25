@@ -7,19 +7,22 @@ namespace SpareParts.Domain.Inventory
     {
         public const string Open = "Open";
         public const string Contacted = "Contacted";
+        public const string Reserved = "Reserved";
         public const string Fulfilled = "Fulfilled";
         public const string Cancelled = "Cancelled";
 
         public static readonly IReadOnlySet<string> ActiveStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             Open,
-            Contacted
+            Contacted,
+            Reserved
         };
 
         public static readonly IReadOnlySet<string> AllStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             Open,
             Contacted,
+            Reserved,
             Fulfilled,
             Cancelled
         };

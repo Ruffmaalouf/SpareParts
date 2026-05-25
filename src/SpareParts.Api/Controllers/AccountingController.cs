@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Accounting;
 using SpareParts.Infrastructure.Services;
 
@@ -26,12 +27,12 @@ namespace SpareParts.Api.Controllers
             => Ok(_service.GetAccountTypes());
 
         [HttpPost("account-types")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public ActionResult<string> CreateAccountType([FromBody] SaveAccountTypeRequest request)
             => Ok(_service.CreateAccountType(request));
 
         [HttpPut("account-types/{typeKey}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult UpdateAccountType(string typeKey, [FromBody] SaveAccountTypeRequest request)
         {
             _service.UpdateAccountType(typeKey, request);
@@ -39,7 +40,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpDelete("account-types/{typeKey}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult DeleteAccountType(string typeKey)
         {
             _service.DeleteAccountType(typeKey);
@@ -51,12 +52,12 @@ namespace SpareParts.Api.Controllers
             => Ok(_service.GetPostingRoles());
 
         [HttpPost("posting-roles")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public ActionResult<string> CreatePostingRole([FromBody] SavePostingRoleRequest request)
             => Ok(_service.CreatePostingRole(request));
 
         [HttpPut("posting-roles/{roleKey}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult UpdatePostingRole(string roleKey, [FromBody] SavePostingRoleRequest request)
         {
             _service.UpdatePostingRole(roleKey, request);
@@ -64,7 +65,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpDelete("posting-roles/{roleKey}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult DeletePostingRole(string roleKey)
         {
             _service.DeletePostingRole(roleKey);
@@ -76,7 +77,7 @@ namespace SpareParts.Api.Controllers
             => Ok(_service.GetPostingSettings());
 
         [HttpPut("posting-settings")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public IActionResult UpdatePostingSettings([FromBody] UpdatePostingSettingsRequest request)
         {
             _service.UpdatePostingSettings(request, CurrentUserId);
@@ -92,7 +93,7 @@ namespace SpareParts.Api.Controllers
             => Ok(_service.GetJournalEntry(id));
 
         [HttpPost("journal-entries/manual")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public ActionResult<int> CreateManualJournal([FromBody] CreateManualJournalEntryRequest request)
             => Ok(_service.CreateManualJournal(request, CurrentUserId));
 

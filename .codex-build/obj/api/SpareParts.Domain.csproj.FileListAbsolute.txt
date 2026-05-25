@@ -1,6 +1,0 @@
-D:\Ralph\SpareParts\.codex-build\obj\api\SpareParts.Domain.csproj.AssemblyReference.cache
-D:\Ralph\SpareParts\.codex-build\obj\api\SpareParts.Domain.GeneratedMSBuildEditorConfig.editorconfig
-D:\Ralph\SpareParts\.codex-build\obj\api\SpareParts.Domain.AssemblyInfoInputs.cache
-D:\Ralph\SpareParts\.codex-build\obj\api\SpareParts.Domain.AssemblyInfo.cs
-D:\Ralph\SpareParts\.codex-build\obj\api\SpareParts.Domain.csproj.CoreCompileInputs.cache
-D:\Ralph\SpareParts\.codex-build\obj\api\SpareParts.Domain.sourcelink.json

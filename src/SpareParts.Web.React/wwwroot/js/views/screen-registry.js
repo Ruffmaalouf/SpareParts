@@ -12,6 +12,7 @@ import { RepairPrepBoardView } from "./repair-prep-board-view.js";
 import { AccountingView } from "./accounting-view.js";
 import { BarcodeModeView } from "./barcode-mode-view.js";
 import { SettingsView } from "./settings-view.js";
+import { StockArrivalTheaterView } from "./stock-arrival-theater-view.js";
 import { UsedCarsView } from "./used-cars-view.js";
 import { WhatsAppView } from "./whatsapp-view.js";
 import { createModuleView } from "./module-workspace-view.js";
@@ -31,6 +32,7 @@ export const screenRegistry = new ScreenRegistry([
   { key: "settings", label: "Settings", component: SettingsView },
   { key: "purchase-parts", label: "Part Purchases", component: createModuleView(moduleByKey("purchase-parts")) },
   { key: "used-car-purchases", label: "Used Car Purchases", component: createModuleView(moduleByKey("used-car-purchases")) },
+  { key: "stock-arrival", label: "Stock Arrival", component: StockArrivalTheaterView },
   { key: "used-cars", label: "Used Cars", component: UsedCarsView },
   { key: "repair-prep", label: "Repair / Prep", component: RepairPrepBoardView },
   { key: "stock", label: "Stock", component: createModuleView(moduleByKey("stock")) },
@@ -40,5 +42,5 @@ export const screenRegistry = new ScreenRegistry([
   { key: "report-builder", label: "Report Builder", component: createModuleView(moduleByKey("report-builder")) },
   { key: "whatsapp", label: "WhatsApp", component: WhatsAppView },
   { key: "business-assistant", label: "AI Assistant", component: createModuleView(moduleByKey("business-assistant")) },
-  { key: "ar", label: "Barcode / QR", component: BarcodeModeView }
+  { key: "ar", label: "AR Search", component: BarcodeModeView }
 ]);

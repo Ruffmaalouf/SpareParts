@@ -25,6 +25,9 @@ internal sealed class StubPartsApiClient : IPartsApiClient
     public Task<List<ScanLookupResultDto>> ResolveScanAsync(string code)
         => Task.FromResult(new List<ScanLookupResultDto>());
 
+    public Task<VisualPartSearchResponseDto> SearchPartsByImageAsync(string imagePath, string? hint = null, int limit = 10)
+        => Task.FromResult(new VisualPartSearchResponseDto());
+
     public Task<List<PartStockDto>> GetPartStockAsync(int partId)
         => Task.FromResult(new List<PartStockDto>());
 

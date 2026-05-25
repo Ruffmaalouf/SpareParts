@@ -1,7 +1,8 @@
 const React = require("react");
-const { Pressable, ScrollView, Text, View } = require("react-native");
-const { asRows, rowAmount, rowSubtitle, rowTitle } = require("../core/formatters");
-const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, StatusText } = require("../components/ui");
+const { Image, Pressable, ScrollView, Text, View } = require("react-native");
+const ImagePicker = require("expo-image-picker");
+const { asRows, rowAmount, rowSubtitle, rowTitle, shortDateTime } = require("../core/formatters");
+const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
 const { useTheme } = require("../theme/theme-context");
 
 const { useCallback, useEffect, useMemo, useState } = React;
@@ -27,6 +28,11 @@ function reportCell(value) {
     return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
   }
   return String(value);
+}
+
+function numericValue(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 }
 
 function tableKey(table) {
@@ -55,11 +61,213 @@ function reportRowText(row, columns, fallback) {
   return parts.length ? parts.join(" / ") : fallback;
 }
 
+function splitEndpoints(endpoint) {
+  return String(endpoint || "")
+    .split("+")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function visualMatchTitle(match) {
+  return [read(match, "internalCode"), read(match, "partName")].filter(Boolean).join(" - ") || `Part #${read(match, "partId")}`;
+}
+
 function ModuleSummary({ module, moduleTitle, t }) {
   return el(Panel, { title: t("module.wpfWorkspace", "WPF workspace") },
     el(ListRow, { title: t("module.api", "API"), subtitle: module.endpoint }),
     module.capabilities.map((capability) =>
       el(ListRow, { key: capability, title: capability })
+    )
+  );
+}
+
+function defaultReservationExpiresAt() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setHours(18, 0, 0, 0);
+  return date;
+}
+
+function requestSignal(row) {
+  if (read(row, "isReservationReminderDue")) return "Reminder due";
+  if (read(row, "isReserved")) return "Reserved";
+  if (read(row, "isReadyToContact")) return `${read(row, "waitingCustomerCount") || 1} waiting`;
+  return read(row, "status") || "Waiting";
+}
+
+function requestClockText(row) {
+  const expiresAt = read(row, "reservationExpiresAt");
+  if (!read(row, "isReserved") || !expiresAt) return "";
+  const prefix = read(row, "isReservationReminderDue")
+    ? "Reminder due"
+    : read(row, "isReservationOverdue")
+      ? "Overdue"
+      : "Until";
+  return `${prefix} ${shortDateTime(expiresAt)}`;
+}
+
+function PartRequestsModuleScreen({ api, module }) {
+  const { styles, t } = useTheme();
+  const moduleTitle = t(`screens.${module.key}`, module.title);
+  const [rows, setRows] = useState([]);
+  const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isWorking, setIsWorking] = useState(false);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setStatus(t("module.loading", "Loading {title}...", { title: moduleTitle.toLowerCase() }));
+    try {
+      setRows(asRows(await api.get("/api/partrequests?status=Active")));
+      setStatus(t("module.loaded", "{title} loaded.", { title: moduleTitle }));
+    } catch (error) {
+      setRows([]);
+      setStatus(error.message || t("module.loadError", "Could not load {title}.", { title: moduleTitle.toLowerCase() }));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, moduleTitle, t]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const reserve = useCallback(async (row, expirationAction) => {
+    if (!read(row, "partId")) {
+      setStatus(t("partRequests.matchRequired", "Match a catalog part before starting a reservation clock."));
+      return;
+    }
+
+    setIsWorking(true);
+    setStatus(t("partRequests.reserving", "Starting reservation clock..."));
+    try {
+      await api.post(`/api/partrequests/${read(row, "id")}/reserve`, {
+        quantity: Math.max(1, Number(read(row, "quantity") || 1)),
+        expiresAt: defaultReservationExpiresAt().toISOString(),
+        expirationAction
+      });
+      setStatus(expirationAction === "StaffReminder"
+        ? t("partRequests.reminderSet", "Reserved until tomorrow 6 PM; staff will be reminded.")
+        : t("partRequests.reserved", "Reserved until tomorrow 6 PM; stock will auto-release."));
+      await load();
+    } catch (error) {
+      setStatus(error.message || t("partRequests.reserveError", "Could not reserve this request."));
+    } finally {
+      setIsWorking(false);
+    }
+  }, [api, load, t]);
+
+  const release = useCallback(async (row) => {
+    setIsWorking(true);
+    setStatus(t("partRequests.releasing", "Releasing reservation..."));
+    try {
+      await api.post(`/api/partrequests/${read(row, "id")}/release-reservation`, {
+        reason: "Released from mobile app"
+      });
+      setStatus(t("partRequests.released", "Reservation released."));
+      await load();
+    } catch (error) {
+      setStatus(error.message || t("partRequests.releaseError", "Could not release this reservation."));
+    } finally {
+      setIsWorking(false);
+    }
+  }, [api, load, t]);
+
+  const updateStatus = useCallback(async (row, nextStatus) => {
+    setIsWorking(true);
+    setStatus(t("partRequests.updating", "Updating request..."));
+    try {
+      await api.put(`/api/partrequests/${read(row, "id")}/status`, { status: nextStatus });
+      setStatus(t("partRequests.updated", "Part request updated."));
+      await load();
+    } catch (error) {
+      setStatus(error.message || t("partRequests.updateError", "Could not update this request."));
+    } finally {
+      setIsWorking(false);
+    }
+  }, [api, load, t]);
+
+  const reservedCount = rows.filter((row) => read(row, "isReserved")).length;
+  const reminderCount = rows.filter((row) => read(row, "isReservationReminderDue")).length;
+
+  return el(ScreenScroll, null,
+    el(ScreenHeader, {
+      title: moduleTitle,
+      actionTitle: t("common.refresh", "Refresh"),
+      onAction: load,
+      loading: isLoading
+    }),
+    el(ModuleSummary, { module, moduleTitle, t }),
+    el(Panel, { title: t("partRequests.clock", "Reservation clock") },
+      el(ListRow, {
+        title: t("partRequests.defaultDeadline", "Default deadline"),
+        subtitle: t("partRequests.tomorrowSix", "Tomorrow at 6 PM"),
+        value: `${reservedCount} reserved`
+      }),
+      reminderCount > 0 && el(ListRow, {
+        title: t("partRequests.staffReminders", "Staff reminders"),
+        subtitle: t("partRequests.needsAttention", "Reservations need attention"),
+        value: String(reminderCount)
+      })
+    ),
+    el(StatusText, { value: status }),
+    el(Panel, { title: t("module.preview", "Preview") },
+      el(View, { style: styles.screenListFrameLarge || styles.screenListFrame },
+        el(ScrollView, {
+          nestedScrollEnabled: true,
+          showsVerticalScrollIndicator: true,
+          contentContainerStyle: styles.screenListContent
+        },
+          rows.map((row, index) => {
+            const id = read(row, "id") || index;
+            const clock = requestClockText(row);
+            return el(View, { key: `part-request-${id}`, style: styles.screenListItem },
+              el(ListRow, {
+                title: rowTitle(row),
+                subtitle: [
+                  read(row, "customerName"),
+                  read(row, "customerPhone"),
+                  requestSignal(row),
+                  clock
+                ].filter(Boolean).join(" / "),
+                value: read(row, "reservedQuantity") ? `${read(row, "reservedQuantity")} held` : rowAmount(row)
+              }),
+              read(row, "isReserved")
+                ? el(View, { style: styles.inlineButtons },
+                  el(PrimaryButton, {
+                    title: t("partRequests.release", "Release"),
+                    onPress: () => release(row),
+                    disabled: isWorking,
+                    compact: true
+                  }),
+                  el(PrimaryButton, {
+                    title: t("partRequests.fulfilled", "Fulfilled"),
+                    onPress: () => updateStatus(row, "Fulfilled"),
+                    disabled: isWorking,
+                    compact: true
+                  })
+                )
+                : el(View, { style: styles.inlineButtons },
+                  el(PrimaryButton, {
+                    title: t("partRequests.reserve", "Reserve"),
+                    onPress: () => reserve(row, "AutoRelease"),
+                    disabled: isWorking || !read(row, "partId"),
+                    compact: true
+                  }),
+                  el(PrimaryButton, {
+                    title: t("partRequests.remindStaff", "Remind Staff"),
+                    onPress: () => reserve(row, "StaffReminder"),
+                    disabled: isWorking || !read(row, "partId"),
+                    compact: true
+                  }),
+                  el(SecondaryButton, {
+                    title: t("partRequests.contacted", "Contacted"),
+                    onPress: () => updateStatus(row, "Contacted")
+                  })
+                )
+            );
+          }),
+          rows.length === 0 && el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) })
+        )
+      )
     )
   );
 }
@@ -560,10 +768,16 @@ function BusinessAssistantModuleScreen({ api, module, onNavigate }) {
 function ScanLookupModuleScreen({ api, module }) {
   const { styles, t } = useTheme();
   const moduleTitle = t(`screens.${module.key}`, module.title);
+  const scanEndpoint = useMemo(() => splitEndpoints(module.endpoint)[0] || "/api/scans/resolve", [module.endpoint]);
   const [code, setCode] = useState("");
   const [rows, setRows] = useState([]);
+  const [visualHint, setVisualHint] = useState("");
+  const [visualAsset, setVisualAsset] = useState(null);
+  const [visualResponse, setVisualResponse] = useState(null);
+  const [visualRows, setVisualRows] = useState([]);
   const [status, setStatus] = useState(t("scans.ready", "Enter a barcode, invoice number, purchase number, or stock code."));
   const [isLoading, setIsLoading] = useState(false);
+  const [isVisualSearching, setIsVisualSearching] = useState(false);
 
   const resolve = useCallback(async () => {
     const scanCode = code.trim();
@@ -575,7 +789,7 @@ function ScanLookupModuleScreen({ api, module }) {
     setIsLoading(true);
     setStatus(t("scans.resolving", "Resolving scan code..."));
     try {
-      const result = asRows(await api.get(`${module.endpoint}?code=${encodeURIComponent(scanCode)}`));
+      const result = asRows(await api.get(`${scanEndpoint}?code=${encodeURIComponent(scanCode)}`));
       setRows(result);
       setStatus(result.length
         ? t("scans.resolved", "{count} result(s) found.", { count: result.length })
@@ -586,7 +800,85 @@ function ScanLookupModuleScreen({ api, module }) {
     } finally {
       setIsLoading(false);
     }
-  }, [api, code, module.endpoint, t]);
+  }, [api, code, scanEndpoint, t]);
+
+  const choosePicture = useCallback(async (source) => {
+    try {
+      const permission = source === "camera"
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        setStatus(t("scans.photoPermission", "Camera or photo permission is required for picture search."));
+        return;
+      }
+
+      const result = source === "camera"
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.82 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.82, selectionLimit: 1 });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+      setVisualAsset(result.assets[0]);
+      setVisualResponse(null);
+      setVisualRows([]);
+      setStatus(t("scans.pictureReady", "Picture ready. Add a hint if needed, then search."));
+    } catch (error) {
+      setStatus(error.message || t("scans.pictureError", "Could not open the camera or photo picker."));
+    }
+  }, [t]);
+
+  const useVisualMatch = useCallback((match) => {
+    const nextCode = read(match, "internalCode") || read(match, "barcode") || read(match, "partId");
+    const selectedRow = {
+      targetType: "part",
+      targetId: read(match, "partId"),
+      code: nextCode,
+      displayText: visualMatchTitle(match),
+      secondaryText: read(match, "matchReason")
+    };
+
+    setCode(nextCode ? `part:${nextCode}` : "");
+    setRows([selectedRow]);
+    setStatus(t("scans.pictureSelected", "{part} selected from picture search.", { part: visualMatchTitle(match) }));
+  }, [t]);
+
+  const searchPicture = useCallback(async () => {
+    if (!visualAsset) {
+      setStatus(t("scans.pictureRequired", "Take or choose a part picture first."));
+      return;
+    }
+
+    setIsVisualSearching(true);
+    setStatus(t("scans.pictureSearching", "Searching catalog from picture..."));
+    try {
+      const formData = new FormData();
+      const name = visualAsset.fileName || `part-picture-${Date.now()}.jpg`;
+      const type = visualAsset.mimeType || "image/jpeg";
+      formData.append("image", { uri: visualAsset.uri, name, type });
+      formData.append("hint", visualHint.trim());
+      formData.append("limit", "10");
+
+      const response = await api.postForm("/api/scans/visual-search", formData);
+      const matches = asRows(read(response, "matches"));
+      setVisualResponse(response);
+      setVisualRows(matches);
+
+      if (matches[0]) {
+        useVisualMatch(matches[0]);
+      }
+
+      setStatus(matches.length
+        ? t("scans.pictureResolved", "{count} picture match(es) found.", { count: matches.length })
+        : read(response, "message") || t("scans.pictureNoResults", "No part matched that picture."));
+    } catch (error) {
+      setVisualResponse(null);
+      setVisualRows([]);
+      setStatus(error.message || t("scans.pictureSearchError", "Could not search by picture."));
+    } finally {
+      setIsVisualSearching(false);
+    }
+  }, [api, t, useVisualMatch, visualAsset, visualHint]);
 
   return el(ScreenScroll, null,
     el(ScreenHeader, { title: moduleTitle }),
@@ -607,7 +899,79 @@ function ScanLookupModuleScreen({ api, module }) {
         disabled: isLoading
       })
     ),
+    el(Panel, { title: t("scans.pictureSearch", "AR picture search") },
+      el(View, { style: styles.visualActionRow },
+        el(PrimaryButton, {
+          title: t("scans.takePhoto", "Take photo"),
+          onPress: () => choosePicture("camera"),
+          disabled: isVisualSearching,
+          compact: true
+        }),
+        el(PrimaryButton, {
+          title: t("scans.choosePhoto", "Choose photo"),
+          onPress: () => choosePicture("library"),
+          disabled: isVisualSearching,
+          compact: true
+        }),
+        el(PrimaryButton, {
+          title: isVisualSearching ? t("common.loading", "Loading") : t("scans.searchPicture", "Search picture"),
+          onPress: searchPicture,
+          disabled: isVisualSearching || !visualAsset,
+          compact: true
+        })
+      ),
+      el(Field, {
+        label: t("scans.pictureHint", "Hint"),
+        value: visualHint,
+        onChangeText: setVisualHint,
+        placeholder: t("scans.pictureHintPlaceholder", "Optional: BMW headlight, brake sensor, oil filter")
+      }),
+      el(View, { style: styles.visualPreviewFrame },
+        visualAsset
+          ? el(Image, { source: { uri: visualAsset.uri }, style: styles.visualPreviewImage })
+          : el(View, { style: styles.visualPreviewEmpty },
+            el(Text, { style: styles.visualPreviewEmptyTitle }, t("scans.noPicture", "No picture selected")),
+            el(Text, { style: styles.visualPreviewEmptyText }, t("scans.noPictureDetail", "Use the camera or choose a saved part photo."))
+          ),
+        visualAsset && visualRows.slice(0, 5).map((match, index) =>
+          el(Pressable, {
+            key: `visual-pin-${read(match, "partId") || index}`,
+            style: [
+              styles.visualPin,
+              {
+                left: `${Math.round(numericValue(read(match, "anchorX"), 0.5) * 100)}%`,
+                top: `${Math.round(numericValue(read(match, "anchorY"), 0.5) * 100)}%`
+              }
+            ],
+            onPress: () => useVisualMatch(match)
+          },
+            el(Text, { style: styles.visualPinText }, `#${index + 1}`)
+          )
+        )
+      ),
+      el(Text, { style: styles.statusText }, read(visualResponse, "searchText") || read(visualResponse, "message") || "")
+    ),
     el(StatusText, { value: status }),
+    el(Panel, { title: t("scans.pictureResults", "Picture matches") },
+      el(View, { style: styles.screenListFrame },
+        el(ScrollView, {
+          nestedScrollEnabled: true,
+          showsVerticalScrollIndicator: true,
+          contentContainerStyle: styles.screenListContent
+        },
+          visualRows.map((row, index) =>
+            el(Pressable, { key: `visual-${read(row, "partId") || index}`, onPress: () => useVisualMatch(row) },
+              el(ListRow, {
+                title: `#${index + 1} ${visualMatchTitle(row)}`,
+                subtitle: [read(row, "matchReason"), read(row, "oemNumber") ? `OEM ${read(row, "oemNumber")}` : ""].filter(Boolean).join(" / "),
+                value: `${read(row, "availableQuantity") || 0} avail`
+              })
+            )
+          ),
+          visualRows.length === 0 && el(EmptyState, { text: t("scans.pictureEmpty", "Picture matches will appear here.") })
+        )
+      )
+    ),
     el(Panel, { title: t("scans.results", "Results") },
       el(View, { style: styles.screenListFrame },
         el(ScrollView, {
@@ -646,6 +1010,10 @@ function ModuleScreen({ api, module, onNavigate }) {
 
   if (module.key === "ar") {
     return el(ScanLookupModuleScreen, { api, module });
+  }
+
+  if (module.key === "part-requests") {
+    return el(PartRequestsModuleScreen, { api, module });
   }
 
   const canPreview = module.endpoint && !module.endpoint.endsWith("/ask") && !module.endpoint.endsWith("/resolve");

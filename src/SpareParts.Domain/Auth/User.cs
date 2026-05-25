@@ -8,7 +8,7 @@ namespace SpareParts.Domain.Auth
         public string FullName { get; set; } = string.Empty;
         public string? Email { get; set; }
         public string PasswordHash { get; set; } = string.Empty;
-        public string Role { get; set; } = "Cashier";
+        public int RoleId { get; set; } = (int)UserRole.Cashier;
         public bool IsActive { get; set; } = true;
         public DateTime? LastLoginAt { get; set; }
         public DateTime CreatedAt { get; set; }

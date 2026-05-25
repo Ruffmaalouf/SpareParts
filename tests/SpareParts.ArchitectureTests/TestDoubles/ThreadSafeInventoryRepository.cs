@@ -55,7 +55,7 @@ internal sealed class ThreadSafeInventoryRepository : IInventoryRepository
         lock (_stockLock)
         {
             var stock = _stocksById[stockId];
-            if (stock.Quantity + delta < 0)
+            if (stock.Quantity + delta < stock.ReservedQuantity)
             {
                 return false;
             }

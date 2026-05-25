@@ -365,6 +365,29 @@
                                               SelectedValue="{Binding NewPartCurrency, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                     <TextBlock Text="Min Stock" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartMinStock, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <Border Background="{DynamicResource CardHighlightBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="10"
+                                            Padding="12"
+                                            Margin="0 0 0 10">
+                                        <StackPanel>
+                                            <DockPanel Margin="0 0 0 6">
+                                                <TextBlock Text="{Binding SmartPricingCoachBadge}"
+                                                           DockPanel.Dock="Right"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource AccentBrush}"/>
+                                                <TextBlock Text="Smart Pricing Coach"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"/>
+                                            </DockPanel>
+                                            <TextBlock Text="{Binding SmartPricingCoachMessage}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
                                     <TextBlock Text="Notes" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <Border Background="{DynamicResource CardHighlightBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
@@ -504,7 +527,17 @@
                                              TextWrapping="Wrap"
                                              AcceptsReturn="True"
                                              VerticalScrollBarVisibility="Auto"
-                                             Margin="0 0 0 20"/>
+                                             Margin="0 0 0 10"/>
+                                    <CheckBox Content="Start reservation clock"
+                                              IsChecked="{Binding ReserveOnCreate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0 0 0 10"/>
+                                    <TextBlock Text="Reserved Until" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding ReservationExpiresAt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
+                                             Margin="0 0 0 10"/>
+                                    <TextBlock Text="Deadline Action" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <ComboBox ItemsSource="{Binding ReservationExpirationActions}"
+                                              SelectedItem="{Binding ReservationExpirationAction, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"/>
                                     <Button Content="＋  Save Request"
                                             Command="{Binding SaveCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
@@ -534,27 +567,55 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
 
-                                <UniformGrid Grid.Row="1" Columns="4" Margin="0 0 0 14">
+                                <WrapPanel Grid.Row="1" Margin="0 0 0 14">
+                                    <Button Content="Reserve"
+                                            Command="{Binding ReserveAutoReleaseCommand}"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            Margin="0 0 8 8"
+                                            MinWidth="98"
+                                            Height="38"/>
+                                    <Button Content="Remind Staff"
+                                            Command="{Binding ReserveReminderCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Margin="0 0 8 8"
+                                            MinWidth="112"
+                                            Height="38"/>
+                                    <Button Content="Release"
+                                            Command="{Binding ReleaseReservationCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            Margin="0 0 8 8"
+                                            MinWidth="98"
+                                            Height="38"/>
                                     <Button Content="Contacted"
                                             Command="{Binding MarkContactedCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
-                                            Margin="0 0 8 0"
+                                            Margin="0 0 8 8"
+                                            MinWidth="98"
                                             Height="38"/>
                                     <Button Content="Fulfilled"
                                             Command="{Binding MarkFulfilledCommand}"
                                             Style="{StaticResource PrimaryButtonStyle}"
-                                            Margin="0 0 8 0"
+                                            Margin="0 0 8 8"
+                                            MinWidth="98"
                                             Height="38"/>
                                     <Button Content="Reopen"
                                             Command="{Binding ReopenCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
-                                            Margin="0 0 8 0"
+                                            Margin="0 0 8 8"
+                                            MinWidth="98"
                                             Height="38"/>
                                     <Button Content="Cancel"
                                             Command="{Binding CancelCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}"
+                                            Margin="0 0 8 8"
+                                            MinWidth="98"
                                             Height="38"/>
-                                </UniformGrid>
+                                    <TextBlock Text="{Binding SelectedReservationSummary}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="11"
+                                               Margin="4 0 0 8"/>
+                                </WrapPanel>
 
                                 <DataGrid Grid.Row="2" ItemsSource="{Binding Requests}"
                                           SelectedItem="{Binding SelectedRequest, Mode=TwoWay}"
@@ -572,8 +633,14 @@
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
                                                                 <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsReserved}" Value="True">
+                                                                        <Setter Property="Background" Value="#1565C0"/>
+                                                                    </DataTrigger>
                                                                     <DataTrigger Binding="{Binding IsReadyToContact}" Value="True">
                                                                         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding IsReservationReminderDue}" Value="True">
+                                                                        <Setter Property="Background" Value="#C62828"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -584,7 +651,13 @@
                                                                     <Setter Property="Text" Value="{Binding SignalText}"/>
                                                                     <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                                     <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsReserved}" Value="True">
+                                                                            <Setter Property="Foreground" Value="White"/>
+                                                                        </DataTrigger>
                                                                         <DataTrigger Binding="{Binding IsReadyToContact}" Value="True">
+                                                                            <Setter Property="Foreground" Value="White"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsReservationReminderDue}" Value="True">
                                                                             <Setter Property="Foreground" Value="White"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
@@ -602,6 +675,8 @@
                                         <DataGridTextColumn Header="Matched Code" Binding="{Binding PartInternalCode, Mode=OneWay}" Width="120"/>
                                         <DataGridTextColumn Header="Customers Waiting" Binding="{Binding WaitingCustomerCount, Mode=OneWay}" Width="125"/>
                                         <DataGridTextColumn Header="Available" Binding="{Binding AvailableQuantity, Mode=OneWay}" Width="85"/>
+                                        <DataGridTextColumn Header="Reserved" Binding="{Binding ReservedQuantity, Mode=OneWay}" Width="85"/>
+                                        <DataGridTextColumn Header="Clock" Binding="{Binding ReservationExpiresAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
                                         <DataGridTextColumn Header="Qty" Binding="{Binding Quantity, Mode=OneWay}" Width="60"/>
                                         <DataGridTextColumn Header="Vehicle" Binding="{Binding VehicleDetails, Mode=OneWay}" Width="170"/>
                                         <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="150"/>
@@ -1212,63 +1287,111 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <TextBlock Text="Profit Center Cost Card"
-                                               FontSize="13"
-                                               FontWeight="SemiBold"
-                                               Margin="0 0 0 8"/>
-                                    <UniformGrid Grid.Row="1" Columns="6">
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Purchase" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.PurchaseCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
+
+                                    <DockPanel Grid.Row="0" Margin="0 0 0 10">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="Teardown Profit Map"
+                                                       FontSize="15"
+                                                       FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.ProfitMapBreakEvenStatus}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Margin="0 4 0 0"/>
                                         </StackPanel>
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Transport" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.TransportationCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Customs" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.CustomsCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Shipping" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.ShippingCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Part-Out" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.PartOutCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Repairs" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.RepairsCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 8">
-                                            <TextBlock Text="Full Cost" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <Button Content="Rank Parts"
+                                                Command="{Binding OpenPartsCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                DockPanel.Dock="Right"
+                                                Padding="12 5"/>
+                                    </DockPanel>
+
+                                    <UniformGrid Grid.Row="1" Columns="6" Margin="0 0 0 10">
+                                        <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0 0 8 0">
+                                            <StackPanel>
+                                                <TextBlock Text="Bought For" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.PurchaseCostBase, StringFormat={}{0:N2}}" FontSize="15" FontWeight="Bold" Margin="0 4 0 0"/>
+                                                <TextBlock Text="Purchase basis" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2 0 0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0 0 8 0">
+                                            <StackPanel>
+                                                <TextBlock Text="Teardown Costs" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.TeardownCostBase, StringFormat={}{0:N2}}" FontSize="15" FontWeight="Bold" Margin="0 4 0 0"/>
+                                                <TextBlock Text="Transport, fees, work" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2 0 0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0 0 8 0">
+                                            <StackPanel>
+                                                <TextBlock Text="Parts Removed" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.PartsRemovedValueBase, StringFormat={}{0:N2}}" FontSize="15" FontWeight="Bold" Margin="0 4 0 0"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.PartsRemovedCount, StringFormat={}{0:N0} part(s)}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2 0 0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0 0 8 0">
+                                            <StackPanel>
+                                                <TextBlock Text="Parts Sold" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.ProfitMapSoldValueBase, StringFormat={}{0:N2}}" FontSize="15" FontWeight="Bold" Margin="0 4 0 0"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.PartsSoldQuantity, StringFormat={}{0:N0} sold}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2 0 0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0 0 8 0">
+                                            <StackPanel>
+                                                <TextBlock Text="Remaining Stock" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.RemainingStockValueBase, StringFormat={}{0:N2}}" FontSize="15" FontWeight="Bold" Margin="0 4 0 0"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.RemainingStockQuantity, StringFormat={}{0:N0} in stock}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2 0 0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                                            <StackPanel>
+                                                <TextBlock Text="Profit/Loss" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.NetProfitLossBase, StringFormat={}{0:N2}}" FontSize="15" FontWeight="Bold" Margin="0 4 0 0"/>
+                                                <TextBlock Text="{Binding SelectedUsedCar.ProfitMapBreakEvenStatus}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2 0 0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <Grid Grid.Row="2" Margin="0 0 0 10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <DockPanel Grid.Row="0" Margin="0 0 0 5">
+                                            <TextBlock Text="Recovered"
+                                                       FontSize="10"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       DockPanel.Dock="Left"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.ProfitMapRecoveredPercentText}"
+                                                       FontSize="10"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       DockPanel.Dock="Right"/>
+                                        </DockPanel>
+                                        <ProgressBar Grid.Row="1"
+                                                     Height="10"
+                                                     Minimum="0"
+                                                     Maximum="100"
+                                                     Value="{Binding SelectedUsedCar.ProfitMapRecoveredPercentCapped}"
+                                                     Background="{DynamicResource CardHighlightBrush}"
+                                                     Foreground="{DynamicResource AccentBrush}"
+                                                     BorderThickness="0"/>
+                                    </Grid>
+
+                                    <UniformGrid Grid.Row="3" Columns="3">
+                                        <StackPanel Margin="0 0 12 0">
+                                            <TextBlock Text="Full Project Cost" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBlock Text="{Binding SelectedUsedCar.FullCostBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
                                         </StackPanel>
                                         <StackPanel Margin="0 0 12 0">
-                                            <TextBlock Text="Parts Removed" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.PartsRemovedCount, StringFormat={}{0:N0}}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Recovered Value" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.ProfitMapRecoveredValueBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
                                         </StackPanel>
-                                        <StackPanel Margin="0 0 12 0">
-                                            <TextBlock Text="Parts Sold" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.PartsSoldQuantity, StringFormat={}{0:N0}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 0">
-                                            <TextBlock Text="Sale Price" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.SalePriceBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 0">
-                                            <TextBlock Text="Remaining Stock" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.RemainingStockValueBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 0">
-                                            <TextBlock Text="Stock Qty" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.RemainingStockQuantity, StringFormat={}{0:N0}}" FontWeight="SemiBold"/>
-                                        </StackPanel>
-                                        <StackPanel Margin="0 0 12 0">
-                                            <TextBlock Text="Net Profit/Loss" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding SelectedUsedCar.NetProfitLossBase, StringFormat={}{0:N2}}" FontWeight="Bold"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Break-Even Gap" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SelectedUsedCar.ProfitMapBreakEvenGapBase, StringFormat={}{0:N2}}" FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </UniformGrid>
                                 </Grid>

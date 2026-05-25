@@ -21,6 +21,7 @@ namespace SpareParts.Desktop.Wpf
                 Username = user.Username,
                 FullName = user.FullName,
                 Email = user.Email,
+                RoleId = user.RoleId,
                 Role = user.Role,
                 IsActive = user.IsActive,
                 LastLoginAt = user.LastLoginAt,

@@ -114,7 +114,7 @@ namespace SpareParts.Desktop.Wpf
                 {
                     UserId = result.UserId,
                     FullName = result.FullName,
-                    Role = result.Role,
+                    RoleId = result.RoleId,
                     Token = result.Token,
                     ExpiresAt = result.ExpiresAt
                 };

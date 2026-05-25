@@ -2,6 +2,7 @@ import { React, h, useCallback, useEffect, useMemo, useState } from "../core/rea
 import { asRows, money, shortDate } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 import { genericColumns } from "./management-view.js";
+import { PricingCoachCard, PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
 
 const scanColumns = [
   { key: "type", label: "Type", render: (row) => row.targetType || "-" },
@@ -820,6 +821,7 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
 
 function StockWorkspace({ api, module, t }) {
   const [parts, setParts] = useState([]);
+  const [partRequests, setPartRequests] = useState([]);
   const [usedCars, setUsedCars] = useState([]);
   const [query, setQuery] = useState("");
   const [usedCarFilter, setUsedCarFilter] = useState("");
@@ -844,25 +846,38 @@ function StockWorkspace({ api, module, t }) {
     [parts]
   );
 
+  const waitingByPart = useMemo(
+    () => waitingCustomersByPart(partRequests),
+    [partRequests]
+  );
+
+  const selectedCoach = useMemo(
+    () => selectedPart ? smartPricingCoach(selectedPart, waitingByPart.get(String(read(selectedPart, "id"))) || 0) : null,
+    [selectedPart, waitingByPart]
+  );
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setStatus("Loading stock...");
     try {
       const partPath = `/api/parts?pageSize=500${usedCarFilter ? `&usedCarId=${encodeURIComponent(usedCarFilter)}` : ""}`;
-      const [nextParts, nextUsedCars] = await Promise.all([
+      const [nextParts, nextUsedCars, nextRequests] = await Promise.all([
         api.get(partPath),
-        api.get("/api/usedcars")
+        api.get("/api/usedcars"),
+        api.get("/api/partrequests?status=Active").catch(() => [])
       ]);
       const partRows = asRows(nextParts);
       const usedCarRows = asRows(nextUsedCars);
       setParts(partRows);
       setUsedCars(usedCarRows);
+      setPartRequests(asRows(nextRequests));
       setSelectedPartId((current) => current || selectFirstId(partRows));
       setAssignUsedCarId((current) => current || "");
       const nextLowStockCount = partRows.filter((part) => toNumber(read(part, "availableQuantity", "stockQuantity")) <= toNumber(read(part, "minStock"))).length;
       setStatus(`Stock loaded. ${partRows.length} part(s), ${nextLowStockCount} low-stock alert(s).`);
     } catch (error) {
       setParts([]);
+      setPartRequests([]);
       setStatus(error.message || "Could not load stock.");
     } finally {
       setIsLoading(false);
@@ -964,6 +979,7 @@ function StockWorkspace({ api, module, t }) {
         h("span", null, `Min ${read(selectedPart, "minStock") || 0}`),
         h("span", null, read(selectedPart, "usedCarId") ? `Used car #${read(selectedPart, "usedCarId")}` : "Shelf stock")
       ),
+      selectedCoach && h(PricingCoachCard, { h, coach: selectedCoach }),
       notesResult && h("article", { className: "selector-panel" },
         h("h3", null, "Suggested notes"),
         h("p", null, read(notesResult, "suggestedNotes") || "No notes returned."),
@@ -979,6 +995,14 @@ function StockWorkspace({ api, module, t }) {
           { key: "reserved", label: "Reserved", render: (row) => read(row, "reservedQuantity") || 0 },
           { key: "min", label: "Min", render: (row) => read(row, "minStock") || 0 },
           { key: "price", label: "Sale", render: (row) => money(read(row, "salePrice"), read(row, "currency") || "USD") },
+          {
+            key: "coach",
+            label: "Coach",
+            render: (row) => h(PricingCoachSignal, {
+              h,
+              coach: smartPricingCoach(row, waitingByPart.get(String(read(row, "id"))) || 0)
+            })
+          },
           { key: "car", label: "Used car", render: (row) => read(row, "usedCarId") ? `#${read(row, "usedCarId")}` : "Shelf" }
         ],
         rows: filteredParts,

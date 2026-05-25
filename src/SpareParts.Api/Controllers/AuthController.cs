@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Api.Services;
 using SpareParts.Domain.Auth;
 
@@ -37,11 +38,11 @@ namespace SpareParts.Api.Controllers
         {
             UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
             FullName = User.FindFirst(ClaimTypes.Name)?.Value,
-            Role = User.FindFirst(ClaimTypes.Role)?.Value
+            RoleId = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value
         });
 
         [HttpGet("hashpassword")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AuthorizationPolicies.Admin)]
         public ActionResult HashPassword([FromQuery] string plain)
         {
             if (!_hostEnvironment.IsDevelopment())

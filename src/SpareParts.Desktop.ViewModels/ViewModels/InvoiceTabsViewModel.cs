@@ -1,9 +1,11 @@
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf;
+using SpareParts.Desktop.Wpf.Pricing;
 using SpareParts.Domain.Auth;
 using SpareParts.Domain.Sales;
 using SpareParts.Domain.MasterData;
+using SpareParts.Domain.Inventory;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -46,6 +48,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public BarcodeModeViewModel BarcodeModeVm { get; }
         public PartCompatibilityViewModel PartCompatibilityVm { get; }
         public DeadStockResurrectionViewModel DeadStockVm { get; }
+        public StockArrivalTheaterViewModel StockArrivalVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -87,6 +90,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             get => _canViewStockManagementScreen;
             private set { _canViewStockManagementScreen = value; OnPropertyChanged(nameof(CanViewStockManagementScreen)); }
+        }
+
+        private bool _canViewStockArrivalScreen;
+        public bool CanViewStockArrivalScreen
+        {
+            get => _canViewStockArrivalScreen;
+            private set { _canViewStockArrivalScreen = value; OnPropertyChanged(nameof(CanViewStockArrivalScreen)); }
         }
 
         private bool _canViewAccountingScreen;
@@ -363,6 +373,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WhatsAppVm.IsLoading ||
             BarcodeModeVm.IsLoading ||
             DeadStockVm.IsLoading ||
+            StockArrivalVm.IsLoading ||
             PartPurchasesVm.IsLoading ||
             PurchasesVm.IsLoading ||
             RepairPrepVm.IsLoading ||
@@ -400,6 +411,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToUsedCarPurchasesCommand { get; }
         public ICommand GoToPurchaseHistoryCommand { get; }
+        public ICommand GoToStockArrivalCommand { get; }
         public ICommand GoToRepairPrepCommand { get; }
         public ICommand GoToStockManagementCommand { get; }
         public ICommand GoToDeadStockCommand { get; }
@@ -446,6 +458,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             DeadStockVm = new DeadStockResurrectionViewModel(partsApi);
             PartPurchasesVm = new PartPurchasesViewModel(crudApi, purchasesApi);
             PurchasesVm = new UsedCarPurchasesViewModel(crudApi, accountingApi, purchasesApi);
+            StockArrivalVm = new StockArrivalTheaterViewModel(crudApi, NavigateFromStockArrival);
             RepairPrepVm = new RepairPrepBoardViewModel(crudApi);
             PartCompatibilityVm = new PartCompatibilityViewModel(crudApi);
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
@@ -508,6 +521,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             PurchasesVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(UsedCarPurchasesViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            StockArrivalVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(StockArrivalTheaterViewModel.IsLoading))
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
@@ -644,6 +664,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen = AppScreen.PurchaseHistory;
                 PurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
+            GoToStockArrivalCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewStockArrivalScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view stock arrival opportunities.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.StockArrivalTheater;
+                StockArrivalVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             GoToRepairPrepCommand = new RelayCommand(_ =>
             {
                 if (!CanViewPurchasesScreen)
@@ -664,6 +695,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 }
 
                 ActiveScreen = AppScreen.StockManagement;
+                LoadStockSnapshotsAsync().SafeFireAndForget(HandleBackgroundException);
             });
             GoToDeadStockCommand = new RelayCommand(_ =>
             {
@@ -749,7 +781,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 if (!CanViewBarcodeQrScreen)
                 {
-                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view Barcode / QR Mode.", false);
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view AR Search.", false);
                     return;
                 }
 
@@ -774,19 +806,44 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             LoadRolePermissionsAsync().SafeFireAndForget(HandleBackgroundException);
         }
 
+        private void NavigateFromStockArrival(AppScreen screen)
+        {
+            switch (screen)
+            {
+                case AppScreen.RepairPrepBoard:
+                    GoToRepairPrepCommand.Execute(null);
+                    break;
+                case AppScreen.StockManagement:
+                    GoToStockManagementCommand.Execute(null);
+                    break;
+                case AppScreen.WhatsAppInbox:
+                    GoToWhatsAppCommand.Execute(null);
+                    break;
+                case AppScreen.Purchases:
+                    GoToUsedCarPurchasesCommand.Execute(null);
+                    break;
+                case AppScreen.PartPurchases:
+                    GoToPurchasesCommand.Execute(null);
+                    break;
+                default:
+                    ActiveScreen = screen;
+                    break;
+            }
+        }
+
         private async Task LoadRolePermissionsAsync()
         {
             IsLoadingRolePermissions = true;
             try
             {
-                var roleName = SessionContext.CurrentUser?.Role;
-                if (string.IsNullOrWhiteSpace(roleName))
+                var roleId = SessionContext.CurrentUser?.RoleId;
+                if (!roleId.HasValue || roleId.Value <= 0)
                 {
                     ApplyPermissions(new List<RoleMenuAccessDto>());
                     return;
                 }
 
-                var permissions = await _rolesApi.GetRoleMenuAccessByNameAsync(roleName);
+                var permissions = await _rolesApi.GetRoleMenuAccessAsync(roleId.Value);
                 ApplyPermissions(permissions);
             }
             catch (Exception)
@@ -827,6 +884,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CanViewPosScreen = posScreen.CanView;
             CanViewPurchasesScreen = purchasesScreen.CanView;
             CanViewStockManagementScreen = stockManagementScreen.CanView;
+            CanViewStockArrivalScreen = purchasesScreen.CanView || stockManagementScreen.CanView;
             CanViewAccountingScreen = accountingScreen.CanView;
             CanViewManualJournalScreen = manualJournalScreen.CanView;
             CanViewReportBuilderScreen = reportBuilderScreen.CanView;
@@ -1288,6 +1346,55 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             finally
             {
                 IsLoadingParts = false;
+            }
+        }
+
+        private async Task LoadStockSnapshotsAsync()
+        {
+            StockSnapshots.Clear();
+            IsLoadingParts = true;
+
+            try
+            {
+                var parts = await _partsApi.GetPartsAsync();
+                var requests = await LoadActivePartRequestsAsync();
+                var waitingByPart = SmartPricingCoach.WaitingCustomersByPart(requests);
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    StockSnapshots.Clear();
+                    foreach (var part in parts
+                        .OrderBy(part => part.AvailableQuantity > part.MinStock)
+                        .ThenBy(part => part.InternalCode))
+                    {
+                        waitingByPart.TryGetValue(part.Id, out var waitingCustomers);
+                        StockSnapshots.Add(StockSnapshotViewModel.FromPart(part, waitingCustomers));
+                    }
+                });
+            }
+            catch (ApiClientException ex)
+            {
+                AppNotificationCenter.Instance.Publish($"✗ API error ({ex.Code}): {ex.Message}", false);
+            }
+            catch (Exception)
+            {
+                AppNotificationCenter.Instance.Publish("✗ Unexpected error while loading stock.", false);
+            }
+            finally
+            {
+                IsLoadingParts = false;
+            }
+        }
+
+        private async Task<List<PartRequestDto>> LoadActivePartRequestsAsync()
+        {
+            try
+            {
+                return await _crudApi.GetAllAsync<PartRequestDto>("api/partrequests?status=Active");
+            }
+            catch
+            {
+                return new List<PartRequestDto>();
             }
         }
 
