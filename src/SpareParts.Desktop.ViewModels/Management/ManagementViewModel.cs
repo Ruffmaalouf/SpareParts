@@ -27,6 +27,7 @@ namespace SpareParts.Desktop.Wpf
         private readonly ManagementStatusCenter _statusCenter = new();
         private string _baseCurrencyCode = "USD";
         private string _counterCurrencyCode = "USD";
+        private string _displayCurrencyCode = "USD";
         private decimal _defaultCounterRate = 1m;
 
         public CustomerManagementViewModel CustomersFeature { get; } = new();
@@ -78,7 +79,8 @@ namespace SpareParts.Desktop.Wpf
         public bool CanSaveSupplier => SuppliersFeature.CanSaveSupplier;
         public string BaseCurrencyCode => _baseCurrencyCode;
         public string CounterCurrencyCode => _counterCurrencyCode;
-        public string CurrencyRatesSummary => $"Base {BaseCurrencyCode} | Counter {CounterCurrencyCode}";
+        public string DisplayCurrencyCode => _displayCurrencyCode;
+        public string CurrencyRatesSummary => $"Base {BaseCurrencyCode} | Counter {CounterCurrencyCode} | Display {DisplayCurrencyCode}";
         public int AccountingAccountCount => AccountingAccounts.Count;
         public int ActiveTransactionTypeCount => TransactionTypes.Count(item => item.IsActive);
         public decimal CustomerOpeningBalanceTotal => decimal.Round(Customers.Sum(customer => customer.OpeningBalance), 2, MidpointRounding.AwayFromZero);
@@ -356,7 +358,7 @@ namespace SpareParts.Desktop.Wpf
                     Replace(CarModels, loadResult.CarModels);
                     Replace(Locations, loadResult.Locations);
                     Replace(Warehouses, loadResult.Warehouses);
-                    CurrencyRatesFeature.Load(loadResult.CurrencyRates, _baseCurrencyCode, _counterCurrencyCode, _defaultCounterRate);
+                    CurrencyRatesFeature.Load(loadResult.CurrencyRates, _baseCurrencyCode, _counterCurrencyCode, _displayCurrencyCode, _defaultCounterRate);
                     PartsFeature.LoadReferenceData(loadResult.Categories, loadResult.Brands, loadResult.CurrencyRates);
                     LocationsFeature.LoadCurrencyCodes(CurrencyRatesFeature.CurrencyCodes);
                     EnsureLocationFormCurrencySelection();
@@ -516,6 +518,8 @@ namespace SpareParts.Desktop.Wpf
                 ?? "USD";
             _counterCurrencyCode = ResolveCurrencyCode(byKey, "CounterCurrencyCode")
                 ?? _baseCurrencyCode;
+            _displayCurrencyCode = ResolveCurrencyCode(byKey, "DisplayCurrencyCode")
+                ?? _counterCurrencyCode;
             if (byKey.TryGetValue("DefaultCounterRate", out var defaultCounterRate)
                 && decimal.TryParse(defaultCounterRate, out var parsedRate)
                 && parsedRate > 0)
@@ -525,6 +529,7 @@ namespace SpareParts.Desktop.Wpf
 
             OnPropertyChanged(nameof(BaseCurrencyCode));
             OnPropertyChanged(nameof(CounterCurrencyCode));
+            OnPropertyChanged(nameof(DisplayCurrencyCode));
             OnPropertyChanged(nameof(CurrencyRatesSummary));
             EnsureLocationFormCurrencySelection();
         }

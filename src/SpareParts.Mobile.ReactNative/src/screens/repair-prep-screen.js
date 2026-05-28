@@ -1,7 +1,7 @@
 const React = require("react");
 const { Pressable, ScrollView, Text, View } = require("react-native");
 const AsyncStorage = require("@react-native-async-storage/async-storage").default;
-const { initials, money } = require("../core/formatters");
+const { displayCurrencyContext, displayMoneyFromBase, initials, money } = require("../core/formatters");
 const { Field, ListRow, Panel, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
 const { useTheme } = require("../theme/theme-context");
 
@@ -112,7 +112,7 @@ function Metric({ label, value }) {
   );
 }
 
-function TaskRow({ task, currency, onToggle, onDelete }) {
+function TaskRow({ task, displayContext, onToggle, onDelete }) {
   const { styles } = useTheme();
   return el(View, { style: [styles.prepTaskRow, task.done && styles.prepTaskRowDone] },
     el(Pressable, { style: styles.prepTaskToggle, onPress: () => onToggle(!task.done) },
@@ -120,7 +120,7 @@ function TaskRow({ task, currency, onToggle, onDelete }) {
     ),
     el(View, { style: styles.prepTaskCopy },
       el(Text, { style: styles.prepTaskTitle, numberOfLines: 1 }, task.title),
-      el(Text, { style: styles.prepTaskMeta }, money(task.cost, currency))
+      el(Text, { style: styles.prepTaskMeta }, displayMoneyFromBase(task.cost, displayContext))
     ),
     el(Pressable, { style: styles.prepTaskDelete, onPress: onDelete },
       el(Text, { style: styles.prepTaskDeleteText }, "x")
@@ -132,6 +132,8 @@ function RepairPrepScreen({ api }) {
   const { styles, t } = useTheme();
   const [cars, setCars] = useState([]);
   const [parts, setParts] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [boardState, setBoardState] = useState({});
   const [status, setStatus] = useState("");
@@ -167,18 +169,28 @@ function RepairPrepScreen({ api }) {
     () => cars.find((car) => String(itemId(car)) === String(selectedId)) || null,
     [cars, selectedId]
   );
+  const selectedDisplayContext = useMemo(() => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: read(selectedCar, "baseCurrencyCode"),
+    counterCurrencyCode: read(selectedCar, "counterCurrencyCode")
+  }), [appConstants, currencyRates, selectedCar]);
 
   const load = useCallback(async (preferredId) => {
     setIsLoading(true);
     setStatus(t("repairPrep.loading", "Loading repair board..."));
     try {
-      const [nextCars, nextParts] = await Promise.all([
+      const [nextCars, nextParts, nextCurrencies, nextAppConstants] = await Promise.all([
         api.get("/api/usedcars"),
-        api.get("/api/parts?page=1&pageSize=500")
+        api.get("/api/parts?page=1&pageSize=500"),
+        api.get("/api/currencies"),
+        api.get("/api/appconstants")
       ]);
       const carRows = asRows(nextCars);
       setCars(carRows);
       setParts(asRows(nextParts));
+      setCurrencyRates(asRows(nextCurrencies));
+      setAppConstants(asRows(nextAppConstants));
       setBoardState((current) => mergeBoardState(carRows, current));
       setSelectedId((current) => {
         if (preferredId) return String(preferredId);
@@ -237,13 +249,13 @@ function RepairPrepScreen({ api }) {
     const task = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       title: newTaskTitle.trim(),
-      cost: toNumber(newTaskCost),
+      cost: toNumber(newTaskCost) * (Number(selectedDisplayContext.rateToBase) || 1),
       done: false
     };
     setCarRecord(itemId(selectedCar), (record) => ({ ...record, tasks: [...record.tasks, task] }));
     setNewTaskTitle("");
     setNewTaskCost("");
-  }, [newTaskCost, newTaskTitle, selectedCar, setCarRecord]);
+  }, [newTaskCost, newTaskTitle, selectedCar, selectedDisplayContext.rateToBase, setCarRecord]);
 
   const filteredCars = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -258,7 +270,7 @@ function RepairPrepScreen({ api }) {
 
   const selectedRecord = selectedCar ? mergedBoardState[String(itemId(selectedCar))] : null;
   const selectedTasks = selectedRecord?.tasks || [];
-  const selectedCurrency = read(selectedCar, "baseCurrencyCode") || read(selectedCar, "priceCurrency") || "USD";
+  const selectedCurrency = selectedDisplayContext.code || read(selectedCar, "priceCurrency") || "USD";
   const linkedParts = selectedCar
     ? parts.filter((part) => String(read(part, "usedCarId") || "") === String(itemId(selectedCar)))
     : [];
@@ -377,12 +389,12 @@ function RepairPrepScreen({ api }) {
       el(View, { style: styles.prepProgressLarge },
         el(View, { style: [styles.prepProgressFill, { width: `${progress}%` }] })
       ),
-      el(Text, { style: styles.statusText }, `${progress}% ${t("repairPrep.complete", "complete")} / ${money(totalPrepCost, selectedCurrency)} ${t("repairPrep.prepCost", "prep cost")}`),
+      el(Text, { style: styles.statusText }, `${progress}% ${t("repairPrep.complete", "complete")} / ${displayMoneyFromBase(totalPrepCost, selectedDisplayContext)} ${t("repairPrep.prepCost", "prep cost")}`),
       selectedTasks.map((task) =>
         el(TaskRow, {
           key: task.id,
           task,
-          currency: selectedCurrency,
+          displayContext: selectedDisplayContext,
           onToggle: (done) => updateTask(task.id, { done }),
           onDelete: () => deleteTask(task.id)
         })
@@ -404,12 +416,12 @@ function RepairPrepScreen({ api }) {
       el(SecondaryButton, { title: t("repairPrep.addTask", "Add Task"), onPress: addTask })
     ),
     selectedCar && el(Panel, { title: t("repairPrep.costs", "Costs") },
-      el(ListRow, { title: t("repairPrep.purchase", "Purchase"), value: money(read(selectedCar, "purchaseCostBase", "priceBase", "price"), selectedCurrency) }),
-      el(ListRow, { title: t("repairPrep.shipping", "Shipping"), value: money(read(selectedCar, "shippingCostBase", "shipping"), selectedCurrency) }),
-      el(ListRow, { title: t("repairPrep.customs", "Customs"), value: money(read(selectedCar, "customsCostBase", "customs"), selectedCurrency) }),
-      el(ListRow, { title: t("repairPrep.repairs", "Repairs"), value: money(read(selectedCar, "repairsCostBase", "repairs"), selectedCurrency) }),
-      el(ListRow, { title: t("repairPrep.prepTasks", "Prep tasks"), value: money(totalPrepCost, selectedCurrency) }),
-      el(ListRow, { title: t("repairPrep.fullCost", "Full car cost"), value: money(read(selectedCar, "fullCostBase", "grandTotalBase"), selectedCurrency) })
+      el(ListRow, { title: t("repairPrep.purchase", "Purchase"), value: displayMoneyFromBase(read(selectedCar, "purchaseCostBase", "priceBase", "price"), selectedDisplayContext) }),
+      el(ListRow, { title: t("repairPrep.shipping", "Shipping"), value: displayMoneyFromBase(read(selectedCar, "shippingCostBase", "shipping"), selectedDisplayContext) }),
+      el(ListRow, { title: t("repairPrep.customs", "Customs"), value: displayMoneyFromBase(read(selectedCar, "customsCostBase", "customs"), selectedDisplayContext) }),
+      el(ListRow, { title: t("repairPrep.repairs", "Repairs"), value: displayMoneyFromBase(read(selectedCar, "repairsCostBase", "repairs"), selectedDisplayContext) }),
+      el(ListRow, { title: t("repairPrep.prepTasks", "Prep tasks"), value: displayMoneyFromBase(totalPrepCost, selectedDisplayContext) }),
+      el(ListRow, { title: t("repairPrep.fullCost", "Full car cost"), value: displayMoneyFromBase(read(selectedCar, "fullCostBase", "grandTotalBase"), selectedDisplayContext) })
     ),
     selectedCar && el(Panel, { title: t("repairPrep.linkedParts", "Linked parts") },
       linkedParts.slice(0, 24).map((part) =>

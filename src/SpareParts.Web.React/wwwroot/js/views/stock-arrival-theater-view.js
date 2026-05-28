@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { asRows, initials, money, shortDate } from "../core/formatters.js";
+import { asRows, displayCurrencyContext, displayMoneyFromBase, initials, money, shortDate } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 import { smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
 
@@ -111,7 +111,7 @@ function recentArrivalRows(purchases, usedCarPurchases) {
   ].sort((left, right) => dateValue(right) - dateValue(left)).slice(0, 5);
 }
 
-function buildPhotoOpportunities(parts, campaignAssets, usedCars) {
+function buildPhotoOpportunities(parts, campaignAssets, usedCars, displayContextForCar) {
   const carAssets = campaignAssets
     .filter(isCarAsset)
     .sort((left, right) => toNumber(read(left, "imageCount")) - toNumber(read(right, "imageCount")))
@@ -146,7 +146,7 @@ function buildPhotoOpportunities(parts, campaignAssets, usedCars) {
       evidence: [
         ["Status", read(car, "isReceived") ? "Received" : "Incoming"],
         ["Location", read(car, "location") || "-"],
-        ["Cost", money(read(car, "fullCostBase", "grandTotalBase", "price"), read(car, "baseCurrencyCode", "priceCurrency") || "USD")]
+        ["Cost", displayMoneyFromBase(read(car, "fullCostBase", "grandTotalBase", "price"), displayContextForCar(car))]
       ]
     }));
   const carCards = [...carAssets, ...fallbackCars].slice(0, 7);
@@ -333,9 +333,16 @@ function buildPricingOpportunities(parts, requests) {
     }));
 }
 
-function buildBoard({ parts, requests, usedCars, campaignAssets }) {
+function buildBoard({ parts, requests, usedCars, campaignAssets, appConstants, currencyRates }) {
+  const displayContextForCar = (car) => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: read(car, "baseCurrencyCode"),
+    counterCurrencyCode: read(car, "counterCurrencyCode")
+  });
+
   return {
-    photo: buildPhotoOpportunities(parts, campaignAssets, usedCars),
+    photo: buildPhotoOpportunities(parts, campaignAssets, usedCars, displayContextForCar),
     waiting: buildWaitingOpportunities(requests),
     campaign: buildCampaignOpportunities(parts, requests, campaignAssets),
     pricing: buildPricingOpportunities(parts, requests)
@@ -401,7 +408,9 @@ export function StockArrivalTheaterView({ api, onView, t }) {
     usedCars: [],
     campaignAssets: [],
     purchases: [],
-    usedCarPurchases: []
+    usedCarPurchases: [],
+    appConstants: [],
+    currencyRates: []
   });
   const [selectedKey, setSelectedKey] = useState("");
   const [search, setSearch] = useState("");
@@ -419,7 +428,9 @@ export function StockArrivalTheaterView({ api, onView, t }) {
       ["usedCars", api.get("/api/usedcars")],
       ["campaignAssets", api.get("/api/communications/campaign-assets")],
       ["purchases", api.get("/api/purchases")],
-      ["usedCarPurchases", api.get("/api/purchases/used-cars")]
+      ["usedCarPurchases", api.get("/api/purchases/used-cars")],
+      ["appConstants", api.get("/api/appconstants")],
+      ["currencyRates", api.get("/api/currencies")]
     ];
 
     try {

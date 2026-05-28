@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { initials, money } from "../core/formatters.js";
+import { displayCurrencyContext, displayMoneyFromBase, initials, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 
 const storageKey = "spareparts.repairPrepBoard.v1";
@@ -114,11 +114,10 @@ function taskProgress(tasks) {
   return Math.round((done / tasks.length) * 100);
 }
 
-function BoardCard({ car, record, active, onSelect, onMove, onDragStart }) {
+function BoardCard({ car, record, active, onSelect, onMove, onDragStart, displayContext }) {
   const tasks = record.tasks || [];
   const progress = taskProgress(tasks);
   const fullCost = toNumber(read(car, "fullCostBase"));
-  const baseCurrency = read(car, "baseCurrencyCode") || "USD";
 
   return h("button", {
     className: active ? "prep-card active" : "prep-card",
@@ -133,8 +132,8 @@ function BoardCard({ car, record, active, onSelect, onMove, onDragStart }) {
       h("small", null, `${read(car, "barcode") || "No barcode"} / ${read(car, "location") || "Location"}`)
     ),
     h("span", { className: "prep-card-costs" },
-      h("b", null, money(fullCost, baseCurrency)),
-      h("small", null, `Prep ${money(taskCost(tasks), baseCurrency)}`)
+      h("b", null, displayMoneyFromBase(fullCost, displayContext)),
+      h("small", null, `Prep ${displayMoneyFromBase(taskCost(tasks), displayContext)}`)
     ),
     h("span", { className: "prep-progress", "aria-label": `${progress}% complete` },
       h("span", { style: { width: `${progress}%` } })
@@ -149,7 +148,7 @@ function BoardCard({ car, record, active, onSelect, onMove, onDragStart }) {
   );
 }
 
-function TaskRow({ task, currency, onToggle, onDelete }) {
+function TaskRow({ task, displayContext, onToggle, onDelete }) {
   return h("li", { className: task.done ? "prep-task done" : "prep-task" },
     h("label", null,
       h("input", {
@@ -159,17 +158,17 @@ function TaskRow({ task, currency, onToggle, onDelete }) {
       }),
       h("span", null,
         h("strong", null, task.title),
-        h("small", null, money(toNumber(task.cost), currency))
+        h("small", null, displayMoneyFromBase(task.cost, displayContext))
       )
     ),
     h("button", { className: "ghost-button", type: "button", onClick: onDelete, "aria-label": `Delete ${task.title}` }, "x")
   );
 }
 
-function CostLine({ label, value, currency }) {
+function CostLine({ label, value, displayContext }) {
   return h("div", { className: "prep-cost-line" },
     h("span", null, label),
-    h("strong", null, money(toNumber(value), currency))
+    h("strong", null, displayMoneyFromBase(value, displayContext))
   );
 }
 
@@ -177,6 +176,8 @@ export function RepairPrepBoardView({ api, t }) {
   const [cars, setCars] = useState([]);
   const [parts, setParts] = useState([]);
   const [images, setImages] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [boardState, setBoardState] = useState(() => safeLoadBoardState());
   const [status, setStatus] = useState("");
@@ -188,6 +189,16 @@ export function RepairPrepBoardView({ api, t }) {
   const selectedCar = useMemo(
     () => cars.find((car) => String(itemId(car)) === String(selectedId)) || null,
     [cars, selectedId]
+  );
+  const displayContextForCar = useCallback((car) => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: read(car, "baseCurrencyCode"),
+    counterCurrencyCode: read(car, "counterCurrencyCode")
+  }), [appConstants, currencyRates]);
+  const selectedDisplayContext = useMemo(
+    () => displayContextForCar(selectedCar),
+    [displayContextForCar, selectedCar]
   );
 
   const mergedBoardState = useMemo(() => {
@@ -208,13 +219,17 @@ export function RepairPrepBoardView({ api, t }) {
     setIsLoading(true);
     setStatus("Loading repair board...");
     try {
-      const [nextCars, nextParts] = await Promise.all([
+      const [nextCars, nextParts, nextCurrencies, nextAppConstants] = await Promise.all([
         api.get("/api/usedcars"),
-        api.get("/api/parts?page=1&pageSize=500")
+        api.get("/api/parts?page=1&pageSize=500"),
+        api.get("/api/currencies"),
+        api.get("/api/appconstants")
       ]);
       const carRows = toArray(nextCars);
       setCars(carRows);
       setParts(toArray(nextParts));
+      setCurrencyRates(toArray(nextCurrencies));
+      setAppConstants(toArray(nextAppConstants));
       setBoardState((current) => {
         const normalized = { ...current };
         for (const car of carRows) {
@@ -312,7 +327,7 @@ export function RepairPrepBoardView({ api, t }) {
     const task = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       title: newTaskTitle.trim(),
-      cost: toNumber(newTaskCost),
+      cost: toNumber(newTaskCost) * (Number(selectedDisplayContext.rateToBase) || 1),
       done: false
     };
     setCarRecord(itemId(selectedCar), (record) => ({
@@ -321,7 +336,7 @@ export function RepairPrepBoardView({ api, t }) {
     }));
     setNewTaskTitle("");
     setNewTaskCost("");
-  }, [newTaskCost, newTaskTitle, selectedCar, setCarRecord]);
+  }, [newTaskCost, newTaskTitle, selectedCar, selectedDisplayContext.rateToBase, setCarRecord]);
 
   const filteredCars = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -336,7 +351,7 @@ export function RepairPrepBoardView({ api, t }) {
 
   const selectedRecord = selectedCar ? mergedBoardState[String(itemId(selectedCar))] : null;
   const selectedTasks = selectedRecord?.tasks || [];
-  const selectedCurrency = read(selectedCar, "baseCurrencyCode") || read(selectedCar, "priceCurrency") || "USD";
+  const selectedCurrency = selectedDisplayContext.code || read(selectedCar, "priceCurrency") || "USD";
   const linkedParts = selectedCar
     ? parts.filter((part) => String(read(part, "usedCarId") || "") === String(itemId(selectedCar)))
     : [];
@@ -421,7 +436,8 @@ export function RepairPrepBoardView({ api, t }) {
                   active: id === String(selectedId),
                   onSelect: () => setSelectedId(id),
                   onMove: (offset) => moveCarByOffset(id, offset),
-                  onDragStart: (event) => event.dataTransfer.setData("text/plain", id)
+                  onDragStart: (event) => event.dataTransfer.setData("text/plain", id),
+                  displayContext: displayContextForCar(car)
                 });
               }),
               columnCars.length === 0 && h("p", { className: "empty-state" }, "No cars in this lane.")
@@ -465,7 +481,7 @@ export function RepairPrepBoardView({ api, t }) {
                   h(TaskRow, {
                     key: task.id,
                     task,
-                    currency: selectedCurrency,
+                    displayContext: selectedDisplayContext,
                     onToggle: (done) => updateTask(task.id, { done }),
                     onDelete: () => deleteTask(task.id)
                   })
@@ -498,12 +514,12 @@ export function RepairPrepBoardView({ api, t }) {
                 h("h3", null, "Costs"),
                 h("span", null, selectedCurrency)
               ),
-              h(CostLine, { label: "Purchase", value: read(selectedCar, "purchaseCostBase", "priceBase", "price"), currency: selectedCurrency }),
-              h(CostLine, { label: "Shipping", value: read(selectedCar, "shippingCostBase", "shipping"), currency: selectedCurrency }),
-              h(CostLine, { label: "Customs", value: read(selectedCar, "customsCostBase", "customs"), currency: selectedCurrency }),
-              h(CostLine, { label: "Repairs", value: read(selectedCar, "repairsCostBase", "repairs"), currency: selectedCurrency }),
-              h(CostLine, { label: "Prep tasks", value: totalPrepCost, currency: selectedCurrency }),
-              h(CostLine, { label: "Full car cost", value: read(selectedCar, "fullCostBase", "grandTotalBase"), currency: selectedCurrency })
+              h(CostLine, { label: "Purchase", value: read(selectedCar, "purchaseCostBase", "priceBase", "price"), displayContext: selectedDisplayContext }),
+              h(CostLine, { label: "Shipping", value: read(selectedCar, "shippingCostBase", "shipping"), displayContext: selectedDisplayContext }),
+              h(CostLine, { label: "Customs", value: read(selectedCar, "customsCostBase", "customs"), displayContext: selectedDisplayContext }),
+              h(CostLine, { label: "Repairs", value: read(selectedCar, "repairsCostBase", "repairs"), displayContext: selectedDisplayContext }),
+              h(CostLine, { label: "Prep tasks", value: totalPrepCost, displayContext: selectedDisplayContext }),
+              h(CostLine, { label: "Full car cost", value: read(selectedCar, "fullCostBase", "grandTotalBase"), displayContext: selectedDisplayContext })
             ),
             h("section", { className: "prep-inspector-section" },
               h("header", null,

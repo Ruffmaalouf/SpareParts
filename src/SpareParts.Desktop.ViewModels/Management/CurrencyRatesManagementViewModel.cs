@@ -12,6 +12,7 @@ public sealed class CurrencyRatesManagementViewModel : INotifyPropertyChanged
     private readonly CurrencyRateProjectionService _projectionService;
     private string _baseCurrencyCode = "USD";
     private string _counterCurrencyCode = "USD";
+    private string _displayCurrencyCode = "USD";
     private decimal _defaultCounterRate = 1m;
     private bool _canViewCurrencyTab;
 
@@ -48,8 +49,9 @@ public sealed class CurrencyRatesManagementViewModel : INotifyPropertyChanged
 
     public string BaseCurrencyCode => _baseCurrencyCode;
     public string CounterCurrencyCode => _counterCurrencyCode;
+    public string DisplayCurrencyCode => _displayCurrencyCode;
     public decimal DefaultCounterRate => _defaultCounterRate;
-    public string CurrencyRatesSummary => $"Base {BaseCurrencyCode} | Counter {CounterCurrencyCode}";
+    public string CurrencyRatesSummary => $"Base {BaseCurrencyCode} | Counter {CounterCurrencyCode} | Display {DisplayCurrencyCode}";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -57,10 +59,12 @@ public sealed class CurrencyRatesManagementViewModel : INotifyPropertyChanged
         IEnumerable<CurrencyRateDto> rates,
         string baseCurrencyCode,
         string counterCurrencyCode,
+        string displayCurrencyCode,
         decimal defaultCounterRate)
     {
         _baseCurrencyCode = NormalizeCurrencyCode(baseCurrencyCode) ?? "USD";
         _counterCurrencyCode = NormalizeCurrencyCode(counterCurrencyCode) ?? _baseCurrencyCode;
+        _displayCurrencyCode = NormalizeCurrencyCode(displayCurrencyCode) ?? _counterCurrencyCode;
         _defaultCounterRate = defaultCounterRate > 0 ? defaultCounterRate : 1m;
 
         Replace(CurrencyRates, rates);
@@ -68,6 +72,7 @@ public sealed class CurrencyRatesManagementViewModel : INotifyPropertyChanged
 
         OnPropertyChanged(nameof(BaseCurrencyCode));
         OnPropertyChanged(nameof(CounterCurrencyCode));
+        OnPropertyChanged(nameof(DisplayCurrencyCode));
         OnPropertyChanged(nameof(DefaultCounterRate));
         OnPropertyChanged(nameof(CurrencyRatesSummary));
     }

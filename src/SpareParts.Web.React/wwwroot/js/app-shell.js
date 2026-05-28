@@ -4,7 +4,6 @@ import { ApiClient } from "./core/api-client.js";
 import { createTranslator, isRtlLanguage } from "./core/i18n.js";
 import { applyWebTheme, money, normalizeBaseUrl } from "./core/formatters.js";
 import { BrowserLanguageStore, BrowserSessionStore, BrowserThemeStore } from "./core/stores.js";
-import { LoginScreen } from "./components/auth.js";
 import { LanguageSegment, Sidebar, ThemeRail } from "./components/layout.js";
 import { NotificationCenter } from "./components/shared.js";
 import { SmartSearch } from "./components/smart-search.js";
@@ -124,34 +123,28 @@ export function App() {
     startTransition(() => setView(nextView));
   }, []);
 
-  if (!token || !user) {
-    return h(LoginScreen, {
-      initialApiBaseUrl: apiBaseUrl,
-      languageKey,
-      onLanguage: setLanguageKey,
-      t,
-      onLogin: handleLogin
-    });
-  }
+  const isSignedIn = Boolean(token && user);
+  const isWebAppUser = isSignedIn && Number(user.roleId ?? user.RoleId) === webAppRoleId;
 
-  const ActiveScreen = screenRegistry.resolve(view);
-  const isWebAppUser = Number(user.roleId ?? user.RoleId) === webAppRoleId;
-
-  if (isWebAppUser) {
+  if (!isSignedIn || isWebAppUser) {
     return h(React.Fragment, null,
       h(CustomerStorefrontView, {
         api,
         user,
+        initialApiBaseUrl: apiBaseUrl,
         themeKey,
         languageKey,
         onTheme: setThemeKey,
         onLanguage: setLanguageKey,
+        onLogin: handleLogin,
         onLogout: logout,
         t
       }),
       h(NotificationCenter, { notifications, onDismiss: dismissNotification })
     );
   }
+
+  const ActiveScreen = screenRegistry.resolve(view);
 
   return h("div", { className: "app-shell" },
     h(Sidebar, {

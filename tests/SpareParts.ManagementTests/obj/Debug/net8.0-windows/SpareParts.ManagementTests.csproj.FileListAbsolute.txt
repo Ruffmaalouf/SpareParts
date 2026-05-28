@@ -147,3 +147,16 @@ D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0-windows\SpareParts.M
 D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0-windows\SpareParts.ManagementTests.runtimeconfig.json
 D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0-windows\SpareParts.ManagementTests.dll
 D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0-windows\SpareParts.ManagementTests.pdb
+D:\Ralph\SpareParts\artifacts\verify\management-tests\.msCoverageSourceRootsMapping_SpareParts.ManagementTests
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.Desktop.Wpf.deps.json
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.Desktop.Wpf.runtimeconfig.json
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.Desktop.Wpf.exe
+D:\Ralph\SpareParts\artifacts\verify\management-tests\testhost.dll
+D:\Ralph\SpareParts\artifacts\verify\management-tests\testhost.exe
+D:\Ralph\SpareParts\artifacts\verify\management-tests\xunit.runner.visualstudio.testadapter.dll
+D:\Ralph\SpareParts\artifacts\verify\management-tests\xunit.runner.reporters.netcoreapp10.dll
+D:\Ralph\SpareParts\artifacts\verify\management-tests\xunit.runner.utility.netcoreapp10.dll
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.ManagementTests.deps.json
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.ManagementTests.runtimeconfig.json
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.ManagementTests.dll
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.ManagementTests.pdb

@@ -181,6 +181,8 @@ const featureModules = [
   { key: "part-requests", label: "Part Requests", title: "Parts Request Board", endpoint: "/api/partrequests", capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"] },
   { key: "purchase-parts", label: "Part Purchases", title: "Part Purchases", endpoint: "/api/purchases", capabilities: ["Purchase invoice history", "Purchase invoice details", "Create and update purchase invoices"] },
   { key: "used-car-purchases", label: "Used Car Purchases", title: "Used Car Purchases", endpoint: "/api/purchases/used-cars", capabilities: ["Used car purchase history", "Post purchased vehicles", "Delete draft purchases"] },
+  { key: "used-car-wholesale", label: "Used Car Wholesale", title: "Used Car Wholesale", endpoint: "/api/usedcars + /api/usedcars/wholesale-sales + /api/customers", capabilities: ["Sell complete used cars as-is", "Capture buyer and payment details", "Track wholesale margin against loaded cost"] },
+  { key: "stock-arrival", label: "Stock Arrival", title: "Stock Arrival Theater", endpoint: "/api/parts + /api/partrequests + /api/communications/campaign-assets", capabilities: ["New opportunity board", "Photo and pricing queues", "Waiting customer and campaign signals"] },
   { key: "used-cars", label: "Used Cars", title: "Used Cars", endpoint: "/api/usedcars", capabilities: ["Used car records", "Vehicle image galleries", "Vehicle-linked parts"] },
   { key: "repair-prep", label: "Repair / Prep", title: "Repair / Prep Board", endpoint: "/api/usedcars", capabilities: ["Repair prep lanes", "Per-car task checklist", "Prep cost tracking"] },
   { key: "stock", label: "Stock", title: "Stock Management", endpoint: "/api/parts?page=1&pageSize=100", capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"] },
@@ -194,7 +196,7 @@ const featureModules = [
 
 const navigationGroups = [
   { title: "Core", keys: ["dashboard", "invoices", "parts", "compatibility", "contacts", "management", "settings"] },
-  { title: "Operations", keys: ["part-requests", "purchase-parts", "used-car-purchases", "used-cars", "repair-prep", "stock", "dead-stock"] },
+  { title: "Operations", keys: ["part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
   { title: "Finance", keys: ["accounting", "manual-journal", "report-builder"] },
   { title: "Tools", keys: ["whatsapp", "business-assistant", "ar"] }
 ];

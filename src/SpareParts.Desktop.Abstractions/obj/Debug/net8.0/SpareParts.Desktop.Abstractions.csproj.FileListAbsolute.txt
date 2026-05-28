@@ -16,3 +16,12 @@ D:\Ralph\SpareParts\artifacts\codex-build\Debug\net8.0\SpareParts.Desktop.Abstra
 D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0\SpareParts.Desktop.Abstractions.deps.json
 D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0\SpareParts.Desktop.Abstractions.dll
 D:\Ralph\SpareParts\artifacts\codex-test-build\Debug\net8.0\SpareParts.Desktop.Abstractions.pdb
+D:\Ralph\SpareParts\artifacts\verify-wpf-binding\SpareParts.Desktop.Abstractions.deps.json
+D:\Ralph\SpareParts\artifacts\verify-wpf-binding\SpareParts.Desktop.Abstractions.dll
+D:\Ralph\SpareParts\artifacts\verify-wpf-binding\SpareParts.Desktop.Abstractions.pdb
+D:\Ralph\SpareParts\artifacts\verify\wpf\SpareParts.Desktop.Abstractions.deps.json
+D:\Ralph\SpareParts\artifacts\verify\wpf\SpareParts.Desktop.Abstractions.dll
+D:\Ralph\SpareParts\artifacts\verify\wpf\SpareParts.Desktop.Abstractions.pdb
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.Desktop.Abstractions.deps.json
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.Desktop.Abstractions.dll
+D:\Ralph\SpareParts\artifacts\verify\management-tests\SpareParts.Desktop.Abstractions.pdb

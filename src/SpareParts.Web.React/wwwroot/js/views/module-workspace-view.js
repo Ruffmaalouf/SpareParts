@@ -1,5 +1,5 @@
 import { React, h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { asRows, money, shortDate } from "../core/formatters.js";
+import { asRows, displayCurrencyContext, displayMoneyFromBase, money, shortDate } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 import { genericColumns } from "./management-view.js";
 import { PricingCoachCard, PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
@@ -50,7 +50,10 @@ function columnTitle(column) {
 }
 
 function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
 }
 
 function toNumber(value) {
@@ -596,6 +599,8 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
   const [suppliers, setSuppliers] = useState([]);
   const [usedCars, setUsedCars] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [form, setForm] = useState({
     usedCarId: "",
     supplierId: "",
@@ -622,12 +627,16 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
     setIsLoading(true);
     setStatus("Loading used-car purchase workspace...");
     try {
-      const [nextPurchases, nextSuppliers, nextUsedCars, nextAccounts] = await Promise.all([
+      const [nextPurchases, nextSuppliers, nextUsedCars, nextAccounts, nextAppConstants, nextCurrencies] = await Promise.all([
         api.get("/api/purchases/used-cars"),
         api.get("/api/suppliers?pageSize=500"),
         api.get("/api/usedcars"),
-        api.get("/api/accounting/accounts")
+        api.get("/api/accounting/accounts"),
+        api.get("/api/appconstants"),
+        api.get("/api/currencies")
       ]);
+      const appConstantRows = asRows(nextAppConstants);
+      const currencyRows = asRows(nextCurrencies);
       const supplierRows = asRows(nextSuppliers);
       const usedCarRows = asRows(nextUsedCars);
       const accountRows = asRows(nextAccounts);
@@ -635,6 +644,8 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
       setSuppliers(supplierRows);
       setUsedCars(usedCarRows);
       setAccounts(accountRows);
+      setAppConstants(appConstantRows);
+      setCurrencyRates(currencyRows);
       setForm((current) => ({
         ...current,
         supplierId: current.supplierId || selectFirstId(supplierRows),
@@ -652,6 +663,13 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
       setIsLoading(false);
     }
   }, [api]);
+
+  const displayContextForPurchase = useCallback((purchase) => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: read(purchase, "baseCurrencyCode"),
+    counterCurrencyCode: read(purchase, "counterCurrencyCode")
+  }), [appConstants, currencyRates]);
 
   const createPurchase = useCallback(async () => {
     if (!toId(form.usedCarId) || !toId(form.supplierId) || !toId(line.accountId)) {
@@ -803,7 +821,7 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
             { key: "number", label: "Purchase", render: (row) => read(row, "purchaseNumber") || `#${read(row, "id")}` },
             { key: "car", label: "Car", render: (row) => read(row, "usedCar") || `#${read(row, "usedCarId")}` },
             { key: "supplier", label: "Supplier", render: (row) => read(row, "supplierName") || `#${read(row, "supplierId")}` },
-            { key: "total", label: "Total", render: (row) => money(read(row, "totalBaseAmount"), read(row, "baseCurrencyCode") || "USD") },
+            { key: "total", label: "Total", render: (row) => displayMoneyFromBase(read(row, "totalBaseAmount"), displayContextForPurchase(row)) },
             { key: "status", label: "Status", render: (row) => read(row, "postingStatus") || read(row, "paymentStatus") || "-" },
             { key: "actions", label: "", render: (row) => h("div", { className: "row-actions" },
               h("button", { className: "secondary-button", type: "button", onClick: () => postPurchase(row), disabled: isLoading || read(row, "postingStatus") === "Posted" }, "Post"),
@@ -813,6 +831,347 @@ function UsedCarPurchasesWorkspace({ api, module, t }) {
           rows: purchases,
           getRowKey: (row, index) => `used-car-purchase-${read(row, "id") || index}`,
           emptyText: "No used-car purchases found."
+        })
+      )
+    )
+  );
+}
+
+function UsedCarWholesaleWorkspace({ api, module, t }) {
+  const [usedCars, setUsedCars] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [form, setForm] = useState({
+    usedCarId: "",
+    customerId: "",
+    saleDate: todayInputValue(),
+    currencyCode: "USD",
+    salePrice: "0",
+    paidAmount: "0",
+    buyerName: "",
+    buyerPhone: "",
+    paymentMethod: "",
+    notes: "",
+    isForParts: false,
+    repairDescription: "",
+    repairPrice: "0",
+    repairItems: [],
+    soldAsIsAcknowledged: false
+  });
+  const [status, setStatus] = useState("Choose an unsold used car and record the as-is wholesale sale.");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const availableCars = useMemo(
+    () => usedCars.filter((car) => !read(car, "isWholesaleSold")),
+    [usedCars]
+  );
+  const selectedCar = useMemo(
+    () => usedCars.find((car) => String(read(car, "id")) === String(form.usedCarId)) || null,
+    [form.usedCarId, usedCars]
+  );
+  const selectedCustomer = useMemo(
+    () => customers.find((customer) => String(read(customer, "id")) === String(form.customerId)) || null,
+    [customers, form.customerId]
+  );
+  const repairTotal = form.isForParts
+    ? 0
+    : form.repairItems.reduce((sum, item) => sum + toNumber(item.price), 0);
+  const projectedResult = selectedCar
+    ? toNumber(form.salePrice) - toNumber(read(selectedCar, "fullCostBase")) - repairTotal
+    : 0;
+  const saleCurrency = form.currencyCode || read(selectedCar, "baseCurrencyCode") || "USD";
+  const saleModeLabel = form.isForParts ? "For parts only" : "Repair list active";
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setStatus("Loading used-car wholesale...");
+    try {
+      const [nextCars, nextCustomers, nextSales] = await Promise.all([
+        api.get("/api/usedcars"),
+        api.get("/api/customers?pageSize=500"),
+        api.get("/api/usedcars/wholesale-sales")
+      ]);
+      const carRows = asRows(nextCars);
+      const customerRows = asRows(nextCustomers);
+      setUsedCars(carRows);
+      setCustomers(customerRows);
+      setSales(asRows(nextSales));
+      setForm((current) => {
+        const firstAvailableCar = carRows.find((car) => !read(car, "isWholesaleSold"));
+        const retainedCar = carRows.find((car) => String(read(car, "id")) === String(current.usedCarId));
+        const retainedCustomer = customerRows.find((customer) => String(read(customer, "id")) === String(current.customerId));
+        const nextCar = retainedCar || firstAvailableCar;
+        return {
+          ...current,
+          usedCarId: nextCar ? String(read(nextCar, "id")) : "",
+          currencyCode: read(nextCar, "baseCurrencyCode") || current.currencyCode || "USD",
+          customerId: retainedCustomer ? current.customerId : ""
+        };
+      });
+      setStatus("Used-car wholesale ready.");
+    } catch (error) {
+      setUsedCars([]);
+      setSales([]);
+      setStatus(error.message || "Could not load used-car wholesale.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api]);
+
+  const updateCustomer = useCallback((customerId) => {
+    const customer = customers.find((row) => String(read(row, "id")) === String(customerId));
+    setForm((current) => ({
+      ...current,
+      customerId,
+      buyerName: customer ? read(customer, "name") : current.buyerName,
+      buyerPhone: customer ? read(customer, "phone") : current.buyerPhone
+    }));
+  }, [customers]);
+
+  const addRepairItem = useCallback(() => {
+    if (form.isForParts) {
+      setStatus("Repair items are not needed when the car is sold for parts.");
+      return;
+    }
+    const description = form.repairDescription.trim();
+    const price = toNumber(form.repairPrice);
+    if (!description) {
+      setStatus("Enter a repair item description.");
+      return;
+    }
+    if (price < 0) {
+      setStatus("Repair item price cannot be negative.");
+      return;
+    }
+    setForm((current) => ({
+      ...current,
+      repairDescription: "",
+      repairPrice: "0",
+      repairItems: [
+        ...current.repairItems,
+        {
+          key: `${Date.now()}-${current.repairItems.length}`,
+          description,
+          price
+        }
+      ]
+    }));
+  }, [form.isForParts, form.repairDescription, form.repairPrice]);
+
+  const removeRepairItem = useCallback((key) => {
+    setForm((current) => ({
+      ...current,
+      repairItems: current.repairItems.filter((item) => item.key !== key)
+    }));
+  }, []);
+
+  const createSale = useCallback(async () => {
+    const usedCarId = toId(form.usedCarId);
+    if (!usedCarId) {
+      setStatus("Choose a used car before recording the sale.");
+      return;
+    }
+    if (selectedCar && read(selectedCar, "isWholesaleSold")) {
+      setStatus("This used car already has a wholesale sale.");
+      return;
+    }
+    if (toNumber(form.salePrice) <= 0) {
+      setStatus("Enter a sale price greater than zero.");
+      return;
+    }
+    if (!form.buyerName.trim() && !toId(form.customerId)) {
+      setStatus("Choose a customer or type the buyer name.");
+      return;
+    }
+    if (!form.soldAsIsAcknowledged) {
+      setStatus("Confirm the as-is acknowledgement before recording the sale.");
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus("Recording used-car wholesale sale...");
+    try {
+      const result = await api.post(`/api/usedcars/${usedCarId}/wholesale-sales`, {
+        customerId: toId(form.customerId) || null,
+        buyerName: form.buyerName,
+        buyerPhone: form.buyerPhone,
+        saleDate: form.saleDate,
+        currencyCode: form.currencyCode || "USD",
+        salePrice: Math.max(0, toNumber(form.salePrice)),
+        paidAmount: Math.max(0, toNumber(form.paidAmount)),
+        isForParts: Boolean(form.isForParts),
+        repairItems: form.isForParts
+          ? []
+          : form.repairItems.map((item) => ({
+            description: item.description,
+            price: Math.max(0, toNumber(item.price))
+          })),
+        paymentMethod: form.paymentMethod,
+        notes: form.notes,
+        soldAsIsAcknowledged: form.soldAsIsAcknowledged
+      });
+      setStatus(`Wholesale sale recorded${read(result, "saleNumber") ? `: ${read(result, "saleNumber")}` : "."}`);
+      setForm((current) => ({
+        ...current,
+        usedCarId: "",
+        customerId: "",
+        salePrice: "0",
+        paidAmount: "0",
+        buyerName: "",
+        buyerPhone: "",
+        paymentMethod: "",
+        notes: "",
+        isForParts: false,
+        repairDescription: "",
+        repairPrice: "0",
+        repairItems: [],
+        soldAsIsAcknowledged: false
+      }));
+      await load();
+    } catch (error) {
+      setStatus(error.message || "Could not record used-car wholesale sale.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, form, load, selectedCar]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return h("section", { className: "screen operations-workspace wholesale-workspace" },
+    h(PageHeader, {
+      title: module.title,
+      subtitle: "Record as-is wholesale deals, parts-only cars, repair exposure, and payment status in one pass.",
+      action: h("button", { className: "secondary-button", type: "button", onClick: load, disabled: isLoading }, t("common.refresh", "Refresh"))
+    }),
+    h(ModuleSummary, { module, t }),
+    h("section", { className: "module-summary wholesale-summary" },
+      h("div", null, h("span", null, "Available cars"), h("strong", null, availableCars.length)),
+      h("div", null, h("span", null, "Deal mode"), h("strong", null, saleModeLabel)),
+      h("div", null, h("span", null, "Loaded cost"), h("strong", null, selectedCar ? money(read(selectedCar, "fullCostBase"), read(selectedCar, "baseCurrencyCode") || "USD") : "-")),
+      h("div", null, h("span", null, "Repair total"), h("strong", null, selectedCar && !form.isForParts ? money(repairTotal, saleCurrency) : "-")),
+      h("div", null, h("span", null, "Projected result"), h("strong", null, selectedCar ? money(projectedResult, read(selectedCar, "baseCurrencyCode") || "USD") : "-"))
+    ),
+    h(StatusLine, { status }),
+    h("section", { className: "two-column" },
+      h("article", { className: "invoice-create-panel wholesale-sale-panel" },
+        h("div", { className: "invoice-create-header" },
+          h("div", null,
+            h("h3", null, "Wholesale deal"),
+            h("span", null, selectedCar ? `${usedCarName(selectedCar)} / ${saleModeLabel}` : "Select a vehicle")
+          ),
+          h("button", { className: "primary-button", type: "button", onClick: createSale, disabled: isLoading }, "Record sale")
+        ),
+        h("div", { className: "wholesale-form-section" },
+          h("div", { className: "wholesale-section-heading" },
+            h("strong", null, "Vehicle and buyer"),
+            h("span", null, "Select the car, buyer, and local sale date.")
+          ),
+          h("div", { className: "checkout-grid two" },
+            h("label", null, "Used car",
+              h("select", { value: form.usedCarId, onChange: (event) => {
+                const car = usedCars.find((row) => String(read(row, "id")) === String(event.target.value));
+                setForm((current) => ({
+                  ...current,
+                  usedCarId: event.target.value,
+                  currencyCode: read(car, "baseCurrencyCode") || current.currencyCode || "USD"
+                }));
+              } },
+                availableCars.map((car) => h("option", { key: read(car, "id"), value: read(car, "id") }, usedCarName(car)))
+              )
+            ),
+            h("label", null, "Customer",
+              h("select", { value: form.customerId, onChange: (event) => updateCustomer(event.target.value) },
+                h("option", { value: "" }, "Walk-in wholesale buyer"),
+                customers.map((customer) => h("option", { key: read(customer, "id"), value: read(customer, "id") }, read(customer, "name")))
+              )
+            ),
+            h("label", null, "Buyer name",
+              h("input", { value: form.buyerName, onChange: (event) => setForm((current) => ({ ...current, buyerName: event.target.value })), placeholder: selectedCustomer ? read(selectedCustomer, "name") : "Buyer name" })
+            ),
+            h("label", null, "Buyer phone",
+              h("input", { value: form.buyerPhone, onChange: (event) => setForm((current) => ({ ...current, buyerPhone: event.target.value })) })
+            ),
+            h("label", null, "Sale date",
+              h("input", { type: "date", value: form.saleDate, onChange: (event) => setForm((current) => ({ ...current, saleDate: event.target.value })) })
+            ),
+            h("label", null, "Payment method",
+              h("input", { value: form.paymentMethod, onChange: (event) => setForm((current) => ({ ...current, paymentMethod: event.target.value })) })
+            )
+          )
+        ),
+        h("div", { className: "wholesale-form-section" },
+          h("div", { className: "wholesale-section-heading" },
+            h("strong", null, "Money"),
+            h("span", null, "Sale value, paid amount, and margin preview.")
+          ),
+          h("div", { className: "checkout-grid wholesale-money-grid" },
+            h("label", null, "Currency",
+              h("input", { value: form.currencyCode, maxLength: 3, onChange: (event) => setForm((current) => ({ ...current, currencyCode: event.target.value.toUpperCase() })) })
+            ),
+            h("label", null, "Sale price",
+              h("input", { value: form.salePrice, inputMode: "decimal", onChange: (event) => setForm((current) => ({ ...current, salePrice: event.target.value })) })
+            ),
+            h("label", null, "Paid amount",
+              h("input", { value: form.paidAmount, inputMode: "decimal", onChange: (event) => setForm((current) => ({ ...current, paidAmount: event.target.value })) })
+            )
+          )
+        ),
+        h("div", { className: "wholesale-condition-grid" },
+          h("label", { className: form.isForParts ? "inline-check wholesale-check-card active" : "inline-check wholesale-check-card" },
+            h("input", { type: "checkbox", checked: form.isForParts, onChange: (event) => setForm((current) => ({ ...current, isForParts: event.target.checked })) }),
+            h("span", null, "For parts only")
+          ),
+          h("label", { className: form.soldAsIsAcknowledged ? "inline-check wholesale-check-card active" : "inline-check wholesale-check-card" },
+            h("input", { type: "checkbox", checked: form.soldAsIsAcknowledged, onChange: (event) => setForm((current) => ({ ...current, soldAsIsAcknowledged: event.target.checked })) }),
+            h("span", null, "As-is acknowledgement")
+          )
+        ),
+        !form.isForParts && h("div", { className: "wholesale-form-section wholesale-repair-section" },
+          h("div", { className: "wholesale-section-heading" },
+            h("strong", null, "Repair exposure"),
+            h("span", null, money(repairTotal, saleCurrency))
+          ),
+          h("div", { className: "invoice-line-builder wholesale-repair-builder" },
+            h("label", null, "Repair item",
+              h("input", { value: form.repairDescription, onChange: (event) => setForm((current) => ({ ...current, repairDescription: event.target.value })) })
+            ),
+            h("label", null, "Price",
+              h("input", { value: form.repairPrice, inputMode: "decimal", onChange: (event) => setForm((current) => ({ ...current, repairPrice: event.target.value })) })
+            ),
+            h("button", { className: "secondary-button", type: "button", onClick: addRepairItem }, "Add repair")
+          ),
+          h("div", { className: "wholesale-repair-list" },
+            form.repairItems.map((item) =>
+              h("div", { className: "wholesale-repair-row", key: item.key },
+                h("span", null, item.description),
+                h("strong", null, money(item.price, saleCurrency)),
+                h("button", { className: "ghost-button", type: "button", onClick: () => removeRepairItem(item.key) }, "Remove")
+              )
+            ),
+            form.repairItems.length === 0 && h("p", { className: "empty-state" }, "No repair items added.")
+          ),
+          h("div", { className: "wholesale-repair-total" }, h("span", null, "Repair total"), h("strong", null, money(repairTotal, saleCurrency)))
+        ),
+        h("label", null, "Notes",
+          h("textarea", { rows: 3, value: form.notes, onChange: (event) => setForm((current) => ({ ...current, notes: event.target.value })) })
+        )
+      ),
+      h("article", { className: "table-panel" },
+        h(DataTable, {
+          columns: [
+            { key: "sale", label: "Sale", render: (row) => read(row, "saleNumber") || `#${read(row, "id")}` },
+            { key: "car", label: "Car", render: (row) => read(row, "usedCar") || `#${read(row, "usedCarId")}` },
+            { key: "buyer", label: "Buyer", render: (row) => read(row, "buyerName") || "-" },
+            { key: "date", label: "Date", render: (row) => shortDate(read(row, "saleDate")) },
+            { key: "price", label: "Price", render: (row) => money(read(row, "salePrice"), read(row, "currencyCode") || "USD") },
+            { key: "paid", label: "Paid", render: (row) => money(read(row, "paidAmount"), read(row, "currencyCode") || "USD") },
+            { key: "forParts", label: "For parts", render: (row) => read(row, "isForParts") ? "Yes" : "No" },
+            { key: "repairs", label: "Repairs", render: (row) => money(read(row, "repairTotalAmount"), read(row, "currencyCode") || "USD") },
+            { key: "status", label: "Status", render: (row) => read(row, "paymentStatus") || "-" }
+          ],
+          rows: sales,
+          getRowKey: (row, index) => `wholesale-sale-${read(row, "id") || index}`,
+          emptyText: "No used-car wholesale sales found."
         })
       )
     )
@@ -1016,6 +1375,7 @@ function StockWorkspace({ api, module, t }) {
 function ManualJournalWorkspace({ api, module, t }) {
   const [accounts, setAccounts] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [displayContext, setDisplayContext] = useState(() => displayCurrencyContext());
   const [form, setForm] = useState({
     entryDate: todayInputValue(),
     description: "",
@@ -1037,11 +1397,17 @@ function ManualJournalWorkspace({ api, module, t }) {
     setIsLoading(true);
     setStatus("Loading manual journal...");
     try {
-      const [nextEntries, nextAccounts] = await Promise.all([
+      const [nextEntries, nextAccounts, nextConstants, nextRates] = await Promise.all([
         api.get("/api/accounting/journal-entries"),
-        api.get("/api/accounting/accounts")
+        api.get("/api/accounting/accounts"),
+        api.get("/api/appconstants"),
+        api.get("/api/currencies")
       ]);
       const accountRows = asRows(nextAccounts);
+      setDisplayContext(displayCurrencyContext({
+        constants: asRows(nextConstants),
+        rates: asRows(nextRates)
+      }));
       setEntries(asRows(nextEntries));
       setAccounts(accountRows);
       setLines((current) => current.map((line, index) => ({
@@ -1130,9 +1496,9 @@ function ManualJournalWorkspace({ api, module, t }) {
     }),
     h(ModuleSummary, { module, t }),
     h("section", { className: "module-summary" },
-      h("div", null, h("span", null, "Debit"), h("strong", null, money(totalDebit, "USD"))),
-      h("div", null, h("span", null, "Credit"), h("strong", null, money(totalCredit, "USD"))),
-      h("div", null, h("span", null, "Difference"), h("strong", null, money(difference, "USD")))
+      h("div", null, h("span", null, "Debit"), h("strong", null, money(totalDebit, displayContext.code))),
+      h("div", null, h("span", null, "Credit"), h("strong", null, money(totalCredit, displayContext.code))),
+      h("div", null, h("span", null, "Difference"), h("strong", null, money(difference, displayContext.code)))
     ),
     h(StatusLine, { status, tone: Math.abs(difference) > 0.005 ? "warning" : "muted" }),
     h("section", { className: "two-column" },
@@ -1166,10 +1532,10 @@ function ManualJournalWorkspace({ api, module, t }) {
                   accounts.map((account) => h("option", { key: read(account, "id"), value: read(account, "id") }, accountName(account)))
                 )
               ),
-              h("label", null, "Debit",
+              h("label", null, `Debit (${displayContext.code})`,
                 h("input", { value: line.debit, inputMode: "decimal", onChange: (event) => updateLine(line.key, { debit: event.target.value }) })
               ),
-              h("label", null, "Credit",
+              h("label", null, `Credit (${displayContext.code})`,
                 h("input", { value: line.credit, inputMode: "decimal", onChange: (event) => updateLine(line.key, { credit: event.target.value }) })
               ),
               h("button", { className: "ghost-button", type: "button", onClick: () => setLines((current) => current.filter((item) => item.key !== line.key)), disabled: lines.length <= 2 }, "Remove")
@@ -1187,8 +1553,8 @@ function ManualJournalWorkspace({ api, module, t }) {
             { key: "id", label: "Entry", render: (row) => `#${read(row, "id")}` },
             { key: "date", label: "Date", render: (row) => shortDate(read(row, "entryDate")) },
             { key: "description", label: "Description", render: (row) => read(row, "description") || "-" },
-            { key: "debit", label: "Debit", render: (row) => money(read(row, "totalDebit"), "USD") },
-            { key: "credit", label: "Credit", render: (row) => money(read(row, "totalCredit"), "USD") },
+            { key: "debit", label: "Debit", render: (row) => displayMoneyFromBase(read(row, "totalDebit"), displayContext) },
+            { key: "credit", label: "Credit", render: (row) => displayMoneyFromBase(read(row, "totalCredit"), displayContext) },
             { key: "lines", label: "Lines", render: (row) => read(row, "lineCount") || 0 }
           ],
           rows: entries,
@@ -1511,6 +1877,10 @@ export function ModuleWorkspaceView({ api, module, t, onView }) {
 
   if (module.key === "used-car-purchases") {
     return h(UsedCarPurchasesWorkspace, { api, module, t });
+  }
+
+  if (module.key === "used-car-wholesale") {
+    return h(UsedCarWholesaleWorkspace, { api, module, t });
   }
 
   if (module.key === "stock") {

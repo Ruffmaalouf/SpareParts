@@ -1,5 +1,6 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
 import { initials, money } from "../core/formatters.js";
+import { LoginPanel } from "../components/auth.js";
 import { BrandMark, LanguagePicker, ThemePicker } from "../components/layout.js";
 import { StatusLine } from "../components/shared.js";
 
@@ -56,7 +57,7 @@ function CartRows({ cartRows, updateQuantity, t }) {
   );
 }
 
-function CartPanel({ cartRows, cartItemCount, cartTotal, updateQuantity, onCheckout, onShop, t }) {
+function CartPanel({ cartRows, cartItemCount, cartTotal, updateQuantity, onCheckout, onShop, checkoutLabel, t }) {
   const currency = cartRows[0]?.part?.currency || "USD";
   return h("aside", { className: "store-cart-rail" },
     h("div", { className: "store-cart-heading" },
@@ -70,7 +71,7 @@ function CartPanel({ cartRows, cartItemCount, cartTotal, updateQuantity, onCheck
     ),
     h("div", { className: "store-cart-actions" },
       h("button", { className: "secondary-button", type: "button", onClick: onShop }, t("store.continueShopping", "Continue shopping")),
-      h("button", { className: "primary-button", type: "button", onClick: onCheckout, disabled: cartRows.length === 0 }, t("store.checkout", "Checkout"))
+      h("button", { className: "primary-button", type: "button", onClick: onCheckout, disabled: cartRows.length === 0 }, checkoutLabel || t("store.checkout", "Checkout"))
     )
   );
 }
@@ -99,10 +100,12 @@ function PartCard({ part, inCart, addToCart, t }) {
 export function CustomerStorefrontView({
   api,
   user,
+  initialApiBaseUrl,
   themeKey,
   languageKey,
   onTheme,
   onLanguage,
+  onLogin,
   onLogout,
   t
 }) {
@@ -110,7 +113,7 @@ export function CustomerStorefrontView({
   const [parts, setParts] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
-  const [customerName, setCustomerName] = useState(user.fullName || "");
+  const [customerName, setCustomerName] = useState(user?.fullName || "");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [shippingAddressLine1, setShippingAddressLine1] = useState("");
@@ -124,6 +127,13 @@ export function CustomerStorefrontView({
   const [paymentReference, setPaymentReference] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isSignedIn = Boolean(user);
+
+  useEffect(() => {
+    if (user?.fullName && !customerName.trim()) {
+      setCustomerName(user.fullName);
+    }
+  }, [customerName, user]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -159,7 +169,31 @@ export function CustomerStorefrontView({
   }, [activeView]);
 
   const goShop = useCallback(() => setActiveView("shop"), []);
-  const goCheckout = useCallback(() => setActiveView(cartRows.length ? "checkout" : "shop"), [cartRows.length]);
+  const promptSignInForCheckout = useCallback(() => {
+    setStatus(t("store.signInToCheckout", "Sign in to checkout."));
+    setActiveView("account");
+  }, [t]);
+  const goCheckout = useCallback(() => {
+    if (cartRows.length === 0) {
+      setActiveView("shop");
+      return;
+    }
+
+    if (!isSignedIn) {
+      promptSignInForCheckout();
+      return;
+    }
+
+    setActiveView("checkout");
+  }, [cartRows.length, isSignedIn, promptSignInForCheckout]);
+  const goStoreView = useCallback((nextView) => {
+    if (nextView === "checkout") {
+      goCheckout();
+      return;
+    }
+
+    setActiveView(nextView);
+  }, [goCheckout]);
 
   const addToCart = useCallback((part) => {
     setCart((current) => {
@@ -186,6 +220,10 @@ export function CustomerStorefrontView({
   }, []);
 
   const checkout = useCallback(async () => {
+    if (!isSignedIn) {
+      promptSignInForCheckout();
+      return;
+    }
     if (cart.length === 0) {
       setStatus(t("store.addPartsFirst", "Add parts to the cart first."));
       setActiveView("shop");
@@ -238,9 +276,11 @@ export function CustomerStorefrontView({
     customerName,
     customerPhone,
     deliveryInstructions,
+    isSignedIn,
     load,
     paymentMethod,
     paymentReference,
+    promptSignInForCheckout,
     shippingAddressLine1,
     shippingAddressLine2,
     shippingCity,
@@ -339,6 +379,7 @@ export function CustomerStorefrontView({
         updateQuantity,
         onCheckout: goCheckout,
         onShop: goShop,
+        checkoutLabel: isSignedIn ? undefined : t("store.signInToOrder", "Sign in to checkout"),
         t
       })
     )
@@ -356,6 +397,7 @@ export function CustomerStorefrontView({
       updateQuantity,
       onCheckout: goCheckout,
       onShop: goShop,
+      checkoutLabel: isSignedIn ? undefined : t("store.signInToOrder", "Sign in to checkout"),
       t
     })
   );
@@ -368,6 +410,7 @@ export function CustomerStorefrontView({
       updateQuantity,
       onCheckout: checkout,
       onShop: goShop,
+      checkoutLabel: t("store.checkout", "Checkout"),
       t
     }),
     h("div", { className: "store-checkout-form" },
@@ -418,7 +461,7 @@ export function CustomerStorefrontView({
         h("p", { className: "store-payment-note" }, t("store.paymentNote", "Payment is confirmed through the selected gateway before fulfillment."))
       ),
       h(StatusLine, { status }),
-      h("button", { className: "primary-button store-place-order", onClick: checkout, disabled: isLoading || cart.length === 0 },
+      h("button", { className: "primary-button store-place-order", onClick: checkout, disabled: isLoading || cart.length === 0 || !isSignedIn },
         t("store.payWith", "Pay with {method}", { method: paymentMethod.replace(" Gateway", "") })
       )
     )
@@ -426,24 +469,36 @@ export function CustomerStorefrontView({
 
   const renderAccount = () => h("section", { className: "store-account-view" },
     h("div", { className: "store-page-title" },
-      h("span", null, t("store.account", "Account")),
-      h("h1", null, user.fullName || t("store.driver", "Driver"))
+      h("span", null, isSignedIn ? t("store.account", "Account") : t("store.guestDriver", "Guest driver")),
+      h("h1", null, isSignedIn ? (user.fullName || t("store.driver", "Driver")) : t("store.signIn", "Sign in"))
     ),
-    h("div", { className: "store-account-grid" },
-      h("article", { className: "store-account-panel" },
-        h("div", { className: "store-account-card" },
-          h("span", { className: "avatar" }, initials(user.fullName)),
-          h("div", null,
-            h("span", null, `Role ID ${user.roleId ?? user.RoleId ?? 4}`),
-            h("strong", null, user.fullName),
-            h("small", null, user.email || user.username || "")
-          )
+    isSignedIn
+      ? h("div", { className: "store-account-grid" },
+        h("article", { className: "store-account-panel" },
+          h("div", { className: "store-account-card" },
+            h("span", { className: "avatar" }, initials(user.fullName)),
+            h("div", null,
+              h("span", null, `Role ID ${user.roleId ?? user.RoleId ?? 4}`),
+              h("strong", null, user.fullName),
+              h("small", null, user.email || user.username || "")
+            )
+          ),
+          h("button", { className: "primary-button danger-button", type: "button", onClick: onLogout }, t("common.signOut", "Sign out"))
         ),
-        h("button", { className: "primary-button danger-button", type: "button", onClick: onLogout }, t("common.signOut", "Sign out"))
-      ),
-      h("article", { className: "store-account-panel" }, h(ThemePicker, { value: themeKey, onChange: onTheme, t })),
-      h("article", { className: "store-account-panel" }, h(LanguagePicker, { value: languageKey, onChange: onLanguage, t }))
-    )
+        h("article", { className: "store-account-panel" }, h(ThemePicker, { value: themeKey, onChange: onTheme, t })),
+        h("article", { className: "store-account-panel" }, h(LanguagePicker, { value: languageKey, onChange: onLanguage, t }))
+      )
+      : h("div", { className: "store-account-grid store-account-grid-auth" },
+        h("article", { className: "store-account-panel store-login-panel" },
+          h(LoginPanel, {
+            initialApiBaseUrl,
+            onLogin,
+            t
+          })
+        ),
+        h("article", { className: "store-account-panel" }, h(ThemePicker, { value: themeKey, onChange: onTheme, t })),
+        h("article", { className: "store-account-panel" }, h(LanguagePicker, { value: languageKey, onChange: onLanguage, t }))
+      )
   );
 
   const activePanel = {
@@ -468,16 +523,21 @@ export function CustomerStorefrontView({
             key: item.key,
             className: activeView === item.key ? "active" : "",
             type: "button",
-            onClick: () => setActiveView(item.key)
-          }, item.label)
+            onClick: () => goStoreView(item.key)
+          }, item.key === "account" && !isSignedIn ? t("store.signIn", "Sign in") : item.label)
         )
       ),
       h("button", { className: "store-header-cart", type: "button", onClick: () => setActiveView(cartItemCount ? "cart" : "shop") },
         h("span", null, t("store.cart", "Cart")),
         h("strong", null, cartItemCount)
       ),
-      h("button", { className: "store-header-user", type: "button", onClick: () => setActiveView("account"), "aria-label": "Account" },
-        initials(user.fullName)
+      h("button", {
+        className: isSignedIn ? "store-header-user" : "store-header-user store-header-sign-in",
+        type: "button",
+        onClick: () => setActiveView("account"),
+        "aria-label": isSignedIn ? t("store.account", "Account") : t("store.signIn", "Sign in")
+      },
+        isSignedIn ? initials(user.fullName) : t("store.signIn", "Sign in")
       )
     ),
     h("section", { className: "storefront-content store-content-redesign" }, activePanel())

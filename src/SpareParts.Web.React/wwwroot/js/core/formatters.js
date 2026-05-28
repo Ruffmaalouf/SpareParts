@@ -28,6 +28,108 @@ export function pickFirst(row, keys) {
   return "";
 }
 
+function readField(row, ...keys) {
+  for (const key of keys) {
+    const value = row?.[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
+    const pascalValue = row?.[pascalKey];
+    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
+  }
+  return "";
+}
+
+function positiveNumber(value) {
+  const parsed = Number(String(value || "").replace(/,/g, ".").trim());
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+export function normalizeCurrencyCode(value, fallback = "") {
+  const normalized = String(value || "").trim().toUpperCase();
+  return normalized.length === 3 ? normalized : fallback;
+}
+
+export function appConstantValue(constants, key) {
+  const target = String(key || "").trim().toLowerCase();
+  const rows = Array.isArray(constants) ? constants : [];
+  const match = rows.find((row) => String(readField(row, "key")).trim().toLowerCase() === target);
+  return match ? readField(match, "value") : "";
+}
+
+export function resolveRateToBaseCurrency({ rates = [], baseCurrencyCode = "USD", counterCurrencyCode = "USD", defaultCounterRate = 1 } = {}, currencyCode) {
+  const normalized = normalizeCurrencyCode(currencyCode);
+  const base = normalizeCurrencyCode(baseCurrencyCode, "USD");
+  const counter = normalizeCurrencyCode(counterCurrencyCode, base);
+  if (!normalized || normalized === base) return 1;
+
+  const rate = (Array.isArray(rates) ? rates : []).find((item) =>
+    normalizeCurrencyCode(readField(item, "code")) === normalized);
+  if (rate) {
+    const rateBase = normalizeCurrencyCode(readField(rate, "baseCode"), base);
+    const rateToUsd = positiveNumber(readField(rate, "rateToUsd"));
+    if (normalized === rateBase) return 1;
+    if (rateToUsd > 0) return 1 / rateToUsd;
+  }
+
+  if (normalized === counter) {
+    const fallbackRate = positiveNumber(defaultCounterRate);
+    return fallbackRate > 0 ? fallbackRate : 1;
+  }
+
+  return 1;
+}
+
+export function displayCurrencyContext({ constants = [], rates = [], baseCurrencyCode, counterCurrencyCode } = {}) {
+  const base = normalizeCurrencyCode(
+    baseCurrencyCode,
+    normalizeCurrencyCode(appConstantValue(constants, "BaseCurrencyCode") || appConstantValue(constants, "DefaultCurrencyCode"), "USD")
+  );
+  const counter = normalizeCurrencyCode(counterCurrencyCode, normalizeCurrencyCode(appConstantValue(constants, "CounterCurrencyCode"), base));
+  const display = normalizeCurrencyCode(appConstantValue(constants, "DisplayCurrencyCode"), counter || base || "USD");
+  const defaultCounterRate = positiveNumber(appConstantValue(constants, "DefaultCounterRate")) || 1;
+  const rateToBase = resolveRateToBaseCurrency({
+    rates,
+    baseCurrencyCode: base,
+    counterCurrencyCode: counter,
+    defaultCounterRate
+  }, display);
+  const counterRateToBase = resolveRateToBaseCurrency({
+    rates,
+    baseCurrencyCode: base,
+    counterCurrencyCode: counter,
+    defaultCounterRate
+  }, counter);
+
+  return {
+    code: display,
+    baseCurrencyCode: base,
+    counterCurrencyCode: counter,
+    counterRateToBase: counterRateToBase > 0 ? counterRateToBase : 1,
+    rateToBase: rateToBase > 0 ? rateToBase : 1
+  };
+}
+
+export function convertBaseToDisplay(value, context) {
+  const number = Number(value || 0);
+  const rateToBase = positiveNumber(context?.rateToBase) || 1;
+  return number / rateToBase;
+}
+
+export function displayMoneyFromBase(value, context) {
+  return money(convertBaseToDisplay(value, context), context?.code || "USD");
+}
+
+export function convertCounterToDisplay(value, context) {
+  const number = Number(value || 0);
+  const counterRateToBase = positiveNumber(context?.counterRateToBase) || 1;
+  const displayRateToBase = positiveNumber(context?.rateToBase) || 1;
+  return (number * counterRateToBase) / displayRateToBase;
+}
+
+export function displayMoneyFromCounter(value, context) {
+  return money(convertCounterToDisplay(value, context), context?.code || "USD");
+}
+
 export function rowTitle(row) {
   return pickFirst(row, ["name", "requestedPartName", "fullName", "username", "invoiceNumber", "purchaseNumber", "referenceNumber", "internalCode", "code", "modelName", "brandName", "title"]) || `#${row?.id || row?.invoiceId || row?.purchaseId || ""}`.trim();
 }

@@ -42,12 +42,20 @@ namespace SpareParts.Desktop.Wpf.Management
         private decimal _partsSoldQuantity;
         private decimal _partsSoldAmountBase;
         private decimal _salePriceBase;
+        private bool _isWholesaleSold;
+        private bool _isWholesaleForParts;
+        private string? _wholesaleSaleNumber;
+        private string _wholesalePaymentStatus = string.Empty;
         private decimal _remainingStockQuantity;
         private decimal _remainingStockValueBase;
         private decimal _netProfitLossBase;
+        private string _displayCurrencyCode = "USD";
+        private decimal _displayRateToBase = 1m;
 
         private static readonly HashSet<string> ProfitProjectSourceProperties = new(StringComparer.Ordinal)
         {
+            nameof(PriceBase),
+            nameof(GrandTotalBase),
             nameof(PurchaseCostBase),
             nameof(TransportationCostBase),
             nameof(CustomsCostBase),
@@ -62,7 +70,9 @@ namespace SpareParts.Desktop.Wpf.Management
             nameof(SalePriceBase),
             nameof(RemainingStockQuantity),
             nameof(RemainingStockValueBase),
-            nameof(NetProfitLossBase)
+            nameof(NetProfitLossBase),
+            nameof(DisplayCurrencyCode),
+            nameof(DisplayRateToBase)
         };
 
         public int Id
@@ -275,6 +285,70 @@ namespace SpareParts.Desktop.Wpf.Management
             set => SetField(ref _salePriceBase, value);
         }
 
+        public bool IsWholesaleSold
+        {
+            get => _isWholesaleSold;
+            set
+            {
+                if (!SetField(ref _isWholesaleSold, value))
+                {
+                    return;
+                }
+
+                OnPropertyChanged(nameof(SaleStatusText));
+            }
+        }
+
+        public bool IsWholesaleForParts
+        {
+            get => _isWholesaleForParts;
+            set
+            {
+                if (!SetField(ref _isWholesaleForParts, value))
+                {
+                    return;
+                }
+
+                OnPropertyChanged(nameof(SaleStatusText));
+            }
+        }
+
+        public string? WholesaleSaleNumber
+        {
+            get => _wholesaleSaleNumber;
+            set
+            {
+                if (!SetField(ref _wholesaleSaleNumber, value))
+                {
+                    return;
+                }
+
+                OnPropertyChanged(nameof(SaleStatusText));
+            }
+        }
+
+        public string WholesalePaymentStatus
+        {
+            get => _wholesalePaymentStatus;
+            set => SetField(ref _wholesalePaymentStatus, value ?? string.Empty);
+        }
+
+        public string SaleStatusText
+        {
+            get
+            {
+                if (!IsWholesaleSold)
+                {
+                    return "Available";
+                }
+
+                var mode = IsWholesaleForParts ? "Sold for parts" : "Sold wholesale";
+                return string.IsNullOrWhiteSpace(WholesaleSaleNumber)
+                    ? mode
+                    : $"{mode} - {WholesaleSaleNumber}";
+            }
+        }
+
         public decimal RemainingStockQuantity
         {
             get => _remainingStockQuantity;
@@ -293,6 +367,18 @@ namespace SpareParts.Desktop.Wpf.Management
             set => SetField(ref _netProfitLossBase, value);
         }
 
+        public string DisplayCurrencyCode
+        {
+            get => _displayCurrencyCode;
+            set => SetField(ref _displayCurrencyCode, NormalizeDisplayCurrencyCode(value));
+        }
+
+        public decimal DisplayRateToBase
+        {
+            get => _displayRateToBase;
+            set => SetField(ref _displayRateToBase, value > 0m ? decimal.Round(value, 8, MidpointRounding.AwayFromZero) : 1m);
+        }
+
         public decimal TeardownCostBase => RoundMoney(TransportationCostBase + CustomsCostBase + ShippingCostBase + PartOutCostBase + RepairsCostBase);
 
         public decimal ProfitMapSoldValueBase => RoundMoney(PartsSoldAmountBase != 0m ? PartsSoldAmountBase : SalePriceBase);
@@ -300,6 +386,50 @@ namespace SpareParts.Desktop.Wpf.Management
         public decimal ProfitMapRecoveredValueBase => RoundMoney(ProfitMapSoldValueBase + RemainingStockValueBase);
 
         public decimal ProfitMapBreakEvenGapBase => RoundMoney(FullCostBase > ProfitMapRecoveredValueBase ? FullCostBase - ProfitMapRecoveredValueBase : 0m);
+
+        public decimal PriceDisplay => ConvertBaseToDisplay(PriceBase);
+
+        public decimal GrandTotalDisplay => ConvertBaseToDisplay(GrandTotalBase);
+
+        public decimal PurchaseCostDisplay => ConvertBaseToDisplay(PurchaseCostBase);
+
+        public decimal TeardownCostDisplay => ConvertBaseToDisplay(TeardownCostBase);
+
+        public decimal PartsRemovedValueDisplay => ConvertBaseToDisplay(PartsRemovedValueBase);
+
+        public decimal ProfitMapSoldValueDisplay => ConvertBaseToDisplay(ProfitMapSoldValueBase);
+
+        public decimal RemainingStockValueDisplay => ConvertBaseToDisplay(RemainingStockValueBase);
+
+        public decimal NetProfitLossDisplay => ConvertBaseToDisplay(NetProfitLossBase);
+
+        public decimal FullCostDisplay => ConvertBaseToDisplay(FullCostBase);
+
+        public decimal ProfitMapRecoveredValueDisplay => ConvertBaseToDisplay(ProfitMapRecoveredValueBase);
+
+        public decimal ProfitMapBreakEvenGapDisplay => ConvertBaseToDisplay(ProfitMapBreakEvenGapBase);
+
+        public string PriceDisplayText => FormatDisplay(PriceDisplay);
+
+        public string GrandTotalDisplayText => FormatDisplay(GrandTotalDisplay);
+
+        public string PurchaseCostDisplayText => FormatDisplay(PurchaseCostDisplay);
+
+        public string TeardownCostDisplayText => FormatDisplay(TeardownCostDisplay);
+
+        public string PartsRemovedValueDisplayText => FormatDisplay(PartsRemovedValueDisplay);
+
+        public string ProfitMapSoldValueDisplayText => FormatDisplay(ProfitMapSoldValueDisplay);
+
+        public string RemainingStockValueDisplayText => FormatDisplay(RemainingStockValueDisplay);
+
+        public string NetProfitLossDisplayText => FormatDisplay(NetProfitLossDisplay);
+
+        public string FullCostDisplayText => FormatDisplay(FullCostDisplay);
+
+        public string ProfitMapRecoveredValueDisplayText => FormatDisplay(ProfitMapRecoveredValueDisplay);
+
+        public string ProfitMapBreakEvenGapDisplayText => FormatDisplay(ProfitMapBreakEvenGapDisplay);
 
         public decimal ProfitMapRecoveredPercent => FullCostBase <= 0m
             ? 0m
@@ -310,7 +440,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public string ProfitMapRecoveredPercentText => $"{ProfitMapRecoveredPercent:N0}% recovered";
 
         public string ProfitMapBreakEvenStatus => ProfitMapBreakEvenGapBase > 0m
-            ? $"{ProfitMapBreakEvenGapBase:N2} to break even"
+            ? $"{DisplayCurrencyCode} {ProfitMapBreakEvenGapDisplay:N2} to break even"
             : "Break-even reached";
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -338,14 +468,55 @@ namespace SpareParts.Desktop.Wpf.Management
             OnPropertyChanged(nameof(ProfitMapSoldValueBase));
             OnPropertyChanged(nameof(ProfitMapRecoveredValueBase));
             OnPropertyChanged(nameof(ProfitMapBreakEvenGapBase));
+            OnPropertyChanged(nameof(PriceDisplay));
+            OnPropertyChanged(nameof(GrandTotalDisplay));
+            OnPropertyChanged(nameof(PurchaseCostDisplay));
+            OnPropertyChanged(nameof(TeardownCostDisplay));
+            OnPropertyChanged(nameof(PartsRemovedValueDisplay));
+            OnPropertyChanged(nameof(ProfitMapSoldValueDisplay));
+            OnPropertyChanged(nameof(RemainingStockValueDisplay));
+            OnPropertyChanged(nameof(NetProfitLossDisplay));
+            OnPropertyChanged(nameof(FullCostDisplay));
+            OnPropertyChanged(nameof(ProfitMapRecoveredValueDisplay));
+            OnPropertyChanged(nameof(ProfitMapBreakEvenGapDisplay));
+            OnPropertyChanged(nameof(PriceDisplayText));
+            OnPropertyChanged(nameof(GrandTotalDisplayText));
+            OnPropertyChanged(nameof(PurchaseCostDisplayText));
+            OnPropertyChanged(nameof(TeardownCostDisplayText));
+            OnPropertyChanged(nameof(PartsRemovedValueDisplayText));
+            OnPropertyChanged(nameof(ProfitMapSoldValueDisplayText));
+            OnPropertyChanged(nameof(RemainingStockValueDisplayText));
+            OnPropertyChanged(nameof(NetProfitLossDisplayText));
+            OnPropertyChanged(nameof(FullCostDisplayText));
+            OnPropertyChanged(nameof(ProfitMapRecoveredValueDisplayText));
+            OnPropertyChanged(nameof(ProfitMapBreakEvenGapDisplayText));
             OnPropertyChanged(nameof(ProfitMapRecoveredPercent));
             OnPropertyChanged(nameof(ProfitMapRecoveredPercentCapped));
             OnPropertyChanged(nameof(ProfitMapRecoveredPercentText));
             OnPropertyChanged(nameof(ProfitMapBreakEvenStatus));
         }
 
+        private decimal ConvertBaseToDisplay(decimal baseAmount)
+        {
+            var rate = DisplayRateToBase > 0m ? DisplayRateToBase : 1m;
+            return RoundMoney(baseAmount / rate);
+        }
+
+        private string FormatDisplay(decimal amount) => $"{DisplayCurrencyCode} {amount:N2}";
+
         private static decimal RoundMoney(decimal amount)
             => decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
+
+        private static string NormalizeDisplayCurrencyCode(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return "USD";
+            }
+
+            var normalized = value.Trim().ToUpperInvariant();
+            return normalized.Length == 3 ? normalized : "USD";
+        }
 
         private void OnPropertyChanged(string? propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

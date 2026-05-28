@@ -7,12 +7,15 @@ using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
 using SpareParts.Infrastructure.Interfaces.Repositories;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class UsedCarsService
 {
     private const string UsedCarReferenceType = "UsedCar";
+    private const string UsedCarWholesaleSaleReferenceType = "UsedCarWholesaleSale";
+    private const string UsedCarWholesalePaymentReferenceType = "UsedCarWholesalePayment";
 
     private readonly ISqlConnectionFactory _factory;
     private readonly CurrenciesService _currenciesService;
@@ -83,7 +86,23 @@ public sealed class UsedCarsService
                      linked.PartsRemovedValueBase,
                      sales.PartsSoldQuantity,
                      sales.PartsSoldAmountBase,
-                     sales.PartsSoldAmountBase AS SalePriceBase,
+                     COALESCE(wholesale.SalePriceBase, sales.PartsSoldAmountBase) AS SalePriceBase,
+                     wholesale.WholesaleSaleId,
+                     wholesale.WholesaleSaleNumber,
+                     CAST(CASE WHEN wholesale.WholesaleSaleId IS NULL THEN 0 ELSE 1 END AS BIT) AS IsWholesaleSold,
+                     COALESCE(wholesale.WholesaleBuyerName, N'') AS WholesaleBuyerName,
+                     wholesale.WholesaleBuyerPhone,
+                     wholesale.WholesaleSoldAt,
+                     COALESCE(wholesale.WholesaleSaleCurrency, uc.BaseCurrencyCode) AS WholesaleSaleCurrency,
+                     COALESCE(wholesale.WholesaleSalePrice, 0) AS WholesaleSalePrice,
+                     COALESCE(wholesale.SalePriceBase, 0) AS WholesaleSalePriceBase,
+                     COALESCE(wholesale.WholesaleSalePriceCounter, 0) AS WholesaleSalePriceCounter,
+                     COALESCE(wholesale.WholesalePaymentStatus, N'') AS WholesalePaymentStatus,
+                     CAST(COALESCE(wholesale.IsWholesaleForParts, 0) AS BIT) AS IsWholesaleForParts,
+                     COALESCE(wholesale.WholesaleRepairTotalAmount, 0) AS WholesaleRepairTotalAmount,
+                     COALESCE(wholesale.WholesaleRepairTotalBaseAmount, 0) AS WholesaleRepairTotalBaseAmount,
+                     COALESCE(wholesale.WholesaleRepairTotalCounterAmount, 0) AS WholesaleRepairTotalCounterAmount,
+                     CAST(COALESCE(wholesale.WholesaleSoldAsIsAcknowledged, 0) AS BIT) AS WholesaleSoldAsIsAcknowledged,
                      stock.RemainingStockQuantity,
                      stock.RemainingStockValueBase,
                      profit.NetProfitLossBase
@@ -116,6 +135,29 @@ public sealed class UsedCarsService
               ) sales
               OUTER APPLY
               (
+                  SELECT TOP (1)
+                         WholesaleSaleId = w.Id,
+                         WholesaleSaleNumber = w.SaleNumber,
+                         WholesaleBuyerName = COALESCE(NULLIF(LTRIM(RTRIM(c.Name)), N''), NULLIF(LTRIM(RTRIM(w.BuyerName)), N''), N'Wholesale buyer'),
+                         WholesaleBuyerPhone = COALESCE(NULLIF(LTRIM(RTRIM(c.Phone)), N''), NULLIF(LTRIM(RTRIM(w.BuyerPhone)), N'')),
+                         WholesaleSoldAt = w.SaleDate,
+                         WholesaleSaleCurrency = w.CurrencyCode,
+                         WholesaleSalePrice = w.SalePrice,
+                         SalePriceBase = w.SalePriceBase,
+                         WholesaleSalePriceCounter = w.SalePriceCounter,
+                         WholesalePaymentStatus = w.PaymentStatus,
+                         IsWholesaleForParts = w.IsForParts,
+                         WholesaleRepairTotalAmount = w.RepairTotalAmount,
+                         WholesaleRepairTotalBaseAmount = w.RepairTotalBaseAmount,
+                         WholesaleRepairTotalCounterAmount = w.RepairTotalCounterAmount,
+                         WholesaleSoldAsIsAcknowledged = w.SoldAsIsAcknowledged
+                  FROM dbo.UsedCarWholesaleSales w
+                  LEFT JOIN dbo.Customers c ON c.Id = w.CustomerId
+                  WHERE w.UsedCarId = uc.Id
+                  ORDER BY w.SaleDate DESC, w.Id DESC
+              ) wholesale
+              OUTER APPLY
+              (
                   SELECT RemainingStockQuantity = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4))), 0),
                          RemainingStockValueBase = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0)), 0)
                   FROM dbo.Parts p
@@ -134,7 +176,10 @@ public sealed class UsedCarsService
               ) cost
               CROSS APPLY
               (
-                  SELECT NetProfitLossBase = ROUND(ISNULL(sales.PartsSoldAmountBase, 0) + ISNULL(stock.RemainingStockValueBase, 0) - cost.FullCostBase, 2)
+                  SELECT NetProfitLossBase = CASE
+                             WHEN wholesale.WholesaleSaleId IS NOT NULL THEN ROUND(ISNULL(wholesale.SalePriceBase, 0) - cost.FullCostBase - ISNULL(wholesale.WholesaleRepairTotalBaseAmount, 0), 2)
+                             ELSE ROUND(ISNULL(sales.PartsSoldAmountBase, 0) + ISNULL(stock.RemainingStockValueBase, 0) - cost.FullCostBase, 2)
+                         END
               ) profit
               ORDER BY cb.Name, cm.Name, uc.ModelYear DESC, uc.Id DESC;");
     }
@@ -200,6 +245,197 @@ public sealed class UsedCarsService
 
         session.Commit();
         return usedCarId;
+    }
+
+    public IEnumerable<UsedCarWholesaleSaleDto> GetWholesaleSales()
+    {
+        BackfillMissingWholesaleSaleJournalEntries();
+
+        using var conn = _factory.CreateConnection();
+        return conn.Query<UsedCarWholesaleSaleRecord>(
+            @"SELECT w.Id,
+                     w.SaleNumber,
+                     w.UsedCarId,
+                     UsedCar = CASE
+                         WHEN cb.Name IS NULL OR LTRIM(RTRIM(cb.Name)) = N'' THEN
+                             CASE
+                                 WHEN NULLIF(LTRIM(RTRIM(cm.BodyType)), N'') IS NULL THEN cm.Name
+                                 ELSE cm.Name + N' (' + cm.BodyType + N')'
+                             END
+                         ELSE
+                             CASE
+                                 WHEN NULLIF(LTRIM(RTRIM(cm.BodyType)), N'') IS NULL THEN cb.Name + N' ' + cm.Name
+                                 ELSE cb.Name + N' ' + cm.Name + N' (' + cm.BodyType + N')'
+                             END
+                     END,
+                     uc.Barcode,
+                     w.CustomerId,
+                     COALESCE(NULLIF(LTRIM(RTRIM(c.Name)), N''), NULLIF(LTRIM(RTRIM(w.BuyerName)), N''), N'Wholesale buyer') AS BuyerName,
+                     COALESCE(NULLIF(LTRIM(RTRIM(c.Phone)), N''), NULLIF(LTRIM(RTRIM(w.BuyerPhone)), N'')) AS BuyerPhone,
+                     w.SaleDate,
+                     w.CurrencyCode,
+                     w.SalePrice,
+                     w.SaleRateToBase,
+                     w.SalePriceBase,
+                     w.CounterCurrencyCode,
+                     w.CounterRateToBase,
+                     w.SalePriceCounter,
+                     w.PaidAmount,
+                     w.PaidBaseAmount,
+                     w.PaidCounterAmount,
+                     w.PaymentStatus,
+                     w.IsForParts,
+                     w.RepairItemsJson,
+                     w.RepairTotalAmount,
+                     w.RepairTotalBaseAmount,
+                     w.RepairTotalCounterAmount,
+                     w.PaymentMethod,
+                     w.Notes,
+                     w.SoldAsIsAcknowledged,
+                     w.CreatedAt,
+                     w.CreatedByUserId
+              FROM dbo.UsedCarWholesaleSales w
+              INNER JOIN dbo.UsedCars uc ON uc.Id = w.UsedCarId
+              INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
+              INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+              LEFT JOIN dbo.Customers c ON c.Id = w.CustomerId
+              ORDER BY w.SaleDate DESC, w.Id DESC;")
+            .Select(MapWholesaleSale);
+    }
+
+    public CreateUsedCarWholesaleSaleResponse CreateWholesaleSale(
+        int usedCarId,
+        CreateUsedCarWholesaleSaleRequest request,
+        int userId)
+    {
+        if (!request.SoldAsIsAcknowledged)
+        {
+            throw new ValidationException("The buyer must acknowledge the used car is sold as-is.");
+        }
+
+        if (request.SalePrice <= 0m)
+        {
+            throw new ValidationException("Sale price must be greater than zero.");
+        }
+
+        if (request.PaidAmount < 0m)
+        {
+            throw new ValidationException("Paid amount cannot be negative.");
+        }
+
+        var currencyCode = NormalizeCurrencyCode(request.CurrencyCode)
+            ?? throw new ValidationException("Sale currency is required.");
+        var saleDate = request.SaleDate == default ? DateTime.Today : request.SaleDate;
+        var roundedSalePrice = decimal.Round(request.SalePrice, 4, MidpointRounding.AwayFromZero);
+        var roundedPaidAmount = decimal.Round(request.PaidAmount, 4, MidpointRounding.AwayFromZero);
+        var currencyContext = BuildSaleCurrencyContext(currencyCode);
+
+        var salePriceBase = decimal.Round(roundedSalePrice * currencyContext.SaleRateToBase, 4, MidpointRounding.AwayFromZero);
+        var salePriceCounter = ConvertBaseToCounter(salePriceBase, currencyContext.CounterRateToBase);
+        var paidBaseAmount = decimal.Round(roundedPaidAmount * currencyContext.SaleRateToBase, 4, MidpointRounding.AwayFromZero);
+        var paidCounterAmount = ConvertBaseToCounter(paidBaseAmount, currencyContext.CounterRateToBase);
+        var paymentStatus = ResolvePaymentStatus(salePriceBase, paidBaseAmount);
+        var repairItems = request.IsForParts ? new List<UsedCarWholesaleRepairItemDto>() : NormalizeRepairItems(request.RepairItems);
+        var repairTotalAmount = decimal.Round(repairItems.Sum(item => item.Price), 4, MidpointRounding.AwayFromZero);
+        var repairTotalBaseAmount = decimal.Round(repairTotalAmount * currencyContext.SaleRateToBase, 4, MidpointRounding.AwayFromZero);
+        var repairTotalCounterAmount = ConvertBaseToCounter(repairTotalBaseAmount, currencyContext.CounterRateToBase);
+        var repairItemsJson = JsonSerializer.Serialize(repairItems);
+
+        using var session = new DbSession(_factory);
+        var repositories = RepositoryCatalog.For(session);
+        var usedCar = LoadWholesaleUsedCar(session, usedCarId)
+            ?? throw new NotFoundException("Used car not found.");
+
+        if (HasWholesaleSale(session, usedCarId))
+        {
+            throw new ValidationException("This used car is already sold through wholesale.");
+        }
+
+        var customer = request.CustomerId is > 0
+            ? LoadWholesaleCustomer(session, request.CustomerId.Value)
+                ?? throw new ValidationException("Selected customer was not found.")
+            : null;
+
+        var buyerName = NormalizeOptional(request.BuyerName) ?? customer?.Name;
+        if (string.IsNullOrWhiteSpace(buyerName))
+        {
+            throw new ValidationException("Buyer name is required when no customer is selected.");
+        }
+
+        var buyerPhone = NormalizeOptional(request.BuyerPhone) ?? customer?.Phone;
+        var saleNumber = session.Connection.ExecuteScalar<string>(
+            @"DECLARE @SequenceValue INT = NEXT VALUE FOR dbo.UsedCarWholesaleSaleNumberSequence;
+              SELECT CONCAT(N'UCW-', CONVERT(CHAR(8), SYSUTCDATETIME(), 112), N'-', RIGHT(N'00000000' + CAST(@SequenceValue AS NVARCHAR(20)), 8));",
+            transaction: session.Transaction)
+            ?? throw new InvalidOperationException("Could not generate used-car wholesale sale number.");
+
+        var createdAt = DateTime.UtcNow;
+        var saleId = session.Connection.ExecuteScalar<int>(
+            @"INSERT INTO dbo.UsedCarWholesaleSales
+                (SaleNumber, UsedCarId, CustomerId, BuyerName, BuyerPhone, SaleDate, CurrencyCode, SalePrice, SaleRateToBase, SalePriceBase, CounterCurrencyCode, CounterRateToBase, SalePriceCounter, PaidAmount, PaidBaseAmount, PaidCounterAmount, PaymentStatus, IsForParts, RepairItemsJson, RepairTotalAmount, RepairTotalBaseAmount, RepairTotalCounterAmount, PaymentMethod, Notes, SoldAsIsAcknowledged, CreatedAt, CreatedByUserId)
+              VALUES
+                (@SaleNumber, @UsedCarId, @CustomerId, @BuyerName, @BuyerPhone, @SaleDate, @CurrencyCode, @SalePrice, @SaleRateToBase, @SalePriceBase, @CounterCurrencyCode, @CounterRateToBase, @SalePriceCounter, @PaidAmount, @PaidBaseAmount, @PaidCounterAmount, @PaymentStatus, @IsForParts, @RepairItemsJson, @RepairTotalAmount, @RepairTotalBaseAmount, @RepairTotalCounterAmount, @PaymentMethod, @Notes, @SoldAsIsAcknowledged, @CreatedAt, @UserId);
+              SELECT CAST(SCOPE_IDENTITY() AS INT);",
+            new
+            {
+                SaleNumber = saleNumber,
+                UsedCarId = usedCar.Id,
+                CustomerId = customer?.Id,
+                BuyerName = buyerName,
+                BuyerPhone = buyerPhone,
+                SaleDate = saleDate,
+                CurrencyCode = currencyCode,
+                SalePrice = roundedSalePrice,
+                SaleRateToBase = currencyContext.SaleRateToBase,
+                SalePriceBase = salePriceBase,
+                CounterCurrencyCode = currencyContext.CounterCurrencyCode,
+                CounterRateToBase = currencyContext.CounterRateToBase,
+                SalePriceCounter = salePriceCounter,
+                PaidAmount = roundedPaidAmount,
+                PaidBaseAmount = paidBaseAmount,
+                PaidCounterAmount = paidCounterAmount,
+                PaymentStatus = paymentStatus,
+                request.IsForParts,
+                RepairItemsJson = repairItemsJson,
+                RepairTotalAmount = repairTotalAmount,
+                RepairTotalBaseAmount = repairTotalBaseAmount,
+                RepairTotalCounterAmount = repairTotalCounterAmount,
+                PaymentMethod = NormalizeOptional(request.PaymentMethod),
+                Notes = NormalizeOptional(request.Notes),
+                SoldAsIsAcknowledged = request.SoldAsIsAcknowledged,
+                CreatedAt = createdAt,
+                UserId = userId
+            },
+            session.Transaction);
+
+        MarkUsedCarChangedByWholesaleSale(session, usedCar.Id, userId);
+        CreateWholesaleSaleJournalEntries(
+            session,
+            repositories,
+            usedCar,
+            saleId,
+            saleNumber,
+            customer?.Id,
+            saleDate,
+            currencyCode,
+            roundedSalePrice,
+            salePriceBase,
+            salePriceCounter,
+            roundedPaidAmount,
+            paidBaseAmount,
+            paidCounterAmount,
+            repairTotalBaseAmount,
+            currencyContext,
+            userId);
+
+        session.Commit();
+        return new CreateUsedCarWholesaleSaleResponse
+        {
+            SaleId = saleId,
+            SaleNumber = saleNumber,
+            UsedCarId = usedCar.Id,
+            PaymentStatus = paymentStatus
+        };
     }
 
     public void Update(int id, CreateUsedCarRequest request, int userId)
@@ -326,6 +562,502 @@ public sealed class UsedCarsService
         }
 
         session.Commit();
+    }
+
+    private static UsedCarWholesaleSaleDto MapWholesaleSale(UsedCarWholesaleSaleRecord record)
+    {
+        return new UsedCarWholesaleSaleDto
+        {
+            Id = record.Id,
+            SaleNumber = record.SaleNumber,
+            UsedCarId = record.UsedCarId,
+            UsedCar = record.UsedCar,
+            Barcode = record.Barcode,
+            CustomerId = record.CustomerId,
+            BuyerName = record.BuyerName,
+            BuyerPhone = record.BuyerPhone,
+            SaleDate = record.SaleDate,
+            CurrencyCode = record.CurrencyCode,
+            SalePrice = record.SalePrice,
+            SaleRateToBase = record.SaleRateToBase,
+            SalePriceBase = record.SalePriceBase,
+            CounterCurrencyCode = record.CounterCurrencyCode,
+            CounterRateToBase = record.CounterRateToBase,
+            SalePriceCounter = record.SalePriceCounter,
+            PaidAmount = record.PaidAmount,
+            PaidBaseAmount = record.PaidBaseAmount,
+            PaidCounterAmount = record.PaidCounterAmount,
+            PaymentStatus = record.PaymentStatus,
+            IsForParts = record.IsForParts,
+            RepairTotalAmount = record.RepairTotalAmount,
+            RepairTotalBaseAmount = record.RepairTotalBaseAmount,
+            RepairTotalCounterAmount = record.RepairTotalCounterAmount,
+            RepairItems = DeserializeRepairItems(record.RepairItemsJson),
+            PaymentMethod = record.PaymentMethod,
+            Notes = record.Notes,
+            SoldAsIsAcknowledged = record.SoldAsIsAcknowledged,
+            CreatedAt = record.CreatedAt
+        };
+    }
+
+    private static List<UsedCarWholesaleRepairItemDto> NormalizeRepairItems(IEnumerable<UsedCarWholesaleRepairItemDto>? items)
+    {
+        var normalizedItems = new List<UsedCarWholesaleRepairItemDto>();
+        foreach (var item in items ?? Enumerable.Empty<UsedCarWholesaleRepairItemDto>())
+        {
+            var description = NormalizeOptional(item.Description);
+            var price = decimal.Round(item.Price, 4, MidpointRounding.AwayFromZero);
+            if (string.IsNullOrWhiteSpace(description) && price <= 0m)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                throw new ValidationException("Every repair item must have a description.");
+            }
+
+            if (price < 0m)
+            {
+                throw new ValidationException("Repair item prices cannot be negative.");
+            }
+
+            normalizedItems.Add(new UsedCarWholesaleRepairItemDto
+            {
+                Description = description,
+                Price = price
+            });
+        }
+
+        return normalizedItems;
+    }
+
+    private static List<UsedCarWholesaleRepairItemDto> DeserializeRepairItems(string? repairItemsJson)
+    {
+        if (string.IsNullOrWhiteSpace(repairItemsJson))
+        {
+            return new List<UsedCarWholesaleRepairItemDto>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<UsedCarWholesaleRepairItemDto>>(repairItemsJson)
+                ?? new List<UsedCarWholesaleRepairItemDto>();
+        }
+        catch (JsonException)
+        {
+            return new List<UsedCarWholesaleRepairItemDto>();
+        }
+    }
+
+    private UsedCarWholesaleSaleCurrencyContext BuildSaleCurrencyContext(string currencyCode)
+    {
+        var constants = _appConstantsService
+            .GetAll()
+            .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+        var rates = _currenciesService.GetAll().ToList();
+        var baseCurrencyCode = ResolveCurrencyCode(constants, "BaseCurrencyCode")
+            ?? ResolveCurrencyCode(constants, "DefaultCurrencyCode")
+            ?? "USD";
+        var counterCurrencyCode = ResolveCurrencyCode(constants, "CounterCurrencyCode")
+            ?? baseCurrencyCode;
+        var defaultCounterRate = constants.TryGetValue("DefaultCounterRate", out var defaultCounterRateText)
+            && decimal.TryParse(defaultCounterRateText, out var parsedDefaultCounterRate)
+            && parsedDefaultCounterRate > 0
+            ? parsedDefaultCounterRate
+            : 1m;
+
+        var saleRateToBase = ResolveRateToBaseCurrency(
+            currencyCode,
+            rates,
+            baseCurrencyCode,
+            counterCurrencyCode,
+            defaultCounterRate);
+        if (saleRateToBase <= 0)
+        {
+            throw new ValidationException($"No conversion rate is configured for {currencyCode}.");
+        }
+
+        var counterRateToBase = ResolveRateToBaseCurrency(
+            counterCurrencyCode,
+            rates,
+            baseCurrencyCode,
+            counterCurrencyCode,
+            defaultCounterRate);
+        if (counterRateToBase <= 0)
+        {
+            counterRateToBase = defaultCounterRate > 0 ? defaultCounterRate : 1m;
+        }
+
+        return new UsedCarWholesaleSaleCurrencyContext(
+            decimal.Round(saleRateToBase, 8, MidpointRounding.AwayFromZero),
+            counterCurrencyCode,
+            decimal.Round(counterRateToBase, 8, MidpointRounding.AwayFromZero));
+    }
+
+    private static decimal ConvertBaseToCounter(decimal baseAmount, decimal counterRateToBase)
+    {
+        if (baseAmount <= 0m)
+        {
+            return 0m;
+        }
+
+        var effectiveRate = counterRateToBase > 0m ? counterRateToBase : 1m;
+        return decimal.Round(baseAmount / effectiveRate, 4, MidpointRounding.AwayFromZero);
+    }
+
+    private static UsedCarWholesaleLookup? LoadWholesaleUsedCar(DbSession session, int usedCarId)
+        => session.Connection.QuerySingleOrDefault<UsedCarWholesaleLookup>(
+            @"SELECT uc.Id,
+                     uc.Barcode,
+                     UsedCar = CASE
+                         WHEN cb.Name IS NULL OR LTRIM(RTRIM(cb.Name)) = N'' THEN
+                             CASE
+                                 WHEN NULLIF(LTRIM(RTRIM(cm.BodyType)), N'') IS NULL THEN cm.Name
+                                 ELSE cm.Name + N' (' + cm.BodyType + N')'
+                             END
+                         ELSE
+                             CASE
+                                 WHEN NULLIF(LTRIM(RTRIM(cm.BodyType)), N'') IS NULL THEN cb.Name + N' ' + cm.Name
+                                 ELSE cb.Name + N' ' + cm.Name + N' (' + cm.BodyType + N')'
+                             END
+                     END,
+                     uc.ModelYear,
+                     uc.BaseCurrencyCode,
+                     uc.CounterCurrencyCode,
+                     CounterRateToBase = CASE WHEN ISNULL(uc.CounterRateToBase, 0) > 0 THEN uc.CounterRateToBase ELSE 1 END,
+                     FullCostBase = ROUND(ISNULL(uc.PriceBase, 0) + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * CASE WHEN ISNULL(uc.CounterRateToBase, 0) > 0 THEN uc.CounterRateToBase ELSE 1 END), 4)
+              FROM dbo.UsedCars uc
+              INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
+              INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+              WHERE uc.Id = @Id;",
+            new { Id = usedCarId },
+            session.Transaction);
+
+    private static bool HasWholesaleSale(DbSession session, int usedCarId)
+        => session.Connection.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM dbo.UsedCarWholesaleSales WITH (UPDLOCK, HOLDLOCK) WHERE UsedCarId = @UsedCarId;",
+            new { UsedCarId = usedCarId },
+            session.Transaction) > 0;
+
+    private static UsedCarWholesaleCustomerLookup? LoadWholesaleCustomer(DbSession session, int customerId)
+        => session.Connection.QuerySingleOrDefault<UsedCarWholesaleCustomerLookup>(
+            @"SELECT Id,
+                     Name,
+                     Phone
+              FROM dbo.Customers
+              WHERE Id = @Id;",
+            new { Id = customerId },
+            session.Transaction);
+
+    private static void MarkUsedCarChangedByWholesaleSale(DbSession session, int usedCarId, int? userId)
+        => session.Connection.Execute(
+            @"UPDATE dbo.UsedCars
+              SET ModifiedAt = SYSUTCDATETIME(),
+                  ModifiedByUserId = @UserId
+              WHERE Id = @Id;",
+            new { Id = usedCarId, UserId = userId },
+            session.Transaction);
+
+    private void CreateWholesaleSaleJournalEntries(
+        DbSession session,
+        RepositoryCatalog repositories,
+        UsedCarWholesaleLookup usedCar,
+        int saleId,
+        string saleNumber,
+        int? customerId,
+        DateTime saleDate,
+        string saleCurrencyCode,
+        decimal salePrice,
+        decimal salePriceBase,
+        decimal salePriceCounter,
+        decimal paidAmount,
+        decimal paidBaseAmount,
+        decimal paidCounterAmount,
+        decimal repairTotalBaseAmount,
+        UsedCarWholesaleSaleCurrencyContext saleCurrencyContext,
+        int? userId)
+    {
+        var settings = _accountingSettingsProvider.GetSnapshot();
+        ValidateWholesalePostingAccounts(settings);
+
+        var customerAccountId = customerId is > 0
+            ? new CustomersRepository(session).GetAccountId(customerId.Value)
+            : null;
+        var receivableOrCashAccountId = customerAccountId ?? settings.SalesCashAccountId;
+        var createdAt = DateTime.UtcNow;
+        var baseCurrencyCode = NormalizeCurrencyCode(usedCar.BaseCurrencyCode) ?? "USD";
+        var counterCurrencyCode = NormalizeCurrencyCode(usedCar.CounterCurrencyCode) ?? saleCurrencyContext.CounterCurrencyCode;
+        var counterRateToBase = usedCar.CounterRateToBase > 0m ? usedCar.CounterRateToBase : saleCurrencyContext.CounterRateToBase;
+        var costBaseAmount = decimal.Round(
+            Math.Max(0m, usedCar.FullCostBase) + Math.Max(0m, repairTotalBaseAmount),
+            4,
+            MidpointRounding.AwayFromZero);
+        var costCounterAmount = ConvertBaseToCounter(costBaseAmount, counterRateToBase);
+
+        var saleLines = new List<JournalLine>
+        {
+            CreateWholesaleJournalLine(
+                receivableOrCashAccountId,
+                salePriceBase,
+                0m,
+                saleCurrencyCode,
+                salePrice,
+                saleCurrencyContext.SaleRateToBase,
+                salePriceCounter,
+                baseCurrencyCode,
+                counterCurrencyCode,
+                createdAt,
+                userId),
+            CreateWholesaleJournalLine(
+                settings.SalesRevenueAccountId,
+                0m,
+                salePriceBase,
+                saleCurrencyCode,
+                salePrice,
+                saleCurrencyContext.SaleRateToBase,
+                salePriceCounter,
+                baseCurrencyCode,
+                counterCurrencyCode,
+                createdAt,
+                userId)
+        };
+
+        if (costBaseAmount > 0m)
+        {
+            saleLines.Add(CreateWholesaleJournalLine(
+                settings.CogsAccountId,
+                costBaseAmount,
+                0m,
+                baseCurrencyCode,
+                costBaseAmount,
+                1m,
+                costCounterAmount,
+                baseCurrencyCode,
+                counterCurrencyCode,
+                createdAt,
+                userId));
+            saleLines.Add(CreateWholesaleJournalLine(
+                settings.InventoryAccountId,
+                0m,
+                costBaseAmount,
+                baseCurrencyCode,
+                costBaseAmount,
+                1m,
+                costCounterAmount,
+                baseCurrencyCode,
+                counterCurrencyCode,
+                createdAt,
+                userId));
+        }
+
+        EnsureBalanced(saleLines, "Used-car wholesale sale journal entry is not balanced.");
+
+        var saleEntryId = repositories.Accounting.Journal.InsertEntry(new JournalEntry
+        {
+            EntryDate = saleDate,
+            ReferenceType = UsedCarWholesaleSaleReferenceType,
+            ReferenceId = saleId,
+            Description = FormatWholesaleJournalDescription("Used car wholesale sale", usedCar, saleNumber),
+            CreatedAt = createdAt,
+            CreatedByUserId = userId
+        });
+        repositories.Accounting.Journal.InsertLines(saleEntryId, saleLines);
+
+        if (customerAccountId is not > 0 || paidBaseAmount <= 0m)
+        {
+            return;
+        }
+
+        var paymentLines = new List<JournalLine>
+        {
+            CreateWholesaleJournalLine(
+                settings.SalesCashAccountId,
+                paidBaseAmount,
+                0m,
+                saleCurrencyCode,
+                paidAmount,
+                saleCurrencyContext.SaleRateToBase,
+                paidCounterAmount,
+                baseCurrencyCode,
+                counterCurrencyCode,
+                createdAt,
+                userId),
+            CreateWholesaleJournalLine(
+                customerAccountId.Value,
+                0m,
+                paidBaseAmount,
+                saleCurrencyCode,
+                paidAmount,
+                saleCurrencyContext.SaleRateToBase,
+                paidCounterAmount,
+                baseCurrencyCode,
+                counterCurrencyCode,
+                createdAt,
+                userId)
+        };
+        EnsureBalanced(paymentLines, "Used-car wholesale payment journal entry is not balanced.");
+
+        var paymentEntryId = repositories.Accounting.Journal.InsertEntry(new JournalEntry
+        {
+            EntryDate = saleDate,
+            ReferenceType = UsedCarWholesalePaymentReferenceType,
+            ReferenceId = saleId,
+            Description = FormatWholesaleJournalDescription("Used car wholesale payment", usedCar, saleNumber),
+            CreatedAt = createdAt,
+            CreatedByUserId = userId
+        });
+        repositories.Accounting.Journal.InsertLines(paymentEntryId, paymentLines);
+    }
+
+    private void BackfillMissingWholesaleSaleJournalEntries()
+    {
+        using var session = new DbSession(_factory);
+        var repositories = RepositoryCatalog.For(session);
+        var missingSales = session.Connection.Query<UsedCarWholesaleSaleRecord>(
+            @"SELECT w.Id,
+                     w.SaleNumber,
+                     w.UsedCarId,
+                     w.CustomerId,
+                     w.SaleDate,
+                     w.CurrencyCode,
+                     w.SalePrice,
+                     w.SaleRateToBase,
+                     w.SalePriceBase,
+                     w.CounterCurrencyCode,
+                     w.CounterRateToBase,
+                     w.SalePriceCounter,
+                     w.PaidAmount,
+                     w.PaidBaseAmount,
+                     w.PaidCounterAmount,
+                     w.RepairTotalBaseAmount,
+                     w.CreatedByUserId
+              FROM dbo.UsedCarWholesaleSales w
+              WHERE NOT EXISTS
+              (
+                  SELECT 1
+                  FROM dbo.JournalEntries je
+                  WHERE je.ReferenceType = @ReferenceType
+                    AND je.ReferenceId = w.Id
+              )
+              ORDER BY w.Id;",
+            new { ReferenceType = UsedCarWholesaleSaleReferenceType },
+            session.Transaction)
+            .ToList();
+
+        if (missingSales.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var sale in missingSales)
+        {
+            var usedCar = LoadWholesaleUsedCar(session, sale.UsedCarId);
+            if (usedCar == null)
+            {
+                continue;
+            }
+
+            CreateWholesaleSaleJournalEntries(
+                session,
+                repositories,
+                usedCar,
+                sale.Id,
+                sale.SaleNumber,
+                sale.CustomerId,
+                sale.SaleDate,
+                NormalizeCurrencyCode(sale.CurrencyCode) ?? usedCar.BaseCurrencyCode,
+                sale.SalePrice,
+                sale.SalePriceBase,
+                sale.SalePriceCounter,
+                sale.PaidAmount,
+                sale.PaidBaseAmount,
+                sale.PaidCounterAmount,
+                sale.RepairTotalBaseAmount,
+                new UsedCarWholesaleSaleCurrencyContext(
+                    sale.SaleRateToBase > 0m ? sale.SaleRateToBase : 1m,
+                    NormalizeCurrencyCode(sale.CounterCurrencyCode) ?? usedCar.CounterCurrencyCode,
+                    sale.CounterRateToBase > 0m ? sale.CounterRateToBase : usedCar.CounterRateToBase),
+                sale.CreatedByUserId);
+
+            MarkUsedCarChangedByWholesaleSale(session, usedCar.Id, sale.CreatedByUserId);
+        }
+
+        session.Commit();
+    }
+
+    private static JournalLine CreateWholesaleJournalLine(
+        int accountId,
+        decimal debitBaseAmount,
+        decimal creditBaseAmount,
+        string currencyCode,
+        decimal originalAmount,
+        decimal rateToBase,
+        decimal counterAmount,
+        string baseCurrencyCode,
+        string counterCurrencyCode,
+        DateTime createdAt,
+        int? userId)
+        => new()
+        {
+            AccountId = accountId,
+            Debit = decimal.Round(Math.Max(0m, debitBaseAmount), 4, MidpointRounding.AwayFromZero),
+            Credit = decimal.Round(Math.Max(0m, creditBaseAmount), 4, MidpointRounding.AwayFromZero),
+            CurrencyCode = NormalizeCurrencyCode(currencyCode) ?? baseCurrencyCode,
+            OriginalAmount = decimal.Round(Math.Max(0m, originalAmount), 4, MidpointRounding.AwayFromZero),
+            RateToBase = rateToBase > 0m ? decimal.Round(rateToBase, 8, MidpointRounding.AwayFromZero) : 1m,
+            CounterAmount = decimal.Round(Math.Max(0m, counterAmount), 4, MidpointRounding.AwayFromZero),
+            BaseCurrencyCode = baseCurrencyCode,
+            CounterCurrencyCode = counterCurrencyCode,
+            CreatedAt = createdAt,
+            CreatedByUserId = userId
+        };
+
+    private static void EnsureBalanced(IReadOnlyCollection<JournalLine> lines, string message)
+    {
+        var totalDebit = decimal.Round(lines.Sum(line => line.Debit), 4, MidpointRounding.AwayFromZero);
+        var totalCredit = decimal.Round(lines.Sum(line => line.Credit), 4, MidpointRounding.AwayFromZero);
+        if (totalDebit != totalCredit)
+        {
+            throw new InvalidOperationException(message);
+        }
+    }
+
+    private static void ValidateWholesalePostingAccounts(AccountingPostingSettingsSnapshot settings)
+    {
+        if (settings.SalesCashAccountId <= 0)
+        {
+            throw new ValidationException("Configure the sales cash account before recording used-car wholesale sales.");
+        }
+
+        if (settings.SalesRevenueAccountId <= 0)
+        {
+            throw new ValidationException("Configure the sales revenue account before recording used-car wholesale sales.");
+        }
+
+        if (settings.CogsAccountId <= 0)
+        {
+            throw new ValidationException("Configure the cost of goods sold account before recording used-car wholesale sales.");
+        }
+
+        if (settings.InventoryAccountId <= 0)
+        {
+            throw new ValidationException("Configure the inventory account before recording used-car wholesale sales.");
+        }
+    }
+
+    private static string FormatWholesaleJournalDescription(
+        string prefix,
+        UsedCarWholesaleLookup usedCar,
+        string saleNumber)
+    {
+        var carLabel = string.IsNullOrWhiteSpace(usedCar.UsedCar)
+            ? usedCar.Barcode
+            : $"{usedCar.UsedCar} {usedCar.ModelYear}".Trim();
+        var description = string.IsNullOrWhiteSpace(carLabel)
+            ? $"{prefix} - {saleNumber}"
+            : $"{prefix} - {carLabel} ({saleNumber})";
+        return description.Length <= 240 ? description : description[..240];
     }
 
     private UsedCarSnapshot BuildSnapshot(CreateUsedCarRequest request)
@@ -1045,5 +1777,63 @@ public sealed class UsedCarsService
         }
 
         return accountId;
+    }
+
+    private sealed record UsedCarWholesaleSaleCurrencyContext(
+        decimal SaleRateToBase,
+        string CounterCurrencyCode,
+        decimal CounterRateToBase);
+
+    private sealed class UsedCarWholesaleSaleRecord
+    {
+        public int Id { get; set; }
+        public string SaleNumber { get; set; } = string.Empty;
+        public int UsedCarId { get; set; }
+        public string UsedCar { get; set; } = string.Empty;
+        public string? Barcode { get; set; }
+        public int? CustomerId { get; set; }
+        public string BuyerName { get; set; } = string.Empty;
+        public string? BuyerPhone { get; set; }
+        public DateTime SaleDate { get; set; }
+        public string CurrencyCode { get; set; } = "USD";
+        public decimal SalePrice { get; set; }
+        public decimal SaleRateToBase { get; set; } = 1m;
+        public decimal SalePriceBase { get; set; }
+        public string CounterCurrencyCode { get; set; } = "USD";
+        public decimal CounterRateToBase { get; set; } = 1m;
+        public decimal SalePriceCounter { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal PaidBaseAmount { get; set; }
+        public decimal PaidCounterAmount { get; set; }
+        public string PaymentStatus { get; set; } = "Unpaid";
+        public bool IsForParts { get; set; }
+        public string? RepairItemsJson { get; set; }
+        public decimal RepairTotalAmount { get; set; }
+        public decimal RepairTotalBaseAmount { get; set; }
+        public decimal RepairTotalCounterAmount { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? Notes { get; set; }
+        public bool SoldAsIsAcknowledged { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int? CreatedByUserId { get; set; }
+    }
+
+    private sealed class UsedCarWholesaleLookup
+    {
+        public int Id { get; set; }
+        public string? Barcode { get; set; }
+        public string UsedCar { get; set; } = string.Empty;
+        public int ModelYear { get; set; }
+        public string BaseCurrencyCode { get; set; } = "USD";
+        public string CounterCurrencyCode { get; set; } = "USD";
+        public decimal CounterRateToBase { get; set; } = 1m;
+        public decimal FullCostBase { get; set; }
+    }
+
+    private sealed class UsedCarWholesaleCustomerLookup
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Phone { get; set; }
     }
 }

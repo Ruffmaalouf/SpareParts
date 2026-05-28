@@ -18,7 +18,7 @@ const {
 const ImagePicker = require("expo-image-picker");
 const { useSafeAreaInsets } = require("react-native-safe-area-context");
 const { EmptyState, Panel, ScreenHeader, ScreenScroll, StatusText } = require("../components/ui");
-const { initials, money } = require("../core/formatters");
+const { displayCurrencyContext, displayMoneyFromBase, initials, money } = require("../core/formatters");
 const { useTheme } = require("../theme/theme-context");
 
 const { useCallback, useEffect, useMemo, useRef, useState } = React;
@@ -235,6 +235,8 @@ function UsedCarsScreen({ api }) {
   const [suppliers, setSuppliers] = useState([]);
   const [carModels, setCarModels] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [currencyCodes, setCurrencyCodes] = useState(["USD"]);
   const [selectedId, setSelectedId] = useState("");
   const [selectedImageId, setSelectedImageId] = useState("");
@@ -269,6 +271,16 @@ function UsedCarsScreen({ api }) {
   const selectedModel = useMemo(
     () => carModels.find((model) => optionKey(model) === String(form.carModelId)),
     [carModels, form.carModelId]
+  );
+  const displayContextForCar = useCallback((car) => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: read(car, "baseCurrencyCode"),
+    counterCurrencyCode: read(car, "counterCurrencyCode")
+  }), [appConstants, currencyRates]);
+  const selectedDisplayContext = useMemo(
+    () => displayContextForCar(selectedCar),
+    [displayContextForCar, selectedCar]
   );
   const filteredCars = useMemo(
     () => cars,
@@ -322,21 +334,30 @@ function UsedCarsScreen({ api }) {
 
   const loadReferenceData = useCallback(async () => {
     try {
-      const [nextSuppliers, nextModels, nextLocations, nextCurrencies] = await Promise.all([
+      const [nextSuppliers, nextModels, nextLocations, nextCurrencies, nextAppConstants] = await Promise.all([
         api.get("/api/suppliers?page=1&pageSize=500"),
         api.get("/api/carmodels"),
         api.get("/api/locations"),
-        api.get("/api/currencies")
+        api.get("/api/currencies"),
+        api.get("/api/appconstants")
       ]);
 
+      const currencyRows = toArray(nextCurrencies);
+      const appConstantRows = toArray(nextAppConstants);
+      const referenceContext = displayCurrencyContext({ constants: appConstantRows, rates: currencyRows });
       const codes = Array.from(new Set([
         "USD",
-        ...toArray(nextCurrencies).map((currency) => read(currency, "code")).filter(Boolean)
+        referenceContext.baseCurrencyCode,
+        referenceContext.counterCurrencyCode,
+        referenceContext.code,
+        ...currencyRows.map((currency) => read(currency, "code")).filter(Boolean)
       ]));
 
       setSuppliers(toArray(nextSuppliers));
       setCarModels(toArray(nextModels).filter((model) => read(model, "isActive") !== false));
       setLocations(toArray(nextLocations));
+      setCurrencyRates(currencyRows);
+      setAppConstants(appConstantRows);
       setCurrencyCodes(codes);
     } catch (error) {
       setStatus(error.message || t("usedCars.referenceLoadError", "Could not load used-car reference data."));
@@ -972,8 +993,8 @@ function UsedCarsScreen({ api }) {
             el(DetailTile, { label: t("fields.barcode", "Barcode"), value: read(selectedCar, "barcode") }),
             el(DetailTile, { label: t("usedCars.location", "Location"), value: read(selectedCar, "location") }),
             el(DetailTile, { label: t("usedCars.price", "Price"), value: carPrice(selectedCar) }),
-            el(DetailTile, { label: t("usedCars.fullCost", "Full Cost"), value: money(read(selectedCar, "fullCostBase"), read(selectedCar, "baseCurrencyCode") || "USD") }),
-            el(DetailTile, { label: t("usedCars.netPl", "Net P/L"), value: money(read(selectedCar, "netProfitLossBase"), read(selectedCar, "baseCurrencyCode") || "USD") })
+            el(DetailTile, { label: t("usedCars.fullCost", "Full Cost"), value: displayMoneyFromBase(read(selectedCar, "fullCostBase"), selectedDisplayContext) }),
+            el(DetailTile, { label: t("usedCars.netPl", "Net P/L"), value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) })
           )
         )
       ),

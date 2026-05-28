@@ -45,6 +45,19 @@ BEGIN
     INSERT INTO dbo.AppConstants ([Key], [Value], Description)
     VALUES ('CounterCurrencyCode', 'USD', 'Application counter/default transaction currency code.');
 END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = 'DisplayCurrencyCode')
+BEGIN
+    DECLARE @DisplayCurrencyCode NVARCHAR(3);
+
+    SELECT TOP (1) @DisplayCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
+    FROM dbo.AppConstants
+    WHERE [Key] = 'CounterCurrencyCode'
+      AND LEN(LTRIM(RTRIM([Value]))) = 3;
+
+    INSERT INTO dbo.AppConstants ([Key], [Value], Description)
+    VALUES ('DisplayCurrencyCode', COALESCE(@DisplayCurrencyCode, 'USD'), 'Application display currency code used by screens for money totals.');
+END;
 IF NOT EXISTS (SELECT 1 FROM dbo.AppConstants WHERE [Key] = 'DefaultCurrencyCode')
 BEGIN
     INSERT INTO dbo.AppConstants ([Key], [Value], Description)

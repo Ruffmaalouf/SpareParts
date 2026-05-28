@@ -57,6 +57,7 @@ const dictionaries = {
       settings: "الإعدادات",
       "purchase-parts": "شراء القطع",
       "used-car-purchases": "شراء السيارات المستعملة",
+      "used-car-wholesale": "بيع السيارات بالجملة",
       "used-cars": "السيارات المستعملة",
       "repair-prep": "الإصلاح / التجهيز",
       stock: "المخزون",
@@ -452,6 +453,7 @@ const dictionaries = {
     launchMeta: {
       "purchase-parts": "فواتير شراء القطع",
       "used-car-purchases": "شراء السيارات",
+      "used-car-wholesale": "بيع السيارات بالجملة",
       "used-cars": "معرض السيارات",
       stock: "المخزون والقطع",
       accounting: "دفتر الأستاذ والتقارير",
@@ -603,6 +605,7 @@ const dictionaries = {
       settings: "Parametres",
       "purchase-parts": "Achats de pieces",
       "used-car-purchases": "Achats voitures",
+      "used-car-wholesale": "Vente voitures en gros",
       "used-cars": "Voitures d'occasion",
       "repair-prep": "Prep atelier",
       stock: "Stock",
@@ -998,6 +1001,7 @@ const dictionaries = {
     launchMeta: {
       "purchase-parts": "Factures d'achat",
       "used-car-purchases": "Achats voitures",
+      "used-car-wholesale": "Vente voitures en gros",
       "used-cars": "Galerie voitures",
       stock: "Inventaire pieces",
       accounting: "Grand livre et rapports",

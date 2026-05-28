@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { money, shortDate } from "../core/formatters.js";
+import { displayCurrencyContext, displayMoneyFromBase, money, shortDate } from "../core/formatters.js";
 import { AccountingService } from "../services/accounting-service.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
@@ -93,27 +93,30 @@ function periodText(report, dateFrom, dateTo, t) {
   return t("accounting.allDates", "All posted dates");
 }
 
-function summaryForReport(activeTab, report, t) {
+function displayBaseAmount(value, displayContext) {
+  return displayMoneyFromBase(toNumber(value), displayContext);
+}
+
+function summaryForReport(activeTab, report, t, displayContext) {
   if (!report) return [];
-  const base = baseCurrency(report);
   const counter = counterCurrency(report);
 
   if (activeTab === "ledger") {
     const opening = toNumber(read(report, "openingBalance"));
     const closing = toNumber(read(report, "closingBalance"));
     return [
-      [t("accounting.opening", "Opening"), amount(opening, base)],
-      [t("accounting.closing", "Closing"), amount(closing, base)],
-      [t("accounting.movement", "Movement"), amount(closing - opening, base)],
+      [t("accounting.opening", "Opening"), displayBaseAmount(opening, displayContext)],
+      [t("accounting.closing", "Closing"), displayBaseAmount(closing, displayContext)],
+      [t("accounting.movement", "Movement"), displayBaseAmount(closing - opening, displayContext)],
       [t("accounting.entries", "Entries"), String(reportRows(activeTab, report).length)]
     ];
   }
 
   if (activeTab === "statement") {
     return [
-      [t("accounting.closing", "Closing"), amount(read(report, "remainingBalance", "closingBalance"), base)],
-      [t("accounting.totalDebit", "Total debit"), amount(read(report, "totalDebit"), base)],
-      [t("accounting.totalCredit", "Total credit"), amount(read(report, "totalCredit"), base)],
+      [t("accounting.closing", "Closing"), displayBaseAmount(read(report, "remainingBalance", "closingBalance"), displayContext)],
+      [t("accounting.totalDebit", "Total debit"), displayBaseAmount(read(report, "totalDebit"), displayContext)],
+      [t("accounting.totalCredit", "Total credit"), displayBaseAmount(read(report, "totalCredit"), displayContext)],
       [t("accounting.entries", "Entries"), String(reportRows(activeTab, report).length)]
     ];
   }
@@ -121,9 +124,9 @@ function summaryForReport(activeTab, report, t) {
   const totalDebit = toNumber(read(report, "totalDebit"));
   const totalCredit = toNumber(read(report, "totalCredit"));
   return [
-    [t("accounting.totalDebit", "Total debit"), amount(totalDebit, base)],
-    [t("accounting.totalCredit", "Total credit"), amount(totalCredit, base)],
-    [t("accounting.difference", "Difference"), amount(totalDebit - totalCredit, base)],
+    [t("accounting.totalDebit", "Total debit"), displayBaseAmount(totalDebit, displayContext)],
+    [t("accounting.totalCredit", "Total credit"), displayBaseAmount(totalCredit, displayContext)],
+    [t("accounting.difference", "Difference"), displayBaseAmount(totalDebit - totalCredit, displayContext)],
     [`${counter} ${t("accounting.debit", "Debit")}`, amount(read(report, "totalCounterDebit"), counter)],
     [`${counter} ${t("accounting.credit", "Credit")}`, amount(read(report, "totalCounterCredit"), counter)],
     [t("accounting.accounts", "Accounts"), String(reportRows(activeTab, report).length)]
@@ -142,7 +145,7 @@ function filterRows(rows, activeTab, search, t) {
   return rows.filter((row) => rowSearchText(row, activeTab, t).toLowerCase().includes(term));
 }
 
-function columnsForReport(activeTab, report, t) {
+function columnsForReport(activeTab, report, t, displayContext) {
   const base = baseCurrency(report);
   const counter = counterCurrency(report);
 
@@ -152,9 +155,9 @@ function columnsForReport(activeTab, report, t) {
       { key: "reference", label: t("accounting.reference", "Reference"), render: (row) => `${read(row, "referenceType") || ""}${read(row, "referenceId") ? ` #${read(row, "referenceId")}` : ""}`.trim() },
       { key: "description", label: t("accounting.description", "Description"), render: (row) => read(row, "description") || "-" },
       { key: "original", label: t("accounting.original", "Original"), render: (row) => amount(read(row, "originalAmount"), read(row, "currencyCode") || base) },
-      { key: "debit", label: t("accounting.debit", "Debit"), render: (row) => amount(read(row, "debit"), base) },
-      { key: "credit", label: t("accounting.credit", "Credit"), render: (row) => amount(read(row, "credit"), base) },
-      { key: "running", label: t("accounting.running", "Running"), render: (row) => amount(read(row, "runningBalance"), base) },
+      { key: "debit", label: t("accounting.debit", "Debit"), render: (row) => displayBaseAmount(read(row, "debit"), displayContext) },
+      { key: "credit", label: t("accounting.credit", "Credit"), render: (row) => displayBaseAmount(read(row, "credit"), displayContext) },
+      { key: "running", label: t("accounting.running", "Running"), render: (row) => displayBaseAmount(read(row, "runningBalance"), displayContext) },
       { key: "counter", label: counter, render: (row) => amount(read(row, "runningCounterBalance"), counter) }
     ];
   }
@@ -166,19 +169,19 @@ function columnsForReport(activeTab, report, t) {
       { key: "activity", label: t("accounting.activity", "Activity"), render: (row) => read(row, "activityType", "referenceType") },
       { key: "description", label: t("accounting.description", "Description"), render: (row) => read(row, "description") || "-" },
       { key: "original", label: t("accounting.original", "Original"), render: (row) => amount(read(row, "originalAmount"), read(row, "currencyCode") || base) },
-      { key: "debit", label: t("accounting.debit", "Debit"), render: (row) => amount(read(row, "debit"), base) },
-      { key: "credit", label: t("accounting.credit", "Credit"), render: (row) => amount(read(row, "credit"), base) },
-      { key: "running", label: t("accounting.running", "Running"), render: (row) => amount(read(row, "runningBalance"), base) }
+      { key: "debit", label: t("accounting.debit", "Debit"), render: (row) => displayBaseAmount(read(row, "debit"), displayContext) },
+      { key: "credit", label: t("accounting.credit", "Credit"), render: (row) => displayBaseAmount(read(row, "credit"), displayContext) },
+      { key: "running", label: t("accounting.running", "Running"), render: (row) => displayBaseAmount(read(row, "runningBalance"), displayContext) }
     ];
   }
 
   return [
     { key: "account", label: t("accounting.account", "Account"), render: (row) => accountTitle(row, t) },
     { key: "type", label: t("accounting.type", "Type"), render: (row) => accountMeta(row, t) },
-    { key: "debit", label: t("accounting.debit", "Debit"), render: (row) => amount(read(row, "totalDebit"), base) },
-    { key: "credit", label: t("accounting.credit", "Credit"), render: (row) => amount(read(row, "totalCredit"), base) },
-    { key: "debitBalance", label: "Debit Bal", render: (row) => amount(read(row, "debitBalance"), base) },
-    { key: "creditBalance", label: "Credit Bal", render: (row) => amount(read(row, "creditBalance"), base) },
+    { key: "debit", label: t("accounting.debit", "Debit"), render: (row) => displayBaseAmount(read(row, "totalDebit"), displayContext) },
+    { key: "credit", label: t("accounting.credit", "Credit"), render: (row) => displayBaseAmount(read(row, "totalCredit"), displayContext) },
+    { key: "debitBalance", label: "Debit Bal", render: (row) => displayBaseAmount(read(row, "debitBalance"), displayContext) },
+    { key: "creditBalance", label: "Credit Bal", render: (row) => displayBaseAmount(read(row, "creditBalance"), displayContext) },
     { key: "counterDebit", label: `${counter} D`, render: (row) => amount(read(row, "counterDebitBalance"), counter) },
     { key: "counterCredit", label: `${counter} C`, render: (row) => amount(read(row, "counterCreditBalance"), counter) }
   ];
@@ -193,7 +196,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function buildPrintableHtml({ activeTab, report, rows, columns, dateFrom, dateTo, t }) {
+function buildPrintableHtml({ activeTab, report, rows, columns, dateFrom, dateTo, t, displayContext }) {
   return `<!doctype html>
 <html>
 <head>
@@ -222,9 +225,9 @@ function buildPrintableHtml({ activeTab, report, rows, columns, dateFrom, dateTo
       <div class="muted">${escapeHtml(subjectText(activeTab, report, t))}</div>
       <div class="muted">${escapeHtml(periodText(report, dateFrom, dateTo, t))}</div>
     </div>
-    <div class="muted">${escapeHtml(t("accounting.rows", "{count} rows", { count: rows.length }))}</div>
+    <div class="muted">${escapeHtml(displayContext.code)} / ${escapeHtml(t("accounting.rows", "{count} rows", { count: rows.length }))}</div>
   </div>
-  <div class="summary">${summaryForReport(activeTab, report, t).map(([label, value]) => `<div class="card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>
+  <div class="summary">${summaryForReport(activeTab, report, t, displayContext).map(([label, value]) => `<div class="card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join("")}</div>
   <table>
     <thead><tr>${columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join("")}</tr></thead>
     <tbody>${rows.map((row) => `<tr>${columns.map((column) => `<td>${escapeHtml(column.render(row))}</td>`).join("")}</tr>`).join("")}</tbody>
@@ -263,6 +266,8 @@ export function AccountingView({ api, t }) {
   const [search, setSearch] = useState("");
   const [accounts, setAccounts] = useState([]);
   const [parties, setParties] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [selectedPartyKey, setSelectedPartyKey] = useState("");
   const [trialBalance, setTrialBalance] = useState(null);
@@ -280,12 +285,20 @@ export function AccountingView({ api, t }) {
     () => parties.find((party) => partyKey(party) === selectedPartyKey) || null,
     [parties, selectedPartyKey]
   );
-  const columns = useMemo(() => columnsForReport(activeTab, currentReport, t), [activeTab, currentReport, t]);
+  const currentDisplayContext = useMemo(() => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: baseCurrency(currentReport),
+    counterCurrencyCode: counterCurrency(currentReport)
+  }), [appConstants, currencyRates, currentReport]);
+  const columns = useMemo(() => columnsForReport(activeTab, currentReport, t, currentDisplayContext), [activeTab, currentDisplayContext, currentReport, t]);
 
   const loadReferenceData = useCallback(async () => {
-    const [accountResult, partyResult] = await Promise.allSettled([
+    const [accountResult, partyResult, appConstantsResult, currenciesResult] = await Promise.allSettled([
       service.getAccounts(),
-      service.getStatementParties()
+      service.getStatementParties(),
+      api.get("/api/appconstants"),
+      api.get("/api/currencies")
     ]);
     if (accountResult.status === "fulfilled") {
       const nextAccounts = toArray(accountResult.value);
@@ -297,7 +310,9 @@ export function AccountingView({ api, t }) {
       setParties(nextParties);
       setSelectedPartyKey((current) => current || partyKey(nextParties[0]) || "");
     }
-  }, [service]);
+    if (appConstantsResult.status === "fulfilled") setAppConstants(toArray(appConstantsResult.value));
+    if (currenciesResult.status === "fulfilled") setCurrencyRates(toArray(currenciesResult.value));
+  }, [api, service]);
 
   const loadActiveReport = useCallback(async () => {
     if (activeTab === "ledger" && !selectedAccountId) {
@@ -347,7 +362,7 @@ export function AccountingView({ api, t }) {
 
     try {
       setStatus(t("accounting.creatingPdf", "Creating PDF report..."));
-      const html = buildPrintableHtml({ activeTab, report: currentReport, rows, columns, dateFrom, dateTo, t });
+      const html = buildPrintableHtml({ activeTab, report: currentReport, rows, columns, dateFrom, dateTo, t, displayContext: currentDisplayContext });
       const printWindow = window.open("", "_blank", "width=1200,height=800");
       if (!printWindow) throw new Error("Popup blocked.");
       printWindow.document.write(html);
@@ -358,7 +373,7 @@ export function AccountingView({ api, t }) {
     } catch (error) {
       setStatus(error.message || t("accounting.exportError", "Could not export PDF report."));
     }
-  }, [activeTab, columns, currentReport, dateFrom, dateTo, rows, t]);
+  }, [activeTab, columns, currentDisplayContext, currentReport, dateFrom, dateTo, rows, t]);
 
   useEffect(() => { loadReferenceData(); }, [loadReferenceData]);
   useEffect(() => { loadActiveReport(); }, [loadActiveReport]);
@@ -391,13 +406,13 @@ export function AccountingView({ api, t }) {
         h("p", null, subjectText(activeTab, currentReport, t))
       ),
       h("div", { className: "report-hero-meta" },
-        h("strong", null, baseCurrency(currentReport)),
+        h("strong", null, currentDisplayContext.code),
         h("span", null, counterCurrency(currentReport)),
         h("span", null, periodText(currentReport, dateFrom, dateTo, t))
       )
     ),
     currentReport && h("div", { className: "report-summary-grid" },
-      summaryForReport(activeTab, currentReport, t).map(([label, value]) =>
+      summaryForReport(activeTab, currentReport, t, currentDisplayContext).map(([label, value]) =>
         h("article", { className: "report-summary-card", key: label },
           h("span", null, label),
           h("strong", null, value)

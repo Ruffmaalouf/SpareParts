@@ -40,6 +40,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ManagementViewModel ManagementVm { get; }
         public PartPurchasesViewModel PartPurchasesVm { get; }
         public UsedCarPurchasesViewModel PurchasesVm { get; }
+        public UsedCarWholesaleViewModel UsedCarWholesaleVm { get; }
         public RepairPrepBoardViewModel RepairPrepVm { get; }
         public ReportBuilderViewModel ReportBuilderVm { get; }
         public OwnerCockpitDashboardViewModel OwnerCockpitVm { get; }
@@ -410,6 +411,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand ReloadInvoiceSearchCommand { get; }
         public ICommand GoToPurchasesCommand     { get; }
         public ICommand GoToUsedCarPurchasesCommand { get; }
+        public ICommand GoToUsedCarWholesaleCommand { get; }
         public ICommand GoToPurchaseHistoryCommand { get; }
         public ICommand GoToStockArrivalCommand { get; }
         public ICommand GoToRepairPrepCommand { get; }
@@ -458,6 +460,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             DeadStockVm = new DeadStockResurrectionViewModel(partsApi);
             PartPurchasesVm = new PartPurchasesViewModel(crudApi, purchasesApi);
             PurchasesVm = new UsedCarPurchasesViewModel(crudApi, accountingApi, purchasesApi);
+            UsedCarWholesaleVm = new UsedCarWholesaleViewModel(crudApi);
             StockArrivalVm = new StockArrivalTheaterViewModel(crudApi, NavigateFromStockArrival);
             RepairPrepVm = new RepairPrepBoardViewModel(crudApi);
             PartCompatibilityVm = new PartCompatibilityViewModel(crudApi);
@@ -653,6 +656,17 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen = AppScreen.Purchases;
                 PurchasesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
+            GoToUsedCarWholesaleCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewPurchasesScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("✗ You do not have permission to view used-car wholesale.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.UsedCarWholesale;
+                UsedCarWholesaleVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             GoToPurchaseHistoryCommand = new RelayCommand(_ =>
             {
                 if (!CanViewPurchasesScreen)
@@ -821,6 +835,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     break;
                 case AppScreen.Purchases:
                     GoToUsedCarPurchasesCommand.Execute(null);
+                    break;
+                case AppScreen.UsedCarWholesale:
+                    GoToUsedCarWholesaleCommand.Execute(null);
                     break;
                 case AppScreen.PartPurchases:
                     GoToPurchasesCommand.Execute(null);

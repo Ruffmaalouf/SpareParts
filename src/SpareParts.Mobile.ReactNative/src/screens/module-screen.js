@@ -1,7 +1,7 @@
 const React = require("react");
 const { Image, Pressable, ScrollView, Text, View } = require("react-native");
 const ImagePicker = require("expo-image-picker");
-const { asRows, rowAmount, rowSubtitle, rowTitle, shortDateTime } = require("../core/formatters");
+const { asRows, money, rowAmount, rowSubtitle, rowTitle, shortDateTime } = require("../core/formatters");
 const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
 const { useTheme } = require("../theme/theme-context");
 
@@ -33,6 +33,13 @@ function reportCell(value) {
 function numericValue(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
+}
+
+function todayInputValue() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
 }
 
 function tableKey(table) {
@@ -266,6 +273,413 @@ function PartRequestsModuleScreen({ api, module }) {
             );
           }),
           rows.length === 0 && el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) })
+        )
+      )
+    )
+  );
+}
+
+function UsedCarWholesaleModuleScreen({ api, module }) {
+  const { styles, t } = useTheme();
+  const moduleTitle = t(`screens.${module.key}`, module.title);
+  const [usedCars, setUsedCars] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [form, setForm] = useState({
+    usedCarId: "",
+    customerId: "",
+    saleDate: todayInputValue(),
+    currencyCode: "USD",
+    salePrice: "0",
+    paidAmount: "0",
+    buyerName: "",
+    buyerPhone: "",
+    paymentMethod: "",
+    notes: "",
+    isForParts: false,
+    repairDescription: "",
+    repairPrice: "0",
+    repairItems: [],
+    soldAsIsAcknowledged: false
+  });
+  const [status, setStatus] = useState(t("wholesale.ready", "Choose an unsold used car and record the as-is sale."));
+  const [isLoading, setIsLoading] = useState(false);
+
+  const availableCars = useMemo(
+    () => usedCars.filter((car) => !read(car, "isWholesaleSold")),
+    [usedCars]
+  );
+  const selectedCar = useMemo(
+    () => usedCars.find((car) => String(read(car, "id")) === String(form.usedCarId)) || null,
+    [form.usedCarId, usedCars]
+  );
+  const repairTotal = form.isForParts
+    ? 0
+    : form.repairItems.reduce((sum, item) => sum + numericValue(item.price), 0);
+  const projectedResult = selectedCar
+    ? numericValue(form.salePrice) - numericValue(read(selectedCar, "fullCostBase")) - repairTotal
+    : 0;
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setStatus(t("module.loading", "Loading {title}...", { title: moduleTitle.toLowerCase() }));
+    try {
+      const [nextCars, nextCustomers, nextSales] = await Promise.all([
+        api.get("/api/usedcars"),
+        api.get("/api/customers?pageSize=500"),
+        api.get("/api/usedcars/wholesale-sales")
+      ]);
+      const carRows = asRows(nextCars);
+      const customerRows = asRows(nextCustomers);
+      setUsedCars(carRows);
+      setCustomers(customerRows);
+      setSales(asRows(nextSales));
+      setForm((current) => {
+        const retainedCar = carRows.find((car) => String(read(car, "id")) === String(current.usedCarId));
+        const firstAvailableCar = carRows.find((car) => !read(car, "isWholesaleSold"));
+        const nextCar = retainedCar || firstAvailableCar;
+        return {
+          ...current,
+          usedCarId: nextCar ? String(read(nextCar, "id")) : "",
+          currencyCode: read(nextCar, "baseCurrencyCode") || current.currencyCode || "USD"
+        };
+      });
+      setStatus(t("module.loaded", "{title} loaded.", { title: moduleTitle }));
+    } catch (error) {
+      setUsedCars([]);
+      setSales([]);
+      setStatus(error.message || t("module.loadError", "Could not load {title}.", { title: moduleTitle.toLowerCase() }));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, moduleTitle, t]);
+
+  const chooseCar = useCallback((car) => {
+    setForm((current) => ({
+      ...current,
+      usedCarId: String(read(car, "id")),
+      currencyCode: read(car, "baseCurrencyCode") || current.currencyCode || "USD"
+    }));
+  }, []);
+
+  const chooseCustomer = useCallback((customer) => {
+    setForm((current) => ({
+      ...current,
+      customerId: String(read(customer, "id")),
+      buyerName: read(customer, "name") || current.buyerName,
+      buyerPhone: read(customer, "phone") || current.buyerPhone
+    }));
+  }, []);
+
+  const addRepairItem = useCallback(() => {
+    if (form.isForParts) {
+      setStatus(t("wholesale.repairForPartsSkip", "Repair items are not needed when the car is sold for parts."));
+      return;
+    }
+    const description = form.repairDescription.trim();
+    const price = numericValue(form.repairPrice);
+    if (!description) {
+      setStatus(t("wholesale.repairDescriptionRequired", "Enter a repair item description."));
+      return;
+    }
+    if (price < 0) {
+      setStatus(t("wholesale.repairPriceInvalid", "Repair item price cannot be negative."));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      repairDescription: "",
+      repairPrice: "0",
+      repairItems: [
+        ...current.repairItems,
+        {
+          key: `${Date.now()}-${current.repairItems.length}`,
+          description,
+          price
+        }
+      ]
+    }));
+  }, [form.isForParts, form.repairDescription, form.repairPrice, t]);
+
+  const removeRepairItem = useCallback((key) => {
+    setForm((current) => ({
+      ...current,
+      repairItems: current.repairItems.filter((item) => item.key !== key)
+    }));
+  }, []);
+
+  const createSale = useCallback(async () => {
+    const usedCarId = numericValue(form.usedCarId);
+    if (!usedCarId) {
+      setStatus(t("wholesale.carRequired", "Choose a used car before recording the sale."));
+      return;
+    }
+    if (selectedCar && read(selectedCar, "isWholesaleSold")) {
+      setStatus(t("wholesale.alreadySold", "This used car already has a wholesale sale."));
+      return;
+    }
+    if (numericValue(form.salePrice) <= 0) {
+      setStatus(t("wholesale.priceRequired", "Enter a sale price greater than zero."));
+      return;
+    }
+    if (!form.buyerName.trim() && !numericValue(form.customerId)) {
+      setStatus(t("wholesale.buyerRequired", "Choose a customer or type the buyer name."));
+      return;
+    }
+    if (!form.soldAsIsAcknowledged) {
+      setStatus(t("wholesale.asIsRequired", "Confirm the as-is acknowledgement before recording the sale."));
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus(t("wholesale.saving", "Recording wholesale sale..."));
+    try {
+      const result = await api.post(`/api/usedcars/${usedCarId}/wholesale-sales`, {
+        customerId: numericValue(form.customerId) || null,
+        buyerName: form.buyerName,
+        buyerPhone: form.buyerPhone,
+        saleDate: form.saleDate,
+        currencyCode: form.currencyCode || "USD",
+        salePrice: Math.max(0, numericValue(form.salePrice)),
+        paidAmount: Math.max(0, numericValue(form.paidAmount)),
+        isForParts: Boolean(form.isForParts),
+        repairItems: form.isForParts
+          ? []
+          : form.repairItems.map((item) => ({
+            description: item.description,
+            price: Math.max(0, numericValue(item.price))
+          })),
+        paymentMethod: form.paymentMethod,
+        notes: form.notes,
+        soldAsIsAcknowledged: form.soldAsIsAcknowledged
+      });
+      setStatus(t("wholesale.saved", "Wholesale sale recorded: {number}", { number: read(result, "saleNumber") || "" }));
+      setForm((current) => ({
+        ...current,
+        usedCarId: "",
+        customerId: "",
+        salePrice: "0",
+        paidAmount: "0",
+        buyerName: "",
+        buyerPhone: "",
+        paymentMethod: "",
+        notes: "",
+        isForParts: false,
+        repairDescription: "",
+        repairPrice: "0",
+        repairItems: [],
+        soldAsIsAcknowledged: false
+      }));
+      await load();
+    } catch (error) {
+      setStatus(error.message || t("wholesale.saveError", "Could not record wholesale sale."));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, form, load, selectedCar, t]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return el(ScreenScroll, null,
+    el(ScreenHeader, {
+      title: moduleTitle,
+      actionTitle: t("common.refresh", "Refresh"),
+      onAction: load,
+      loading: isLoading
+    }),
+    el(ModuleSummary, { module, moduleTitle, t }),
+    el(Panel, { title: t("wholesale.summary", "Wholesale summary") },
+      el(View, { style: styles.metricGrid },
+        el(View, { style: styles.metricTile },
+          el(Text, { style: styles.metricLabel }, t("wholesale.availableCars", "Available cars")),
+          el(Text, { style: styles.metricValue }, String(availableCars.length)),
+          el(Text, { style: styles.metricAction }, t("wholesale.availableCarsDetail", "Not yet sold wholesale"))
+        ),
+        el(View, { style: styles.metricTile },
+          el(Text, { style: styles.metricLabel }, t("wholesale.loadedCost", "Loaded cost")),
+          el(Text, { style: styles.metricValue }, selectedCar ? money(read(selectedCar, "fullCostBase"), read(selectedCar, "baseCurrencyCode") || "USD") : "-"),
+          el(Text, { style: styles.metricAction }, selectedCar ? rowTitle(selectedCar) : t("wholesale.noCarSelected", "No car selected"))
+        ),
+        el(View, { style: styles.metricTile },
+          el(Text, { style: styles.metricLabel }, t("wholesale.repairTotal", "Repair total")),
+          el(Text, { style: styles.metricValue }, form.isForParts ? "-" : money(repairTotal, form.currencyCode || "USD")),
+          el(Text, { style: styles.metricAction }, form.isForParts ? t("wholesale.forPartsOnly", "For parts only") : t("wholesale.repairTotalDetail", "Added repair items"))
+        ),
+        el(View, { style: styles.metricTile },
+          el(Text, { style: styles.metricLabel }, t("wholesale.projectedResult", "Projected result")),
+          el(Text, { style: styles.metricValue }, selectedCar ? money(projectedResult, read(selectedCar, "baseCurrencyCode") || "USD") : "-"),
+          el(Text, { style: styles.metricAction }, t("wholesale.projectedResultDetail", "Sale price minus loaded cost and repairs"))
+        )
+      )
+    ),
+    el(StatusText, { value: status }),
+    el(Panel, { title: t("wholesale.vehicle", "Vehicle") },
+      el(ScrollView, {
+        horizontal: true,
+        showsHorizontalScrollIndicator: false,
+        contentContainerStyle: styles.segmentRail
+      },
+        availableCars.map((car) => {
+          const active = String(read(car, "id")) === String(form.usedCarId);
+          return el(Pressable, {
+            key: `wholesale-car-${read(car, "id")}`,
+            style: [styles.segmentButton, active && styles.segmentButtonActive],
+            onPress: () => chooseCar(car)
+          },
+            el(Text, { style: [styles.segmentText, active && styles.segmentTextActive] }, read(car, "car") || rowTitle(car)),
+            el(Text, { style: [styles.segmentText, active && styles.segmentTextActive] }, String(read(car, "modelYear") || ""))
+          );
+        }),
+        availableCars.length === 0 && el(EmptyState, { text: t("wholesale.noAvailableCars", "No unsold used cars found.") })
+      )
+    ),
+    el(Panel, { title: t("wholesale.customer", "Customer") },
+      el(ScrollView, {
+        horizontal: true,
+        showsHorizontalScrollIndicator: false,
+        contentContainerStyle: styles.segmentRail
+      },
+        customers.slice(0, 40).map((customer) => {
+          const active = String(read(customer, "id")) === String(form.customerId);
+          return el(Pressable, {
+            key: `wholesale-customer-${read(customer, "id")}`,
+            style: [styles.segmentButton, active && styles.segmentButtonActive],
+            onPress: () => chooseCustomer(customer)
+          },
+            el(Text, { style: [styles.segmentText, active && styles.segmentTextActive] }, read(customer, "name") || rowTitle(customer))
+          );
+        })
+      )
+    ),
+    el(Panel, { title: t("wholesale.saleForm", "Wholesale deal") },
+      el(Field, {
+        label: t("wholesale.buyerName", "Buyer name"),
+        value: form.buyerName,
+        onChangeText: (value) => setForm((current) => ({ ...current, buyerName: value }))
+      }),
+      el(Field, {
+        label: t("wholesale.buyerPhone", "Buyer phone"),
+        value: form.buyerPhone,
+        onChangeText: (value) => setForm((current) => ({ ...current, buyerPhone: value })),
+        keyboardType: "phone-pad"
+      }),
+      el(Field, {
+        label: t("wholesale.saleDate", "Sale date"),
+        value: form.saleDate,
+        onChangeText: (value) => setForm((current) => ({ ...current, saleDate: value })),
+        placeholder: "YYYY-MM-DD"
+      }),
+      el(Field, {
+        label: t("wholesale.currency", "Currency"),
+        value: form.currencyCode,
+        onChangeText: (value) => setForm((current) => ({ ...current, currencyCode: value.toUpperCase() })),
+        autoCapitalize: "characters"
+      }),
+      el(Field, {
+        label: t("wholesale.salePrice", "Sale price"),
+        value: form.salePrice,
+        onChangeText: (value) => setForm((current) => ({ ...current, salePrice: value })),
+        keyboardType: "decimal-pad"
+      }),
+      el(Field, {
+        label: t("wholesale.paidAmount", "Paid amount"),
+        value: form.paidAmount,
+        onChangeText: (value) => setForm((current) => ({ ...current, paidAmount: value })),
+        keyboardType: "decimal-pad"
+      }),
+      el(View, { style: styles.inlineButtons },
+        el(Pressable, {
+          style: [styles.segmentButton, form.isForParts && styles.segmentButtonActive],
+          onPress: () => setForm((current) => ({ ...current, isForParts: !current.isForParts }))
+        },
+          el(Text, {
+            style: [styles.segmentText, form.isForParts && styles.segmentTextActive]
+          }, t("wholesale.forPartsOnly", "For parts only"))
+        ),
+        el(Pressable, {
+          style: [styles.segmentButton, form.soldAsIsAcknowledged && styles.segmentButtonActive],
+          onPress: () => setForm((current) => ({ ...current, soldAsIsAcknowledged: !current.soldAsIsAcknowledged }))
+        },
+          el(Text, {
+            style: [styles.segmentText, form.soldAsIsAcknowledged && styles.segmentTextActive]
+          }, t("wholesale.asIsShort", "As-is confirmed"))
+        )
+      ),
+      !form.isForParts && el(View, { style: styles.screenListItem },
+        el(Field, {
+          label: t("wholesale.repairDescription", "Repair item"),
+          value: form.repairDescription,
+          onChangeText: (value) => setForm((current) => ({ ...current, repairDescription: value }))
+        }),
+        el(Field, {
+          label: t("wholesale.repairPrice", "Repair price"),
+          value: form.repairPrice,
+          onChangeText: (value) => setForm((current) => ({ ...current, repairPrice: value })),
+          keyboardType: "decimal-pad"
+        }),
+        el(SecondaryButton, {
+          title: t("wholesale.addRepair", "Add repair"),
+          onPress: addRepairItem
+        }),
+        el(ListRow, {
+          title: t("wholesale.repairTotal", "Repair total"),
+          value: money(repairTotal, form.currencyCode || "USD")
+        }),
+        form.repairItems.map((item) =>
+          el(View, { key: item.key, style: styles.listRow },
+            el(View, { style: styles.listRowCopy },
+              el(Text, { style: styles.listRowTitle }, item.description),
+              el(Text, { style: styles.listRowSubtitle }, money(item.price, form.currencyCode || "USD"))
+            ),
+            el(Pressable, {
+              style: styles.secondaryButton,
+              onPress: () => removeRepairItem(item.key)
+            },
+              el(Text, { style: styles.secondaryButtonText }, t("common.remove", "Remove"))
+            )
+          )
+        )
+      ),
+      el(Field, {
+        label: t("wholesale.paymentMethod", "Payment method"),
+        value: form.paymentMethod,
+        onChangeText: (value) => setForm((current) => ({ ...current, paymentMethod: value }))
+      }),
+      el(Field, {
+        label: t("wholesale.notes", "Notes"),
+        value: form.notes,
+        onChangeText: (value) => setForm((current) => ({ ...current, notes: value })),
+        multiline: true,
+        numberOfLines: 3
+      }),
+      el(PrimaryButton, {
+        title: isLoading ? t("common.loading", "Loading") : t("wholesale.recordSale", "Record sale"),
+        onPress: createSale,
+        disabled: isLoading
+      })
+    ),
+    el(Panel, { title: t("wholesale.recentSales", "Recent wholesale sales") },
+      el(View, { style: styles.screenListFrame },
+        el(ScrollView, {
+          nestedScrollEnabled: true,
+          showsVerticalScrollIndicator: true,
+          contentContainerStyle: styles.screenListContent
+        },
+          sales.map((row, index) =>
+            el(ListRow, {
+              key: `wholesale-sale-${read(row, "id") || index}`,
+              title: read(row, "saleNumber") || `#${read(row, "id")}`,
+              subtitle: [
+                read(row, "usedCar"),
+                read(row, "buyerName"),
+                read(row, "isForParts") ? t("wholesale.forPartsOnly", "For parts only") : t("wholesale.repairsAmount", "Repairs {amount}", { amount: money(read(row, "repairTotalAmount"), read(row, "currencyCode") || "USD") }),
+                shortDateTime(read(row, "saleDate"))
+              ].filter(Boolean).join(" / "),
+              value: money(read(row, "salePrice"), read(row, "currencyCode") || "USD")
+            })
+          ),
+          sales.length === 0 && el(EmptyState, { text: t("wholesale.noSales", "No wholesale sales recorded yet.") })
         )
       )
     )
@@ -1014,6 +1428,10 @@ function ModuleScreen({ api, module, onNavigate }) {
 
   if (module.key === "part-requests") {
     return el(PartRequestsModuleScreen, { api, module });
+  }
+
+  if (module.key === "used-car-wholesale") {
+    return el(UsedCarWholesaleModuleScreen, { api, module });
   }
 
   const canPreview = module.endpoint && !module.endpoint.endsWith("/ask") && !module.endpoint.endsWith("/resolve");

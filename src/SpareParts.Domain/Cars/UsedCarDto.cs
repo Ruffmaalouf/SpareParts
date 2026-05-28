@@ -40,6 +40,22 @@ namespace SpareParts.Domain.Cars
         public decimal PartsSoldQuantity { get; set; }
         public decimal PartsSoldAmountBase { get; set; }
         public decimal SalePriceBase { get; set; }
+        public int? WholesaleSaleId { get; set; }
+        public string? WholesaleSaleNumber { get; set; }
+        public bool IsWholesaleSold { get; set; }
+        public string WholesaleBuyerName { get; set; } = string.Empty;
+        public string? WholesaleBuyerPhone { get; set; }
+        public DateTime? WholesaleSoldAt { get; set; }
+        public string WholesaleSaleCurrency { get; set; } = "USD";
+        public decimal WholesaleSalePrice { get; set; }
+        public decimal WholesaleSalePriceBase { get; set; }
+        public decimal WholesaleSalePriceCounter { get; set; }
+        public string WholesalePaymentStatus { get; set; } = string.Empty;
+        public bool IsWholesaleForParts { get; set; }
+        public decimal WholesaleRepairTotalAmount { get; set; }
+        public decimal WholesaleRepairTotalBaseAmount { get; set; }
+        public decimal WholesaleRepairTotalCounterAmount { get; set; }
+        public bool WholesaleSoldAsIsAcknowledged { get; set; }
         public decimal RemainingStockQuantity { get; set; }
         public decimal RemainingStockValueBase { get; set; }
         public decimal NetProfitLossBase { get; set; }

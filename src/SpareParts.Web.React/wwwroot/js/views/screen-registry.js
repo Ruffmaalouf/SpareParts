@@ -32,6 +32,7 @@ export const screenRegistry = new ScreenRegistry([
   { key: "settings", label: "Settings", component: SettingsView },
   { key: "purchase-parts", label: "Part Purchases", component: createModuleView(moduleByKey("purchase-parts")) },
   { key: "used-car-purchases", label: "Used Car Purchases", component: createModuleView(moduleByKey("used-car-purchases")) },
+  { key: "used-car-wholesale", label: "Used Car Wholesale", component: createModuleView(moduleByKey("used-car-wholesale")) },
   { key: "stock-arrival", label: "Stock Arrival", component: StockArrivalTheaterView },
   { key: "used-cars", label: "Used Cars", component: UsedCarsView },
   { key: "repair-prep", label: "Repair / Prep", component: RepairPrepBoardView },

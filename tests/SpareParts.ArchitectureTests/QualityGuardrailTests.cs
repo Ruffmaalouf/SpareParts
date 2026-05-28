@@ -34,6 +34,8 @@ public class QualityGuardrailTests
         "report-builder",
         "settings",
         "stock",
+        "stock-arrival",
+        "used-car-wholesale",
         "used-car-purchases",
         "used-cars",
         "whatsapp"
@@ -47,6 +49,8 @@ public class QualityGuardrailTests
         ["Pos"] = "invoices",
         ["PartPurchases"] = "purchase-parts",
         ["Purchases"] = "used-car-purchases",
+        ["UsedCarWholesale"] = "used-car-wholesale",
+        ["StockArrivalTheater"] = "stock-arrival",
         ["RepairPrepBoard"] = "repair-prep",
         ["StockManagement"] = "stock",
         ["DeadStockResurrection"] = "dead-stock",

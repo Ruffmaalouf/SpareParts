@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useState } from "../core/react-runtime.js";
-import { money } from "../core/formatters.js";
+import { displayCurrencyContext, displayMoneyFromCounter } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 
 function metricLevel(value) {
@@ -26,6 +26,8 @@ function units(value) {
 export function DashboardView({ api, onView }) {
   const [dashboard, setDashboard] = useState(null);
   const [recentMessages, setRecentMessages] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,12 +41,16 @@ export function DashboardView({ api, onView }) {
     setIsLoading(true);
     setStatus("Loading dashboard...");
     try {
-      const [dashboardData, messages] = await Promise.all([
+      const [dashboardData, messages, nextAppConstants, nextCurrencies] = await Promise.all([
         api.get("/api/owner-cockpit"),
-        api.get("/api/communications/recent?take=6")
+        api.get("/api/communications/recent?take=6"),
+        api.get("/api/appconstants"),
+        api.get("/api/currencies")
       ]);
       setDashboard(dashboardData);
       setRecentMessages(messages);
+      setAppConstants(Array.isArray(nextAppConstants) ? nextAppConstants : []);
+      setCurrencyRates(Array.isArray(nextCurrencies) ? nextCurrencies : []);
       setStatus("Dashboard loaded.");
     } catch (error) {
       setStatus(error.message || "Dashboard failed.");
@@ -55,19 +61,24 @@ export function DashboardView({ api, onView }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const currency = dashboard?.currencyCode || "USD";
+  const displayContext = displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    counterCurrencyCode: dashboard?.currencyCode
+  });
+  const formatDashboardMoney = (value) => displayMoneyFromCounter(value, displayContext);
   const unpaidTransactions = dashboard?.unpaidTransactions || [];
   const profitHeatmap = dashboard?.profitHeatmap || [];
   const currencyMarginRows = (dashboard?.profitPerPart || [])
     .filter((row) => row.currencyMovementEatsProfit || row.currencyWarning || Number(row.currencyMovementImpact || 0) < 0)
     .slice(0, 6);
   const metrics = [
-    { key: "sales", label: "Sales Today", value: dashboard?.todaySalesAmount, code: currency, view: "invoices", action: "Open sales" },
-    { key: "profit", label: "Profit Today", value: dashboard?.todaySalesProfit, code: currency, view: "invoices", action: "Review invoices" },
-    { key: "cash", label: "Cash Balance", value: dashboard?.cashBalance, code: currency, view: "accounting", action: "Open accounting" },
-    { key: "supplierDebt", label: "Supplier Debt", value: dashboard?.supplierDebt, code: currency, view: "accounting", action: "Review payables" },
-    { key: "customerDebt", label: "Customer Debt", value: dashboard?.customerDebt, code: currency, view: "accounting", action: "Review receivables" },
-    { key: "stock", label: "Stock Value", value: dashboard?.stockValue, code: currency, view: "stock", action: "Open stock" }
+    { key: "sales", label: "Sales Today", value: dashboard?.todaySalesAmount, view: "invoices", action: "Open sales" },
+    { key: "profit", label: "Profit Today", value: dashboard?.todaySalesProfit, view: "invoices", action: "Review invoices" },
+    { key: "cash", label: "Cash Balance", value: dashboard?.cashBalance, view: "accounting", action: "Open accounting" },
+    { key: "supplierDebt", label: "Supplier Debt", value: dashboard?.supplierDebt, view: "accounting", action: "Review payables" },
+    { key: "customerDebt", label: "Customer Debt", value: dashboard?.customerDebt, view: "accounting", action: "Review receivables" },
+    { key: "stock", label: "Stock Value", value: dashboard?.stockValue, view: "stock", action: "Open stock" }
   ];
   const quickActions = [
     { key: "invoices", badge: "POS", title: "New sale", subtitle: "Create or search invoices." },
@@ -112,7 +123,7 @@ export function DashboardView({ api, onView }) {
         },
           h("i", { className: "metric-visual", "aria-hidden": "true" }, h("span", null)),
           h("span", null, metric.label),
-          h("strong", null, money(metric.value, metric.code)),
+          h("strong", null, formatDashboardMoney(metric.value)),
           h("em", null, metric.action)
         )
       )
@@ -150,12 +161,12 @@ export function DashboardView({ api, onView }) {
               h("span", { className: `heatmap-signal ${signalClass(row.deadStockSignal)}` }, "Dead stock")
             ),
             h("span", { className: "heatmap-metric-row" },
-              h("span", null, h("small", null, "Profit"), h("b", null, money(row.profit, currency)), h("em", null, percent(row.profitMarginPercent))),
+              h("span", null, h("small", null, "Profit"), h("b", null, formatDashboardMoney(row.profit)), h("em", null, percent(row.profitMarginPercent))),
               h("span", null, h("small", null, "Turnover"), h("b", null, units(row.turnoverUnits)), h("em", null, percent(row.turnoverRatePercent))),
               h("span", null, h("small", null, "Dead"), h("b", null, units(row.deadStockUnits)), h("em", null, percent(row.deadStockPercent)))
             ),
             h("span", { className: "heatmap-stock-line" },
-              `${units(row.stockUnits)} on hand | ${money(row.deadStockValue, currency)} dead value`
+              `${units(row.stockUnits)} on hand | ${formatDashboardMoney(row.deadStockValue)} dead value`
             )
           )
         ),
@@ -178,7 +189,7 @@ export function DashboardView({ api, onView }) {
               h("span", null, row.currencyWarning || "Currency movement reduced margin")
             ),
             h("b", { className: row.currencyMovementEatsProfit ? "danger-text" : "" },
-              `${money(row.marginAtPurchaseRate, currency)} → ${money(row.marginAtCurrentRate, currency)}`)
+              `${formatDashboardMoney(row.marginAtPurchaseRate)} → ${formatDashboardMoney(row.marginAtCurrentRate)}`)
           )
         ),
         currencyMarginRows.length === 0 && h("p", { className: "empty-state" }, "No currency margin warnings.")
@@ -201,7 +212,7 @@ export function DashboardView({ api, onView }) {
             },
               h("i", { className: "row-marker", "aria-hidden": "true" }),
               h("div", null, h("strong", null, title), h("span", null, subtitle)),
-              h("b", null, money(amount, currency))
+              h("b", null, formatDashboardMoney(amount))
             );
           }),
           unpaidTransactions.length === 0 && h("p", { className: "empty-state" }, "No unpaid transactions returned.")

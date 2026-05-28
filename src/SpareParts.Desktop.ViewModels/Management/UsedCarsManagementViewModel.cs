@@ -101,9 +101,13 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     public string UsedCarGrandTotalCounterLabel => $"Grand Total Counter ({_currencyRatesFeature.CounterCurrencyCode})";
     public string UsedCarsTotalBaseLabel => $"Total Base Amount ({_currencyRatesFeature.BaseCurrencyCode})";
     public string UsedCarsTotalCounterLabel => $"Total Counter Amount ({_currencyRatesFeature.CounterCurrencyCode})";
+    public string UsedCarsTotalDisplayLabel => $"Total Amount ({_currencyRatesFeature.DisplayCurrencyCode})";
+    public string UsedCarsNetProfitLossDisplayLabel => $"Net P/L ({_currencyRatesFeature.DisplayCurrencyCode})";
     public decimal UsedCarsTotalBaseAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalBase), 2, MidpointRounding.AwayFromZero);
     public decimal UsedCarsTotalCounterAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalCounter), 2, MidpointRounding.AwayFromZero);
     public decimal UsedCarsNetProfitLossBaseAmount => decimal.Round(UsedCars.Sum(entry => entry.NetProfitLossBase), 2, MidpointRounding.AwayFromZero);
+    public decimal UsedCarsTotalDisplayAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalDisplay), 2, MidpointRounding.AwayFromZero);
+    public decimal UsedCarsNetProfitLossDisplayAmount => decimal.Round(UsedCars.Sum(entry => entry.NetProfitLossDisplay), 2, MidpointRounding.AwayFromZero);
 
     public UsedCarEntry? SelectedUsedCar
     {
@@ -493,6 +497,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     {
         var selectedUsedCarId = SelectedUsedCar?.Id;
         Replace(UsedCars, usedCars.Select(MapUsedCar));
+        ApplyDisplayCurrencyToUsedCars();
 
         if (selectedUsedCarId.HasValue)
         {
@@ -758,7 +763,11 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
 
     private void UsedCarEntryOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(UsedCarEntry.GrandTotalBase) or nameof(UsedCarEntry.GrandTotalCounter) or nameof(UsedCarEntry.NetProfitLossBase))
+        if (e.PropertyName is nameof(UsedCarEntry.GrandTotalBase)
+            or nameof(UsedCarEntry.GrandTotalCounter)
+            or nameof(UsedCarEntry.GrandTotalDisplay)
+            or nameof(UsedCarEntry.NetProfitLossBase)
+            or nameof(UsedCarEntry.NetProfitLossDisplay))
         {
             RaiseSummaryProps();
         }
@@ -768,9 +777,11 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     {
         if (e.PropertyName is nameof(CurrencyRatesManagementViewModel.BaseCurrencyCode)
             or nameof(CurrencyRatesManagementViewModel.CounterCurrencyCode)
+            or nameof(CurrencyRatesManagementViewModel.DisplayCurrencyCode)
             or nameof(CurrencyRatesManagementViewModel.CurrencyRatesSummary))
         {
             RefreshCurrencyCodes();
+            ApplyDisplayCurrencyToUsedCars();
         }
     }
 
@@ -813,6 +824,10 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             PartsSoldQuantity = usedCar.PartsSoldQuantity,
             PartsSoldAmountBase = usedCar.PartsSoldAmountBase,
             SalePriceBase = usedCar.SalePriceBase,
+            IsWholesaleSold = usedCar.IsWholesaleSold,
+            IsWholesaleForParts = usedCar.IsWholesaleForParts,
+            WholesaleSaleNumber = usedCar.WholesaleSaleNumber,
+            WholesalePaymentStatus = usedCar.WholesalePaymentStatus,
             RemainingStockQuantity = usedCar.RemainingStockQuantity,
             RemainingStockValueBase = usedCar.RemainingStockValueBase,
             NetProfitLossBase = usedCar.NetProfitLossBase
@@ -861,12 +876,39 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             nameof(UsedCarGrandTotalBaseLabel),
             nameof(UsedCarGrandTotalCounterLabel),
             nameof(UsedCarsTotalBaseLabel),
-            nameof(UsedCarsTotalCounterLabel));
+            nameof(UsedCarsTotalCounterLabel),
+            nameof(UsedCarsTotalDisplayLabel),
+            nameof(UsedCarsNetProfitLossDisplayLabel));
     }
 
     private void RaiseSummaryProps()
     {
-        RaiseAll(nameof(UsedCarsTotalBaseAmount), nameof(UsedCarsTotalCounterAmount), nameof(UsedCarsNetProfitLossBaseAmount));
+        RaiseAll(
+            nameof(UsedCarsTotalBaseAmount),
+            nameof(UsedCarsTotalCounterAmount),
+            nameof(UsedCarsNetProfitLossBaseAmount),
+            nameof(UsedCarsTotalDisplayAmount),
+            nameof(UsedCarsNetProfitLossDisplayAmount));
+    }
+
+    private void ApplyDisplayCurrencyToUsedCars()
+    {
+        var displayCurrencyCode = NormalizeCurrencyCode(_currencyRatesFeature.DisplayCurrencyCode)
+            ?? _currencyRatesFeature.CounterCurrencyCode;
+        var displayRateToBase = _currencyRatesFeature.ResolveRateToBaseCurrency(displayCurrencyCode);
+        if (displayRateToBase <= 0m)
+        {
+            displayRateToBase = 1m;
+        }
+
+        foreach (var usedCar in UsedCars)
+        {
+            usedCar.DisplayCurrencyCode = displayCurrencyCode;
+            usedCar.DisplayRateToBase = displayRateToBase;
+        }
+
+        RaiseLabelProps();
+        RaiseSummaryProps();
     }
 
     private void RaiseAll(params string[] propertyNames)

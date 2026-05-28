@@ -762,6 +762,12 @@
                                         Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
                                         Content="🚘  Used Car Purchases"/>
 
+                                <Button Command="{Binding GoToUsedCarWholesaleCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="Used Car Wholesale"/>
+
                                 <Button Command="{Binding GoToStockArrivalCommand}"
                                         Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
@@ -1462,6 +1468,10 @@
                                 Command="{Binding GoToPurchaseHistoryCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Width="160" Margin="0 0 10 0"/>
+                        <Button Content="Wholesale"
+                                Command="{Binding GoToUsedCarWholesaleCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="130" Margin="0 0 10 0"/>
                         <Button Content="Stock Arrival"
                                 Command="{Binding GoToStockArrivalCommand}"
                                 Style="{StaticResource SecondaryButtonStyle}"
@@ -1479,6 +1489,41 @@
 
                 <local:UsedCarPurchasesControl Grid.Row="1"
                                                DataContext="{Binding PurchasesVm}"/>
+            </Grid>
+
+            <!-- ── Used Car Wholesale ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=UsedCarWholesale}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Used Car Wholesale" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Sell a complete used car as-is, record the buyer, price, paid amount, and acknowledgement."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Used Car Purchases"
+                                Command="{Binding GoToUsedCarPurchasesCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="180" Margin="0 0 10 0"/>
+                        <Button Content="Repair / Prep"
+                                Command="{Binding GoToRepairPrepCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="140" Margin="0 0 10 0"/>
+                        <Button Content="Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="120"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <local:UsedCarWholesaleControl Grid.Row="1"
+                                               DataContext="{Binding UsedCarWholesaleVm}"/>
             </Grid>
 
             <!-- ── Used Car Purchase History ── -->

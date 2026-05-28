@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
-import { initials, money } from "../core/formatters.js";
+import { displayCurrencyContext, displayMoneyFromBase, initials, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 
 const emptyForm = {
@@ -71,10 +71,6 @@ function carPrice(car) {
 
 function baseCurrency(car) {
   return read(car, "baseCurrencyCode") || "USD";
-}
-
-function baseMoney(car, value) {
-  return money(value, baseCurrency(car));
 }
 
 function percent(value, total) {
@@ -244,45 +240,46 @@ function PartRecommendation({ item, car, t, onAssign }) {
   );
 }
 
-function ProfitProjectMap({ car, recommendations, onAssignPart, t }) {
+function ProfitProjectMap({ car, recommendations, onAssignPart, t, displayContext }) {
   if (!car) return null;
 
   const project = buildProfitProject(car);
+  const displayMoney = (value) => displayMoneyFromBase(value, displayContext);
   const resultTone = project.netProfitLoss >= 0 ? "positive" : "negative";
   const soldWidth = Math.min(project.soldPercent, 100);
   const stockWidth = Math.min(project.stockPercent, Math.max(100 - soldWidth, 0));
   const flowSteps = [
     {
       label: t("usedCars.boughtFor", "Bought For"),
-      value: baseMoney(car, project.bought),
+      value: displayMoney(project.bought),
       meta: carPrice(car)
     },
     {
       label: t("usedCars.teardownCosts", "Teardown Costs"),
-      value: baseMoney(car, project.teardownCosts),
+      value: displayMoney(project.teardownCosts),
       meta: t("usedCars.fullCost", "Full Cost")
     },
     {
       label: t("usedCars.partsRemoved", "Parts Removed"),
-      value: baseMoney(car, project.partsRemovedValue),
+      value: displayMoney(project.partsRemovedValue),
       meta: t("usedCars.partsCount", "{count} parts", { count: project.partsRemovedCount.toLocaleString() })
     },
     {
       label: t("usedCars.partsSold", "Parts Sold"),
-      value: baseMoney(car, project.soldAmount),
+      value: displayMoney(project.soldAmount),
       meta: t("usedCars.partsCount", "{count} parts", { count: project.soldQuantity.toLocaleString() }),
       tone: "sold"
     },
     {
       label: t("usedCars.remainingStock", "Remaining Stock"),
-      value: baseMoney(car, project.remainingStockValue),
+      value: displayMoney(project.remainingStockValue),
       meta: t("usedCars.partsCount", "{count} parts", { count: project.remainingQuantity.toLocaleString() })
     },
     {
       label: t("usedCars.profitLoss", "Profit/Loss"),
-      value: baseMoney(car, project.netProfitLoss),
+      value: displayMoney(project.netProfitLoss),
       meta: project.breakEvenGap > 0
-        ? t("usedCars.breakEvenGap", "{amount} to break even", { amount: baseMoney(car, project.breakEvenGap) })
+        ? t("usedCars.breakEvenGap", "{amount} to break even", { amount: displayMoney(project.breakEvenGap) })
         : t("usedCars.breakEvenReached", "Break-even reached"),
       tone: resultTone
     }
@@ -294,7 +291,7 @@ function ProfitProjectMap({ car, recommendations, onAssignPart, t }) {
         h("h3", null, t("usedCars.profitMap", "Teardown Profit Map")),
         h("span", null, carTitle(car, t))
       ),
-      h("strong", { className: `profit-result-pill ${resultTone}` }, baseMoney(car, project.netProfitLoss))
+      h("strong", { className: `profit-result-pill ${resultTone}` }, displayMoney(project.netProfitLoss))
     ),
     h("div", { className: "profit-flow-grid" },
       flowSteps.map((step) => h(ProfitStep, {
@@ -322,17 +319,17 @@ function ProfitProjectMap({ car, recommendations, onAssignPart, t }) {
     h("div", { className: "profit-metric-grid" },
       h(ProfitMetric, {
         label: t("usedCars.fullCost", "Full Cost"),
-        value: baseMoney(car, project.fullCost),
+        value: displayMoney(project.fullCost),
         detail: t("usedCars.buyPlusCosts", "Bought plus teardown costs")
       }),
       h(ProfitMetric, {
         label: t("usedCars.recoveredValue", "Recovered Value"),
-        value: baseMoney(car, project.recoveredValue),
+        value: displayMoney(project.recoveredValue),
         detail: t("usedCars.soldPlusStock", "Sold plus remaining stock")
       }),
       h(ProfitMetric, {
         label: t("usedCars.breakEven", "Break Even"),
-        value: project.breakEvenGap > 0 ? baseMoney(car, project.breakEvenGap) : t("usedCars.done", "Done"),
+        value: project.breakEvenGap > 0 ? displayMoney(project.breakEvenGap) : t("usedCars.done", "Done"),
         detail: project.breakEvenGap > 0 ? t("usedCars.remaining", "Remaining") : t("usedCars.profitableProject", "Profitable project"),
         tone: project.breakEvenGap > 0 ? "watch" : "positive"
       })
@@ -485,6 +482,8 @@ export function UsedCarsView({ api, t }) {
   const [suppliers, setSuppliers] = useState([]);
   const [carModels, setCarModels] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [currencyCodes, setCurrencyCodes] = useState(["USD"]);
   const [selectedId, setSelectedId] = useState("");
   const [selectedImageId, setSelectedImageId] = useState("");
@@ -522,6 +521,16 @@ export function UsedCarsView({ api, t }) {
   const nextPartRecommendations = useMemo(() =>
     selectedCar ? buildPartRecommendations(selectedCarParts, unassignedParts) : [],
   [selectedCar, selectedCarParts, unassignedParts]);
+  const displayContextForCar = useCallback((car) => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: read(car, "baseCurrencyCode"),
+    counterCurrencyCode: read(car, "counterCurrencyCode")
+  }), [appConstants, currencyRates]);
+  const selectedDisplayContext = useMemo(
+    () => displayContextForCar(selectedCar),
+    [displayContextForCar, selectedCar]
+  );
 
   const setFormValue = useCallback((key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -552,18 +561,27 @@ export function UsedCarsView({ api, t }) {
 
   const loadReferenceData = useCallback(async () => {
     try {
-      const [nextSuppliers, nextModels, nextLocations, nextCurrencies] = await Promise.all([
+      const [nextSuppliers, nextModels, nextLocations, nextCurrencies, nextAppConstants] = await Promise.all([
         api.get("/api/suppliers?page=1&pageSize=500"),
         api.get("/api/carmodels"),
         api.get("/api/locations"),
-        api.get("/api/currencies")
+        api.get("/api/currencies"),
+        api.get("/api/appconstants")
       ]);
+      const currencyRows = toArray(nextCurrencies);
+      const appConstantRows = toArray(nextAppConstants);
+      const referenceContext = displayCurrencyContext({ constants: appConstantRows, rates: currencyRows });
       setSuppliers(toArray(nextSuppliers));
       setCarModels(toArray(nextModels).filter((model) => read(model, "isActive") !== false));
       setLocations(toArray(nextLocations));
+      setCurrencyRates(currencyRows);
+      setAppConstants(appConstantRows);
       setCurrencyCodes(Array.from(new Set([
         "USD",
-        ...toArray(nextCurrencies).map((currency) => read(currency, "code")).filter(Boolean)
+        referenceContext.baseCurrencyCode,
+        referenceContext.counterCurrencyCode,
+        referenceContext.code,
+        ...currencyRows.map((currency) => read(currency, "code")).filter(Boolean)
       ])));
     } catch (error) {
       setStatus(error.message || t("usedCars.referenceLoadError", "Could not load used-car reference data."));
@@ -857,14 +875,15 @@ export function UsedCarsView({ api, t }) {
             h(DetailTile, { label: "Barcode", value: read(selectedCar, "barcode") }),
             h(DetailTile, { label: t("usedCars.location", "Location"), value: read(selectedCar, "location") }),
             h(DetailTile, { label: t("usedCars.price", "Price"), value: carPrice(selectedCar) }),
-            h(DetailTile, { label: "Full Cost", value: money(read(selectedCar, "fullCostBase"), read(selectedCar, "baseCurrencyCode") || "USD") }),
-            h(DetailTile, { label: "Net P/L", value: money(read(selectedCar, "netProfitLossBase"), read(selectedCar, "baseCurrencyCode") || "USD") })
+            h(DetailTile, { label: "Full Cost", value: displayMoneyFromBase(read(selectedCar, "fullCostBase"), selectedDisplayContext) }),
+            h(DetailTile, { label: "Net P/L", value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) })
           )
         ),
         selectedCar && h(ProfitProjectMap, {
           car: selectedCar,
           recommendations: nextPartRecommendations,
           onAssignPart: (partId) => setPartUsedCar(partId, itemId(selectedCar)),
+          displayContext: selectedDisplayContext,
           t
         })
       ),

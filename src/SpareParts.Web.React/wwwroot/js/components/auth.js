@@ -8,6 +8,33 @@ function useLoginApi(apiBaseUrl) {
 }
 
 export function LoginScreen({ initialApiBaseUrl, languageKey, onLanguage, onLogin, t }) {
+  return h("main", { className: "login-page" },
+    h("div", { className: "login-atmosphere", "aria-hidden": "true" },
+      h("span", { className: "rpm-ring" }),
+      h("span", { className: "headlight left" }),
+      h("span", { className: "headlight right" })
+    ),
+    h("section", { className: "login-panel" },
+      h("div", { className: "brand-lockup" },
+        h(BrandMark, { label: t("login.brand", "Maalouf Auto Parts") }),
+        h("div", null,
+          h("span", { className: "eyebrow" }, t("login.garageAccess", "Garage access")),
+          h("h1", null, t("login.brand", "Maalouf Auto Parts")),
+          h("p", null, t("login.subtitle", "Parts, sales, inventory, and customers from the heart of the workshop."))
+        )
+      ),
+      h("div", { className: "login-gauge" },
+        h("div", null, h("strong", null, "98"), h("span", null, "RON")),
+        h("div", null, h("strong", null, "24"), h("span", null, "V")),
+        h("div", null, h("strong", null, "READY"), h("span", null, "LINE"))
+      ),
+      h(LoginPanel, { initialApiBaseUrl, onLogin, t }),
+      h(LanguagePicker, { value: languageKey, onChange: onLanguage, t })
+    )
+  );
+}
+
+export function LoginPanel({ initialApiBaseUrl, onLogin, t }) {
   const [apiBaseUrl, setApiBaseUrl] = useState(initialApiBaseUrl);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -45,55 +72,34 @@ export function LoginScreen({ initialApiBaseUrl, languageKey, onLanguage, onLogi
     }
   }, [api, apiBaseUrl, onLogin, t]);
 
-  return h("main", { className: "login-page" },
-    h("div", { className: "login-atmosphere", "aria-hidden": "true" },
-      h("span", { className: "rpm-ring" }),
-      h("span", { className: "headlight left" }),
-      h("span", { className: "headlight right" })
+  return h("div", { className: "login-inline-panel" },
+    h("form", { className: "login-form", onSubmit: submit },
+      h("label", null, t("login.workshopApi", "Workshop API"),
+        h("input", {
+          value: apiBaseUrl,
+          onChange: (event) => setApiBaseUrl(event.target.value),
+          spellCheck: false
+        })
+      ),
+      h("label", null, t("login.crewId", "Crew ID"),
+        h("input", {
+          value: username,
+          onChange: (event) => setUsername(event.target.value),
+          autoComplete: "username"
+        })
+      ),
+      h("label", null, t("login.ignitionKey", "Ignition key"),
+        h("input", {
+          value: password,
+          onChange: (event) => setPassword(event.target.value),
+          type: "password",
+          autoComplete: "current-password"
+        })
+      ),
+      h("button", { className: "primary-button", disabled: isLoading }, isLoading ? t("login.warmingUp", "Warming up") : t("login.startEngine", "Start engine")),
+      status && h("p", { className: "form-status" }, status)
     ),
-    h("section", { className: "login-panel" },
-      h("div", { className: "brand-lockup" },
-        h(BrandMark, { label: t("login.brand", "Maalouf Auto Parts") }),
-        h("div", null,
-          h("span", { className: "eyebrow" }, t("login.garageAccess", "Garage access")),
-          h("h1", null, t("login.brand", "Maalouf Auto Parts")),
-          h("p", null, t("login.subtitle", "Parts, sales, inventory, and customers from the heart of the workshop."))
-        )
-      ),
-      h("div", { className: "login-gauge" },
-        h("div", null, h("strong", null, "98"), h("span", null, "RON")),
-        h("div", null, h("strong", null, "24"), h("span", null, "V")),
-        h("div", null, h("strong", null, "READY"), h("span", null, "LINE"))
-      ),
-      h("form", { className: "login-form", onSubmit: submit },
-        h("label", null, t("login.workshopApi", "Workshop API"),
-          h("input", {
-            value: apiBaseUrl,
-            onChange: (event) => setApiBaseUrl(event.target.value),
-            spellCheck: false
-          })
-        ),
-        h("label", null, t("login.crewId", "Crew ID"),
-          h("input", {
-            value: username,
-            onChange: (event) => setUsername(event.target.value),
-            autoComplete: "username"
-          })
-        ),
-        h("label", null, t("login.ignitionKey", "Ignition key"),
-          h("input", {
-            value: password,
-            onChange: (event) => setPassword(event.target.value),
-            type: "password",
-            autoComplete: "current-password"
-          })
-        ),
-        h("button", { className: "primary-button", disabled: isLoading }, isLoading ? t("login.warmingUp", "Warming up") : t("login.startEngine", "Start engine")),
-        status && h("p", { className: "form-status" }, status)
-      ),
-      h(ExternalLoginButtons, { disabled: isLoading, onExternalLogin: handleExternalLogin, t }),
-      h(LanguagePicker, { value: languageKey, onChange: onLanguage, t })
-    )
+    h(ExternalLoginButtons, { disabled: isLoading, onExternalLogin: handleExternalLogin, t })
   );
 }
 

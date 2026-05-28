@@ -3,7 +3,7 @@ const { Pressable, ScrollView, Text, TextInput, View } = require("react-native")
 const Print = require("expo-print");
 const Sharing = require("expo-sharing");
 const { EmptyState, Panel, ScreenHeader, ScreenScroll, StatusText } = require("../components/ui");
-const { money, shortDate } = require("../core/formatters");
+const { displayCurrencyContext, displayMoneyFromBase, money, shortDate } = require("../core/formatters");
 const { AccountingService } = require("../services/accounting-service");
 const { useTheme } = require("../theme/theme-context");
 
@@ -50,6 +50,16 @@ function compactAmount(value, currency) {
   const number = toNumber(value);
   const sign = number < 0 ? "-" : "";
   return `${sign}${amount(Math.abs(number), currency)}`;
+}
+
+function displayBaseAmount(value, displayContext) {
+  return displayMoneyFromBase(toNumber(value), displayContext);
+}
+
+function compactDisplayBaseAmount(value, displayContext) {
+  const number = toNumber(value);
+  const sign = number < 0 ? "-" : "";
+  return `${sign}${displayBaseAmount(Math.abs(number), displayContext)}`;
 }
 
 function accountId(account) {
@@ -171,19 +181,18 @@ function pdfCell(value, className) {
   return `<td class="${className || ""}">${escapeHtml(value || "-")}</td>`;
 }
 
-function summaryForReport(activeTab, report, t) {
+function summaryForReport(activeTab, report, t, displayContext) {
   if (!report) return [];
 
-  const base = baseCurrency(report);
   const counter = counterCurrency(report);
 
   if (activeTab === "ledger") {
     const opening = toNumber(read(report, "openingBalance"));
     const closing = toNumber(read(report, "closingBalance"));
     return [
-      { label: t("accounting.opening", "Opening"), value: amount(opening, base), tone: "neutral" },
-      { label: t("accounting.closing", "Closing"), value: amount(closing, base), tone: "strong" },
-      { label: t("accounting.movement", "Movement"), value: compactAmount(closing - opening, base), tone: closing - opening >= 0 ? "debit" : "credit" },
+      { label: t("accounting.opening", "Opening"), value: displayBaseAmount(opening, displayContext), tone: "neutral" },
+      { label: t("accounting.closing", "Closing"), value: displayBaseAmount(closing, displayContext), tone: "strong" },
+      { label: t("accounting.movement", "Movement"), value: compactDisplayBaseAmount(closing - opening, displayContext), tone: closing - opening >= 0 ? "debit" : "credit" },
       { label: t("accounting.counterClosing", "Counter closing"), value: amount(read(report, "closingCounterBalance"), counter), tone: "neutral" },
       { label: t("accounting.entries", "Entries"), value: String(nestedRows(report, "entries").length), tone: "neutral" }
     ];
@@ -191,21 +200,21 @@ function summaryForReport(activeTab, report, t) {
 
   if (activeTab === "statement") {
     return [
-      { label: t("accounting.remaining", "Remaining"), value: amount(read(report, "remainingBalance", "closingBalance"), base), tone: "strong" },
-      { label: t("accounting.totalDebit", "Total debit"), value: amount(read(report, "totalDebit"), base), tone: "debit" },
-      { label: t("accounting.totalCredit", "Total credit"), value: amount(read(report, "totalCredit"), base), tone: "credit" },
-      { label: t("accounting.invoices", "Invoices"), value: amount(read(report, "totalInvoiceAmount"), base), tone: "neutral" },
-      { label: t("accounting.payments", "Payments"), value: amount(read(report, "totalPaymentAmount"), base), tone: "neutral" },
-      { label: t("accounting.journals", "Journals"), value: amount(read(report, "totalJournalAmount"), base), tone: "neutral" }
+      { label: t("accounting.remaining", "Remaining"), value: displayBaseAmount(read(report, "remainingBalance", "closingBalance"), displayContext), tone: "strong" },
+      { label: t("accounting.totalDebit", "Total debit"), value: displayBaseAmount(read(report, "totalDebit"), displayContext), tone: "debit" },
+      { label: t("accounting.totalCredit", "Total credit"), value: displayBaseAmount(read(report, "totalCredit"), displayContext), tone: "credit" },
+      { label: t("accounting.invoices", "Invoices"), value: displayBaseAmount(read(report, "totalInvoiceAmount"), displayContext), tone: "neutral" },
+      { label: t("accounting.payments", "Payments"), value: displayBaseAmount(read(report, "totalPaymentAmount"), displayContext), tone: "neutral" },
+      { label: t("accounting.journals", "Journals"), value: displayBaseAmount(read(report, "totalJournalAmount"), displayContext), tone: "neutral" }
     ];
   }
 
   const totalDebit = toNumber(read(report, "totalDebit"));
   const totalCredit = toNumber(read(report, "totalCredit"));
   return [
-    { label: t("accounting.totalDebit", "Total debit"), value: amount(totalDebit, base), tone: "debit" },
-    { label: t("accounting.totalCredit", "Total credit"), value: amount(totalCredit, base), tone: "credit" },
-    { label: t("accounting.difference", "Difference"), value: compactAmount(totalDebit - totalCredit, base), tone: totalDebit === totalCredit ? "neutral" : "strong" },
+    { label: t("accounting.totalDebit", "Total debit"), value: displayBaseAmount(totalDebit, displayContext), tone: "debit" },
+    { label: t("accounting.totalCredit", "Total credit"), value: displayBaseAmount(totalCredit, displayContext), tone: "credit" },
+    { label: t("accounting.difference", "Difference"), value: compactDisplayBaseAmount(totalDebit - totalCredit, displayContext), tone: totalDebit === totalCredit ? "neutral" : "strong" },
     { label: t("accounting.counterDebit", "Counter debit"), value: amount(read(report, "totalCounterDebit"), counter), tone: "neutral" },
     { label: t("accounting.counterCredit", "Counter credit"), value: amount(read(report, "totalCounterCredit"), counter), tone: "neutral" },
     { label: t("accounting.accounts", "Accounts"), value: String(nestedRows(report, "rows").length), tone: "neutral" }
@@ -224,7 +233,7 @@ function exportColumns(activeTab, t) {
   return [t("accounting.account", "Account"), t("accounting.type", "Type"), t("accounting.debit", "Debit"), t("accounting.credit", "Credit"), t("accounting.debitBalance", "Debit balance"), t("accounting.creditBalance", "Credit balance"), t("accounting.counterDebit", "Counter debit"), t("accounting.counterCredit", "Counter credit")];
 }
 
-function exportRowCells(activeTab, row, report, t) {
+function exportRowCells(activeTab, row, report, t, displayContext) {
   const base = baseCurrency(report);
   const counter = counterCurrency(report);
 
@@ -236,9 +245,9 @@ function exportRowCells(activeTab, row, report, t) {
       `${referenceType || ""}${referenceId ? ` #${referenceId}` : ""}`.trim(),
       read(row, "description") || t("accounting.journalMovement", "Journal movement"),
       amount(read(row, "originalAmount"), read(row, "currencyCode") || base),
-      amount(read(row, "debit"), base),
-      amount(read(row, "credit"), base),
-      amount(read(row, "runningBalance"), base),
+      displayBaseAmount(read(row, "debit"), displayContext),
+      displayBaseAmount(read(row, "credit"), displayContext),
+      displayBaseAmount(read(row, "runningBalance"), displayContext),
       amount(read(row, "runningCounterBalance"), counter)
     ];
   }
@@ -250,28 +259,28 @@ function exportRowCells(activeTab, row, report, t) {
       read(row, "activityType", "referenceType"),
       read(row, "description") || t("accounting.accountMovement", "Account movement"),
       amount(read(row, "originalAmount"), read(row, "currencyCode") || base),
-      amount(read(row, "debit"), base),
-      amount(read(row, "credit"), base),
-      amount(read(row, "runningBalance"), base)
+      displayBaseAmount(read(row, "debit"), displayContext),
+      displayBaseAmount(read(row, "credit"), displayContext),
+      displayBaseAmount(read(row, "runningBalance"), displayContext)
     ];
   }
 
   return [
     accountTitle(row, t),
     accountMeta(row, t),
-    amount(read(row, "totalDebit"), base),
-    amount(read(row, "totalCredit"), base),
-    amount(read(row, "debitBalance"), base),
-    amount(read(row, "creditBalance"), base),
+    displayBaseAmount(read(row, "totalDebit"), displayContext),
+    displayBaseAmount(read(row, "totalCredit"), displayContext),
+    displayBaseAmount(read(row, "debitBalance"), displayContext),
+    displayBaseAmount(read(row, "creditBalance"), displayContext),
     amount(read(row, "counterDebitBalance"), counter),
     amount(read(row, "counterCreditBalance"), counter)
   ];
 }
 
-function buildPdfHtml({ activeTab, report, dateFrom, dateTo, t }) {
+function buildPdfHtml({ activeTab, report, dateFrom, dateTo, t, displayContext }) {
   const columns = exportColumns(activeTab, t);
   const rows = reportRows(activeTab, report);
-  const summary = summaryForReport(activeTab, report, t);
+  const summary = summaryForReport(activeTab, report, t, displayContext);
   const numericStart = activeTab === "trial" ? 2 : 3;
 
   return `<!DOCTYPE html>
@@ -304,7 +313,7 @@ function buildPdfHtml({ activeTab, report, dateFrom, dateTo, t }) {
       <div class="muted">${escapeHtml(t("accounting.period", "Period"))}: ${escapeHtml(periodText(report, dateFrom, dateTo, t))}</div>
     </div>
     <div class="badge">
-      <strong>${escapeHtml(baseCurrency(report))}</strong><br />
+      <strong>${escapeHtml(displayContext.code)}</strong><br />
       <span class="muted">${escapeHtml(t("accounting.counter", `Counter ${counterCurrency(report)}`, { currency: counterCurrency(report) }))}</span><br />
       <span class="muted">${escapeHtml(t("accounting.rows", `${rows.length} rows`, { count: rows.length }))}</span>
     </div>
@@ -322,7 +331,7 @@ function buildPdfHtml({ activeTab, report, dateFrom, dateTo, t }) {
       <tr>${columns.map((column, index) => `<th class="${index >= numericStart ? "num" : ""}">${escapeHtml(column)}</th>`).join("")}</tr>
     </thead>
     <tbody>
-      ${rows.map((row) => `<tr>${exportRowCells(activeTab, row, report, t).map((cell, index) => pdfCell(cell, index >= numericStart ? "num" : "")).join("")}</tr>`).join("")}
+      ${rows.map((row) => `<tr>${exportRowCells(activeTab, row, report, t, displayContext).map((cell, index) => pdfCell(cell, index >= numericStart ? "num" : "")).join("")}</tr>`).join("")}
     </tbody>
   </table>
 </body>
@@ -400,7 +409,7 @@ function ReportTabs({ activeTab, onChange }) {
   );
 }
 
-function ReportHero({ activeTab, report, dateFrom, dateTo, rowCount }) {
+function ReportHero({ activeTab, report, dateFrom, dateTo, rowCount, displayContext }) {
   const { styles, t } = useTheme();
 
   return el(View, { style: styles.reportHero },
@@ -411,7 +420,7 @@ function ReportHero({ activeTab, report, dateFrom, dateTo, rowCount }) {
         el(Text, { style: styles.reportHeroSubtitle, selectable: true }, subjectText(activeTab, report, t))
       ),
       el(View, { style: styles.reportHeroBadge },
-        el(Text, { style: styles.reportHeroBadgeText, selectable: true }, baseCurrency(report)),
+        el(Text, { style: styles.reportHeroBadgeText, selectable: true }, displayContext.code),
         el(Text, { style: styles.reportHeroBadgeMeta, selectable: true }, t("accounting.counter", `Counter ${counterCurrency(report)}`, { currency: counterCurrency(report) }))
       )
     ),
@@ -549,10 +558,9 @@ function ReportTable({ headers, rows, emptyText, minWidth, renderRow }) {
   );
 }
 
-function TrialBalanceView({ report, rows }) {
+function TrialBalanceView({ report, rows, displayContext }) {
   const { styles, t } = useTheme();
   const [expandedKey, setExpandedKey] = useState("");
-  const base = baseCurrency(report);
   const counter = counterCurrency(report);
   const headers = [
     { label: t("accounting.account", "Account"), style: styles.reportCellAccount },
@@ -581,10 +589,10 @@ function TrialBalanceView({ report, rows }) {
           },
             el(ReportCell, { style: styles.reportCellAccount, lines: 2 }, accountTitle(row, t)),
             el(ReportCell, { style: styles.reportCellType }, accountMeta(row, t)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportDebitText] }, amount(read(row, "totalDebit"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportCreditText] }, amount(read(row, "totalCredit"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "debitBalance"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "creditBalance"), base)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportDebitText] }, displayBaseAmount(read(row, "totalDebit"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportCreditText] }, displayBaseAmount(read(row, "totalCredit"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, displayBaseAmount(read(row, "debitBalance"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, displayBaseAmount(read(row, "creditBalance"), displayContext)),
             el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "counterDebitBalance"), counter)),
             el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "counterCreditBalance"), counter))
           ),
@@ -595,7 +603,7 @@ function TrialBalanceView({ report, rows }) {
                 { label: t("accounting.code", "Code"), value: read(row, "accountCode") },
                 { label: t("fields.name", "Name"), value: read(row, "accountName") },
                 { label: t("accounting.type", "Type"), value: read(row, "accountTypeKey") },
-                { label: t("accounting.baseCurrency", "Base currency"), value: base },
+                { label: t("accounting.baseCurrency", "Base currency"), value: displayContext.code },
                 { label: t("accounting.counterCurrency", "Counter currency"), value: counter }
               ]
             })
@@ -606,7 +614,7 @@ function TrialBalanceView({ report, rows }) {
   );
 }
 
-function LedgerView({ report, rows }) {
+function LedgerView({ report, rows, displayContext }) {
   const { styles, t } = useTheme();
   const [expandedKey, setExpandedKey] = useState("");
   const base = baseCurrency(report);
@@ -650,9 +658,9 @@ function LedgerView({ report, rows }) {
             el(ReportCell, { style: styles.reportCellReference }, reference || t("accounting.manual", "Manual")),
             el(ReportCell, { style: styles.reportCellDescription, lines: 2 }, read(row, "description") || t("accounting.journalMovement", "Journal movement")),
             el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "originalAmount"), read(row, "currencyCode") || base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportDebitText] }, amount(read(row, "debit"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportCreditText] }, amount(read(row, "credit"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "runningBalance"), base)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportDebitText] }, displayBaseAmount(read(row, "debit"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportCreditText] }, displayBaseAmount(read(row, "credit"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, displayBaseAmount(read(row, "runningBalance"), displayContext)),
             el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "runningCounterBalance"), counter))
           ),
           expanded && el(View, { style: styles.reportExpanded },
@@ -673,7 +681,7 @@ function LedgerView({ report, rows }) {
   );
 }
 
-function StatementView({ report, rows }) {
+function StatementView({ report, rows, displayContext }) {
   const { styles, t } = useTheme();
   const [expandedKey, setExpandedKey] = useState("");
   const base = baseCurrency(report);
@@ -717,9 +725,9 @@ function StatementView({ report, rows }) {
             el(ReportCell, { style: styles.reportCellType }, activityType || t("accounting.movementLabel", "Movement")),
             el(ReportCell, { style: styles.reportCellDescription, lines: 2 }, read(row, "description") || t("accounting.accountMovement", "Account movement")),
             el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "originalAmount"), read(row, "currencyCode") || base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportDebitText] }, amount(read(row, "debit"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportCreditText] }, amount(read(row, "credit"), base)),
-            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, amount(read(row, "runningBalance"), base))
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportDebitText] }, displayBaseAmount(read(row, "debit"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: [styles.reportNumericText, styles.reportCreditText] }, displayBaseAmount(read(row, "credit"), displayContext)),
+            el(ReportCell, { style: styles.reportCellMoney, textStyle: styles.reportNumericText }, displayBaseAmount(read(row, "runningBalance"), displayContext))
           ),
           expanded && el(View, { style: styles.reportExpanded },
             el(DetailGrid, {
@@ -749,6 +757,8 @@ function AccountingScreen({ api }) {
   const [search, setSearch] = useState("");
   const [accounts, setAccounts] = useState([]);
   const [parties, setParties] = useState([]);
+  const [appConstants, setAppConstants] = useState([]);
+  const [currencyRates, setCurrencyRates] = useState([]);
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [selectedPartyKey, setSelectedPartyKey] = useState("");
   const [trialBalance, setTrialBalance] = useState(null);
@@ -768,15 +778,23 @@ function AccountingScreen({ api }) {
     () => parties.find((party) => partyKey(party) === selectedPartyKey) || null,
     [parties, selectedPartyKey]
   );
+  const currentDisplayContext = useMemo(() => displayCurrencyContext({
+    constants: appConstants,
+    rates: currencyRates,
+    baseCurrencyCode: baseCurrency(currentReport),
+    counterCurrencyCode: counterCurrency(currentReport)
+  }), [appConstants, currencyRates, currentReport]);
   const activeReportKey = `${activeTab}:${activeTab === "ledger" ? selectedAccountId : activeTab === "statement" ? selectedPartyKey || selectedAccountId : ""}`;
 
   const loadReferenceData = useCallback(async () => {
     setIsReferenceLoading(true);
 
     try {
-      const [accountResult, partyResult] = await Promise.allSettled([
+      const [accountResult, partyResult, appConstantsResult, currenciesResult] = await Promise.allSettled([
         service.getAccounts(),
-        service.getStatementParties()
+        service.getStatementParties(),
+        api.get("/api/appconstants"),
+        api.get("/api/currencies")
       ]);
 
       if (accountResult.status === "fulfilled") {
@@ -794,8 +812,10 @@ function AccountingScreen({ api }) {
           current || partyKey(nextParties[0]) || ""
         );
       }
+      if (appConstantsResult.status === "fulfilled") setAppConstants(toArray(appConstantsResult.value));
+      if (currenciesResult.status === "fulfilled") setCurrencyRates(toArray(currenciesResult.value));
 
-      const errors = [accountResult, partyResult]
+      const errors = [accountResult, partyResult, appConstantsResult, currenciesResult]
         .filter((result) => result.status === "rejected")
         .map((result) => result.reason && result.reason.message)
         .filter(Boolean);
@@ -803,7 +823,7 @@ function AccountingScreen({ api }) {
     } finally {
       setIsReferenceLoading(false);
     }
-  }, [service]);
+  }, [api, service]);
 
   const loadActiveReport = useCallback(async () => {
     if (activeTab === "ledger" && !selectedAccountId) {
@@ -862,7 +882,7 @@ function AccountingScreen({ api }) {
     setStatus(t("accounting.creatingPdf", "Creating PDF report..."));
 
     try {
-      const html = buildPdfHtml({ activeTab, report: currentReport, dateFrom, dateTo, t });
+      const html = buildPdfHtml({ activeTab, report: currentReport, dateFrom, dateTo, t, displayContext: currentDisplayContext });
       const { uri } = await Print.printToFileAsync({
         html,
         width: 842,
@@ -886,7 +906,7 @@ function AccountingScreen({ api }) {
     } finally {
       setIsExporting(false);
     }
-  }, [activeTab, currentReport, dateFrom, dateTo, t]);
+  }, [activeTab, currentDisplayContext, currentReport, dateFrom, dateTo, t]);
 
   useEffect(() => { loadReferenceData(); }, [loadReferenceData]);
   useEffect(() => { loadActiveReport(); }, [activeReportKey, service]);
@@ -899,9 +919,9 @@ function AccountingScreen({ api }) {
   }, [selectableAccounts, selectedAccountId]);
 
   const renderReport = () => {
-    if (activeTab === "ledger") return el(LedgerView, { report: ledger, rows });
-    if (activeTab === "statement") return el(StatementView, { report: statement, rows });
-    return el(TrialBalanceView, { report: trialBalance, rows });
+    if (activeTab === "ledger") return el(LedgerView, { report: ledger, rows, displayContext: currentDisplayContext });
+    if (activeTab === "statement") return el(StatementView, { report: statement, rows, displayContext: currentDisplayContext });
+    return el(TrialBalanceView, { report: trialBalance, rows, displayContext: currentDisplayContext });
   };
 
   return el(ScreenScroll, null,
@@ -917,9 +937,10 @@ function AccountingScreen({ api }) {
       report: currentReport,
       dateFrom,
       dateTo,
-      rowCount: rawRows.length
+      rowCount: rawRows.length,
+      displayContext: currentDisplayContext
     }),
-    currentReport && el(SummaryStrip, { items: summaryForReport(activeTab, currentReport, t) }),
+    currentReport && el(SummaryStrip, { items: summaryForReport(activeTab, currentReport, t, currentDisplayContext) }),
     el(DateFilters, {
       dateFrom,
       dateTo,

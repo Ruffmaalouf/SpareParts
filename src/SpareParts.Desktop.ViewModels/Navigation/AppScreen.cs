@@ -10,6 +10,7 @@ namespace SpareParts.Desktop.Wpf
         Pos,
         PartPurchases,
         Purchases,
+        UsedCarWholesale,
         PurchaseHistory,
         StockArrivalTheater,
         RepairPrepBoard,

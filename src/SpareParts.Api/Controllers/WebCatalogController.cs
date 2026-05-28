@@ -19,6 +19,7 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpGet("parts")]
+        [AllowAnonymous]
         public ActionResult<IReadOnlyList<WebCatalogPartDto>> GetAvailableParts(
             [FromQuery] string? search = null,
             [FromQuery] int page = 1,

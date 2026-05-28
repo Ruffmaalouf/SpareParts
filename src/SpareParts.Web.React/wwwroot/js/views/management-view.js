@@ -12,6 +12,7 @@ const workspaceKeys = [
   "compatibility",
   "purchase-parts",
   "used-car-purchases",
+  "used-car-wholesale",
   "stock-arrival",
   "used-cars",
   "repair-prep",

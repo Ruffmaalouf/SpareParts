@@ -29,6 +29,8 @@ const screenRegistry = new ScreenRegistry([
   { key: "part-requests", label: "Part Requests", component: createModuleScreen(moduleByKey("part-requests")) },
   { key: "purchase-parts", label: "Part Purchases", component: createModuleScreen(moduleByKey("purchase-parts")) },
   { key: "used-car-purchases", label: "Used Car Purchases", component: createModuleScreen(moduleByKey("used-car-purchases")) },
+  { key: "used-car-wholesale", label: "Used Car Wholesale", component: createModuleScreen(moduleByKey("used-car-wholesale")) },
+  { key: "stock-arrival", label: "Stock Arrival", component: createModuleScreen(moduleByKey("stock-arrival")) },
   { key: "used-cars", label: "Used Cars", component: UsedCarsScreen },
   { key: "repair-prep", label: "Repair / Prep", component: RepairPrepScreen },
   { key: "stock", label: "Stock", component: createModuleScreen(moduleByKey("stock")) },

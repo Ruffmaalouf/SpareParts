@@ -213,6 +213,14 @@ export const featureModules = [
     capabilities: ["Used car purchase history", "Post purchased vehicles", "Delete draft purchases"]
   },
   {
+    key: "used-car-wholesale",
+    label: "Used Car Wholesale",
+    title: "Used Car Wholesale",
+    source: "MainWindow Used Car Wholesale",
+    endpoint: "/api/usedcars + /api/usedcars/wholesale-sales + /api/customers",
+    capabilities: ["Sell complete used cars as-is", "Capture buyer and payment details", "Track wholesale margin against loaded cost"]
+  },
+  {
     key: "stock-arrival",
     label: "Stock Arrival",
     title: "Stock Arrival Theater",

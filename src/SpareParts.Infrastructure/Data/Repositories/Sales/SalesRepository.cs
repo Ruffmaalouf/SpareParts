@@ -16,6 +16,7 @@ namespace SpareParts.Infrastructure.Data
 
         public int InsertInvoice(SalesInvoice invoice)
         {
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(_session);
             const string sql = @"DECLARE @TransactionTypeId INT;
                                  SELECT @TransactionTypeId = Id
                                  FROM dbo.TransactionTypes
@@ -25,27 +26,6 @@ namespace SpareParts.Infrastructure.Data
                                  BEGIN
                                      THROW 51000, 'Sale transaction type is not configured.', 1;
                                  END;
-
-                                 DECLARE @BaseCurrencyCode CHAR(3) = 'USD';
-                                 DECLARE @CounterCurrencyCode CHAR(3) = 'USD';
-                                 DECLARE @CounterRateToBase DECIMAL(19, 8) = 1;
-
-                                 SELECT TOP (1) @BaseCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
-                                 FROM dbo.AppConstants
-                                 WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode')
-                                 ORDER BY CASE WHEN [Key] = 'BaseCurrencyCode' THEN 0 ELSE 1 END;
-
-                                 SELECT TOP (1) @CounterCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
-                                 FROM dbo.AppConstants
-                                 WHERE [Key] = 'CounterCurrencyCode';
-
-                                 SELECT TOP (1) @CounterRateToBase = TRY_CONVERT(DECIMAL(19, 8), [Value])
-                                 FROM dbo.AppConstants
-                                 WHERE [Key] = 'DefaultCounterRate';
-
-                                 SET @BaseCurrencyCode = COALESCE(NULLIF(@BaseCurrencyCode, ''), 'USD');
-                                 SET @CounterCurrencyCode = COALESCE(NULLIF(@CounterCurrencyCode, ''), @BaseCurrencyCode);
-                                 SET @CounterRateToBase = CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END;
 
                                  DECLARE @TotalBaseAmount DECIMAL(19, 4) = CASE
                                      WHEN @BaseCurrencyCode = @CounterCurrencyCode THEN @TotalAmount
@@ -141,6 +121,9 @@ namespace SpareParts.Infrastructure.Data
                     invoice.IsReturn,
                     ParentInvoiceId = invoice.ParentInvoiceId,
                     invoice.TotalCost,
+                    currencyContext.BaseCurrencyCode,
+                    currencyContext.CounterCurrencyCode,
+                    currencyContext.CounterRateToBase,
                     invoice.CreatedAt,
                     invoice.CreatedByUserId
                 },
@@ -337,28 +320,8 @@ namespace SpareParts.Infrastructure.Data
                 return false;
             }
 
-            const string updateInvoiceSql = @"DECLARE @BaseCurrencyCode CHAR(3) = 'USD';
-                                              DECLARE @CounterCurrencyCode CHAR(3) = 'USD';
-                                              DECLARE @CounterRateToBase DECIMAL(19, 8) = 1;
-
-                                              SELECT TOP (1) @BaseCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
-                                              FROM dbo.AppConstants
-                                              WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode')
-                                              ORDER BY CASE WHEN [Key] = 'BaseCurrencyCode' THEN 0 ELSE 1 END;
-
-                                              SELECT TOP (1) @CounterCurrencyCode = UPPER(LTRIM(RTRIM([Value])))
-                                              FROM dbo.AppConstants
-                                              WHERE [Key] = 'CounterCurrencyCode';
-
-                                              SELECT TOP (1) @CounterRateToBase = TRY_CONVERT(DECIMAL(19, 8), [Value])
-                                              FROM dbo.AppConstants
-                                              WHERE [Key] = 'DefaultCounterRate';
-
-                                              SET @BaseCurrencyCode = COALESCE(NULLIF(@BaseCurrencyCode, ''), 'USD');
-                                              SET @CounterCurrencyCode = COALESCE(NULLIF(@CounterCurrencyCode, ''), @BaseCurrencyCode);
-                                              SET @CounterRateToBase = CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END;
-
-                                              UPDATE t
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(_session);
+            const string updateInvoiceSql = @"UPDATE t
                                               SET TransactionDate = @InvoiceDate,
                                                   CustomerId = @CustomerId,
                                                   WarehouseId = @WarehouseId,
@@ -397,6 +360,9 @@ namespace SpareParts.Infrastructure.Data
                 invoice.PaymentStatus,
                 ScanCode = string.IsNullOrWhiteSpace(invoice.ScanCode) ? invoice.InvoiceNumber : invoice.ScanCode.Trim(),
                 invoice.TotalCost,
+                currencyContext.BaseCurrencyCode,
+                currencyContext.CounterCurrencyCode,
+                currencyContext.CounterRateToBase,
                 ModifiedAt = DateTime.UtcNow,
                 ModifiedByUserId = userId
             }, _session.Transaction);

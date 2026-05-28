@@ -387,6 +387,7 @@ namespace SpareParts.Infrastructure.Services
             using var session = new DbSession(_factory);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var accounts = repositories.Accounts.GetAll().ToDictionary(account => account.Id);
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
 
             var lines = request.Lines.Select(line =>
             {
@@ -405,14 +406,12 @@ namespace SpareParts.Infrastructure.Services
                     throw new ValidationException("Each journal line must contain either a debit or a credit.");
                 }
 
-                return new JournalLine
-                {
-                    AccountId = line.AccountId,
-                    Debit = decimal.Round(line.Debit, 4, MidpointRounding.AwayFromZero),
-                    Credit = decimal.Round(line.Credit, 4, MidpointRounding.AwayFromZero),
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedByUserId = userId
-                };
+                return AccountingJournalLineFactory.CreateDisplayCurrencyLine(
+                    line.AccountId,
+                    line.Debit,
+                    line.Credit,
+                    currencyContext,
+                    userId);
             }).ToList();
 
             var totalDebit = decimal.Round(lines.Sum(line => line.Debit), 4, MidpointRounding.AwayFromZero);
