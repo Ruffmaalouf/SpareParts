@@ -47,6 +47,231 @@ function units(value) {
   return Number.isFinite(number) ? number.toLocaleString(undefined, { maximumFractionDigits: 0 }) : "0";
 }
 
+function plural(count, singular, pluralValue) {
+  return count === 1 ? singular : (pluralValue || `${singular}s`);
+}
+
+function isRedSignal(row) {
+  return [
+    row?.overallSignal,
+    row?.profitSignal,
+    row?.turnoverSignal,
+    row?.deadStockSignal
+  ].some((signal) => String(signal || "").trim().toLowerCase() === "red");
+}
+
+function isFailedMessage(message) {
+  return String(message?.status || "").trim().toLowerCase().includes("fail");
+}
+
+function transactionAmount(item) {
+  return Number(item?.remainingAmount ?? item?.balance ?? item?.amount ?? item?.totalAmount ?? 0) || 0;
+}
+
+function signedExpense(value) {
+  return -(Number(value || 0) || 0);
+}
+
+function buildActionQueue({ dashboard, messages, currencyMarginRows, formatMoney, t }) {
+  if (!dashboard) return [];
+
+  const tasks = [];
+  const netProfitLoss = Number(dashboard.dailyProfitLoss?.netProfitLoss ?? dashboard.todaySalesProfit ?? 0);
+  if (netProfitLoss < 0) {
+    tasks.push({
+      key: "daily-profit-loss",
+      tone: "danger",
+      label: t("dashboard.queueProfitLoss", "P&L"),
+      title: t("dashboard.queueProfitLossTitle", "Daily profit is negative"),
+      detail: t("dashboard.queueProfitLossDetail", "Rent, labor, and operating payments are above gross profit today."),
+      value: formatMoney(netProfitLoss),
+      route: "accounting"
+    });
+  }
+
+  const unpaidTransactions = dashboard.unpaidTransactions || [];
+  const unpaidAmount = unpaidTransactions.reduce((sum, item) => sum + transactionAmount(item), 0);
+  if (unpaidTransactions.length > 0) {
+    tasks.push({
+      key: "receivables",
+      tone: "danger",
+      label: t("dashboard.queueReceivables", "Receivables"),
+      title: t("dashboard.queueReceivablesTitle", "Follow up unpaid transactions"),
+      detail: t(
+        "dashboard.queueReceivablesDetail",
+        `${unpaidTransactions.length} open ${plural(unpaidTransactions.length, "transaction")} waiting for payment.`
+      ),
+      value: formatMoney(unpaidAmount),
+      route: "accounting"
+    });
+  }
+
+  const redSegments = (dashboard.profitHeatmap || []).filter(isRedSignal);
+  if (redSegments.length > 0) {
+    const categoryNames = redSegments
+      .slice(0, 3)
+      .map((row) => row.categoryName || t("dashboard.category", "category"))
+      .join(", ");
+    tasks.push({
+      key: "inventory-risk",
+      tone: "danger",
+      label: t("dashboard.queueInventory", "Inventory"),
+      title: t("dashboard.queueInventoryTitle", "Triage red stock segments"),
+      detail: t(
+        "dashboard.queueInventoryDetail",
+        `${redSegments.length} ${plural(redSegments.length, "segment")} need margin, turnover, or dead-stock review: ${categoryNames}.`
+      ),
+      value: t("dashboard.stock", "Stock"),
+      route: "stock"
+    });
+  }
+
+  if (currencyMarginRows.length > 0) {
+    tasks.push({
+      key: "currency-margin",
+      tone: "warning",
+      label: t("dashboard.queueMargin", "Margin"),
+      title: t("dashboard.queueMarginTitle", "Protect currency-exposed parts"),
+      detail: t(
+        "dashboard.queueMarginDetail",
+        `${currencyMarginRows.length} ${plural(currencyMarginRows.length, "part")} show exchange-rate pressure.`
+      ),
+      value: t("dashboard.invoices", "Invoices"),
+      route: "invoices"
+    });
+  }
+
+  const failedMessages = (messages || []).filter(isFailedMessage);
+  if (failedMessages.length > 0) {
+    tasks.push({
+      key: "message-failures",
+      tone: "warning",
+      label: t("dashboard.queueMessages", "Messages"),
+      title: t("dashboard.queueMessagesTitle", "Retry failed customer messages"),
+      detail: t(
+        "dashboard.queueMessagesDetail",
+        `${failedMessages.length} recent ${plural(failedMessages.length, "message")} failed delivery.`
+      ),
+      value: t("dashboard.whatsapp", "WhatsApp"),
+      route: "whatsapp"
+    });
+  }
+
+  if (Number(dashboard.todaySalesAmount || 0) <= 0) {
+    tasks.push({
+      key: "first-sale",
+      tone: "neutral",
+      label: t("dashboard.queueSales", "Sales desk"),
+      title: t("dashboard.queueSalesTitle", "No sales posted today"),
+      detail: t("dashboard.queueSalesDetail", "Open POS when the counter is ready for the first invoice."),
+      value: t("dashboard.pos", "POS"),
+      route: "invoices"
+    });
+  }
+
+  if (tasks.length === 0) {
+    tasks.push({
+      key: "all-clear",
+      tone: "success",
+      label: t("dashboard.queueAllClear", "All clear"),
+      title: t("dashboard.queueAllClearTitle", "Critical signals are quiet"),
+      detail: t("dashboard.queueAllClearDetail", "No urgent receivables, margin, stock, or message exceptions in the dashboard feed."),
+      value: t("dashboard.reports", "Reports"),
+      route: "report-builder"
+    });
+  }
+
+  return tasks.slice(0, 4);
+}
+
+function queueToneStyle(styles, tone) {
+  if (tone === "danger") return styles.dashboardQueueRowDanger;
+  if (tone === "warning") return styles.dashboardQueueRowWarning;
+  if (tone === "success") return styles.dashboardQueueRowSuccess;
+  return null;
+}
+
+function ActionQueueRow({ item, rank, onPress }) {
+  const { styles } = useTheme();
+
+  return el(Pressable, {
+    accessibilityRole: "button",
+    style: [styles.dashboardQueueRow, queueToneStyle(styles, item.tone)],
+    onPress
+  },
+    el(Text, { style: styles.dashboardQueueRank }, String(rank).padStart(2, "0")),
+    el(View, { style: styles.dashboardQueueCopy },
+      el(Text, { style: styles.dashboardQueueLabel, numberOfLines: 1 }, item.label),
+      el(Text, { style: styles.dashboardQueueTitle, numberOfLines: 1 }, item.title),
+      el(Text, { style: styles.dashboardQueueDetail, numberOfLines: 2 }, item.detail)
+    ),
+    el(Text, { style: styles.dashboardQueueValue, numberOfLines: 1 }, item.value)
+  );
+}
+
+function profitLossValueStyle(styles, value) {
+  return Number(value || 0) < 0 ? styles.profitLossValueNegative : styles.profitLossValuePositive;
+}
+
+function ProfitLossRow({ label, value, formatMoney }) {
+  const { styles } = useTheme();
+
+  return el(View, { style: styles.profitLossRow },
+    el(Text, { style: styles.profitLossRowLabel, numberOfLines: 1 }, label),
+    el(Text, {
+      style: [styles.profitLossRowValue, profitLossValueStyle(styles, value)],
+      numberOfLines: 1,
+      adjustsFontSizeToFit: true
+    }, formatMoney(value))
+  );
+}
+
+function ProfitLossPanel({ dailyProfitLoss, dashboard, formatMoney, t }) {
+  const { styles } = useTheme();
+  if (!dashboard) {
+    return null;
+  }
+
+  const report = dailyProfitLoss || {
+    grossSales: dashboard.todaySalesAmount,
+    costOfGoodsSold: Number(dashboard.todaySalesAmount || 0) - Number(dashboard.todaySalesProfit || 0),
+    grossProfit: dashboard.todaySalesProfit,
+    rentExpense: 0,
+    laborExpense: 0,
+    otherOperatingExpenses: 0,
+    netProfitLoss: dashboard.todaySalesProfit
+  };
+  const netProfitLoss = Number(report.netProfitLoss || 0);
+  const rows = [
+    { key: "grossSales", label: t("dashboard.grossSales", "Gross sales"), value: report.grossSales },
+    { key: "cost", label: t("dashboard.costOfGoods", "Cost of goods"), value: signedExpense(report.costOfGoodsSold) },
+    { key: "grossProfit", label: t("dashboard.grossProfit", "Gross profit"), value: report.grossProfit },
+    { key: "rent", label: t("dashboard.rentPayments", "Rent payments"), value: signedExpense(report.rentExpense) },
+    { key: "labor", label: t("dashboard.laborPayments", "Labor payments"), value: signedExpense(report.laborExpense) },
+    { key: "other", label: t("dashboard.otherExpenses", "Other expenses"), value: signedExpense(report.otherOperatingExpenses) }
+  ];
+
+  return el(Panel, { title: t("dashboard.dailyProfitLoss", "Daily Profit & Loss") },
+    el(View, { style: styles.profitLossHero },
+      el(Text, { style: styles.profitLossHeroLabel }, t("dashboard.netProfitLoss", "Net P&L")),
+      el(Text, {
+        style: [styles.profitLossHeroValue, profitLossValueStyle(styles, netProfitLoss)],
+        numberOfLines: 1,
+        adjustsFontSizeToFit: true
+      }, formatMoney(netProfitLoss)),
+      el(Text, { style: styles.profitLossHeroMeta }, netProfitLoss < 0 ? t("dashboard.lossToday", "Loss today") : t("dashboard.profitToday", "Profit today"))
+    ),
+    el(View, { style: styles.profitLossRows },
+      rows.map((row) => el(ProfitLossRow, {
+        key: row.key,
+        label: row.label,
+        value: row.value,
+        formatMoney
+      }))
+    )
+  );
+}
+
 function ProfitHeatmapTile({ row, formatMoney, onPress }) {
   const { styles } = useTheme();
 
@@ -143,6 +368,13 @@ function DashboardScreen({ api, onNavigate }) {
   const currencyMarginRows = (dashboard?.profitPerPart || [])
     .filter((row) => row.currencyMovementEatsProfit || row.currencyWarning || Number(row.currencyMovementImpact || 0) < 0)
     .slice(0, 5);
+  const actionQueue = buildActionQueue({
+    dashboard,
+    messages,
+    currencyMarginRows,
+    formatMoney: formatDashboardMoney,
+    t
+  });
   const metrics = [
     { key: "sales", label: t("dashboard.sales", "Sales"), value: formatDashboardMoney(dashboard?.todaySalesAmount), route: "invoices", action: t("dashboard.openSales", "Open sales") },
     { key: "profit", label: t("dashboard.profit", "Profit"), value: formatDashboardMoney(dashboard?.todaySalesProfit), route: "invoices", action: t("dashboard.openInvoices", "Review invoices") },
@@ -188,6 +420,21 @@ function DashboardScreen({ api, onNavigate }) {
         el(Text, { style: styles.metricValue, numberOfLines: 1, adjustsFontSizeToFit: true }, metric.value),
         el(Text, { style: styles.metricAction, numberOfLines: 1 }, metric.action)
       ))
+    ),
+    el(ProfitLossPanel, {
+      dailyProfitLoss: dashboard?.dailyProfitLoss,
+      dashboard,
+      formatMoney: formatDashboardMoney,
+      t
+    }),
+    el(Panel, { title: t("dashboard.actionQueue", "Today's Action Queue") },
+      actionQueue.map((item, index) => el(ActionQueueRow, {
+        key: item.key,
+        item,
+        rank: index + 1,
+        onPress: () => navigate(item.route)
+      })),
+      actionQueue.length === 0 && el(EmptyState, { text: t("dashboard.actionQueueEmpty", "Load the dashboard to assemble action items.") })
     ),
     el(Panel, { title: t("dashboard.profitHeatmap", "Live Profit Heatmap") },
       el(Text, { style: styles.statusText }, t("dashboard.profitHeatmapScope", "30-day margin, 30-day turnover, 90-day dead stock.")),

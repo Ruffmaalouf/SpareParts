@@ -25,6 +25,7 @@ namespace SpareParts.Infrastructure.Services
             using var session = new DbSession(_factory);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var summary = LoadSummary(session, date, nextDate, currencyContext);
+            var dailyProfitLoss = LoadDailyProfitLoss(session, date, nextDate, summary, currencyContext);
             var cashBalance = ConvertBaseToCounter(LoadCashBalance(session), currencyContext);
             var profitPerPart = LoadProfitPerPart(session, date, nextDate, currencyContext);
             var profitPerCar = LoadProfitPerCar(session, currencyContext);
@@ -55,6 +56,7 @@ namespace SpareParts.Infrastructure.Services
                 UnpaidTransactionCount = unpaidTransactions.Count,
                 UnpaidTransactionAmount = unpaidTransactions.Sum(row => row.RemainingAmount),
                 AccountingAlertCount = alerts.Count,
+                DailyProfitLoss = dailyProfitLoss,
                 ProfitPerCar = profitPerCar,
                 ProfitPerPart = profitPerPart,
                 ProfitHeatmap = profitHeatmap,
@@ -146,6 +148,89 @@ INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId;";
                     CounterRateToBase = ResolveCounterRateToBase(currencyContext)
                 },
                 session.Transaction);
+        }
+
+        private static OwnerCockpitDailyProfitLossDto LoadDailyProfitLoss(
+            DbSession session,
+            DateTime businessDate,
+            DateTime nextBusinessDate,
+            OwnerCockpitSummaryRow summary,
+            AccountingCurrencyContext currencyContext)
+        {
+            var expenseBreakdown = LoadDailyOperatingExpenses(session, businessDate, nextBusinessDate, currencyContext);
+            return OwnerCockpitDailyProfitLossCalculator.Build(
+                businessDate,
+                currencyContext.CounterCurrencyCode,
+                summary.TodaySalesAmount,
+                summary.TodaySalesProfit,
+                expenseBreakdown);
+        }
+
+        private static List<OwnerCockpitExpenseBreakdownRowDto> LoadDailyOperatingExpenses(
+            DbSession session,
+            DateTime businessDate,
+            DateTime nextBusinessDate,
+            AccountingCurrencyContext currencyContext)
+        {
+            var hasAccountTypeKey = AccountingSchemaInspector.HasColumn(session, "dbo.Accounts", "AccountTypeKey");
+            var accountTypeSource = hasAccountTypeKey ? "a.AccountTypeKey" : "a.AccountType";
+            var normalizedAccountTypeKey = AccountingSql.NormalizeAccountTypeKey(accountTypeSource);
+            var counterRateToBase = ResolveCounterRateToBase(currencyContext);
+            var sql = $@"
+SELECT
+    je.Id AS JournalEntryId,
+    a.Code AS AccountCode,
+    a.Name AS AccountName,
+    je.Description,
+    Amount = CASE
+        WHEN jl.Debit > 0 THEN
+            COALESCE(NULLIF(jl.CounterAmount, 0), CASE WHEN @CounterRateToBase > 0 THEN jl.Debit / @CounterRateToBase ELSE jl.Debit END)
+        ELSE
+            -COALESCE(NULLIF(jl.CounterAmount, 0), CASE WHEN @CounterRateToBase > 0 THEN jl.Credit / @CounterRateToBase ELSE jl.Credit END)
+    END
+FROM dbo.JournalLines jl
+INNER JOIN dbo.JournalEntries je ON je.Id = jl.JournalEntryId
+INNER JOIN dbo.Accounts a ON a.Id = jl.AccountId
+LEFT JOIN dbo.AccountingPostingSettings cogsSetting ON cogsSetting.SettingKey = @CogsSettingKey
+WHERE je.EntryDate >= @BusinessDate
+  AND je.EntryDate < @NextBusinessDate
+  AND {normalizedAccountTypeKey} = @ExpenseAccountTypeKey
+  AND (cogsSetting.AccountId IS NULL OR a.Id <> cogsSetting.AccountId);";
+
+            var rows = session.Connection.Query<OwnerCockpitExpenseJournalLineRow>(
+                sql,
+                new
+                {
+                    BusinessDate = businessDate,
+                    NextBusinessDate = nextBusinessDate,
+                    CounterRateToBase = counterRateToBase,
+                    CogsSettingKey = AccountingSettingKeys.Cogs,
+                    ExpenseAccountTypeKey = "expense"
+                },
+                session.Transaction);
+
+            return rows
+                .Select(row => new
+                {
+                    Category = OwnerCockpitDailyProfitLossCalculator.ClassifyExpense(row.AccountCode, row.AccountName, row.Description),
+                    row.AccountCode,
+                    row.AccountName,
+                    row.JournalEntryId,
+                    row.Amount
+                })
+                .GroupBy(row => new { row.Category, row.AccountCode, row.AccountName })
+                .Select(group => new OwnerCockpitExpenseBreakdownRowDto
+                {
+                    Category = group.Key.Category,
+                    AccountCode = group.Key.AccountCode ?? string.Empty,
+                    AccountName = group.Key.AccountName ?? string.Empty,
+                    Amount = decimal.Round(group.Sum(row => row.Amount), 4, MidpointRounding.AwayFromZero),
+                    EntryCount = group.Select(row => row.JournalEntryId).Distinct().Count()
+                })
+                .OrderBy(row => ExpenseCategoryRank(row.Category))
+                .ThenBy(row => row.AccountCode)
+                .ThenBy(row => row.AccountName)
+                .ToList();
         }
 
         private static decimal LoadCashBalance(DbSession session)
@@ -1164,6 +1249,24 @@ FROM DraftTransactions;",
                 "Green" => 2,
                 _ => 3
             };
+
+        private static int ExpenseCategoryRank(string category)
+            => category switch
+            {
+                OwnerCockpitDailyProfitLossCalculator.RentCategory => 0,
+                OwnerCockpitDailyProfitLossCalculator.LaborCategory => 1,
+                OwnerCockpitDailyProfitLossCalculator.OtherCategory => 2,
+                _ => 3
+            };
+
+        private sealed class OwnerCockpitExpenseJournalLineRow
+        {
+            public int JournalEntryId { get; set; }
+            public string AccountCode { get; set; } = string.Empty;
+            public string AccountName { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public decimal Amount { get; set; }
+        }
 
         private sealed class OwnerCockpitSummaryRow
         {

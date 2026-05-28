@@ -26,6 +26,7 @@ namespace SpareParts.Domain.OwnerCockpit
         public decimal UnpaidTransactionAmount { get; set; }
         public int AccountingAlertCount { get; set; }
 
+        public OwnerCockpitDailyProfitLossDto DailyProfitLoss { get; set; } = new();
         public List<OwnerCockpitProfitRowDto> ProfitPerCar { get; set; } = new();
         public List<OwnerCockpitProfitRowDto> ProfitPerPart { get; set; } = new();
         public List<OwnerCockpitProfitHeatmapRowDto> ProfitHeatmap { get; set; } = new();

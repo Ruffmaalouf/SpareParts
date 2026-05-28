@@ -1397,6 +1397,127 @@ function createStyles(palette) {
     paddingHorizontal: 10,
     paddingVertical: 9
   },
+  profitLossHero: {
+    minHeight: 118,
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 14
+  },
+  profitLossHeroLabel: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  profitLossHeroValue: {
+    fontSize: 32,
+    lineHeight: 36,
+    fontWeight: "900"
+  },
+  profitLossHeroMeta: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  profitLossRows: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  profitLossRow: {
+    width: "48%",
+    minHeight: 62,
+    justifyContent: "space-between",
+    gap: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10
+  },
+  profitLossRowLabel: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  profitLossRowValue: {
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  profitLossValuePositive: {
+    color: palette.whatsapp
+  },
+  profitLossValueNegative: {
+    color: palette.danger
+  },
+  dashboardQueueRow: {
+    minHeight: 86,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10
+  },
+  dashboardQueueRowDanger: {
+    borderColor: palette.danger,
+    backgroundColor: "rgba(255,107,95,0.12)"
+  },
+  dashboardQueueRowWarning: {
+    borderColor: "#ffb74d",
+    backgroundColor: "rgba(255,183,77,0.12)"
+  },
+  dashboardQueueRowSuccess: {
+    borderColor: palette.whatsapp,
+    backgroundColor: "rgba(37,211,102,0.12)"
+  },
+  dashboardQueueRank: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    color: palette.accent,
+    backgroundColor: palette.surface,
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  dashboardQueueCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 3
+  },
+  dashboardQueueLabel: {
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  dashboardQueueTitle: {
+    color: palette.text,
+    fontSize: 14,
+    fontWeight: "900"
+  },
+  dashboardQueueDetail: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17
+  },
+  dashboardQueueValue: {
+    maxWidth: 96,
+    color: palette.text,
+    fontSize: 12,
+    fontWeight: "900",
+    textAlign: "right"
+  },
   heatmapGrid: {
     gap: 10
   },

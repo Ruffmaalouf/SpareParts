@@ -1,6 +1,7 @@
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.OwnerCockpit;
 using SpareParts.Domain.Sales;
 using SpareParts.ArchitectureTests.TestDoubles;
 using SpareParts.Infrastructure.Services;
@@ -128,6 +129,39 @@ public class CriticalPathTests
 
         Assert.Equal(debit, credit);
         Assert.Equal(320m, debit);
+    }
+
+    [Fact]
+    public void OwnerCockpit_DailyProfitLoss_ShouldSubtractRentAndLaborFromGrossProfit()
+    {
+        var report = OwnerCockpitDailyProfitLossCalculator.Build(
+            new DateTime(2026, 5, 28),
+            "USD",
+            grossSales: 1000m,
+            grossProfit: 380m,
+            new[]
+            {
+                new OwnerCockpitExpenseBreakdownRowDto { Category = "Rent", AccountCode = "6100", AccountName = "Shop rent", Amount = 75m, EntryCount = 1 },
+                new OwnerCockpitExpenseBreakdownRowDto { Category = "Labor", AccountCode = "6200", AccountName = "Staff wages", Amount = 125m, EntryCount = 2 },
+                new OwnerCockpitExpenseBreakdownRowDto { Category = "Other", AccountCode = "6300", AccountName = "Utilities", Amount = 30m, EntryCount = 1 }
+            });
+
+        Assert.Equal(620m, report.CostOfGoodsSold);
+        Assert.Equal(75m, report.RentExpense);
+        Assert.Equal(125m, report.LaborExpense);
+        Assert.Equal(230m, report.TotalOperatingExpenses);
+        Assert.Equal(150m, report.NetProfitLoss);
+    }
+
+    [Theory]
+    [InlineData("6100", "Monthly rent", "May payment", "Rent")]
+    [InlineData("6200", "Operating Expenses", "Payroll and staff wages", "Labor")]
+    [InlineData("6300", "Utilities", "Generator fuel", "Other")]
+    public void OwnerCockpit_DailyProfitLoss_ShouldClassifyOperatingExpenses(string code, string account, string description, string expected)
+    {
+        var category = OwnerCockpitDailyProfitLossCalculator.ClassifyExpense(code, account, description);
+
+        Assert.Equal(expected, category);
     }
 
     [Fact]

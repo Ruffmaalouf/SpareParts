@@ -184,6 +184,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             Metrics.Clear();
             Metrics.Add(Card("Today's sales", Money(dashboard.TodaySalesAmount), $"{dashboard.TodaySalesCount:N0} invoices | paid {Money(dashboard.TodaySalesPaidAmount)}", "#FF42A5F5"));
+            Metrics.Add(Card("Net P&L today", Money(dashboard.DailyProfitLoss.NetProfitLoss), $"Gross profit {Money(dashboard.DailyProfitLoss.GrossProfit)} | expenses {Money(dashboard.DailyProfitLoss.TotalOperatingExpenses)}", dashboard.DailyProfitLoss.NetProfitLoss < 0m ? "#FFE57373" : "#FF81C784"));
+            Metrics.Add(Card("Rent paid", Money(dashboard.DailyProfitLoss.RentExpense), "Daily rent expense journals", "#FFFFB74D"));
+            Metrics.Add(Card("Labor paid", Money(dashboard.DailyProfitLoss.LaborExpense), "Daily payroll and staff journals", "#FFBA68C8"));
             Metrics.Add(Card("Today's purchases", Money(dashboard.TodayPurchasesAmount), $"{dashboard.TodayPurchasesCount:N0} bills | paid {Money(dashboard.TodayPurchasesPaidAmount)}", "#FFFFB74D"));
             Metrics.Add(Card("Cash balance", Money(dashboard.CashBalance), "Cash ledger balance", "#FF66BB6A"));
             Metrics.Add(Card("Supplier debt", Money(dashboard.SupplierDebt), "Open supplier balances", "#FFFF8A65"));

@@ -419,6 +419,29 @@ BEGIN
     VALUES ('2100', 'Supplier Accounts', 1, 'liability', @AccountsPayableControlId, SYSUTCDATETIME());
 END;
 
+DECLARE @OperatingExpensesAccountId INT;
+SELECT @OperatingExpensesAccountId = Id FROM dbo.Accounts WHERE Code = '6000';
+
+IF @OperatingExpensesAccountId IS NULL
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('6000', 'Operating Expenses', 4, 'expense', NULL, SYSUTCDATETIME());
+
+    SET @OperatingExpensesAccountId = CAST(SCOPE_IDENTITY() AS INT);
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '6100')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('6100', 'Rent Expense', 4, 'expense', @OperatingExpensesAccountId, SYSUTCDATETIME());
+END;
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '6200')
+BEGIN
+    INSERT INTO dbo.Accounts (Code, Name, AccountType, AccountTypeKey, ParentId, CreatedAt)
+    VALUES ('6200', 'Labor Expense', 4, 'expense', @OperatingExpensesAccountId, SYSUTCDATETIME());
+END;
+
 IF NOT EXISTS (SELECT 1 FROM dbo.Accounts WHERE Code = '1150')
 BEGIN
     DECLARE @InventoryParentAccountId INT;
