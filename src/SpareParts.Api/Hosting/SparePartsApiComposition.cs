@@ -385,6 +385,13 @@ public static class SparePartsApiComposition
             throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
         }
 
+        if (jwtSecret.StartsWith("CHANGE_ME", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "Jwt:Secret is still set to the placeholder value. " +
+                "Set a strong secret via dotnet user-secrets (development) or an environment variable (production).");
+        }
+
         return new JwtSettings
         {
             Secret = jwtSecret,
