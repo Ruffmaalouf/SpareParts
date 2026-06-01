@@ -4,7 +4,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Themes/DefaultTheme.xaml"/>
+                <ResourceDictionary Source="/Themes/AuroraTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <Style x:Key="AccountingComboOverlayButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Focusable" Value="False"/>
