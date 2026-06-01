@@ -20,7 +20,7 @@ public class ApiCompositionTests
             { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(HealthController)] },
             { [ServiceCapability.Identity, ServiceCapability.Health], [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(HealthController)] },
             { [ServiceCapability.Catalog, ServiceCapability.Health], [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(HealthController)] },
-            { [ServiceCapability.Reporting, ServiceCapability.Health], [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(HealthController)] }
+            { [ServiceCapability.Reporting, ServiceCapability.Health], [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(GrowthController), nameof(SearchController), nameof(HealthController)] }
         };
 
     [Theory]
@@ -115,6 +115,7 @@ public class ApiCompositionTests
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(AccountingService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(SmartSearchService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(ScanLookupService));
+        Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(GrowthIntelligenceService));
     }
 
     private static string[] GetControllerNames(params ServiceCapability[] capabilities)

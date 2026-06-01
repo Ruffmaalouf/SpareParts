@@ -50,6 +50,7 @@ namespace SpareParts.Desktop.Wpf
             services.AddTransient<IWarehouseApiClient, WarehousesApiClient>();
             services.AddTransient<IOwnerCockpitApiClient, OwnerCockpitApiClient>();
             services.AddTransient<IBusinessAssistantApiClient, BusinessAssistantApiClient>();
+            services.AddTransient<IGrowthApiClient, GrowthApiClient>();
             services.AddTransient<IReportBuilderApiClient, ReportBuilderApiClient>();
             services.AddTransient<ICrudApiClient, CrudApiClient>();
 

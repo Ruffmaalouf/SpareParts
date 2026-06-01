@@ -49,6 +49,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public BarcodeModeViewModel BarcodeModeVm { get; }
         public PartCompatibilityViewModel PartCompatibilityVm { get; }
         public DeadStockResurrectionViewModel DeadStockVm { get; }
+        public GrowthLabViewModel GrowthLabVm { get; }
+        public PartPassportViewModel PartPassportVm { get; }
         public StockArrivalTheaterViewModel StockArrivalVm { get; }
 
         private bool _canViewInvoiceSearch;
@@ -98,6 +100,20 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             get => _canViewStockArrivalScreen;
             private set { _canViewStockArrivalScreen = value; OnPropertyChanged(nameof(CanViewStockArrivalScreen)); }
+        }
+
+        private bool _canViewGrowthLabScreen;
+        public bool CanViewGrowthLabScreen
+        {
+            get => _canViewGrowthLabScreen;
+            private set { _canViewGrowthLabScreen = value; OnPropertyChanged(nameof(CanViewGrowthLabScreen)); }
+        }
+
+        private bool _canViewPartPassportScreen;
+        public bool CanViewPartPassportScreen
+        {
+            get => _canViewPartPassportScreen;
+            private set { _canViewPartPassportScreen = value; OnPropertyChanged(nameof(CanViewPartPassportScreen)); }
         }
 
         private bool _canViewAccountingScreen;
@@ -374,6 +390,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WhatsAppVm.IsLoading ||
             BarcodeModeVm.IsLoading ||
             DeadStockVm.IsLoading ||
+            GrowthLabVm.IsLoading ||
+            PartPassportVm.IsLoading ||
             StockArrivalVm.IsLoading ||
             PartPurchasesVm.IsLoading ||
             PurchasesVm.IsLoading ||
@@ -417,6 +435,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToRepairPrepCommand { get; }
         public ICommand GoToStockManagementCommand { get; }
         public ICommand GoToDeadStockCommand { get; }
+        public ICommand GoToGrowthLabCommand { get; }
+        public ICommand GoToPartPassportCommand { get; }
         public ICommand GoToCompatibilityCommand { get; }
         public ICommand GoToAccountingCommand { get; }
         public ICommand GoToManualJournalCommand { get; }
@@ -440,6 +460,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IWarehouseApiClient warehouseApi,
             IOwnerCockpitApiClient ownerCockpitApi,
             IBusinessAssistantApiClient businessAssistantApi,
+            IGrowthApiClient growthApi,
             IReportBuilderApiClient reportBuilderApi,
             IArRenderingService arRenderingService,
             IArDeviceBridge arDeviceBridge,
@@ -458,6 +479,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WhatsAppVm = new WhatsAppInboxViewModel(crudApi);
             BarcodeModeVm = new BarcodeModeViewModel(partsApi, salesApi, crudApi, warehouseApi);
             DeadStockVm = new DeadStockResurrectionViewModel(partsApi);
+            GrowthLabVm = new GrowthLabViewModel(growthApi, partsApi, crudApi);
+            PartPassportVm = new PartPassportViewModel(partsApi);
             PartPurchasesVm = new PartPurchasesViewModel(crudApi, purchasesApi);
             PurchasesVm = new UsedCarPurchasesViewModel(crudApi, accountingApi, purchasesApi);
             UsedCarWholesaleVm = new UsedCarWholesaleViewModel(crudApi);
@@ -510,6 +533,20 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             DeadStockVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(DeadStockResurrectionViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            GrowthLabVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(GrowthLabViewModel.IsLoading))
+                {
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+                }
+            };
+            PartPassportVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartPassportViewModel.IsLoading))
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
@@ -722,6 +759,28 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen = AppScreen.DeadStockResurrection;
                 DeadStockVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
+            GoToGrowthLabCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewGrowthLabScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("You do not have permission to view Money Finder.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.GrowthLab;
+                GrowthLabVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToPartPassportCommand = new RelayCommand(_ =>
+            {
+                if (!CanViewPartPassportScreen)
+                {
+                    AppNotificationCenter.Instance.Publish("You do not have permission to view Part Passport.", false);
+                    return;
+                }
+
+                ActiveScreen = AppScreen.PartPassport;
+                PartPassportVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             GoToCompatibilityCommand = new RelayCommand(_ =>
             {
                 if (!CanViewStockManagementScreen)
@@ -902,6 +961,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CanViewPurchasesScreen = purchasesScreen.CanView;
             CanViewStockManagementScreen = stockManagementScreen.CanView;
             CanViewStockArrivalScreen = purchasesScreen.CanView || stockManagementScreen.CanView;
+            CanViewGrowthLabScreen =
+                purchasesScreen.CanView ||
+                stockManagementScreen.CanView ||
+                accountingScreen.CanView ||
+                reportBuilderScreen.CanView;
+            CanViewPartPassportScreen = stockManagementScreen.CanView || posScreen.CanView;
             CanViewAccountingScreen = accountingScreen.CanView;
             CanViewManualJournalScreen = manualJournalScreen.CanView;
             CanViewReportBuilderScreen = reportBuilderScreen.CanView;

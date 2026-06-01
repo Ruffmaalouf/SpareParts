@@ -80,7 +80,7 @@ public static class SparePartsApiComposition
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
         [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController)],
         [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController)],
-        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController)],
+        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController)],
         [ServiceCapability.Health] = [nameof(HealthController)]
     };
 
@@ -201,6 +201,8 @@ public static class SparePartsApiComposition
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
             services.AddScoped<SalesService>();
             services.AddScoped<WebCatalogService>();
+            services.TryAddScoped<PartRequestsService>();
+            RegisterVisualPartSearchService(services);
             RegisterSharedInvoiceServices(services);
             services.AddScoped<CustomersService>();
         }
@@ -231,13 +233,7 @@ public static class SparePartsApiComposition
                 client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             });
-            services.AddHttpClient<VisualPartSearchService>((serviceProvider, client) =>
-            {
-                var options = serviceProvider.GetRequiredService<OpenAiOptions>();
-                client.BaseAddress = new Uri(options.BaseUrl, UriKind.Absolute);
-                client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            });
+            RegisterVisualPartSearchService(services);
 
             services.AddScoped<PartsService>();
             services.AddScoped<PartRequestsService>();
@@ -285,6 +281,7 @@ public static class SparePartsApiComposition
             services.AddScoped<ReportBuilderService>();
             services.AddScoped<OwnerCockpitService>();
             services.AddScoped<SmartSearchService>();
+            services.AddScoped<GrowthIntelligenceService>();
         }
     }
 
@@ -310,6 +307,17 @@ public static class SparePartsApiComposition
         services.TryAddSingleton<IPaymentStatusPolicy, DefaultPaymentStatusPolicy>();
         services.TryAddSingleton<IInvoiceTotalsCalculator, InvoiceTotalsCalculator>();
         services.TryAddScoped<IInventoryService, InventoryService>();
+    }
+
+    private static void RegisterVisualPartSearchService(IServiceCollection services)
+    {
+        services.AddHttpClient<VisualPartSearchService>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<OpenAiOptions>();
+            client.BaseAddress = new Uri(options.BaseUrl, UriKind.Absolute);
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        });
     }
 
     public static void UseSparePartsApiPipeline(this WebApplication app)

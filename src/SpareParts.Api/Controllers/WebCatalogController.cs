@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Api.Infrastructure;
+using SpareParts.Domain.Inventory;
+using SpareParts.Domain.Scanning;
 using SpareParts.Domain.WebCatalog;
 using SpareParts.Infrastructure.Services;
 
@@ -12,10 +14,17 @@ namespace SpareParts.Api.Controllers
     public sealed class WebCatalogController : SparePartsControllerBase
     {
         private readonly WebCatalogService _service;
+        private readonly PartRequestsService _partRequestsService;
+        private readonly VisualPartSearchService _visualSearchService;
 
-        public WebCatalogController(WebCatalogService service)
+        public WebCatalogController(
+            WebCatalogService service,
+            PartRequestsService partRequestsService,
+            VisualPartSearchService visualSearchService)
         {
             _service = service;
+            _partRequestsService = partRequestsService;
+            _visualSearchService = visualSearchService;
         }
 
         [HttpGet("parts")]
@@ -32,5 +41,32 @@ namespace SpareParts.Api.Controllers
         [HttpPost("checkout")]
         public ActionResult<WebCheckoutResponse> Checkout([FromBody] WebCheckoutRequest request)
             => Ok(_service.Checkout(request, CurrentUserId));
+
+        [HttpPost("part-requests")]
+        public ActionResult<int> CreatePartRequest([FromBody] CreatePartRequestItemRequest request)
+            => Ok(_partRequestsService.Create(request, CurrentUserId));
+
+        [HttpPost("visual-search")]
+        [AllowAnonymous]
+        public async Task<ActionResult<VisualPartSearchResponseDto>> VisualSearch(
+            IFormFile image,
+            [FromForm] string? hint,
+            [FromForm] int limit = 8,
+            CancellationToken cancellationToken = default)
+        {
+            if (image == null || image.Length == 0)
+            {
+                return BadRequest(new { message = "Image is required for visual part search." });
+            }
+
+            await using var stream = image.OpenReadStream();
+            return Ok(await _visualSearchService.SearchAsync(
+                stream,
+                image.FileName,
+                image.ContentType,
+                hint,
+                limit,
+                cancellationToken));
+        }
     }
 }
