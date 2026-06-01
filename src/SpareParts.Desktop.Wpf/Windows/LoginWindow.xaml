@@ -205,11 +205,11 @@
                         <TextBlock Text="MAALOUF"
                                    FontSize="28" FontWeight="Bold"
                                    Foreground="#FFE8F0FF" HorizontalAlignment="Center"
-                                   FontFamily="Segoe UI" LetterSpacing="4"/>
+                                   FontFamily="Segoe UI"/>
                         <TextBlock Text="AUTO PARTS"
                                    FontSize="12" FontWeight="Light"
                                    HorizontalAlignment="Center"
-                                   Margin="0 3 0 0" FontFamily="Segoe UI" LetterSpacing="6">
+                                   Margin="0 3 0 0" FontFamily="Segoe UI">
                             <TextBlock.Foreground>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="#FF00C9A7" Offset="0"/>
