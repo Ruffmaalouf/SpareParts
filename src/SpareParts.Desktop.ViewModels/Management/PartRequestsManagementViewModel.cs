@@ -8,9 +8,7 @@ namespace SpareParts.Desktop.Wpf.Management;
 
 public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModelBase
 {
-    private ManagementCoordinator? _coordinator;
-    private Func<Task>? _refreshAsync;
-    private Action<string, bool>? _setStatus;
+    private readonly IManagementFeatureContext _ctx;
     private PartRequestDto? _selectedRequest;
     private int? _newRequestPartId;
     private int? _newRequestCustomerId;
@@ -34,17 +32,17 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
         PartReservationExpirationAction.StaffReminder
     ];
 
-    public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand ReserveAutoReleaseCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand ReserveReminderCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand ReleaseReservationCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand MarkContactedCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand MarkFulfilledCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand CancelCommand { get; private set; } = new RelayCommand(_ => { });
-    public ICommand ReopenCommand { get; private set; } = new RelayCommand(_ => { });
+    public ICommand SaveCommand { get; }
+    public ICommand DeleteCommand { get; }
+    public ICommand StartNewCommand { get; }
+    public ICommand RefreshCommand { get; }
+    public ICommand ReserveAutoReleaseCommand { get; }
+    public ICommand ReserveReminderCommand { get; }
+    public ICommand ReleaseReservationCommand { get; }
+    public ICommand MarkContactedCommand { get; }
+    public ICommand MarkFulfilledCommand { get; }
+    public ICommand CancelCommand { get; }
+    public ICommand ReopenCommand { get; }
 
     public int OpenRequestCount => Requests.Count(request => PartRequestStatus.IsActive(request.Status));
     public int ReadyRequestCount => Requests.Count(request => request.IsReadyToContact);
@@ -165,25 +163,20 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
         set => SetProperty(ref _reservationExpirationAction, PartReservationExpirationAction.Normalize(value));
     }
 
-    public void Configure(
-        ManagementCoordinator coordinator,
-        Func<Task> refreshAsync,
-        Action<string, bool> setStatus)
+    public PartRequestsManagementViewModel(IManagementFeatureContext context)
     {
-        _coordinator = coordinator;
-        _refreshAsync = refreshAsync;
-        _setStatus = setStatus;
-        SaveCommand = new RelayCommand(_ => _ = SaveAsync());
-        DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
-        StartNewCommand = new RelayCommand(_ => StartNew());
-        RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
+        _ctx = context;
+        SaveCommand               = new RelayCommand(_ => _ = SaveAsync());
+        DeleteCommand             = new RelayCommand(_ => _ = DeleteAsync());
+        StartNewCommand           = new RelayCommand(_ => StartNew());
+        RefreshCommand            = new RelayCommand(_ => _ = _ctx.RefreshAsync());
         ReserveAutoReleaseCommand = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.AutoRelease));
-        ReserveReminderCommand = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.StaffReminder));
+        ReserveReminderCommand    = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.StaffReminder));
         ReleaseReservationCommand = new RelayCommand(_ => _ = ReleaseSelectedReservationAsync());
-        MarkContactedCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Contacted));
-        MarkFulfilledCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Fulfilled));
-        CancelCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Cancelled));
-        ReopenCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Open));
+        MarkContactedCommand      = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Contacted));
+        MarkFulfilledCommand      = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Fulfilled));
+        CancelCommand             = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Cancelled));
+        ReopenCommand             = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Open));
     }
 
     public void Load(IEnumerable<PartRequestDto> requests)
@@ -217,80 +210,42 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
 
     private async Task SaveAsync()
     {
-        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-        {
-            return;
-        }
-
-        var result = await _coordinator.SavePartRequestAsync(this);
-        _setStatus(result.Message, result.Success);
-        if (!result.Success)
-        {
-            return;
-        }
-
-        await _refreshAsync();
+        var result = await _ctx.Coordinator.SavePartRequestAsync(this);
+        _ctx.SetStatus(result.Message, result.Success);
+        if (!result.Success) return;
+        await _ctx.RefreshAsync();
         StartNew();
     }
 
     private async Task ReserveSelectedAsync(string expirationAction)
     {
-        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-        {
-            return;
-        }
-
         ReservationExpirationAction = expirationAction;
-        var result = await _coordinator.ReservePartRequestAsync(SelectedRequest, ReservationExpiresAt, ReservationExpirationAction);
-        _setStatus(result.Message, result.Success);
-        if (result.Success)
-        {
-            await _refreshAsync();
-        }
+        var result = await _ctx.Coordinator.ReservePartRequestAsync(SelectedRequest, ReservationExpiresAt, ReservationExpirationAction);
+        _ctx.SetStatus(result.Message, result.Success);
+        if (result.Success) await _ctx.RefreshAsync();
     }
 
     private async Task ReleaseSelectedReservationAsync()
     {
-        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-        {
-            return;
-        }
-
-        var result = await _coordinator.ReleasePartRequestReservationAsync(SelectedRequest);
-        _setStatus(result.Message, result.Success);
-        if (result.Success)
-        {
-            await _refreshAsync();
-        }
+        var result = await _ctx.Coordinator.ReleasePartRequestReservationAsync(SelectedRequest);
+        _ctx.SetStatus(result.Message, result.Success);
+        if (result.Success) await _ctx.RefreshAsync();
     }
 
     private async Task UpdateStatusAsync(string status)
     {
-        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-        {
-            return;
-        }
-
-        var result = await _coordinator.UpdatePartRequestStatusAsync(SelectedRequest, status);
-        _setStatus(result.Message, result.Success);
-        if (result.Success)
-        {
-            await _refreshAsync();
-        }
+        var result = await _ctx.Coordinator.UpdatePartRequestStatusAsync(SelectedRequest, status);
+        _ctx.SetStatus(result.Message, result.Success);
+        if (result.Success) await _ctx.RefreshAsync();
     }
 
     private async Task DeleteAsync()
     {
-        if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-        {
-            return;
-        }
-
-        var result = await _coordinator.DeletePartRequestAsync(SelectedRequest);
-        _setStatus(result.Message, result.Success);
+        var result = await _ctx.Coordinator.DeletePartRequestAsync(SelectedRequest);
+        _ctx.SetStatus(result.Message, result.Success);
         if (result.Success)
         {
-            await _refreshAsync();
+            await _ctx.RefreshAsync();
             StartNew();
         }
     }

@@ -7,9 +7,7 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class CarModelManagementViewModel : ManagementFeatureViewModelBase
     {
-        private ManagementCoordinator? _coordinator;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
+        private readonly IManagementFeatureContext _ctx;
         private string _newCarBrandName = string.Empty;
         private string _newCarBrandCountry = string.Empty;
         private string _newCarBrandRegionGroup = string.Empty;
@@ -20,37 +18,31 @@ namespace SpareParts.Desktop.Wpf.Management
         private CarBrandDto? _selectedCarBrand;
         private CarModelDto? _selectedCarModel;
 
+        public CarModelManagementViewModel(IManagementFeatureContext context)
+        {
+            _ctx = context;
+            SaveCarBrandCommand             = new RelayCommand(_ => _ = SaveCarBrandAsync());
+            DeleteCarBrandCommand           = new RelayCommand(_ => _ = DeleteCarBrandAsync());
+            StartNewCarBrandCommand         = new RelayCommand(_ => StartNewCarBrand());
+            ImportCarBrandsFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.CarBrands"));
+            SaveCarModelCommand             = new RelayCommand(_ => _ = SaveCarModelAsync());
+            DeleteCarModelCommand           = new RelayCommand(_ => _ = DeleteCarModelAsync());
+            StartNewCarModelCommand         = new RelayCommand(_ => StartNewCarModel());
+            ImportCarModelsFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.CarModels"));
+            RefreshCommand                  = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+        }
+
         public ObservableCollection<CarModelDto> CarModels { get; } = new();
         public ObservableCollection<CarBrandDto> CarBrands { get; } = new();
-        public ICommand SaveCarBrandCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCarBrandCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCarBrandCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportCarBrandsFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand SaveCarModelCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCarModelCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCarModelCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportCarModelsFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-
-        public void Configure(
-            ManagementCoordinator coordinator,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            ICommand? importTableCommand = null)
-        {
-            _coordinator = coordinator;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
-            SaveCarBrandCommand = new RelayCommand(_ => _ = SaveCarBrandAsync());
-            DeleteCarBrandCommand = new RelayCommand(_ => _ = DeleteCarBrandAsync());
-            StartNewCarBrandCommand = new RelayCommand(_ => StartNewCarBrand());
-            ImportCarBrandsFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.CarBrands"));
-            SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
-            DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
-            StartNewCarModelCommand = new RelayCommand(_ => StartNewCarModel());
-            ImportCarModelsFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.CarModels"));
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-        }
+        public ICommand SaveCarBrandCommand { get; }
+        public ICommand DeleteCarBrandCommand { get; }
+        public ICommand StartNewCarBrandCommand { get; }
+        public ICommand ImportCarBrandsFromExcelCommand { get; }
+        public ICommand SaveCarModelCommand { get; }
+        public ICommand DeleteCarModelCommand { get; }
+        public ICommand StartNewCarModelCommand { get; }
+        public ICommand ImportCarModelsFromExcelCommand { get; }
+        public ICommand RefreshCommand { get; }
 
         public string NewCarBrandName
         {
@@ -165,73 +157,37 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private async Task SaveCarBrandAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SaveCarBrandAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveCarBrandAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearCarBrandForm();
         }
 
         private async Task DeleteCarBrandAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeleteCarBrandAsync(SelectedCarBrand);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteCarBrandAsync(SelectedCarBrand);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearCarBrandForm();
         }
 
         private async Task SaveCarModelAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SaveCarModelAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveCarModelAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearForm();
         }
 
         private async Task DeleteCarModelAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeleteCarModelAsync(SelectedCarModel);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteCarModelAsync(SelectedCarModel);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearForm();
         }
     }
