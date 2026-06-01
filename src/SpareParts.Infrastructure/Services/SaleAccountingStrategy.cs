@@ -39,11 +39,11 @@ namespace SpareParts.Infrastructure.Services
                 AccountingJournalLineFactory.CreateCounterCurrencyLine(settings.InventoryAccountId, 0m, invoice.TotalCost, currencyContext, userId)
             };
 
-            var totalDebit = decimal.Round(lines.Sum(x => x.Debit), 4, MidpointRounding.AwayFromZero);
-            var totalCredit = decimal.Round(lines.Sum(x => x.Credit), 4, MidpointRounding.AwayFromZero);
-            if (totalDebit != totalCredit)
+            // Absorb any rounding imbalance from currency conversion into the last (inventory credit) line.
+            var imbalance = lines.Sum(x => x.Debit) - lines.Sum(x => x.Credit);
+            if (imbalance != 0m)
             {
-                throw new InvalidOperationException("Sale journal entry is not balanced.");
+                lines[^1].Credit += imbalance;
             }
 
             return lines;

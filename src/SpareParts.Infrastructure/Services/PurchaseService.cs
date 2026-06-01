@@ -21,19 +21,28 @@ namespace SpareParts.Infrastructure.Services
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly SupplierAccountResolver _supplierAccountResolver;
+        private readonly IInventoryService _inventoryService;
+        private readonly IInvoiceTotalsCalculator _totalsCalculator;
+        private readonly IPaymentStatusPolicy _paymentStatusPolicy;
 
         public PurchaseService(
             ICreatePurchaseHandler createPurchaseHandler,
             ICreateUsedCarPurchaseHandler createUsedCarPurchaseHandler,
             ISqlConnectionFactory factory,
             AccountingSettingsProvider settingsProvider,
-            SupplierAccountResolver supplierAccountResolver)
+            SupplierAccountResolver supplierAccountResolver,
+            IInventoryService inventoryService,
+            IInvoiceTotalsCalculator totalsCalculator,
+            IPaymentStatusPolicy paymentStatusPolicy)
         {
             _createPurchaseHandler = createPurchaseHandler;
             _createUsedCarPurchaseHandler = createUsedCarPurchaseHandler;
             _factory = factory;
             _settingsProvider = settingsProvider;
             _supplierAccountResolver = supplierAccountResolver;
+            _inventoryService = inventoryService;
+            _totalsCalculator = totalsCalculator;
+            _paymentStatusPolicy = paymentStatusPolicy;
         }
 
         public CreatePurchaseResponse CreatePurchase(CreatePurchaseRequest request, int userId)
@@ -62,7 +71,6 @@ namespace SpareParts.Infrastructure.Services
             var inventoryRepository = repositories.Inventory.Stock;
             var partsRepository = repositories.MasterData.Parts;
             var journalRepository = repositories.Accounting.Journal;
-            var inventoryService = new InventoryService();
             var accountingStrategy = new PurchaseAccountingStrategy(_settingsProvider, _supplierAccountResolver);
 
             var existingInvoice = purchasesRepository.GetInvoiceById(purchaseId);
@@ -73,9 +81,9 @@ namespace SpareParts.Infrastructure.Services
 
             ValidateUpdateRequest(request);
             _ = LoadParts(partsRepository, request);
-            EnsureStockAvailabilityForUpdate(inventoryService, inventoryRepository, existingInvoice, request);
+            EnsureStockAvailabilityForUpdate(_inventoryService, inventoryRepository, existingInvoice, request);
 
-            var totals = new InvoiceTotalsCalculator().CalculatePurchase(request.Items);
+            var totals = _totalsCalculator.CalculatePurchase(request.Items);
             var items = BuildPurchaseItems(request.Items, userId);
 
             var invoice = new PurchaseInvoice
@@ -90,7 +98,7 @@ namespace SpareParts.Infrastructure.Services
                 TaxAmount = totals.TaxTotal,
                 TotalAmount = totals.TotalAmount,
                 PaidAmount = request.PaidAmount,
-                PaymentStatus = new DefaultPaymentStatusPolicy().Resolve(totals.TotalAmount, request.PaidAmount).ToString(),
+                PaymentStatus = _paymentStatusPolicy.Resolve(totals.TotalAmount, request.PaidAmount).ToString(),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByUserId = userId,
                 Items = items
@@ -102,7 +110,7 @@ namespace SpareParts.Infrastructure.Services
                 return false;
             }
 
-            ApplyStockAdjustmentsForUpdate(inventoryService, inventoryRepository, existingInvoice, request, purchaseId, userId);
+            ApplyStockAdjustmentsForUpdate(_inventoryService, inventoryRepository, existingInvoice, request, purchaseId, userId);
             journalRepository.DeleteEntriesByReference(DomainReferenceType.Purchase.ToString(), purchaseId);
             journalRepository.DeleteEntriesByReference(PurchasePaymentReferenceType, purchaseId);
             CreateJournalEntryForPurchase(accountingStrategy, journalRepository, invoice, purchaseId, userId);
@@ -418,8 +426,8 @@ namespace SpareParts.Infrastructure.Services
 
             foreach (var item in requestItems)
             {
-                var baseLine = item.Quantity * item.UnitCost;
-                var tax = baseLine * (item.TaxRate / 100m);
+                var baseLine  = Round2(item.Quantity * item.UnitCost);
+                var tax       = Round2(baseLine * (item.TaxRate / 100m));
                 var lineTotal = baseLine + tax;
 
                 purchaseItems.Add(new PurchaseInvoiceItem
@@ -436,6 +444,9 @@ namespace SpareParts.Infrastructure.Services
 
             return purchaseItems;
         }
+
+        private static decimal Round2(decimal value)
+            => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
 
         private void EnsureStockAvailabilityForUpdate(
             IInventoryService inventoryService,
