@@ -54,6 +54,7 @@ function buildPayload(config, form, isUpdate) {
   for (const field of config.fields) {
     if (isUpdate && field.update === false) continue;
     if (!isUpdate && field.create === false) continue;
+    if (field.readOnly) continue;
     if (isUpdate && field.optionalUpdate && !String(form[field.key] || "").trim()) continue;
 
     const targetKey = isUpdate ? field.updateKey || field.key : field.createKey || field.key;

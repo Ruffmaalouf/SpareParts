@@ -1,3 +1,5 @@
+using SpareParts.Domain.Inventory;
+
 namespace SpareParts.Domain.Cars
 {
     public sealed class CreateUsedCarRequest
@@ -15,5 +17,6 @@ namespace SpareParts.Domain.Cars
         public decimal Shipping { get; set; }
         public decimal Customs { get; set; }
         public decimal Repairs { get; set; }
+        public decimal ExpectedSellThroughRate { get; set; } = UsedVehiclePartPricingEngine.DefaultExpectedSellThroughRate;
     }
 }

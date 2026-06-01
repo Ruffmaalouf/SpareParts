@@ -767,8 +767,8 @@ namespace SpareParts.Infrastructure.Services
                               ELSE COALESCE(NULLIF(ti.CounterAmount, 0), ISNULL(ti.LineTotal, 0))
                           END) AS Revenue,
                           SUM(CASE
-                              WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0))
-                              ELSE COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0))
+                              WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
+                              ELSE COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
                           END) AS Cost,
                           MAX(t.TransactionDate) AS LastSoldAt
                       FROM dbo.Transactions t
@@ -977,7 +977,7 @@ namespace SpareParts.Infrastructure.Services
                   (
                       SELECT p.UsedCarId,
                              SUM(ISNULL(ti.LineTotal, 0)) AS SalesRevenue,
-                             SUM(ISNULL(ti.Quantity, 0) * ISNULL(COALESCE(p.AveragePrice, p.CostPrice), 0)) AS EstimatedSoldCost,
+                             SUM(ISNULL(ti.Quantity, 0) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0)) AS EstimatedSoldCost,
                              COUNT(DISTINCT t.Id) AS SaleCount,
                              MAX(t.TransactionDate) AS LastSaleAt
                       FROM dbo.TransactionItems ti

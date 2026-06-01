@@ -1,0 +1,12 @@
+D:\Ralph\SpareParts\.codex-build\management-design-tests\bin\SpareParts.Domain\debug\SpareParts.Domain.deps.json
+D:\Ralph\SpareParts\.codex-build\management-design-tests\bin\SpareParts.Domain\debug\SpareParts.Domain.dll
+D:\Ralph\SpareParts\.codex-build\management-design-tests\bin\SpareParts.Domain\debug\SpareParts.Domain.pdb
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.AssemblyInfo.cs
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.sourcelink.json
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.dll
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\refint\SpareParts.Domain.dll
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\SpareParts.Domain.pdb
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Domain\debug\ref\SpareParts.Domain.dll

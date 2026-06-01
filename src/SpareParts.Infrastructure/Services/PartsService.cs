@@ -24,31 +24,107 @@ public sealed class PartsService
     public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize, int? usedCarId = null)
     {
         using var session = new DbSession(_factory);
-        var repository = new PartsRepository(session);
-        var projected = repository.GetAllActive(usedCarId).Select(p => new PartDto
-        {
-            Id = p.Id,
-            InternalCode = p.InternalCode,
-            Barcode = p.Barcode,
-            Name = p.Name,
-            OEMNumber = p.OEMNumber,
-            Condition = p.Condition,
-            CategoryId = p.CategoryId,
-            BrandId = p.BrandId,
-            CostPrice = p.CostPrice,
-            SalePrice = p.SalePrice,
-            AveragePrice = p.AveragePrice,
-            Currency = p.Currency,
-            MinStock = p.MinStock,
-            Notes = p.Notes,
-            UsedCarId = p.UsedCarId,
-            IsActive = p.IsActive
-        }).ToList();
+        var offset = Math.Max(0, (page - 1) * pageSize);
 
-        HydrateStockQuantities(session, projected);
+        using var multi = session.Connection.QueryMultiple(
+            """
+WITH FilteredParts AS
+(
+    SELECT
+        p.Id,
+        p.InternalCode,
+        p.Barcode,
+        p.Name,
+        p.OEMNumber,
+        p.Condition,
+        p.CategoryId,
+        p.BrandId,
+        p.CostPrice,
+        p.SalePrice,
+        p.AveragePrice,
+        p.EstimatedMarketPrice,
+        p.CostAllocationPercent,
+        p.AllocatedCost,
+        p.MinimumSellPrice,
+        p.FastSalePrice,
+        p.WholesalePrice,
+        p.RecommendedPrice,
+        p.PricingStatus,
+        p.PricingCalculatedAt,
+        p.Currency,
+        p.MinStock,
+        p.Notes,
+        p.UsedCarId,
+        p.IsActive
+    FROM dbo.Parts p
+    WHERE p.IsActive = 1
+      AND (@UsedCarId IS NULL OR p.UsedCarId = @UsedCarId)
+),
+PagedParts AS
+(
+    SELECT *
+    FROM FilteredParts
+    ORDER BY Name, Id
+    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
+)
+SELECT
+    p.Id,
+    p.InternalCode,
+    p.Barcode,
+    p.Name,
+    p.OEMNumber,
+    p.Condition,
+    p.CategoryId,
+    p.BrandId,
+    p.CostPrice,
+    p.SalePrice,
+    p.AveragePrice,
+    p.EstimatedMarketPrice,
+    p.CostAllocationPercent,
+    p.AllocatedCost,
+    p.MinimumSellPrice,
+    p.FastSalePrice,
+    p.WholesalePrice,
+    p.RecommendedPrice,
+    p.PricingStatus,
+    p.PricingCalculatedAt,
+    p.Currency,
+    p.MinStock,
+    StockQuantity = ISNULL(stock.Quantity, 0),
+    ReservedQuantity = ISNULL(stock.ReservedQuantity, 0),
+    AvailableQuantity = ISNULL(stock.Quantity - stock.ReservedQuantity, 0),
+    p.Notes,
+    p.UsedCarId,
+    p.IsActive
+FROM PagedParts p
+LEFT JOIN
+(
+    SELECT
+        s.PartId,
+        Quantity = SUM(ISNULL(s.Quantity, 0)),
+        ReservedQuantity = SUM(ISNULL(s.ReservedQuantity, 0))
+    FROM dbo.Stock s
+    INNER JOIN PagedParts paged ON paged.Id = s.PartId
+    GROUP BY s.PartId
+) stock ON stock.PartId = p.Id
+ORDER BY p.Name, p.Id;
 
-        var paged = projected.Skip((page - 1) * pageSize).Take(pageSize);
-        return (paged, projected.Count);
+SELECT COUNT(1)
+FROM dbo.Parts p
+WHERE p.IsActive = 1
+  AND (@UsedCarId IS NULL OR p.UsedCarId = @UsedCarId);
+""",
+            new
+            {
+                UsedCarId = usedCarId,
+                Offset = offset,
+                PageSize = pageSize
+            },
+            session.Transaction);
+
+        var items = multi.Read<PartDto>().ToList();
+        var totalCount = multi.ReadFirst<int>();
+        return (items, totalCount);
     }
 
     public IReadOnlyList<PartStockDto> GetStockByWarehouse(int partId)
@@ -130,10 +206,10 @@ SELECT TOP (@Take)
     p.OEMNumber AS OemNumber,
     ISNULL(NULLIF(p.Currency, N''), N'USD') AS Currency,
     p.SalePrice,
-    COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0) AS UnitCost,
+    COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0) AS UnitCost,
     ISNULL(st.OnHand, 0) AS OnHand,
     ISNULL(st.AvailableQuantity, 0) AS AvailableQuantity,
-    ISNULL(st.OnHand, 0) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0) AS StockValue,
+    ISNULL(st.OnHand, 0) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0) AS StockValue,
     ISNULL(s.SoldQuantityLast90, 0) AS SoldQuantityLast90,
     ISNULL(s.SoldQuantityAllTime, 0) AS SoldQuantityAllTime,
     s.LastSoldAt,
@@ -160,7 +236,7 @@ WHERE p.IsActive = 1
   AND DATEDIFF(DAY, activity.DormantSince, @Today) >= @MinDormantDays
 ORDER BY
     DATEDIFF(DAY, activity.DormantSince, @Today) DESC,
-    ISNULL(st.OnHand, 0) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0) DESC,
+    ISNULL(st.OnHand, 0) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0) DESC,
     p.Name;
 """,
             new
@@ -236,6 +312,15 @@ ORDER BY
             CostPrice = request.CostPrice,
             SalePrice = request.SalePrice,
             AveragePrice = request.AveragePrice,
+            EstimatedMarketPrice = request.EstimatedMarketPrice,
+            CostAllocationPercent = request.CostAllocationPercent,
+            AllocatedCost = request.AllocatedCost,
+            MinimumSellPrice = request.MinimumSellPrice,
+            FastSalePrice = request.FastSalePrice,
+            WholesalePrice = request.WholesalePrice,
+            RecommendedPrice = request.RecommendedPrice,
+            PricingStatus = NormalizePricingStatus(request.PricingStatus),
+            PricingCalculatedAt = request.PricingCalculatedAt,
             Currency = request.Currency,
             MinStock = request.MinStock,
             Notes = request.Notes,
@@ -248,6 +333,7 @@ ORDER BY
         var id = repository.Insert(part);
         if (request.UsedCarId is int usedCarId)
         {
+            UsedCarPartPricingAllocator.RepriceUsedCarParts(session, usedCarId, userId);
             EnsureInitialUsedCarPartStock(session, id, usedCarId, userId);
         }
 
@@ -259,6 +345,7 @@ ORDER BY
     {
         using var session = new DbSession(_factory);
         ValidateUsedCar(session, request.UsedCarId);
+        var previousUsedCarId = LoadPartUsedCarId(session, id);
 
         var repository = new PartsRepository(session);
         if (!repository.Update(id, request, userId))
@@ -268,7 +355,18 @@ ORDER BY
 
         if (request.UsedCarId is int usedCarId)
         {
+            if (previousUsedCarId is int oldUsedCarId && oldUsedCarId != usedCarId)
+            {
+                UsedCarPartPricingAllocator.RepriceUsedCarParts(session, oldUsedCarId, userId);
+            }
+
+            UsedCarPartPricingAllocator.RepriceUsedCarParts(session, usedCarId, userId);
             EnsureInitialUsedCarPartStock(session, id, usedCarId, userId);
+        }
+        else if (previousUsedCarId is int oldUsedCarId)
+        {
+            UsedCarPartPricingAllocator.ClearPartAllocation(session, id, userId);
+            UsedCarPartPricingAllocator.RepriceUsedCarParts(session, oldUsedCarId, userId);
         }
 
         session.Commit();
@@ -290,6 +388,7 @@ ORDER BY
     {
         using var session = new DbSession(_factory);
         ValidateUsedCar(session, usedCarId);
+        var previousUsedCarId = LoadPartUsedCarId(session, id);
 
         var repository = new PartsRepository(session);
         if (!repository.UpdateUsedCarId(id, usedCarId, userId))
@@ -299,7 +398,18 @@ ORDER BY
 
         if (usedCarId is int validUsedCarId)
         {
+            if (previousUsedCarId is int oldUsedCarId && oldUsedCarId != validUsedCarId)
+            {
+                UsedCarPartPricingAllocator.RepriceUsedCarParts(session, oldUsedCarId, userId);
+            }
+
+            UsedCarPartPricingAllocator.RepriceUsedCarParts(session, validUsedCarId, userId);
             EnsureInitialUsedCarPartStock(session, id, validUsedCarId, userId);
+        }
+        else if (previousUsedCarId is int oldUsedCarId)
+        {
+            UsedCarPartPricingAllocator.ClearPartAllocation(session, id, userId);
+            UsedCarPartPricingAllocator.RepriceUsedCarParts(session, oldUsedCarId, userId);
         }
 
         session.Commit();
@@ -385,6 +495,14 @@ ORDER BY
         {
             throw new NotFoundException("Part not found.");
         }
+    }
+
+    private static int? LoadPartUsedCarId(DbSession session, int partId)
+    {
+        return session.Connection.ExecuteScalar<int?>(
+            "SELECT UsedCarId FROM dbo.Parts WHERE Id = @PartId;",
+            new { PartId = partId },
+            session.Transaction);
     }
 
     private static void EnsureWarehouseExists(DbSession session, int warehouseId, string label)
@@ -584,42 +702,11 @@ END;
             .ToList();
     }
 
-    private static void HydrateStockQuantities(DbSession session, List<PartDto> parts)
-    {
-        if (parts.Count == 0)
-        {
-            return;
-        }
-
-        var stockByPart = session.Connection.Query<PartStockSummary>(
-            """
-SELECT
-    PartId,
-    Quantity = ISNULL(SUM(Quantity), 0),
-    ReservedQuantity = ISNULL(SUM(ReservedQuantity), 0)
-FROM dbo.Stock
-WHERE PartId IN @PartIds
-GROUP BY PartId;
-""",
-            new { PartIds = parts.Select(part => part.Id).ToArray() },
-            session.Transaction)
-            .ToDictionary(stock => stock.PartId);
-
-        foreach (var part in parts)
-        {
-            if (!stockByPart.TryGetValue(part.Id, out var stock))
-            {
-                continue;
-            }
-
-            part.StockQuantity = stock.Quantity;
-            part.ReservedQuantity = stock.ReservedQuantity;
-            part.AvailableQuantity = stock.Quantity - stock.ReservedQuantity;
-        }
-    }
-
     private static string? NormalizeOptional(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string NormalizePricingStatus(string? value)
+        => string.IsNullOrWhiteSpace(value) ? "Manual" : value.Trim();
 
     private static string NormalizeCurrency(string? currencyCode)
         => string.IsNullOrWhiteSpace(currencyCode) ? "USD" : currencyCode.Trim().ToUpperInvariant();
@@ -637,13 +724,6 @@ GROUP BY PartId;
         => string.IsNullOrWhiteSpace(row.InternalCode)
             ? row.PartName
             : $"{row.InternalCode} - {row.PartName}";
-
-    private sealed class PartStockSummary
-    {
-        public int PartId { get; set; }
-        public int Quantity { get; set; }
-        public int ReservedQuantity { get; set; }
-    }
 
     private sealed class DeadStockQueryRow
     {

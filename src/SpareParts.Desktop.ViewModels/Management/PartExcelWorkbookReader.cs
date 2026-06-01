@@ -18,6 +18,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private static readonly string[] CostAliases = { "cost", "costprice", "purchaseprice", "buyprice" };
         private static readonly string[] SaleAliases = { "sale", "saleprice", "sellingprice", "retailprice" };
         private static readonly string[] AverageAliases = { "average", "averageprice" };
+        private static readonly string[] EstimatedMarketAliases = { "estimatedmarketprice", "marketprice", "expectedprice", "expectedvalue", "estimatedsaleprice" };
         private static readonly string[] CurrencyAliases = { "currency", "currencycode" };
         private static readonly string[] MinStockAliases = { "minstock", "minimumstock", "stockminimum", "minimumqty" };
         private static readonly string[] NotesAliases = { "notes", "note", "remarks" };
@@ -83,6 +84,7 @@ namespace SpareParts.Desktop.Wpf.Management
                     CostPrice = GetCellValue(cellValues, headerMap, CostAliases),
                     SalePrice = GetCellValue(cellValues, headerMap, SaleAliases),
                     AveragePrice = GetCellValue(cellValues, headerMap, AverageAliases),
+                    EstimatedMarketPrice = GetCellValue(cellValues, headerMap, EstimatedMarketAliases),
                     Currency = GetCellValue(cellValues, headerMap, CurrencyAliases),
                     MinStock = GetCellValue(cellValues, headerMap, MinStockAliases),
                     Notes = GetCellValue(cellValues, headerMap, NotesAliases),

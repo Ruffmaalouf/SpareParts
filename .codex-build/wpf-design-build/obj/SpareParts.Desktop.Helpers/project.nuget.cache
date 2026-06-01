@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "DKm2He3k4+Q=",
+  "success": true,
+  "projectFilePath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Desktop.Helpers\\SpareParts.Desktop.Helpers.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\r.maalouf\\.nuget\\packages\\restsharp\\114.0.0\\restsharp.114.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

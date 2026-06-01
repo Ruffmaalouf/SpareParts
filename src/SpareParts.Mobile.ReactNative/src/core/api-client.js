@@ -23,6 +23,20 @@ function isFormData(value) {
   return typeof FormData !== "undefined" && value instanceof FormData;
 }
 
+function buildPagedPath(path, page, pageSize) {
+  const [pathname, query = ""] = String(path || "").split("?");
+  const params = new URLSearchParams(query);
+  params.set("page", String(page));
+  params.set("pageSize", String(pageSize));
+  const nextQuery = params.toString();
+  return nextQuery ? `${pathname}?${nextQuery}` : pathname;
+}
+
+function isPartsCollectionPath(path) {
+  const normalized = String(path || "").split("?")[0].replace(/\/+$/, "");
+  return /^\/?api\/parts$/i.test(normalized);
+}
+
 class ApiClient {
   constructor(apiBaseUrl, token, onUnauthorized) {
     this.apiBaseUrl = normalizeBaseUrl(apiBaseUrl);
@@ -30,7 +44,7 @@ class ApiClient {
     this.onUnauthorized = onUnauthorized || null;
   }
 
-  async request(path, options) {
+  async requestResponse(path, options) {
     const headers = {
       Accept: "application/json",
       ...(options && options.headers ? options.headers : {})
@@ -60,6 +74,10 @@ class ApiClient {
       throw new ApiError(message, response.status);
     }
 
+    return response;
+  }
+
+  async readResponse(response) {
     if (response.status === 204) {
       return null;
     }
@@ -67,8 +85,39 @@ class ApiClient {
     return response.json();
   }
 
+  async request(path, options) {
+    const response = await this.requestResponse(path, options);
+    return this.readResponse(response);
+  }
+
   get(path) {
     return this.request(path);
+  }
+
+  async getAllPages(path, pageSize = 5000) {
+    const rows = [];
+    let page = 1;
+
+    while (true) {
+      const response = await this.requestResponse(buildPagedPath(path, page, pageSize));
+      const batch = await this.readResponse(response);
+      const items = Array.isArray(batch) ? batch : batch ? [batch] : [];
+      rows.push(...items);
+
+      const totalCount = Number.parseInt(response.headers.get("X-Total-Count") || "", 10);
+      const effectivePageSize = Number.parseInt(response.headers.get("X-Page-Size") || "", 10) || pageSize;
+      if (items.length === 0
+        || items.length < effectivePageSize
+        || (Number.isFinite(totalCount) && rows.length >= totalCount)) {
+        return rows;
+      }
+
+      page += 1;
+    }
+  }
+
+  list(path) {
+    return isPartsCollectionPath(path) ? this.getAllPages(path) : this.get(path);
   }
 
   post(path, body) {

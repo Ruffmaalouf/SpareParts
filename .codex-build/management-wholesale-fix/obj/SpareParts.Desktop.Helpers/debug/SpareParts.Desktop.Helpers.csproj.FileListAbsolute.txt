@@ -1,0 +1,14 @@
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\bin\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.deps.json
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\bin\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.dll
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\bin\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.pdb
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.csproj.AssemblyReference.cache
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.AssemblyInfo.cs
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.sourcelink.json
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SparePar.30A1B8A4.Up2Date
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.dll
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\refint\SpareParts.Desktop.Helpers.dll
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\SpareParts.Desktop.Helpers.pdb
+D:\Ralph\SpareParts\.codex-build\management-wholesale-fix\obj\SpareParts.Desktop.Helpers\debug\ref\SpareParts.Desktop.Helpers.dll

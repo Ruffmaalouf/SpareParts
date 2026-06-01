@@ -135,7 +135,7 @@ function ResourceEditorPanel({
       crudConfig.fields.map((field) =>
         h("label", {
           key: field.key,
-          className: field.type === "bool" ? "checkbox-field" : ""
+          className: field.type === "bool" ? "checkbox-field" : field.readOnly ? "readonly-field" : ""
         },
           field.type === "bool"
             ? [
@@ -143,6 +143,7 @@ function ResourceEditorPanel({
                 key: "input",
                 type: "checkbox",
                 checked: Boolean(form[field.key]),
+                disabled: Boolean(field.readOnly),
                 onChange: (event) => onFieldChange(field.key, event.target.checked)
               }),
               h("span", { key: "label" }, fieldLabel(field, t))
@@ -152,6 +153,7 @@ function ResourceEditorPanel({
               h("input", {
                 key: "input",
                 value: form[field.key] ?? "",
+                readOnly: Boolean(field.readOnly),
                 onChange: (event) => onFieldChange(field.key, event.target.value),
                 type: field.secure ? "password" : field.type === "number" ? "number" : field.type || "text"
               })

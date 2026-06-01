@@ -43,6 +43,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     private decimal _newUsedCarTotalBeforeShipping;
     private decimal _newUsedCarGrandTotalBase;
     private decimal _newUsedCarGrandTotalCounter;
+    private decimal _newUsedCarExpectedSellThroughRate = 0.80m;
 
     public UsedCarsManagementViewModel(
         ManagementCoordinator coordinator,
@@ -151,6 +152,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             _newUsedCarTotalBeforeShipping = value.TotalBeforeShipping;
             _newUsedCarGrandTotalBase = value.GrandTotalBase;
             _newUsedCarGrandTotalCounter = value.GrandTotalCounter;
+            _newUsedCarExpectedSellThroughRate = value.ExpectedSellThroughRate > 0m ? value.ExpectedSellThroughRate : 0.80m;
 
             RaiseEditorProps();
         }
@@ -467,6 +469,21 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
         }
     }
 
+    public decimal NewUsedCarExpectedSellThroughRate
+    {
+        get => _newUsedCarExpectedSellThroughRate;
+        set
+        {
+            if (_newUsedCarExpectedSellThroughRate == value)
+            {
+                return;
+            }
+
+            _newUsedCarExpectedSellThroughRate = value;
+            OnPropertyChanged(nameof(NewUsedCarExpectedSellThroughRate));
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public void LoadReferenceData(
@@ -560,7 +577,8 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             PartOut = NewUsedCarPartOut,
             Shipping = NewUsedCarShipping,
             Customs = NewUsedCarCustoms,
-            Repairs = NewUsedCarRepairs
+            Repairs = NewUsedCarRepairs,
+            ExpectedSellThroughRate = NewUsedCarExpectedSellThroughRate
         };
 
         var result = await _coordinator.SaveUsedCarAsync(request, SelectedUsedCar);
@@ -638,6 +656,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
         _newUsedCarTotalBeforeShipping = 0m;
         _newUsedCarGrandTotalBase = 0m;
         _newUsedCarGrandTotalCounter = 0m;
+        _newUsedCarExpectedSellThroughRate = 0.80m;
         NewUsedCarPrice = 0m;
         RaiseEditorProps();
     }
@@ -812,6 +831,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             TotalBeforeShipping = usedCar.TotalBeforeShipping,
             GrandTotalBase = usedCar.GrandTotalBase,
             GrandTotalCounter = usedCar.GrandTotalCounter,
+            ExpectedSellThroughRate = usedCar.ExpectedSellThroughRate,
             PurchaseCostBase = usedCar.PurchaseCostBase,
             TransportationCostBase = usedCar.TransportationCostBase,
             CustomsCostBase = usedCar.CustomsCostBase,
@@ -856,7 +876,8 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             nameof(NewUsedCarRepairs),
             nameof(NewUsedCarTotalBeforeShipping),
             nameof(NewUsedCarGrandTotalBase),
-            nameof(NewUsedCarGrandTotalCounter));
+            nameof(NewUsedCarGrandTotalCounter),
+            nameof(NewUsedCarExpectedSellThroughRate));
 
         RaiseLabelProps();
     }

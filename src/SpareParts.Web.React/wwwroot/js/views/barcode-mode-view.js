@@ -248,7 +248,7 @@ export function BarcodeModeView({ api, onNavigate, onView, t }) {
     setStatus("Loading AR search mode...");
     try {
       const [nextParts, nextWarehouses, nextUsedCars] = await Promise.all([
-        api.get("/api/parts?page=1&pageSize=500"),
+        api.list("/api/parts"),
         api.get("/api/warehouses"),
         api.get("/api/usedcars")
       ]);

@@ -182,7 +182,7 @@ function RepairPrepScreen({ api }) {
     try {
       const [nextCars, nextParts, nextCurrencies, nextAppConstants] = await Promise.all([
         api.get("/api/usedcars"),
-        api.get("/api/parts?page=1&pageSize=500"),
+        api.list("/api/parts"),
         api.get("/api/currencies"),
         api.get("/api/appconstants")
       ]);

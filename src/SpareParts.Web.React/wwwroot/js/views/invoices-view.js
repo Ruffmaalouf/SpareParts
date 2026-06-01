@@ -61,7 +61,7 @@ export function InvoicesView({ api }) {
       const [customerRows, warehouseRows, partRows] = await Promise.all([
         api.get("/api/customers?page=1&pageSize=100"),
         api.get("/api/warehouses"),
-        api.get("/api/parts?page=1&pageSize=200")
+        api.list("/api/parts")
       ]);
 
       setCustomers(customerRows);

@@ -1,6 +1,7 @@
 using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Cars;
+using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
@@ -37,7 +38,7 @@ public sealed class UsedCarsService
     public IEnumerable<UsedCarDto> GetAll()
     {
         using var conn = _factory.CreateConnection();
-        return conn.Query<UsedCarDto>(
+        var cars = conn.Query<UsedCarDto>(
             @"SELECT uc.Id,
                      uc.Barcode,
                      uc.SupplierId,
@@ -72,6 +73,7 @@ public sealed class UsedCarsService
                      uc.TotalBeforeShipping,
                      uc.GrandTotalBase,
                      uc.GrandTotalCounter,
+                     uc.ExpectedSellThroughRate,
                      uc.BaseCurrencyCode,
                      uc.CounterCurrencyCode,
                      uc.CounterRateToBase,
@@ -118,7 +120,7 @@ public sealed class UsedCarsService
               OUTER APPLY
               (
                   SELECT PartsRemovedCount = COUNT(1),
-                         PartsRemovedValueBase = ISNULL(SUM(COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0)), 0)
+                         PartsRemovedValueBase = ISNULL(SUM(COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0)), 0)
                   FROM dbo.Parts p
                   WHERE p.UsedCarId = uc.Id
               ) linked
@@ -159,7 +161,7 @@ public sealed class UsedCarsService
               OUTER APPLY
               (
                   SELECT RemainingStockQuantity = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4))), 0),
-                         RemainingStockValueBase = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0)), 0)
+                         RemainingStockValueBase = ISNULL(SUM(CAST(st.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0)), 0)
                   FROM dbo.Parts p
                   LEFT JOIN dbo.Stock st ON st.PartId = p.Id
                   WHERE p.UsedCarId = uc.Id
@@ -172,16 +174,104 @@ public sealed class UsedCarsService
                          ShippingCostBase = ROUND(ISNULL(uc.Shipping, 0) * rate.CounterRateToBase, 2),
                          PartOutCostBase = ROUND(ISNULL(uc.PartOutAmount, 0) * rate.CounterRateToBase, 2),
                          RepairsCostBase = ROUND(ISNULL(uc.Repairs, 0) * rate.CounterRateToBase, 2),
-                         FullCostBase = ROUND(ISNULL(uc.PriceBase, 0) + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * rate.CounterRateToBase), 2)
+                         FullCostBase = ROUND(CASE
+                             WHEN ISNULL(uc.GrandTotalBase, 0) > 0 THEN uc.GrandTotalBase
+                             ELSE ISNULL(uc.PriceBase, 0) + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * rate.CounterRateToBase)
+                         END, 2)
               ) cost
               CROSS APPLY
               (
                   SELECT NetProfitLossBase = CASE
                              WHEN wholesale.WholesaleSaleId IS NOT NULL THEN ROUND(ISNULL(wholesale.SalePriceBase, 0) - cost.FullCostBase - ISNULL(wholesale.WholesaleRepairTotalBaseAmount, 0), 2)
-                             ELSE ROUND(ISNULL(sales.PartsSoldAmountBase, 0) + ISNULL(stock.RemainingStockValueBase, 0) - cost.FullCostBase, 2)
+                             ELSE ROUND(ISNULL(sales.PartsSoldAmountBase, 0) - cost.FullCostBase, 2)
                          END
               ) profit
-              ORDER BY cb.Name, cm.Name, uc.ModelYear DESC, uc.Id DESC;");
+              ORDER BY cb.Name, cm.Name, uc.ModelYear DESC, uc.Id DESC;")
+            .ToList();
+
+        ApplyUsedCarInventoryValuation(conn, cars);
+        return cars;
+    }
+
+    private void ApplyUsedCarInventoryValuation(System.Data.IDbConnection connection, IReadOnlyCollection<UsedCarDto> cars)
+    {
+        if (cars.Count == 0)
+        {
+            return;
+        }
+
+        var carIds = cars.Select(car => car.Id).ToArray();
+        var partRows = connection.Query<UsedCarPartInventoryValueRow>(
+            @"SELECT p.Id AS PartId,
+                     p.UsedCarId,
+                     p.Currency,
+                     UnitCost = COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0),
+                     Quantity = ISNULL(SUM(CAST(ISNULL(st.Quantity, 0) AS DECIMAL(19, 4))), 0)
+              FROM dbo.Parts p
+              LEFT JOIN dbo.Stock st ON st.PartId = p.Id
+              WHERE p.UsedCarId IN @CarIds
+              GROUP BY p.Id,
+                       p.UsedCarId,
+                       p.Currency,
+                       p.AllocatedCost,
+                       p.CostPrice,
+                       p.AveragePrice;",
+            new { CarIds = carIds })
+            .ToList();
+
+        if (partRows.Count == 0)
+        {
+            foreach (var car in cars)
+            {
+                car.PartsRemovedCount = 0;
+                car.PartsRemovedValueBase = 0m;
+                car.RemainingStockQuantity = 0m;
+                car.RemainingStockValueBase = 0m;
+                car.NetProfitLossBase = CalculateUsedCarProfitBase(car);
+            }
+
+            return;
+        }
+
+        var rates = _currenciesService.GetAll().ToList();
+        var partsByCar = partRows.ToLookup(row => row.UsedCarId);
+        foreach (var car in cars)
+        {
+            var rows = partsByCar[car.Id].ToList();
+            car.PartsRemovedCount = rows.Count;
+            car.PartsRemovedValueBase = decimal.Round(rows.Sum(row => row.UnitCost * ResolvePartRateToBase(row.Currency, car, rates)), 2, MidpointRounding.AwayFromZero);
+            car.RemainingStockQuantity = rows.Sum(row => row.Quantity);
+            car.RemainingStockValueBase = decimal.Round(rows.Sum(row => row.Quantity * row.UnitCost * ResolvePartRateToBase(row.Currency, car, rates)), 2, MidpointRounding.AwayFromZero);
+            car.NetProfitLossBase = CalculateUsedCarProfitBase(car);
+        }
+    }
+
+    private static decimal ResolvePartRateToBase(
+        string? partCurrency,
+        UsedCarDto car,
+        IReadOnlyCollection<CurrencyRateDto> rates)
+    {
+        var baseCurrencyCode = NormalizeCurrencyCode(car.BaseCurrencyCode) ?? "USD";
+        var counterCurrencyCode = NormalizeCurrencyCode(car.CounterCurrencyCode) ?? baseCurrencyCode;
+        var currencyCode = NormalizeCurrencyCode(partCurrency) ?? counterCurrencyCode;
+        var counterRateToBase = car.CounterRateToBase > 0m ? car.CounterRateToBase : 1m;
+        var rateToBase = ResolveRateToBaseCurrency(
+            currencyCode,
+            rates,
+            baseCurrencyCode,
+            counterCurrencyCode,
+            counterRateToBase);
+
+        return rateToBase > 0m ? rateToBase : 1m;
+    }
+
+    private static decimal CalculateUsedCarProfitBase(UsedCarDto car)
+    {
+        var profitBase = car.WholesaleSaleId is not null
+            ? car.WholesaleSalePriceBase - car.FullCostBase - car.WholesaleRepairTotalBaseAmount
+            : car.PartsSoldAmountBase - car.FullCostBase;
+
+        return decimal.Round(profitBase, 2, MidpointRounding.AwayFromZero);
     }
 
     public int Create(CreateUsedCarRequest request, int userId)
@@ -194,9 +284,9 @@ public sealed class UsedCarsService
 
         var usedCarId = session.Connection.ExecuteScalar<int>(
             @"INSERT INTO dbo.UsedCars
-                (Barcode, SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, Repairs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId)
+                (Barcode, SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, Repairs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, ExpectedSellThroughRate, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId)
               VALUES
-                (@Barcode, @SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @Repairs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId);
+                (@Barcode, @SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @Repairs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @ExpectedSellThroughRate, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
@@ -220,6 +310,7 @@ public sealed class UsedCarsService
                 snapshot.TotalBeforeShipping,
                 snapshot.GrandTotalBase,
                 snapshot.GrandTotalCounter,
+                snapshot.ExpectedSellThroughRate,
                 snapshot.BaseCurrencyCode,
                 snapshot.CounterCurrencyCode,
                 snapshot.CounterRateToBase,
@@ -242,6 +333,7 @@ public sealed class UsedCarsService
         }
 
         SyncReceiveJournal(session, repositories, usedCarId, snapshot, receivedAt, userId);
+        UsedCarPartPricingAllocator.RepriceUsedCarParts(session, usedCarId, userId);
 
         session.Commit();
         return usedCarId;
@@ -480,6 +572,7 @@ public sealed class UsedCarsService
                   TotalBeforeShipping = @TotalBeforeShipping,
                   GrandTotalBase = @GrandTotalBase,
                   GrandTotalCounter = @GrandTotalCounter,
+                  ExpectedSellThroughRate = @ExpectedSellThroughRate,
                   BaseCurrencyCode = @BaseCurrencyCode,
                   CounterCurrencyCode = @CounterCurrencyCode,
                   CounterRateToBase = @CounterRateToBase,
@@ -510,6 +603,7 @@ public sealed class UsedCarsService
                 snapshot.TotalBeforeShipping,
                 snapshot.GrandTotalBase,
                 snapshot.GrandTotalCounter,
+                snapshot.ExpectedSellThroughRate,
                 snapshot.BaseCurrencyCode,
                 snapshot.CounterCurrencyCode,
                 snapshot.CounterRateToBase,
@@ -534,6 +628,7 @@ public sealed class UsedCarsService
         }
 
         SyncReceiveJournal(session, repositories, id, snapshot, receivedAt, userId);
+        UsedCarPartPricingAllocator.RepriceUsedCarParts(session, id, userId);
 
         session.Commit();
     }
@@ -726,7 +821,10 @@ public sealed class UsedCarsService
                      uc.BaseCurrencyCode,
                      uc.CounterCurrencyCode,
                      CounterRateToBase = CASE WHEN ISNULL(uc.CounterRateToBase, 0) > 0 THEN uc.CounterRateToBase ELSE 1 END,
-                     FullCostBase = ROUND(ISNULL(uc.PriceBase, 0) + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * CASE WHEN ISNULL(uc.CounterRateToBase, 0) > 0 THEN uc.CounterRateToBase ELSE 1 END), 4)
+                     FullCostBase = ROUND(CASE
+                         WHEN ISNULL(uc.GrandTotalBase, 0) > 0 THEN uc.GrandTotalBase
+                         ELSE ISNULL(uc.PriceBase, 0) + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * CASE WHEN ISNULL(uc.CounterRateToBase, 0) > 0 THEN uc.CounterRateToBase ELSE 1 END)
+                     END, 4)
               FROM dbo.UsedCars uc
               INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
               INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
@@ -1204,6 +1302,7 @@ public sealed class UsedCarsService
             TotalBeforeShipping = totalBeforeShipping,
             GrandTotalBase = grandTotalBase,
             GrandTotalCounter = grandTotalCounter,
+            ExpectedSellThroughRate = UsedVehiclePartPricingEngine.NormalizeExpectedSellThroughRate(request.ExpectedSellThroughRate),
             BaseCurrencyCode = baseCurrencyCode,
             CounterCurrencyCode = counterCurrencyCode,
             CounterRateToBase = decimal.Round(counterToBaseRate, 8, MidpointRounding.AwayFromZero)
@@ -1240,6 +1339,11 @@ public sealed class UsedCarsService
         if (request.PartOut < 0 || request.Shipping < 0 || request.Customs < 0 || request.Repairs < 0)
         {
             throw new ValidationException("Expense values cannot be negative.");
+        }
+
+        if (request.ExpectedSellThroughRate <= 0m || request.ExpectedSellThroughRate > 1m)
+        {
+            throw new ValidationException("Expected sell-through rate must be between 0 and 1.");
         }
 
         if (request.IsReceived && request.Customs <= 0)
@@ -1777,6 +1881,15 @@ public sealed class UsedCarsService
         }
 
         return accountId;
+    }
+
+    private sealed class UsedCarPartInventoryValueRow
+    {
+        public int PartId { get; set; }
+        public int UsedCarId { get; set; }
+        public string? Currency { get; set; }
+        public decimal UnitCost { get; set; }
+        public decimal Quantity { get; set; }
     }
 
     private sealed record UsedCarWholesaleSaleCurrencyContext(

@@ -30,6 +30,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private decimal _totalBeforeShipping;
         private decimal _grandTotalBase;
         private decimal _grandTotalCounter;
+        private decimal _expectedSellThroughRate = 0.80m;
         private decimal _purchaseCostBase;
         private decimal _transportationCostBase;
         private decimal _customsCostBase;
@@ -68,6 +69,7 @@ namespace SpareParts.Desktop.Wpf.Management
             nameof(PartsSoldQuantity),
             nameof(PartsSoldAmountBase),
             nameof(SalePriceBase),
+            nameof(IsWholesaleSold),
             nameof(RemainingStockQuantity),
             nameof(RemainingStockValueBase),
             nameof(NetProfitLossBase),
@@ -211,6 +213,12 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             get => _grandTotalCounter;
             set => SetField(ref _grandTotalCounter, value);
+        }
+
+        public decimal ExpectedSellThroughRate
+        {
+            get => _expectedSellThroughRate;
+            set => SetField(ref _expectedSellThroughRate, value);
         }
 
         public decimal PurchaseCostBase
@@ -381,9 +389,9 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public decimal TeardownCostBase => RoundMoney(TransportationCostBase + CustomsCostBase + ShippingCostBase + PartOutCostBase + RepairsCostBase);
 
-        public decimal ProfitMapSoldValueBase => RoundMoney(PartsSoldAmountBase != 0m ? PartsSoldAmountBase : SalePriceBase);
+        public decimal ProfitMapSoldValueBase => RoundMoney(IsWholesaleSold ? SalePriceBase : PartsSoldAmountBase);
 
-        public decimal ProfitMapRecoveredValueBase => RoundMoney(ProfitMapSoldValueBase + RemainingStockValueBase);
+        public decimal ProfitMapRecoveredValueBase => ProfitMapSoldValueBase;
 
         public decimal ProfitMapBreakEvenGapBase => RoundMoney(FullCostBase > ProfitMapRecoveredValueBase ? FullCostBase - ProfitMapRecoveredValueBase : 0m);
 

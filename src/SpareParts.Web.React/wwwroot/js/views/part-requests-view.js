@@ -93,7 +93,7 @@ export function PartRequestsView({ api }) {
       const statusQuery = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
       const [nextRequests, nextParts, nextCustomers] = await Promise.all([
         api.get(`/api/partrequests${statusQuery}`),
-        api.get("/api/parts?page=1&pageSize=5000"),
+        api.list("/api/parts"),
         api.get("/api/customers?page=1&pageSize=5000")
       ]);
       setRequests(asRows(nextRequests));

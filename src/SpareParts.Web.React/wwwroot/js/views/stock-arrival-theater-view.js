@@ -423,7 +423,7 @@ export function StockArrivalTheaterView({ api, onView, t }) {
     setIsLoading(true);
     setStatus("Loading stock arrival opportunities...");
     const sources = [
-      ["parts", api.get("/api/parts?page=1&pageSize=5000")],
+      ["parts", api.list("/api/parts")],
       ["requests", api.get("/api/partrequests?status=Active")],
       ["usedCars", api.get("/api/usedcars")],
       ["campaignAssets", api.get("/api/communications/campaign-assets")],

@@ -15,7 +15,8 @@ const emptyForm = {
   partOut: "",
   shipping: "",
   customs: "",
-  repairs: ""
+  repairs: "",
+  expectedSellThroughRate: "0.8"
 };
 
 function read(row, ...keys) {
@@ -79,7 +80,17 @@ function percent(value, total) {
 }
 
 function partUnitCost(part) {
-  return toNumber(read(part, "averagePrice")) || toNumber(read(part, "costPrice"));
+  return toNumber(read(part, "minimumSellPrice"))
+    || toNumber(read(part, "allocatedCost"))
+    || toNumber(read(part, "costPrice"))
+    || toNumber(read(part, "averagePrice"));
+}
+
+function partTargetPrice(part) {
+  return toNumber(read(part, "recommendedPrice"))
+    || toNumber(read(part, "salePrice"))
+    || toNumber(read(part, "estimatedMarketPrice"))
+    || toNumber(read(part, "averagePrice"));
 }
 
 function partAvailableQuantity(part) {
@@ -91,7 +102,7 @@ function partAvailableQuantity(part) {
 }
 
 function rankPart(part, isLinked) {
-  const salePrice = toNumber(read(part, "salePrice"));
+  const salePrice = partTargetPrice(part);
   const unitCost = partUnitCost(part);
   const quantity = partAvailableQuantity(part);
   const usefulQuantity = quantity > 0 ? quantity : 0;
@@ -136,10 +147,12 @@ function buildProfitProject(car) {
   const partsRemovedCount = toNumber(read(car, "partsRemovedCount"));
   const partsRemovedValue = toNumber(read(car, "partsRemovedValueBase"));
   const soldQuantity = toNumber(read(car, "partsSoldQuantity"));
-  const soldAmount = toNumber(read(car, "partsSoldAmountBase", "salePriceBase"));
+  const soldAmount = read(car, "isWholesaleSold")
+    ? toNumber(read(car, "salePriceBase"))
+    : toNumber(read(car, "partsSoldAmountBase"));
   const remainingQuantity = toNumber(read(car, "remainingStockQuantity"));
   const remainingStockValue = toNumber(read(car, "remainingStockValueBase"));
-  const recoveredValue = soldAmount + remainingStockValue;
+  const recoveredValue = soldAmount;
   const netProfitLossValue = read(car, "netProfitLossBase");
   const netProfitLoss = netProfitLossValue === "" ? recoveredValue - fullCost : toNumber(netProfitLossValue);
   const breakEvenGap = Math.max(fullCost - recoveredValue, 0);
@@ -232,7 +245,7 @@ function PartRecommendation({ item, car, t, onAssign }) {
     h("div", { className: "part-recommendation-metrics" },
       h("span", null, t("usedCars.expectedSale", "Expected Sale")),
       h("strong", null, money(item.expectedSale || item.salePrice, currency)),
-      h("small", null, `${t("usedCars.stock", "Stock")} ${item.quantity.toLocaleString()} / ${t("usedCars.margin", "Margin")} ${item.marginPercent}%`)
+      h("small", null, `${t("usedCars.stock", "Stock")} ${item.quantity.toLocaleString()} / ${t("usedCars.min", "Min")} ${money(item.unitCost, currency)} / ${t("usedCars.margin", "Margin")} ${item.marginPercent}%`)
     ),
     item.isLinked
       ? h("span", { className: "profit-status-chip" }, t("usedCars.linked", "Linked"))
@@ -247,7 +260,6 @@ function ProfitProjectMap({ car, recommendations, onAssignPart, t, displayContex
   const displayMoney = (value) => displayMoneyFromBase(value, displayContext);
   const resultTone = project.netProfitLoss >= 0 ? "positive" : "negative";
   const soldWidth = Math.min(project.soldPercent, 100);
-  const stockWidth = Math.min(project.stockPercent, Math.max(100 - soldWidth, 0));
   const flowSteps = [
     {
       label: t("usedCars.boughtFor", "Bought For"),
@@ -308,12 +320,10 @@ function ProfitProjectMap({ car, recommendations, onAssignPart, t, displayContex
         h("strong", null, `${project.recoveredPercent}%`)
       ),
       h("div", { className: "profit-progress-track", "aria-label": t("usedCars.recovered", "Recovered") },
-        h("span", { className: "profit-progress-segment sold", style: { width: `${soldWidth}%` } }),
-        h("span", { className: "profit-progress-segment stock", style: { width: `${stockWidth}%` } })
+        h("span", { className: "profit-progress-segment sold", style: { width: `${soldWidth}%` } })
       ),
       h("div", { className: "profit-legend" },
-        h("span", null, t("usedCars.soldCash", "Sold cash")),
-        h("span", null, t("usedCars.stockValue", "Stock value"))
+        h("span", null, t("usedCars.soldCash", "Sold cash"))
       )
     ),
     h("div", { className: "profit-metric-grid" },
@@ -325,7 +335,7 @@ function ProfitProjectMap({ car, recommendations, onAssignPart, t, displayContex
       h(ProfitMetric, {
         label: t("usedCars.recoveredValue", "Recovered Value"),
         value: displayMoney(project.recoveredValue),
-        detail: t("usedCars.soldPlusStock", "Sold plus remaining stock")
+        detail: t("usedCars.soldCashOnly", "Sold cash only")
       }),
       h(ProfitMetric, {
         label: t("usedCars.breakEven", "Break Even"),
@@ -555,7 +565,8 @@ export function UsedCarsView({ api, t }) {
       partOut: String(read(car, "partOut") || ""),
       shipping: String(read(car, "shipping") || ""),
       customs: String(read(car, "customs") || ""),
-      repairs: String(read(car, "repairs") || "")
+      repairs: String(read(car, "repairs") || ""),
+      expectedSellThroughRate: String(read(car, "expectedSellThroughRate") || "0.8")
     });
   }, []);
 
@@ -611,7 +622,7 @@ export function UsedCarsView({ api, t }) {
 
   const loadParts = useCallback(async () => {
     try {
-      setParts(toArray(await api.get("/api/parts?page=1&pageSize=500")));
+      setParts(toArray(await api.list("/api/parts")));
     } catch (error) {
       setParts([]);
       setStatus(error.message || t("usedCars.partsLoadError", "Could not load linked parts."));
@@ -669,7 +680,8 @@ export function UsedCarsView({ api, t }) {
     partOut: toNumber(form.partOut),
     shipping: toNumber(form.shipping),
     customs: toNumber(form.customs),
-    repairs: toNumber(form.repairs)
+    repairs: toNumber(form.repairs),
+    expectedSellThroughRate: toNumber(form.expectedSellThroughRate) || 0.8
   }), [form]);
 
   const startNew = useCallback(() => {
@@ -682,6 +694,11 @@ export function UsedCarsView({ api, t }) {
     const request = buildRequest();
     if (!request.carModelId || !request.supplierId || !request.locationId || !request.modelYear) {
       setStatus(t("usedCars.requiredBeforeSave", "Select model, supplier, location, and year before saving."));
+      return;
+    }
+
+    if (request.expectedSellThroughRate <= 0 || request.expectedSellThroughRate > 1) {
+      setStatus("Expected sell-through rate must be between 0 and 1.");
       return;
     }
 
@@ -876,6 +893,7 @@ export function UsedCarsView({ api, t }) {
             h(DetailTile, { label: t("usedCars.location", "Location"), value: read(selectedCar, "location") }),
             h(DetailTile, { label: t("usedCars.price", "Price"), value: carPrice(selectedCar) }),
             h(DetailTile, { label: "Full Cost", value: displayMoneyFromBase(read(selectedCar, "fullCostBase"), selectedDisplayContext) }),
+            h(DetailTile, { label: "Sell-Through", value: `${Math.round(toNumber(read(selectedCar, "expectedSellThroughRate")) * 100)}%` }),
             h(DetailTile, { label: "Net P/L", value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) })
           )
         ),
@@ -942,7 +960,8 @@ export function UsedCarsView({ api, t }) {
             h(InputField, { label: t("usedCars.partOut", "Part-Out"), value: form.partOut, type: "number", onChange: (value) => setFormValue("partOut", value) }),
             h(InputField, { label: t("usedCars.shipping", "Shipping"), value: form.shipping, type: "number", onChange: (value) => setFormValue("shipping", value) }),
             h(InputField, { label: t("usedCars.customs", "Customs"), value: form.customs, type: "number", onChange: (value) => setFormValue("customs", value) }),
-            h(InputField, { label: t("usedCars.repairs", "Repairs"), value: form.repairs, type: "number", onChange: (value) => setFormValue("repairs", value) })
+            h(InputField, { label: t("usedCars.repairs", "Repairs"), value: form.repairs, type: "number", onChange: (value) => setFormValue("repairs", value) }),
+            h(InputField, { label: "Expected Sell-Through Rate", value: form.expectedSellThroughRate, type: "number", onChange: (value) => setFormValue("expectedSellThroughRate", value) })
           ),
           h("p", { className: "empty-state" }, selectedModel ? modelTitle(selectedModel) : t("usedCars.carModel", "Car Model"))
         ),

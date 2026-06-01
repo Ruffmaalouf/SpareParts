@@ -23,6 +23,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private decimal _newPartCostPrice;
         private decimal _newPartSalePrice;
         private string _newPartAveragePrice = string.Empty;
+        private string _newPartEstimatedMarketPrice = string.Empty;
         private string _newPartCurrency = "USD";
         private int _newPartMinStock;
         private int _newPartCategoryId = 1;
@@ -171,6 +172,18 @@ namespace SpareParts.Desktop.Wpf.Management
             }
         }
 
+        public string NewPartEstimatedMarketPrice
+        {
+            get => _newPartEstimatedMarketPrice;
+            set
+            {
+                if (SetProperty(ref _newPartEstimatedMarketPrice, value))
+                {
+                    UpdatePricingCoach();
+                }
+            }
+        }
+
         public string NewPartCurrency
         {
             get => _newPartCurrency;
@@ -245,6 +258,7 @@ namespace SpareParts.Desktop.Wpf.Management
             NewPartCostPrice = p.CostPrice;
             NewPartSalePrice = p.SalePrice;
             NewPartAveragePrice = p.AveragePrice?.ToString("0.##") ?? string.Empty;
+            NewPartEstimatedMarketPrice = p.EstimatedMarketPrice?.ToString("0.##") ?? string.Empty;
             NewPartCurrency = p.Currency;
             NewPartMinStock = p.MinStock;
             NewPartNotes = p.Notes ?? string.Empty;
@@ -253,7 +267,7 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public void ClearForm(string defaultCurrencyCode = "USD")
         {
-            NewPartCode = NewPartBarcode = NewPartName = NewPartOEM = NewPartAveragePrice = NewPartNotes = string.Empty;
+            NewPartCode = NewPartBarcode = NewPartName = NewPartOEM = NewPartAveragePrice = NewPartEstimatedMarketPrice = NewPartNotes = string.Empty;
             NewPartCostPrice = NewPartSalePrice = 0;
             NewPartCurrency = defaultCurrencyCode;
             NewPartMinStock = 0;
@@ -383,7 +397,8 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private void UpdatePricingCoach()
         {
-            var averagePrice = SmartPricingCoach.ParseAveragePrice(NewPartAveragePrice);
+            var averagePrice = SmartPricingCoach.ParseAveragePrice(NewPartEstimatedMarketPrice)
+                ?? SmartPricingCoach.ParseAveragePrice(NewPartAveragePrice);
             var availableQuantity = SelectedPart?.AvailableQuantity ?? SelectedPart?.StockQuantity ?? 0;
             _pricingCoach = SmartPricingCoach.Evaluate(
                 NewPartCostPrice,

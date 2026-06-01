@@ -7,7 +7,7 @@ class ResourceService {
   }
 
   async list(endpoint) {
-    return asRows(await this.api.get(endpoint));
+    return asRows(await this.api.list(endpoint));
   }
 }
 

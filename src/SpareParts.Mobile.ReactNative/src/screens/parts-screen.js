@@ -21,7 +21,7 @@ function PartsScreen({ api }) {
     setIsLoading(true);
     setStatus(t("parts.loading", "Loading parts..."));
     try {
-      setParts(await api.get("/api/parts?page=1&pageSize=120"));
+      setParts(await api.list("/api/parts"));
       setStatus(t("parts.loaded", "Parts loaded."));
     } catch (error) {
       setStatus(error.message || t("parts.loadError", "Could not load parts."));

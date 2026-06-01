@@ -1,0 +1,28 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5002
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: D:\Ralph\SpareParts\src\SpareParts.Api\bin\Debug\net8.0
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 OPTIONS http://outdoor-positions-moderate-nominated.trycloudflare.com/api/auth/login - - -
+info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
+      CORS policy execution successful.
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 OPTIONS http://outdoor-positions-moderate-nominated.trycloudflare.com/api/auth/login - 204 - - 7.8525ms
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://outdoor-positions-moderate-nominated.trycloudflare.com/api/auth/login - application/json 29
+info: Microsoft.AspNetCore.Cors.Infrastructure.CorsService[4]
+      CORS policy execution successful.
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'SpareParts.Api.Controllers.AuthController.Login (SpareParts.Api)'
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[102]
+      Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.ActionResult`1[SpareParts.Domain.Auth.LoginResponse] Login(SpareParts.Domain.Auth.LoginRequest) on controller SpareParts.Api.Controllers.AuthController (SpareParts.Api).
+info: Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker[105]
+      Executed action SpareParts.Api.Controllers.AuthController.Login (SpareParts.Api) in 24.6057ms
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'SpareParts.Api.Controllers.AuthController.Login (SpareParts.Api)'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://outdoor-positions-moderate-nominated.trycloudflare.com/api/auth/login - 400 - application/json 72.4512ms

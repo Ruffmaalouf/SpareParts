@@ -43,9 +43,9 @@ function roundToNearestFive(value) {
   return Math.max(5, Math.round(value / 5) * 5);
 }
 
-function suggestedPrice({ averagePrice, costPrice, salePrice, waitingCustomers, isRare }) {
+function suggestedPrice({ marketPrice, averagePrice, costPrice, salePrice, waitingCustomers, isRare }) {
   const marginFloor = costPrice > 0 ? costPrice / 0.72 : 0;
-  const marketAnchor = averagePrice > 0 ? averagePrice : salePrice;
+  const marketAnchor = marketPrice > 0 ? marketPrice : averagePrice > 0 ? averagePrice : salePrice;
   const demandLift = isRare && waitingCustomers > 0 ? Math.min(1.3, 1.12 + waitingCustomers * 0.045) : 1;
   const suggested = Math.max(marketAnchor * demandLift, marginFloor, salePrice);
   return roundToNearestFive(suggested);
@@ -88,14 +88,16 @@ export function smartPricingCoach(part, waitingCustomers = 0) {
   const salePrice = toNumber(read(part, "salePrice"));
   const costPrice = toNumber(read(part, "costPrice"));
   const averagePrice = toNumber(read(part, "averagePrice"));
+  const marketPrice = toNumber(read(part, "estimatedMarketPrice"));
   const availableQuantity = toNumber(read(part, "availableQuantity", "stockQuantity"));
   const minStock = toNumber(read(part, "minStock"));
   const marginRate = salePrice > 0 ? (salePrice - costPrice) / salePrice : 0;
   const isRare = availableQuantity > 0 && availableQuantity <= Math.max(1, minStock || 1);
   const waitingCount = Math.max(0, toNumber(waitingCustomers));
-  const nextPrice = suggestedPrice({ averagePrice, costPrice, salePrice, waitingCustomers: waitingCount, isRare });
+  const nextPrice = suggestedPrice({ marketPrice, averagePrice, costPrice, salePrice, waitingCustomers: waitingCount, isRare });
   const suggestedText = nextPrice > 0 ? priceLabel(nextPrice, currency) : "";
-  const usuallyText = averagePrice > 0 ? priceLabel(averagePrice, currency) : "";
+  const usualPrice = marketPrice > 0 ? marketPrice : averagePrice;
+  const usuallyText = usualPrice > 0 ? priceLabel(usualPrice, currency) : "";
   const currentText = salePrice > 0 ? priceLabel(salePrice, currency) : "";
 
   if (isRare && waitingCount > 0 && nextPrice > salePrice) {
@@ -111,14 +113,14 @@ export function smartPricingCoach(part, waitingCustomers = 0) {
     return {
       tone: "warning",
       badge: "Set price",
-      message: averagePrice > 0
+    message: usualPrice > 0
         ? `This part usually sells at ${usuallyText}. Add a sale price before quoting.`
         : "Add a sale price before quoting this part.",
       suggestedPrice: nextPrice
     };
   }
 
-  if (averagePrice > 0 && salePrice < averagePrice * 0.9) {
+  if (usualPrice > 0 && salePrice < usualPrice * 0.9) {
     const guidance = costPrice <= 0 || marginRate < 0.22
       ? "Margin is low."
       : `Suggested price: ${suggestedText}.`;
@@ -149,7 +151,7 @@ export function smartPricingCoach(part, waitingCustomers = 0) {
     };
   }
 
-  if (averagePrice <= 0) {
+  if (usualPrice <= 0) {
     return {
       tone: "neutral",
       badge: "Add average",
@@ -158,7 +160,7 @@ export function smartPricingCoach(part, waitingCustomers = 0) {
     };
   }
 
-  if (salePrice > averagePrice * 1.15) {
+  if (salePrice > usualPrice * 1.15) {
     return {
       tone: "good",
       badge: "Strong",

@@ -424,6 +424,10 @@ namespace SpareParts.Desktop.Wpf
 
         public decimal SalePrice { get; private init; }
 
+        public decimal MinimumSellPrice { get; private init; }
+
+        public decimal RecommendedPrice { get; private init; }
+
         public int QuantityAvailable { get; private init; }
 
         public decimal OpportunityValue { get; private init; }
@@ -444,11 +448,21 @@ namespace SpareParts.Desktop.Wpf
 
         public string MarginLabel => $"{Currency} {MarginValue:N2} margin";
 
+        public string MinimumLabel => $"{Currency} {MinimumSellPrice:N2} min";
+
+        public string RecommendedLabel => $"{Currency} {RecommendedPrice:N2} target";
+
         public static UsedCarPartRecommendation FromPart(PartDto part, bool isAssigned)
         {
             var quantity = part.AvailableQuantity > 0
                 ? part.AvailableQuantity
                 : Math.Max(0, part.StockQuantity - part.ReservedQuantity);
+            var salePrice = part.RecommendedPrice > 0m ? part.RecommendedPrice : part.SalePrice;
+            var costBasis = part.MinimumSellPrice > 0m
+                ? part.MinimumSellPrice
+                : part.AllocatedCost > 0m
+                    ? part.AllocatedCost
+                    : part.CostPrice;
 
             return new UsedCarPartRecommendation
             {
@@ -456,10 +470,12 @@ namespace SpareParts.Desktop.Wpf
                 Code = part.InternalCode,
                 Name = part.Name,
                 Currency = part.Currency,
-                SalePrice = part.SalePrice,
+                SalePrice = salePrice,
+                MinimumSellPrice = costBasis,
+                RecommendedPrice = salePrice,
                 QuantityAvailable = quantity,
-                OpportunityValue = RoundMoney(part.SalePrice * quantity),
-                MarginValue = RoundMoney((part.SalePrice - part.CostPrice) * quantity),
+                OpportunityValue = RoundMoney(salePrice * quantity),
+                MarginValue = RoundMoney((salePrice - costBasis) * quantity),
                 IsAssigned = isAssigned
             };
         }

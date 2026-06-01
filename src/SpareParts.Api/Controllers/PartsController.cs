@@ -32,7 +32,7 @@ namespace SpareParts.Api.Controllers
             [FromQuery] int pageSize = 100,
             [FromQuery] int? usedCarId = null)
         {
-            (page, pageSize) = NormalizePagination(page, pageSize);
+            (page, pageSize) = NormalizePagination(page, pageSize, maxPageSize: 5000);
 
             var result = _service.GetAll(page, pageSize, usedCarId);
             ApplyPaginationHeaders(page, pageSize, result.TotalCount);

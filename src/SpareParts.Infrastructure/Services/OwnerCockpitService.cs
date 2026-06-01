@@ -80,8 +80,10 @@ WITH TransactionAmounts AS
         DisplayPaidAmount = COALESCE(NULLIF(t.PaidCounterAmount, 0), CASE WHEN @CounterRateToBase > 0 THEN COALESCE(NULLIF(t.PaidAmount, 0), 0) / @CounterRateToBase ELSE t.PaidAmount END),
         DisplayTotalCost = CASE WHEN @CounterRateToBase > 0 THEN ISNULL(t.TotalCost, 0) / @CounterRateToBase ELSE ISNULL(t.TotalCost, 0) END
     FROM dbo.Transactions t
-)
-SELECT
+),
+TransactionSummary AS
+(
+    SELECT
     TodaySalesCount = ISNULL(SUM(CASE
         WHEN tt.TypeKey = @SaleTypeKey
          AND t.TransactionDate >= @BusinessDate
@@ -129,12 +131,63 @@ SELECT
          AND t.DisplayTotalAmount > t.DisplayPaidAmount
         THEN t.DisplayTotalAmount - t.DisplayPaidAmount ELSE 0 END), 0),
     StockValue = (
-        SELECT ISNULL(SUM(CAST(s.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AveragePrice, 0), p.CostPrice, 0)), 0) / CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END
+        SELECT ISNULL(SUM(CAST(s.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0)), 0) / CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END
         FROM dbo.Stock s
         INNER JOIN dbo.Parts p ON p.Id = s.PartId
     )
-FROM TransactionAmounts t
-INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId;";
+    FROM TransactionAmounts t
+    INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+),
+WholesaleAmounts AS
+(
+    SELECT
+        w.Id,
+        DisplaySaleAmount = COALESCE(NULLIF(w.SalePriceCounter, 0), CASE WHEN rate.EffectiveCounterRate > 0 THEN ISNULL(w.SalePriceBase, 0) / rate.EffectiveCounterRate ELSE ISNULL(w.SalePrice, 0) END),
+        DisplayPaidAmount = COALESCE(NULLIF(w.PaidCounterAmount, 0), CASE WHEN rate.EffectiveCounterRate > 0 THEN ISNULL(w.PaidBaseAmount, 0) / rate.EffectiveCounterRate ELSE ISNULL(w.PaidAmount, 0) END),
+        DisplayCost = CASE
+            WHEN rate.EffectiveCounterRate > 0 THEN (cost.FullCostBase + ISNULL(w.RepairTotalBaseAmount, 0)) / rate.EffectiveCounterRate
+            ELSE cost.FullCostBase + ISNULL(w.RepairTotalBaseAmount, 0)
+        END
+    FROM dbo.UsedCarWholesaleSales w
+    INNER JOIN dbo.UsedCars uc ON uc.Id = w.UsedCarId
+    CROSS APPLY
+    (
+        SELECT EffectiveCounterRate = COALESCE(NULLIF(w.CounterRateToBase, 0), NULLIF(uc.CounterRateToBase, 0), NULLIF(@CounterRateToBase, 0), 1)
+    ) rate
+    CROSS APPLY
+    (
+        SELECT FullCostBase = CASE
+            WHEN ISNULL(uc.GrandTotalBase, 0) > 0 THEN ISNULL(uc.GrandTotalBase, 0)
+            ELSE ISNULL(uc.PriceBase, 0)
+                + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * rate.EffectiveCounterRate)
+        END
+    ) cost
+    WHERE w.SaleDate >= @BusinessDate
+      AND w.SaleDate < @NextBusinessDate
+),
+WholesaleSummary AS
+(
+    SELECT
+        TodaySalesCount = COUNT(1),
+        TodaySalesAmount = ISNULL(SUM(DisplaySaleAmount), 0),
+        TodaySalesPaidAmount = ISNULL(SUM(DisplayPaidAmount), 0),
+        TodaySalesProfit = ISNULL(SUM(DisplaySaleAmount - DisplayCost), 0),
+        CustomerDebt = ISNULL(SUM(CASE WHEN DisplaySaleAmount > DisplayPaidAmount THEN DisplaySaleAmount - DisplayPaidAmount ELSE 0 END), 0)
+    FROM WholesaleAmounts
+)
+SELECT
+    TodaySalesCount = transactions.TodaySalesCount + wholesale.TodaySalesCount,
+    TodaySalesAmount = transactions.TodaySalesAmount + wholesale.TodaySalesAmount,
+    TodaySalesPaidAmount = transactions.TodaySalesPaidAmount + wholesale.TodaySalesPaidAmount,
+    TodaySalesProfit = transactions.TodaySalesProfit + wholesale.TodaySalesProfit,
+    transactions.TodayPurchasesCount,
+    transactions.TodayPurchasesAmount,
+    transactions.TodayPurchasesPaidAmount,
+    CustomerDebt = transactions.CustomerDebt + wholesale.CustomerDebt,
+    transactions.SupplierDebt,
+    transactions.StockValue
+FROM TransactionSummary transactions
+CROSS JOIN WholesaleSummary wholesale;";
 
             return session.Connection.QuerySingle<OwnerCockpitSummaryRow>(
                 sql,
@@ -195,7 +248,14 @@ LEFT JOIN dbo.AccountingPostingSettings cogsSetting ON cogsSetting.SettingKey = 
 WHERE je.EntryDate >= @BusinessDate
   AND je.EntryDate < @NextBusinessDate
   AND {normalizedAccountTypeKey} = @ExpenseAccountTypeKey
-  AND (cogsSetting.AccountId IS NULL OR a.Id <> cogsSetting.AccountId);";
+  AND (cogsSetting.AccountId IS NULL OR a.Id <> cogsSetting.AccountId)
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM dbo.AccountingPostingSettings usedCarCostSetting
+      WHERE usedCarCostSetting.AccountId = a.Id
+        AND usedCarCostSetting.SettingKey IN @UsedCarCostSettingKeys
+  );";
 
             var rows = session.Connection.Query<OwnerCockpitExpenseJournalLineRow>(
                 sql,
@@ -205,6 +265,14 @@ WHERE je.EntryDate >= @BusinessDate
                     NextBusinessDate = nextBusinessDate,
                     CounterRateToBase = counterRateToBase,
                     CogsSettingKey = AccountingSettingKeys.Cogs,
+                    UsedCarCostSettingKeys = new[]
+                    {
+                        AccountingSettingKeys.UsedCarTransportation,
+                        AccountingSettingKeys.UsedCarPartOut,
+                        AccountingSettingKeys.UsedCarShipping,
+                        AccountingSettingKeys.UsedCarCustoms,
+                        AccountingSettingKeys.UsedCarRepairs
+                    },
                     ExpenseAccountTypeKey = "expense"
                 },
                 session.Transaction);
@@ -319,8 +387,8 @@ LineRows AS
             ELSE COALESCE(NULLIF(ti.CounterAmount, 0), ISNULL(ti.LineTotal, 0))
         END),
         CostBase = SUM(CASE
-            WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
-            ELSE COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
+            WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
+            ELSE COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
         END),
         PurchaseRateToBase = COALESCE(
             NULLIF(MAX(CASE
@@ -421,7 +489,7 @@ ORDER BY Profit DESC, Revenue DESC, Name;";
         private static List<OwnerCockpitProfitRowDto> LoadProfitPerCar(DbSession session, AccountingCurrencyContext currencyContext)
         {
             const string sql = @"
-WITH CarRows AS
+WITH PartSaleRows AS
 (
     SELECT
         uc.Id AS UsedCarId,
@@ -430,6 +498,7 @@ WITH CarRows AS
             ELSE CONCAT(cb.Name, N' ', cm.Name, N' ', uc.ModelYear)
         END,
         SoldParts = COUNT(DISTINCT ti.PartId),
+        HasWholesaleSale = CAST(0 AS INT),
         Revenue = SUM(CASE WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(ti.CounterAmount, 0), ISNULL(ti.LineTotal, 0)) ELSE COALESCE(NULLIF(ti.CounterAmount, 0), ISNULL(ti.LineTotal, 0)) END),
         Cost = MAX(COALESCE(NULLIF(uc.GrandTotalCounter, 0), ISNULL(uc.GrandTotalBase, 0) / CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END))
     FROM dbo.Transactions t
@@ -441,13 +510,67 @@ WITH CarRows AS
     LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
     WHERE p.UsedCarId IS NOT NULL
     GROUP BY uc.Id, cb.Name, cm.Name, uc.ModelYear
+),
+WholesaleRows AS
+(
+    SELECT
+        uc.Id AS UsedCarId,
+        Name = CASE
+            WHEN cb.Name IS NULL OR LTRIM(RTRIM(cb.Name)) = N'' THEN CONCAT(cm.Name, N' ', uc.ModelYear)
+            ELSE CONCAT(cb.Name, N' ', cm.Name, N' ', uc.ModelYear)
+        END,
+        SoldParts = CAST(0 AS INT),
+        HasWholesaleSale = CAST(1 AS INT),
+        Revenue = SUM(COALESCE(NULLIF(w.SalePriceCounter, 0), CASE WHEN rate.EffectiveCounterRate > 0 THEN ISNULL(w.SalePriceBase, 0) / rate.EffectiveCounterRate ELSE ISNULL(w.SalePrice, 0) END)),
+        Cost = MAX(CASE
+            WHEN rate.EffectiveCounterRate > 0 THEN (cost.FullCostBase + ISNULL(w.RepairTotalBaseAmount, 0)) / rate.EffectiveCounterRate
+            ELSE cost.FullCostBase + ISNULL(w.RepairTotalBaseAmount, 0)
+        END)
+    FROM dbo.UsedCarWholesaleSales w
+    INNER JOIN dbo.UsedCars uc ON uc.Id = w.UsedCarId
+    INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
+    LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+    CROSS APPLY
+    (
+        SELECT EffectiveCounterRate = COALESCE(NULLIF(w.CounterRateToBase, 0), NULLIF(uc.CounterRateToBase, 0), NULLIF(@CounterRateToBase, 0), 1)
+    ) rate
+    CROSS APPLY
+    (
+        SELECT FullCostBase = CASE
+            WHEN ISNULL(uc.GrandTotalBase, 0) > 0 THEN ISNULL(uc.GrandTotalBase, 0)
+            ELSE ISNULL(uc.PriceBase, 0)
+                + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * rate.EffectiveCounterRate)
+        END
+    ) cost
+    GROUP BY uc.Id, cb.Name, cm.Name, uc.ModelYear
+),
+CarRows AS
+(
+    SELECT
+        UsedCarId,
+        Name = MAX(Name),
+        SoldParts = SUM(SoldParts),
+        HasWholesaleSale = MAX(HasWholesaleSale),
+        Revenue = SUM(Revenue),
+        Cost = MAX(Cost)
+    FROM
+    (
+        SELECT UsedCarId, Name, SoldParts, HasWholesaleSale, Revenue, Cost FROM PartSaleRows
+        UNION ALL
+        SELECT UsedCarId, Name, SoldParts, HasWholesaleSale, Revenue, Cost FROM WholesaleRows
+    ) rows
+    GROUP BY UsedCarId
 )
 SELECT TOP (6)
     Name,
-    Subtitle = CONCAT(CONVERT(NVARCHAR(20), SoldParts), N' linked parts sold'),
-    Revenue,
-    Cost,
-    Profit = Revenue - Cost
+    Subtitle = CASE
+        WHEN HasWholesaleSale = 1 AND SoldParts > 0 THEN CONCAT(CONVERT(NVARCHAR(20), SoldParts), N' linked parts sold + wholesale sale')
+        WHEN HasWholesaleSale = 1 THEN N'Wholesale used-car sale'
+        ELSE CONCAT(CONVERT(NVARCHAR(20), SoldParts), N' linked parts sold')
+    END,
+    Revenue = ROUND(Revenue, 4),
+    Cost = ROUND(Cost, 4),
+    Profit = ROUND(Revenue - Cost, 4)
 FROM CarRows
 WHERE Revenue <> 0 OR Cost <> 0
 ORDER BY Profit DESC, Revenue DESC, Name;";
@@ -496,7 +619,7 @@ WITH PartSegments AS
               OR search.SearchText LIKE N'% ecu %' THEN N'Electronics'
             ELSE COALESCE(NULLIF(c.Name, N''), N'Uncategorized')
         END,
-        UnitValueBase = COALESCE(NULLIF(p.AveragePrice, 0), NULLIF(p.CostPrice, 0), 0)
+        UnitValueBase = COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0)
     FROM dbo.Parts p
     LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId
     CROSS APPLY
@@ -1043,8 +1166,8 @@ LineRows AS
             ELSE COALESCE(NULLIF(ti.CounterAmount, 0), ISNULL(ti.LineTotal, 0))
         END),
         CostBase = SUM(CASE
-            WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
-            ELSE COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
+            WHEN t.IsReturn = 1 THEN -COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
+            ELSE COALESCE(NULLIF(m.MovementCost, 0), ABS(ISNULL(ti.Quantity, 0)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0))
         END),
         PurchaseRateToBase = COALESCE(
             NULLIF(MAX(CASE

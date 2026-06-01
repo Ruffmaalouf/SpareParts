@@ -1,0 +1,629 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\Ralph\\SpareParts\\tests\\SpareParts.ArchitectureTests\\SpareParts.ArchitectureTests.csproj": {}
+  },
+  "projects": {
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Api\\SpareParts.Api.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Api\\SpareParts.Api.csproj",
+        "projectName": "SpareParts.Api",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Api\\SpareParts.Api.csproj",
+        "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\.codex-build\\solution-nonintegration-test-artifacts-final\\obj\\SpareParts.Api\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\r.maalouf\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
+          "D:\\source\\_nuget": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.1.0, )",
+              "versionCentrallyManaged": true
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.25, )",
+              "versionCentrallyManaged": true
+            },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.16.0, )",
+              "versionCentrallyManaged": true
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.16.0, )",
+              "versionCentrallyManaged": true
+            }
+          },
+          "centralPackageVersions": {
+            "BCrypt.Net-Next": "4.1.0",
+            "Dapper": "2.1.35",
+            "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+            "Microsoft.Data.SqlClient": "6.1.2",
+            "Microsoft.Data.Sqlite": "8.0.8",
+            "Microsoft.Extensions.DependencyInjection": "9.0.10",
+            "Microsoft.IdentityModel.Tokens": "8.16.0",
+            "Microsoft.NET.Test.Sdk": "17.11.1",
+            "QRCoder": "1.6.0",
+            "RestSharp": "114.0.0",
+            "System.IdentityModel.Tokens.Jwt": "8.16.0",
+            "Testcontainers.MsSql": "3.9.0",
+            "xunit": "2.9.2",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Application\\SpareParts.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Application\\SpareParts.Application.csproj",
+        "projectName": "SpareParts.Application",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Application\\SpareParts.Application.csproj",
+        "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\.codex-build\\solution-nonintegration-test-artifacts-final\\obj\\SpareParts.Application\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\r.maalouf\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
+          "D:\\source\\_nuget": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "centralPackageVersions": {
+            "BCrypt.Net-Next": "4.1.0",
+            "Dapper": "2.1.35",
+            "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+            "Microsoft.Data.SqlClient": "6.1.2",
+            "Microsoft.Data.Sqlite": "8.0.8",
+            "Microsoft.Extensions.DependencyInjection": "9.0.10",
+            "Microsoft.IdentityModel.Tokens": "8.16.0",
+            "Microsoft.NET.Test.Sdk": "17.11.1",
+            "QRCoder": "1.6.0",
+            "RestSharp": "114.0.0",
+            "System.IdentityModel.Tokens.Jwt": "8.16.0",
+            "Testcontainers.MsSql": "3.9.0",
+            "xunit": "2.9.2",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj",
+        "projectName": "SpareParts.Domain",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj",
+        "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\.codex-build\\solution-nonintegration-test-artifacts-final\\obj\\SpareParts.Domain\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\r.maalouf\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
+          "D:\\source\\_nuget": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "centralPackageVersions": {
+            "BCrypt.Net-Next": "4.1.0",
+            "Dapper": "2.1.35",
+            "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+            "Microsoft.Data.SqlClient": "6.1.2",
+            "Microsoft.Data.Sqlite": "8.0.8",
+            "Microsoft.Extensions.DependencyInjection": "9.0.10",
+            "Microsoft.IdentityModel.Tokens": "8.16.0",
+            "Microsoft.NET.Test.Sdk": "17.11.1",
+            "QRCoder": "1.6.0",
+            "RestSharp": "114.0.0",
+            "System.IdentityModel.Tokens.Jwt": "8.16.0",
+            "Testcontainers.MsSql": "3.9.0",
+            "xunit": "2.9.2",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj",
+        "projectName": "SpareParts.Infrastructure.Interfaces",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj",
+        "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\.codex-build\\solution-nonintegration-test-artifacts-final\\obj\\SpareParts.Infrastructure.Interfaces\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\r.maalouf\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
+          "D:\\source\\_nuget": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "centralPackageVersions": {
+            "BCrypt.Net-Next": "4.1.0",
+            "Dapper": "2.1.35",
+            "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+            "Microsoft.Data.SqlClient": "6.1.2",
+            "Microsoft.Data.Sqlite": "8.0.8",
+            "Microsoft.Extensions.DependencyInjection": "9.0.10",
+            "Microsoft.IdentityModel.Tokens": "8.16.0",
+            "Microsoft.NET.Test.Sdk": "17.11.1",
+            "QRCoder": "1.6.0",
+            "RestSharp": "114.0.0",
+            "System.IdentityModel.Tokens.Jwt": "8.16.0",
+            "Testcontainers.MsSql": "3.9.0",
+            "xunit": "2.9.2",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj",
+        "projectName": "SpareParts.Infrastructure",
+        "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\.codex-build\\solution-nonintegration-test-artifacts-final\\obj\\SpareParts.Infrastructure\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\r.maalouf\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
+          "D:\\source\\_nuget": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.1.0, )",
+              "versionCentrallyManaged": true
+            },
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.35, )",
+              "versionCentrallyManaged": true
+            },
+            "Microsoft.Data.SqlClient": {
+              "target": "Package",
+              "version": "[6.1.2, )",
+              "versionCentrallyManaged": true
+            }
+          },
+          "centralPackageVersions": {
+            "BCrypt.Net-Next": "4.1.0",
+            "Dapper": "2.1.35",
+            "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+            "Microsoft.Data.SqlClient": "6.1.2",
+            "Microsoft.Data.Sqlite": "8.0.8",
+            "Microsoft.Extensions.DependencyInjection": "9.0.10",
+            "Microsoft.IdentityModel.Tokens": "8.16.0",
+            "Microsoft.NET.Test.Sdk": "17.11.1",
+            "QRCoder": "1.6.0",
+            "RestSharp": "114.0.0",
+            "System.IdentityModel.Tokens.Jwt": "8.16.0",
+            "Testcontainers.MsSql": "3.9.0",
+            "xunit": "2.9.2",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Ralph\\SpareParts\\tests\\SpareParts.ArchitectureTests\\SpareParts.ArchitectureTests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Ralph\\SpareParts\\tests\\SpareParts.ArchitectureTests\\SpareParts.ArchitectureTests.csproj",
+        "projectName": "SpareParts.ArchitectureTests",
+        "projectPath": "D:\\Ralph\\SpareParts\\tests\\SpareParts.ArchitectureTests\\SpareParts.ArchitectureTests.csproj",
+        "packagesPath": "C:\\Users\\r.maalouf\\.nuget\\packages\\",
+        "outputPath": "D:\\Ralph\\SpareParts\\.codex-build\\solution-nonintegration-test-artifacts-final\\obj\\SpareParts.ArchitectureTests\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages",
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\r.maalouf\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
+          "D:\\source\\_nuget": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Api\\SpareParts.Api.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Api\\SpareParts.Api.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Application\\SpareParts.Application.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Application\\SpareParts.Application.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Domain\\SpareParts.Domain.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure.Interfaces\\SpareParts.Infrastructure.Interfaces.csproj"
+              },
+              "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj": {
+                "projectPath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Infrastructure\\SpareParts.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.8, )",
+              "versionCentrallyManaged": true
+            },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.11.1, )",
+              "versionCentrallyManaged": true
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.9.2, )",
+              "versionCentrallyManaged": true
+            },
+            "xunit.runner.visualstudio": {
+              "target": "Package",
+              "version": "[2.8.2, )",
+              "versionCentrallyManaged": true
+            }
+          },
+          "centralPackageVersions": {
+            "BCrypt.Net-Next": "4.1.0",
+            "Dapper": "2.1.35",
+            "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.25",
+            "Microsoft.Data.SqlClient": "6.1.2",
+            "Microsoft.Data.Sqlite": "8.0.8",
+            "Microsoft.Extensions.DependencyInjection": "9.0.10",
+            "Microsoft.IdentityModel.Tokens": "8.16.0",
+            "Microsoft.NET.Test.Sdk": "17.11.1",
+            "QRCoder": "1.6.0",
+            "RestSharp": "114.0.0",
+            "System.IdentityModel.Tokens.Jwt": "8.16.0",
+            "Testcontainers.MsSql": "3.9.0",
+            "xunit": "2.9.2",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

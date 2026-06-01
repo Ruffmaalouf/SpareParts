@@ -37,7 +37,8 @@ const emptyForm = {
   partOut: "",
   shipping: "",
   customs: "",
-  repairs: ""
+  repairs: "",
+  expectedSellThroughRate: "0.8"
 };
 
 function read(row, ...keys) {
@@ -325,7 +326,8 @@ function UsedCarsScreen({ api }) {
       partOut: String(read(car, "partOut") || ""),
       shipping: String(read(car, "shipping") || ""),
       customs: String(read(car, "customs") || ""),
-      repairs: String(read(car, "repairs") || "")
+      repairs: String(read(car, "repairs") || ""),
+      expectedSellThroughRate: String(read(car, "expectedSellThroughRate") || "0.8")
     });
     setSupplierSearch(read(car, "supplierName") || "");
     setModelSearch(read(car, "car") || "");
@@ -388,7 +390,7 @@ function UsedCarsScreen({ api }) {
   const loadParts = useCallback(async () => {
     setIsPartsLoading(true);
     try {
-      setParts(toArray(await api.get("/api/parts?page=1&pageSize=500")));
+      setParts(toArray(await api.list("/api/parts")));
     } catch (error) {
       setParts([]);
       setStatus(error.message || t("usedCars.partsLoadError", "Could not load linked parts."));
@@ -457,7 +459,8 @@ function UsedCarsScreen({ api }) {
     partOut: toNumber(form.partOut),
     shipping: toNumber(form.shipping),
     customs: toNumber(form.customs),
-    repairs: toNumber(form.repairs)
+    repairs: toNumber(form.repairs),
+    expectedSellThroughRate: toNumber(form.expectedSellThroughRate) || 0.8
   }), [form]);
 
   const saveCar = useCallback(async () => {
@@ -469,6 +472,11 @@ function UsedCarsScreen({ api }) {
 
     if (request.isReceived && request.customs <= 0) {
       setStatus(t("usedCars.customsRequired", "Customs should be different than 0 when the car is marked as received."));
+      return;
+    }
+
+    if (request.expectedSellThroughRate <= 0 || request.expectedSellThroughRate > 1) {
+      setStatus(t("usedCars.sellThroughInvalid", "Expected sell-through rate must be between 0 and 1."));
       return;
     }
 
@@ -994,6 +1002,7 @@ function UsedCarsScreen({ api }) {
             el(DetailTile, { label: t("usedCars.location", "Location"), value: read(selectedCar, "location") }),
             el(DetailTile, { label: t("usedCars.price", "Price"), value: carPrice(selectedCar) }),
             el(DetailTile, { label: t("usedCars.fullCost", "Full Cost"), value: displayMoneyFromBase(read(selectedCar, "fullCostBase"), selectedDisplayContext) }),
+            el(DetailTile, { label: t("usedCars.sellThrough", "Sell-Through"), value: `${Math.round(toNumber(read(selectedCar, "expectedSellThroughRate")) * 100)}%` }),
             el(DetailTile, { label: t("usedCars.netPl", "Net P/L"), value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) })
           )
         )
@@ -1074,7 +1083,8 @@ function UsedCarsScreen({ api }) {
             el(InputField, { label: t("usedCars.partOut", "Part-Out"), value: form.partOut, keyboardType: "decimal-pad", onChangeText: (value) => setFormValue("partOut", value) }),
             el(InputField, { label: t("usedCars.shipping", "Shipping"), value: form.shipping, keyboardType: "decimal-pad", onChangeText: (value) => setFormValue("shipping", value) }),
             el(InputField, { label: t("usedCars.customs", "Customs"), value: form.customs, keyboardType: "decimal-pad", onChangeText: (value) => setFormValue("customs", value) }),
-            el(InputField, { label: t("usedCars.repairs", "Repairs"), value: form.repairs, keyboardType: "decimal-pad", onChangeText: (value) => setFormValue("repairs", value) })
+            el(InputField, { label: t("usedCars.repairs", "Repairs"), value: form.repairs, keyboardType: "decimal-pad", onChangeText: (value) => setFormValue("repairs", value) }),
+            el(InputField, { label: t("usedCars.expectedSellThroughRate", "Expected Sell-Through Rate"), value: form.expectedSellThroughRate, keyboardType: "decimal-pad", onChangeText: (value) => setFormValue("expectedSellThroughRate", value) })
           ),
           el(Text, { style: styles.usedCarHelpText },
             selectedModel ? t("usedCars.selectedModel", "Selected: {model}", { model: modelTitle(selectedModel) }) : t("usedCars.chooseModel", "Choose a model from the matching chips.")

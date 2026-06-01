@@ -18,7 +18,7 @@ export function InventoryView({ api }) {
     setStatus("Loading inventory...");
     try {
       const [nextParts, nextRequests] = await Promise.all([
-        api.get("/api/parts?page=1&pageSize=120"),
+        api.list("/api/parts"),
         api.get("/api/partrequests?status=Active").catch(() => [])
       ]);
       setParts(asRows(nextParts));

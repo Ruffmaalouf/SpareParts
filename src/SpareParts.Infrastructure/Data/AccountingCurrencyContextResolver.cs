@@ -51,6 +51,33 @@ namespace SpareParts.Infrastructure.Data
             };
         }
 
+        public static decimal ResolveRateToBaseCurrency(
+            DbSession session,
+            string baseCurrencyCode,
+            string currencyCode,
+            string? counterCurrencyCode = null,
+            decimal defaultCounterRate = 1m)
+        {
+            var ratesByCode = LoadCurrencyRates(session);
+            var resolvedRate = ResolveRateToBaseCurrency(ratesByCode, baseCurrencyCode, currencyCode);
+            if (resolvedRate is > 0m)
+            {
+                return resolvedRate.Value;
+            }
+
+            var normalizedCurrencyCode = NormalizeCurrencyCode(currencyCode);
+            var normalizedCounterCode = NormalizeCurrencyCode(counterCurrencyCode);
+            if (normalizedCurrencyCode is not null
+                && normalizedCounterCode is not null
+                && string.Equals(normalizedCurrencyCode, normalizedCounterCode, StringComparison.OrdinalIgnoreCase)
+                && defaultCounterRate > 0m)
+            {
+                return decimal.Round(defaultCounterRate, 8, MidpointRounding.AwayFromZero);
+            }
+
+            return 0m;
+        }
+
         private static IReadOnlyDictionary<string, CurrencyRateRow> LoadCurrencyRates(DbSession session)
         {
             if (!AccountingSchemaInspector.HasTable(session, "dbo.CurrencyRates"))

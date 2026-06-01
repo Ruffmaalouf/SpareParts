@@ -58,6 +58,7 @@ public static class SparePartsApiComposition
         nameof(CarModelsMigration),
         nameof(LocationsMigration),
         nameof(UsedCarsMigration),
+        nameof(UsedCarPartPricingMigration),
         nameof(UsedCarPurchasesMigration),
         nameof(UsedCarWholesaleSalesMigration),
         nameof(TransactionsMigration),
@@ -327,6 +328,7 @@ public static class SparePartsApiComposition
         CarModelsMigration.EnsureApplied(sqlConnectionFactory);
         LocationsMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
+        UsedCarPartPricingMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
         UsedCarWholesaleSalesMigration.EnsureApplied(sqlConnectionFactory);
         TransactionsMigration.EnsureApplied(sqlConnectionFactory);

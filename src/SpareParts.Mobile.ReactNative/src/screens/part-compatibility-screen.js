@@ -388,7 +388,7 @@ function PartCompatibilityScreen({ api }) {
     setStatus(t("compatibility.loading", "Loading compatibility graph..."));
     try {
       const [nextParts, nextCars] = await Promise.all([
-        api.get("/api/parts?page=1&pageSize=5000"),
+        api.list("/api/parts"),
         api.get("/api/usedcars")
       ]);
       const partRows = asRows(nextParts);

@@ -12,6 +12,15 @@ namespace SpareParts.Domain.Inventory
         public decimal CostPrice { get; set; }
         public decimal SalePrice { get; set; }
         public decimal? AveragePrice { get; set; }
+        public decimal? EstimatedMarketPrice { get; set; }
+        public decimal CostAllocationPercent { get; set; }
+        public decimal AllocatedCost { get; set; }
+        public decimal MinimumSellPrice { get; set; }
+        public decimal FastSalePrice { get; set; }
+        public decimal WholesalePrice { get; set; }
+        public decimal RecommendedPrice { get; set; }
+        public string PricingStatus { get; set; } = "Manual";
+        public DateTime? PricingCalculatedAt { get; set; }
         public string Currency { get; set; } = "USD";
         public int MinStock { get; set; }
         public string? Notes { get; set; }

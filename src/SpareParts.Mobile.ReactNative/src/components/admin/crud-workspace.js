@@ -18,7 +18,8 @@ function CrudField({ field, value, onChange }) {
       el(Text, { style: styles.adminCrudToggleText }, label),
       el(Switch, {
         value: Boolean(value),
-        onValueChange: onChange,
+        onValueChange: field.readOnly ? undefined : onChange,
+        disabled: Boolean(field.readOnly),
         trackColor: { false: palette.line, true: palette.accent },
         thumbColor: palette.text
       })
@@ -30,7 +31,8 @@ function CrudField({ field, value, onChange }) {
     el(TextInput, {
       style: styles.input,
       value: String(value ?? ""),
-      onChangeText: onChange,
+      onChangeText: field.readOnly ? undefined : onChange,
+      editable: !field.readOnly,
       keyboardType: field.keyboardType || (field.type === "number" ? "decimal-pad" : "default"),
       secureTextEntry: field.secure,
       placeholder: field.required ? t("common.required", "Required") : "",

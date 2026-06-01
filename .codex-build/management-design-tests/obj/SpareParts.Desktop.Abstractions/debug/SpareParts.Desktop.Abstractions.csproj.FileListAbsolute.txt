@@ -1,0 +1,12 @@
+D:\Ralph\SpareParts\.codex-build\management-design-tests\bin\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.deps.json
+D:\Ralph\SpareParts\.codex-build\management-design-tests\bin\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.dll
+D:\Ralph\SpareParts\.codex-build\management-design-tests\bin\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.pdb
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.AssemblyInfo.cs
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.sourcelink.json
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.dll
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\refint\SpareParts.Desktop.Abstractions.dll
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\SpareParts.Desktop.Abstractions.pdb
+D:\Ralph\SpareParts\.codex-build\management-design-tests\obj\SpareParts.Desktop.Abstractions\debug\ref\SpareParts.Desktop.Abstractions.dll

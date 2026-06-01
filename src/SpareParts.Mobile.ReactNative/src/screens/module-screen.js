@@ -75,6 +75,11 @@ function splitEndpoints(endpoint) {
     .filter(Boolean);
 }
 
+function loadModuleRows(api, endpoint) {
+  const normalized = String(endpoint || "").split("?")[0].replace(/\/+$/, "");
+  return /^\/?api\/parts$/i.test(normalized) ? api.getAllPages(endpoint) : api.get(endpoint);
+}
+
 function visualMatchTitle(match) {
   return [read(match, "internalCode"), read(match, "partName")].filter(Boolean).join(" - ") || `Part #${read(match, "partId")}`;
 }
@@ -1445,7 +1450,7 @@ function ModuleScreen({ api, module, onNavigate }) {
     setIsLoading(true);
     setStatus(t("module.loading", "Loading {title}...", { title: moduleTitle.toLowerCase() }));
     try {
-      setRows(asRows(await api.get(module.endpoint)));
+      setRows(asRows(await loadModuleRows(api, module.endpoint)));
       setStatus(t("module.loaded", "{title} loaded.", { title: moduleTitle }));
     } catch (error) {
       setRows([]);

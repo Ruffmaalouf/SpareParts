@@ -28,7 +28,7 @@
             <Setter Property="AlternationCount" Value="2"/>
             <Setter Property="AlternatingRowBackground" Value="#0AFFFFFF"/>
             <Setter Property="ColumnHeaderHeight" Value="38"/>
-            <Setter Property="RowHeight" Value="62"/>
+            <Setter Property="RowHeight" Value="86"/>
         </Style>
 
         <Style x:Key="HeaderActionButtonStyle" TargetType="Button">
@@ -161,6 +161,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <DockPanel Grid.Row="0" LastChildFill="False">
@@ -176,12 +178,36 @@
                 </DockPanel>
 
                 <DockPanel Grid.Row="1" LastChildFill="False" Margin="0 4 0 0">
+                    <TextBlock Text="Min"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               DockPanel.Dock="Left"/>
+                    <TextBlock Text="{Binding MinimumSellPrice, StringFormat={}{0:N2}}"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               DockPanel.Dock="Right"/>
+                </DockPanel>
+
+                <DockPanel Grid.Row="2" LastChildFill="False" Margin="0 4 0 0">
                     <TextBlock Text="Sale"
                                FontSize="10"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                DockPanel.Dock="Left"/>
                     <TextBlock Text="{Binding SalePrice, StringFormat={}{0:N2}}"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               DockPanel.Dock="Right"/>
+                </DockPanel>
+
+                <DockPanel Grid.Row="3" LastChildFill="False" Margin="0 4 0 0">
+                    <TextBlock Text="Target"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               DockPanel.Dock="Left"/>
+                    <TextBlock Text="{Binding RecommendedPrice, StringFormat={}{0:N2}}"
                                FontSize="12"
                                FontWeight="SemiBold"
                                DockPanel.Dock="Right"/>
@@ -255,8 +281,8 @@
 
                     <UniformGrid Grid.Row="3" Columns="3">
                         <StackPanel Margin="0 0 10 0">
-                            <TextBlock Text="Value" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding OpportunityLabel}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="Target" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding RecommendedLabel}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                         <StackPanel Margin="0 0 10 0">
                             <TextBlock Text="Margin" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>

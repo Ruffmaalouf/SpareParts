@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SpareParts.ManagementTests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+59ef1886302102cec6218285fe98e39081be1b9c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8f045c5cc286d115cd9d5573942dd7ac576f1cec")]
 [assembly: System.Reflection.AssemblyProductAttribute("SpareParts.ManagementTests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SpareParts.ManagementTests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

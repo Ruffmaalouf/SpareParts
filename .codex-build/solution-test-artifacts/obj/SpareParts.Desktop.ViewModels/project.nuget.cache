@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "i1Mo+XhnWPQ=",
+  "success": true,
+  "projectFilePath": "D:\\Ralph\\SpareParts\\src\\SpareParts.Desktop.ViewModels\\SpareParts.Desktop.ViewModels.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\r.maalouf\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
+    "C:\\Users\\r.maalouf\\.nuget\\packages\\qrcoder\\1.6.0\\qrcoder.1.6.0.nupkg.sha512",
+    "C:\\Users\\r.maalouf\\.nuget\\packages\\restsharp\\114.0.0\\restsharp.114.0.0.nupkg.sha512",
+    "C:\\Users\\r.maalouf\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

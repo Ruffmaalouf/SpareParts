@@ -1,0 +1,14 @@
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\bin\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.deps.json
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\bin\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.dll
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\bin\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.pdb
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.csproj.AssemblyReference.cache
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.AssemblyInfo.cs
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.sourcelink.json
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SparePar.0BF12427.Up2Date
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.dll
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\refint\SpareParts.Desktop.Interfaces.dll
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\SpareParts.Desktop.Interfaces.pdb
+D:\Ralph\SpareParts\.codex-build\management-wholesale-theme-polish\obj\SpareParts.Desktop.Interfaces\debug\ref\SpareParts.Desktop.Interfaces.dll

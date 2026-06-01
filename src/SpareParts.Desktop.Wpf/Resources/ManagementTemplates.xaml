@@ -316,7 +316,7 @@
                                             Margin="0 0 0 16">
                                         <StackPanel>
                                             <TextBlock Text="Bulk Import" FontSize="13" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Import `.xlsx` rows for new, used, or rebuilt parts. Supported columns include Code, Barcode, Name, OEM, Category, Brand, Cost, Sale, Average, Currency, Min Stock, Notes, and optional Condition."
+                                            <TextBlock Text="Import `.xlsx` rows for new, used, or rebuilt parts. Supported columns include Code, Barcode, Name, OEM, Category, Brand, Cost, Sale, Average, Estimated Market, Currency, Min Stock, Notes, and optional Condition."
                                                        FontSize="11"
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        TextWrapping="Wrap"
@@ -357,6 +357,8 @@
                                     <TextBox Text="{Binding NewPartSalePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Average Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewPartAveragePrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                    <TextBlock Text="Estimated Market Price" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewPartEstimatedMarketPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
                                     <TextBlock Text="Currency Code" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <ComboBox ItemsSource="{Binding DataContext.CurrencyRates, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                               Style="{StaticResource ManagementComboBoxStyle}"
@@ -450,9 +452,15 @@
                                         <DataGridTextColumn Header="Name"     Binding="{Binding Name, Mode=OneWay}"                             Width="*"/>
                                         <DataGridTextColumn Header="Condition" Binding="{Binding Condition, Mode=OneWay}"                        Width="90"/>
                                         <DataGridTextColumn Header="OEM"      Binding="{Binding OEMNumber, Mode=OneWay}"                        Width="100"/>
+                                        <DataGridTextColumn Header="Cur"      Binding="{Binding Currency, Mode=OneWay}"                         Width="55"/>
                                         <DataGridTextColumn Header="Cost"     Binding="{Binding CostPrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
                                         <DataGridTextColumn Header="Sale"     Binding="{Binding SalePrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
                                         <DataGridTextColumn Header="Average"  Binding="{Binding AveragePrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Market"   Binding="{Binding EstimatedMarketPrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Allocated" Binding="{Binding AllocatedCost, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Min"       Binding="{Binding MinimumSellPrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
+                                        <DataGridTextColumn Header="Recommended" Binding="{Binding RecommendedPrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="115"/>
+                                        <DataGridTextColumn Header="Pricing"  Binding="{Binding PricingStatus, Mode=OneWay}" Width="105"/>
                                         <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock, Mode=OneWay}"                        Width="80"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -1241,6 +1249,8 @@
                                     <TextBox Text="{Binding NewUsedCarCustoms, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarRepairsLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarRepairs, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                    <TextBlock Text="Expected Sell-Through Rate" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
+                                    <TextBox Text="{Binding NewUsedCarExpectedSellThroughRate, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarTotalBeforeShippingLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
                                     <TextBox Text="{Binding NewUsedCarTotalBeforeShipping, Mode=OneWay}" IsReadOnly="True" Margin="0 0 0 8"/>
                                     <TextBlock Text="{Binding UsedCarGrandTotalBaseLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 4"/>
@@ -1432,6 +1442,7 @@
                                         <DataGridTextColumn Header="Shipping" Binding="{Binding Shipping, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
                                         <DataGridTextColumn Header="Customs" Binding="{Binding Customs, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
                                         <DataGridTextColumn Header="Repairs" Binding="{Binding Repairs, Mode=OneWay, StringFormat={}{0:N0}}" Width="90"/>
+                                        <DataGridTextColumn Header="Sell-Through" Binding="{Binding ExpectedSellThroughRate, Mode=OneWay, StringFormat={}{0:P0}}" Width="105"/>
                                         <DataGridTextColumn Header="Grand Total" Binding="{Binding GrandTotalDisplay, Mode=OneWay, StringFormat={}{0:N1}}" Width="120"/>
                                         <DataGridTextColumn Header="Parts Removed" Binding="{Binding PartsRemovedCount, Mode=OneWay, StringFormat={}{0:N0}}" Width="115"/>
                                         <DataGridTextColumn Header="Parts Sold" Binding="{Binding PartsSoldQuantity, Mode=OneWay, StringFormat={}{0:N0}}" Width="95"/>

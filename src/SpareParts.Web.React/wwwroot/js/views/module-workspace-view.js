@@ -104,6 +104,11 @@ function partMatches(part, query) {
   return haystack.includes(query.toLowerCase());
 }
 
+function loadModuleRows(api, endpoint) {
+  const normalized = String(endpoint || "").split("?")[0].replace(/\/+$/, "");
+  return /^\/?api\/parts$/i.test(normalized) ? api.getAllPages(endpoint) : api.get(endpoint);
+}
+
 function totalPurchaseItems(items) {
   return items.reduce((sum, item) => sum + toNumber(item.quantity) * toNumber(item.unitCost) * (1 + toNumber(item.taxRate) / 100), 0);
 }
@@ -413,7 +418,7 @@ function PartPurchasesWorkspace({ api, module, t }) {
         api.get("/api/purchases"),
         api.get("/api/suppliers?pageSize=500"),
         api.get("/api/warehouses"),
-        api.get("/api/parts?pageSize=500")
+        api.getAllPages("/api/parts")
       ]);
       const supplierRows = asRows(nextSuppliers);
       const warehouseRows = asRows(nextWarehouses);
@@ -1219,9 +1224,9 @@ function StockWorkspace({ api, module, t }) {
     setIsLoading(true);
     setStatus("Loading stock...");
     try {
-      const partPath = `/api/parts?pageSize=500${usedCarFilter ? `&usedCarId=${encodeURIComponent(usedCarFilter)}` : ""}`;
+      const partPath = `/api/parts${usedCarFilter ? `?usedCarId=${encodeURIComponent(usedCarFilter)}` : ""}`;
       const [nextParts, nextUsedCars, nextRequests] = await Promise.all([
-        api.get(partPath),
+        api.getAllPages(partPath),
         api.get("/api/usedcars"),
         api.get("/api/partrequests?status=Active").catch(() => [])
       ]);
@@ -1901,7 +1906,7 @@ export function ModuleWorkspaceView({ api, module, t, onView }) {
     setIsLoading(true);
     setStatus(t("module.loading", `Loading ${module.title.toLowerCase()}...`, { title: module.title.toLowerCase() }));
     try {
-      setRows(asRows(await api.get(module.endpoint)));
+      setRows(asRows(await loadModuleRows(api, module.endpoint)));
       setStatus(t("module.loaded", `${module.title} loaded.`, { title: module.title }));
     } catch (error) {
       setRows([]);

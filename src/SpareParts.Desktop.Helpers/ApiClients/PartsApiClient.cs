@@ -16,7 +16,7 @@ namespace SpareParts.Desktop.Wpf
         {
         }
 
-        public Task<List<PartDto>> GetPartsAsync() => RetrieveAsync<PartDto>("api/parts");
+        public Task<List<PartDto>> GetPartsAsync() => RetrieveAllPagesAsync<PartDto>("api/parts");
 
         public Task<DeadStockReportDto> GetDeadStockAsync(int minDormantDays = 90, int take = 25)
             => RetrieveOneAsync<DeadStockReportDto>($"api/parts/dead-stock?minDormantDays={minDormantDays}&take={take}", "Dead stock report was empty.");

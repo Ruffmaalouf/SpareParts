@@ -163,7 +163,7 @@ function MechanicModeScreen({ api }) {
     setIsLoading(true);
     setStatus(t("mechanic.loadingParts", "Loading mechanic stock..."));
     try {
-      const rows = asRows(await api.get("/api/parts?page=1&pageSize=250"));
+      const rows = asRows(await api.list("/api/parts"));
       setParts(rows);
       setStatus(t("mechanic.partsLoaded", "{count} parts ready.", { count: rows.length }));
     } catch (error) {

@@ -526,10 +526,10 @@ SELECT
     ImageCount = 0,
     IsSelected = CAST(1 AS BIT)
 FROM dbo.Parts p
-WHERE p.Id IN @Ids
+INNER JOIN @Ids ids ON ids.Id = p.Id
 ORDER BY p.Name, p.Id;
 """,
-                    new { Ids = partIds }).ToList();
+                    new { Ids = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList") }).ToList();
 
             var cars = usedCarIds.Count == 0
                 ? new List<WhatsAppCampaignAssetDto>()
@@ -564,6 +564,7 @@ SELECT
     ImageCount = ISNULL(images.ImageCount, 0),
     IsSelected = CAST(1 AS BIT)
 FROM dbo.UsedCars uc
+INNER JOIN @Ids ids ON ids.Id = uc.Id
 INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
 INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
 LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
@@ -573,10 +574,9 @@ OUTER APPLY
     FROM dbo.usedcar_images image
     WHERE image.UsedCarId = uc.Id
 ) images
-WHERE uc.Id IN @Ids
 ORDER BY uc.ModelYear DESC, uc.Id DESC;
 """,
-                    new { Ids = usedCarIds }).ToList();
+                    new { Ids = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList") }).ToList();
 
             return parts.Concat(cars).ToList();
         }
@@ -595,11 +595,11 @@ FROM
 (
     SELECT TOP (6) image.ImageId
     FROM dbo.usedcar_images image
-    WHERE image.UsedCarId IN @UsedCarIds
+    INNER JOIN @UsedCarIds ids ON ids.Id = image.UsedCarId
     ORDER BY image.CreatedAt DESC, image.ImageId DESC
 ) selected;
 """,
-                new { UsedCarIds = usedCarIds });
+                new { UsedCarIds = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList") });
         }
 
         private static List<CommunicationAttachmentDto> LoadAttachments(
@@ -619,10 +619,10 @@ SELECT TOP (6)
     image.ImageMimeType,
     image.ImageData
 FROM dbo.usedcar_images image
-WHERE image.UsedCarId IN @UsedCarIds
+INNER JOIN @UsedCarIds ids ON ids.Id = image.UsedCarId
 ORDER BY image.CreatedAt DESC, image.ImageId DESC;
 """,
-                new { UsedCarIds = usedCarIds });
+                new { UsedCarIds = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList") });
 
             return rows.Select(row => new CommunicationAttachmentDto
             {
@@ -890,6 +890,19 @@ WHERE Id = @CampaignId;
                 "image/gif" => ".gif",
                 _ => ".png"
             };
+
+        private static DataTable ToIntIdList(IEnumerable<int> ids)
+        {
+            var table = new DataTable();
+            table.Columns.Add("Id", typeof(int));
+
+            foreach (var id in ids.Distinct())
+            {
+                table.Rows.Add(id);
+            }
+
+            return table;
+        }
 
         private static string? Truncate(string? value, int maxLength)
         {

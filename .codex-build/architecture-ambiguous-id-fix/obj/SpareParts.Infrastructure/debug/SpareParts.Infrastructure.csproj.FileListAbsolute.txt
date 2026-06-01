@@ -1,0 +1,14 @@
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\bin\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.deps.json
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\bin\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.dll
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\bin\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.pdb
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.csproj.AssemblyReference.cache
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.AssemblyInfoInputs.cache
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.AssemblyInfo.cs
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.csproj.CoreCompileInputs.cache
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.sourcelink.json
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SparePar.536DF7BF.Up2Date
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.dll
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\refint\SpareParts.Infrastructure.dll
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\SpareParts.Infrastructure.pdb
+D:\Ralph\SpareParts\.codex-build\architecture-ambiguous-id-fix\obj\SpareParts.Infrastructure\debug\ref\SpareParts.Infrastructure.dll

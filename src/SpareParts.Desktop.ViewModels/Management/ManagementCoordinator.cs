@@ -176,9 +176,11 @@ namespace SpareParts.Desktop.Wpf.Management
             }
 
             decimal? averagePrice;
+            decimal? estimatedMarketPrice;
             try
             {
                 averagePrice = ParseOptionalDecimal(feature.NewPartAveragePrice, "Average price", "part_average_price_invalid");
+                estimatedMarketPrice = ParseOptionalDecimal(feature.NewPartEstimatedMarketPrice, "Estimated market price", "part_estimated_market_price_invalid");
             }
             catch (DomainValidationException exception)
             {
@@ -197,6 +199,15 @@ namespace SpareParts.Desktop.Wpf.Management
                 CostPrice = feature.NewPartCostPrice,
                 SalePrice = feature.NewPartSalePrice,
                 AveragePrice = averagePrice,
+                EstimatedMarketPrice = estimatedMarketPrice,
+                CostAllocationPercent = feature.SelectedPart?.CostAllocationPercent ?? 0m,
+                AllocatedCost = feature.SelectedPart?.AllocatedCost ?? 0m,
+                MinimumSellPrice = feature.SelectedPart?.MinimumSellPrice ?? 0m,
+                FastSalePrice = feature.SelectedPart?.FastSalePrice ?? 0m,
+                WholesalePrice = feature.SelectedPart?.WholesalePrice ?? 0m,
+                RecommendedPrice = feature.SelectedPart?.RecommendedPrice ?? 0m,
+                PricingStatus = feature.SelectedPart?.PricingStatus ?? "Manual",
+                PricingCalculatedAt = feature.SelectedPart?.PricingCalculatedAt,
                 Currency = feature.NewPartCurrency,
                 MinStock = feature.NewPartMinStock,
                 Notes = feature.NewPartNotes,
@@ -679,6 +690,11 @@ namespace SpareParts.Desktop.Wpf.Management
                 return Task.FromResult(ToFailure(new DomainValidationException("Expense values cannot be negative.", "used_car_expenses_invalid"), "saving Used car"));
             }
 
+            if (request.ExpectedSellThroughRate <= 0m || request.ExpectedSellThroughRate > 1m)
+            {
+                return Task.FromResult(ToFailure(new DomainValidationException("Expected sell-through rate must be between 0 and 1.", "used_car_sell_through_invalid"), "saving Used car"));
+            }
+
             if (request.IsReceived && request.Customs <= 0)
             {
                 return Task.FromResult(ToFailure(new DomainValidationException("Customs should be different than 0 when the car is marked as received.", "used_car_customs_required_when_received"), "saving Used car"));
@@ -839,6 +855,7 @@ namespace SpareParts.Desktop.Wpf.Management
                 CostPrice = ParseImportedDecimal(row.CostPrice, "Cost Price", row.RowNumber, 0m),
                 SalePrice = ParseImportedDecimal(row.SalePrice, "Sale Price", row.RowNumber, 0m),
                 AveragePrice = ParseImportedOptionalDecimal(row.AveragePrice, "Average Price", row.RowNumber),
+                EstimatedMarketPrice = ParseImportedOptionalDecimal(row.EstimatedMarketPrice, "Estimated Market Price", row.RowNumber),
                 Currency = ParseImportedCurrency(row.Currency),
                 MinStock = ParseImportedInteger(row.MinStock, "Min Stock", row.RowNumber, 0),
                 Notes = NormalizeOptional(row.Notes)

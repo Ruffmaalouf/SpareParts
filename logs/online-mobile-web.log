@@ -1,0 +1,42 @@
+Starting up http-server, serving D:\Ralph\SpareParts\.codex-build\mobile-online-export
+
+http-server version: 14.1.1
+
+http-server settings: 
+CORS: disabled
+Cache: -1 seconds
+Connection Timeout: 120 seconds
+Directory Listings: visible
+AutoIndex: visible
+Serve GZIP Files: false
+Serve Brotli Files: false
+Default File Extension: none
+
+Available on:
+  http://127.0.0.1:5085
+Hit CTRL-C to stop the server
+
+[2026-05-26T13:24:58.544Z]  "GET /" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-US) PowerShell/7.6.0"
+[2026-05-26T13:25:36.586Z]  "GET /" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-US) PowerShell/7.6.0"
+[2026-05-26T13:26:41.473Z]  "GET /" "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-US) PowerShell/7.6.0"
+[2026-05-26T13:27:51.520Z]  "GET /" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:27:51.681Z]  "GET /_expo/static/js/web/AppEntry-81aca26f5b8b9f1a982e700c1d4807ac.js" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:27:52.370Z]  "GET /assets/assets/images/login-ignition-hero.9e3adcd0d388ada3b4ddcfd75ab3b05e.png" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:28:05.803Z]  "GET /favicon.ico" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:28:05.804Z]  "GET /favicon.ico" Error (404): "Not found"
+[2026-05-26T13:28:08.217Z]  "GET /favicon.ico" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:28:08.219Z]  "GET /favicon.ico" Error (404): "Not found"
+[2026-05-26T13:28:25.831Z]  "GET /favicon.ico" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:28:25.833Z]  "GET /favicon.ico" Error (404): "Not found"
+[2026-05-26T13:46:56.293Z]  "GET /favicon.ico" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:46:56.294Z]  "GET /favicon.ico" Error (404): "Not found"
+[2026-05-26T13:46:58.291Z]  "GET /" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+[2026-05-26T13:46:58.467Z]  "GET /_expo/static/js/web/AppEntry-81aca26f5b8b9f1a982e700c1d4807ac.js" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+[2026-05-26T13:46:59.158Z]  "GET /assets/assets/images/login-ignition-hero.9e3adcd0d388ada3b4ddcfd75ab3b05e.png" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+[2026-05-26T13:46:59.165Z]  "GET /favicon.ico" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+[2026-05-26T13:46:59.166Z]  "GET /favicon.ico" Error (404): "Not found"
+[2026-05-26T13:48:14.125Z]  "GET /favicon.ico" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codex/26.513.40821 Chrome/148.0.7778.97 Electron/42.0.1 Safari/537.36"
+[2026-05-26T13:48:14.126Z]  "GET /favicon.ico" Error (404): "Not found"
+[2026-05-26T13:51:44.603Z]  "GET /" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+[2026-05-26T13:51:44.769Z]  "GET /_expo/static/js/web/AppEntry-81aca26f5b8b9f1a982e700c1d4807ac.js" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+[2026-05-26T13:51:45.449Z]  "GET /assets/assets/images/login-ignition-hero.9e3adcd0d388ada3b4ddcfd75ab3b05e.png" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"

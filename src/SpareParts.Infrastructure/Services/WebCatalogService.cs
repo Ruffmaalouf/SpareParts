@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Sales;
 using SpareParts.Domain.WebCatalog;
 using SpareParts.Infrastructure.Data;
+using System.Data;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -77,12 +78,16 @@ SELECT p.Id,
        p.CostPrice,
        s.Quantity AS AvailableQuantity
 FROM dbo.Parts p
+INNER JOIN @PartIds ids ON ids.Id = p.Id
 INNER JOIN dbo.Stock s ON s.PartId = p.Id AND s.WarehouseId = @WarehouseId
 WHERE p.IsActive = 1
-  AND s.Quantity > 0
-  AND p.Id IN @PartIds;
+  AND s.Quantity > 0;
 """,
-            new { WarehouseId = warehouse.Id, PartIds = partIds })
+            new
+            {
+                WarehouseId = warehouse.Id,
+                PartIds = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList")
+            })
             .ToDictionary(part => part.Id);
 
         var saleItems = new List<SaleItemDto>();
@@ -192,6 +197,19 @@ ORDER BY CASE WHEN @WarehouseId IS NOT NULL AND Id = @WarehouseId THEN 0 ELSE 1 
         if (!string.IsNullOrWhiteSpace(request.ShippingCountry)) lines.Add($"Shipping country: {request.ShippingCountry.Trim()}");
         if (!string.IsNullOrWhiteSpace(request.DeliveryInstructions)) lines.Add($"Delivery instructions: {request.DeliveryInstructions.Trim()}");
         return string.Join(Environment.NewLine, lines);
+    }
+
+    private static DataTable ToIntIdList(IEnumerable<int> ids)
+    {
+        var table = new DataTable();
+        table.Columns.Add("Id", typeof(int));
+
+        foreach (var id in ids.Distinct())
+        {
+            table.Rows.Add(id);
+        }
+
+        return table;
     }
 
     private sealed class CheckoutWarehouse

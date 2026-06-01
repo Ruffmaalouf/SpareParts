@@ -1,3 +1,5 @@
+using SpareParts.Domain.Inventory;
+
 namespace SpareParts.Infrastructure.Services
 {
     internal sealed class UsedCarSnapshot
@@ -23,6 +25,7 @@ namespace SpareParts.Infrastructure.Services
         public decimal TotalBeforeShipping { get; init; }
         public decimal GrandTotalBase { get; init; }
         public decimal GrandTotalCounter { get; init; }
+        public decimal ExpectedSellThroughRate { get; init; } = UsedVehiclePartPricingEngine.DefaultExpectedSellThroughRate;
         public string BaseCurrencyCode { get; init; } = "USD";
         public string CounterCurrencyCode { get; init; } = "USD";
         public decimal CounterRateToBase { get; init; } = 1m;
