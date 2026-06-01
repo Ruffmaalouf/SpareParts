@@ -43,18 +43,18 @@ const wpfThemes = [
     key: "default",
     name: "Default",
     colors: {
-      bg: "#101114",
-      surface: "#17191f",
-      surface2: "#20232b",
-      sidebar: "#121318",
-      input: "#0f1014",
-      line: "#313642",
-      text: "#f4f5f7",
-      muted: "#a9afbd",
-      soft: "#737b8c",
-      accent: "#ff5722",
-      whatsapp: "#25d366",
-      danger: "#ff6b5f"
+      bg: "#07080b",
+      surface: "#0c0f14",
+      surface2: "#111620",
+      sidebar: "#08090d",
+      input: "#060709",
+      line: "#1c2230",
+      text: "#edf1f9",
+      muted: "#7585a0",
+      soft: "#404c60",
+      accent: "#e85012",
+      whatsapp: "#22c55e",
+      danger: "#f43f5e"
     }
   },
   {
