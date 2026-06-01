@@ -1,0 +1,152 @@
+{
+  "formatVersion": 1,
+  "sourceDatabase": "SparePartsDb",
+  "generatedAtUtc": "2026-06-01T08:30:03.8325690Z",
+  "purpose": "Git-safe catalog and inventory snapshot. Personal, identity, messaging, operational and binary vehicle-image data are excluded.",
+  "tables": [
+    {
+      "Table": "dbo.AppConstants",
+      "File": "data/001-dbo.AppConstants.sql",
+      "Rows": 10,
+      "RedactedColumns": []
+    },
+    {
+      "Table": "dbo.Brands",
+      "File": "data/010-dbo.Brands.sql",
+      "Rows": 9,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.CarBrands",
+      "File": "data/020-dbo.CarBrands.sql",
+      "Rows": 17,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.CarModels",
+      "File": "data/030-dbo.CarModels.sql",
+      "Rows": 30,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.Categories",
+      "File": "data/040-dbo.Categories.sql",
+      "Rows": 19,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.CurrencyRates",
+      "File": "data/050-dbo.CurrencyRates.sql",
+      "Rows": 166,
+      "RedactedColumns": []
+    },
+    {
+      "Table": "dbo.Warehouses",
+      "File": "data/060-dbo.Warehouses.sql",
+      "Rows": 2,
+      "RedactedColumns": [
+        "Address",
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.Location",
+      "File": "data/070-dbo.Location.sql",
+      "Rows": 2,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.Locations",
+      "File": "data/080-dbo.Locations.sql",
+      "Rows": 0,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.UsedCars",
+      "File": "data/090-dbo.UsedCars.sql",
+      "Rows": 33,
+      "RedactedColumns": [
+        "SupplierId",
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.Parts",
+      "File": "data/100-dbo.Parts.sql",
+      "Rows": 6494,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.Stock",
+      "File": "data/110-dbo.Stock.sql",
+      "Rows": 6494,
+      "RedactedColumns": [
+        "CreatedByUserId",
+        "ModifiedByUserId"
+      ]
+    },
+    {
+      "Table": "dbo.StockMovements",
+      "File": "data/120-dbo.StockMovements.sql",
+      "Rows": 6515,
+      "RedactedColumns": [
+        "CreatedByUserId"
+      ]
+    }
+  ],
+  "excludedTables": [
+    "dbo.AccountingAccountTypes",
+    "dbo.AccountingPostingRoles",
+    "dbo.AccountingPostingSettings",
+    "dbo.Accounts",
+    "dbo.ApplicationExceptionLogs",
+    "dbo.AppMenus",
+    "dbo.Customers",
+    "dbo.JournalEntries",
+    "dbo.JournalLines",
+    "dbo.OutboundMessages",
+    "dbo.PartRequestReservations",
+    "dbo.PartRequests",
+    "dbo.ReportBuilderBackgroundRuns",
+    "dbo.ReportBuilderFavoriteReports",
+    "dbo.ReportBuilderSavedReportRoles",
+    "dbo.ReportBuilderSavedReports",
+    "dbo.ReportBuilderTableLinks",
+    "dbo.RoleMenuAccess",
+    "dbo.Roles",
+    "dbo.Suppliers",
+    "dbo.TransactionItems",
+    "dbo.Transactions",
+    "dbo.TransactionTypes",
+    "dbo.usedcar_images",
+    "dbo.UsedCarPurchaseLines",
+    "dbo.UsedCarPurchases",
+    "dbo.UsedCarWholesaleSales",
+    "dbo.Users",
+    "dbo.WhatsAppCampaignRecipients",
+    "dbo.WhatsAppCampaigns"
+  ]
+}
