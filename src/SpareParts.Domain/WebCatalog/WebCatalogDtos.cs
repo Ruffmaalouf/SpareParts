@@ -16,6 +16,9 @@ namespace SpareParts.Domain.WebCatalog
         public int AvailableQuantity { get; set; }
         public int WarehouseId { get; set; }
         public string WarehouseName { get; set; } = string.Empty;
+        public int? UsedCarId { get; set; }
+        public string DonorCar { get; set; } = string.Empty;
+        public string StorageLocation { get; set; } = string.Empty;
     }
 
     public sealed class WebCheckoutItemDto

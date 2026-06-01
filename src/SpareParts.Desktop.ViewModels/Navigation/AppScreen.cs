@@ -16,6 +16,8 @@ namespace SpareParts.Desktop.Wpf
         RepairPrepBoard,
         StockManagement,
         DeadStockResurrection,
+        GrowthLab,
+        PartPassport,
         PartCompatibility,
         BarcodeMode,
         ReportBuilder,

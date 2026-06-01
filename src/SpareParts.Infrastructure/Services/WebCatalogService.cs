@@ -37,10 +37,20 @@ SELECT p.Id,
        p.Notes,
        s.Quantity AS AvailableQuantity,
        w.Id AS WarehouseId,
-       w.Name AS WarehouseName
+       w.Name AS WarehouseName,
+       p.UsedCarId,
+       CASE
+           WHEN uc.Id IS NULL THEN N'Warehouse stock'
+           ELSE CONCAT(cb.Name, N' ', cm.Name, N' / ', uc.ModelYear)
+       END AS DonorCar,
+       COALESCE(NULLIF(LTRIM(RTRIM(loc.Name)), N''), NULLIF(LTRIM(RTRIM(uc.Location)), N''), w.Name) AS StorageLocation
 FROM dbo.Parts p
 INNER JOIN dbo.Stock s ON s.PartId = p.Id AND s.WarehouseId = @WarehouseId
 INNER JOIN dbo.Warehouses w ON w.Id = s.WarehouseId
+LEFT JOIN dbo.UsedCars uc ON uc.Id = p.UsedCarId
+LEFT JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
+LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
 WHERE p.IsActive = 1
   AND s.Quantity > 0
   AND (@Search IS NULL OR @Search = N''

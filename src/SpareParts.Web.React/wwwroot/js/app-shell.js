@@ -9,6 +9,7 @@ import { NotificationCenter } from "./components/shared.js";
 import { SmartSearch } from "./components/smart-search.js";
 import { createPartNotificationClient } from "./services/notification-service.js";
 import { CustomerStorefrontView } from "./views/storefront-view.js";
+import { PartPassportView } from "./views/part-passport-view.js";
 import { screenRegistry } from "./views/screen-registry.js";
 
 const sessionStore = new BrowserSessionStore(window.localStorage, storageKeys);
@@ -125,6 +126,10 @@ export function App() {
 
   const isSignedIn = Boolean(token && user);
   const isWebAppUser = isSignedIn && Number(user.roleId ?? user.RoleId) === webAppRoleId;
+
+  if (window.location.pathname.toLowerCase().startsWith("/passport/")) {
+    return h(PartPassportView);
+  }
 
   if (!isSignedIn || isWebAppUser) {
     return h(React.Fragment, null,

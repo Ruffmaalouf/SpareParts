@@ -3,6 +3,7 @@ import { initials, money } from "../core/formatters.js";
 import { LoginPanel } from "../components/auth.js";
 import { BrandMark, LanguagePicker, ThemePicker } from "../components/layout.js";
 import { StatusLine } from "../components/shared.js";
+import { passportHref } from "./part-passport-view.js";
 
 const germanBrandFilters = ["BMW", "Mercedes", "Audi", "Porsche", "Volkswagen", "AMG"];
 const paymentGatewayOptions = [
@@ -11,6 +12,7 @@ const paymentGatewayOptions = [
 ];
 const storeNavItems = [
   { key: "shop", label: "Shop" },
+  { key: "request", label: "Find a Part" },
   { key: "cart", label: "Cart" },
   { key: "checkout", label: "Checkout" },
   { key: "account", label: "Account" }
@@ -91,8 +93,11 @@ function PartCard({ part, inCart, addToCart, t }) {
       h("strong", null, money(part.salePrice, part.currency)),
       h("span", null, partAvailability(part))
     ),
-    h("button", { className: "primary-button", type: "button", onClick: () => addToCart(part) },
-      inCart > 0 ? t("store.addAnother", "Add another") : t("store.addToCart", "Add to cart")
+    h("div", { className: "store-product-actions" },
+      h("a", { className: "secondary-button store-passport-link", href: passportHref(part) }, "Passport"),
+      h("button", { className: "primary-button", type: "button", onClick: () => addToCart(part) },
+        inCart > 0 ? t("store.addAnother", "Add another") : t("store.addToCart", "Add to cart")
+      )
     )
   );
 }
@@ -125,6 +130,14 @@ export function CustomerStorefrontView({
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(paymentGatewayOptions[0].value);
   const [paymentReference, setPaymentReference] = useState("");
+  const [requestPartId, setRequestPartId] = useState("");
+  const [requestPartName, setRequestPartName] = useState("");
+  const [requestOemNumber, setRequestOemNumber] = useState("");
+  const [requestVehicleDetails, setRequestVehicleDetails] = useState("");
+  const [requestQuantity, setRequestQuantity] = useState("1");
+  const [requestNotes, setRequestNotes] = useState("");
+  const [requestMatches, setRequestMatches] = useState([]);
+  const [requestImageName, setRequestImageName] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const isSignedIn = Boolean(user);
@@ -295,6 +308,95 @@ export function CustomerStorefrontView({
     load();
   }, [load]);
 
+  const findRequestMatches = useCallback(async (event) => {
+    const image = event.target.files?.[0];
+    if (!image) return;
+
+    setRequestImageName(image.name);
+    setIsLoading(true);
+    setStatus(t("store.identifyingPart", "Reading the part photo..."));
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+      formData.append("hint", [requestPartName, requestOemNumber, requestVehicleDetails].filter(Boolean).join(" "));
+      formData.append("limit", "8");
+      const response = await api.postForm("/api/web-catalog/visual-search", formData);
+      setRequestMatches(response.matches || []);
+      setStatus(response.message || t("store.photoMatchesReady", "Photo matches are ready."));
+    } catch (error) {
+      setRequestMatches([]);
+      setStatus(error.message || t("store.photoMatchFailed", "Could not read this photo."));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, requestOemNumber, requestPartName, requestVehicleDetails, t]);
+
+  const chooseRequestMatch = useCallback((match) => {
+    setRequestPartId(String(match.partId || ""));
+    setRequestPartName(match.partName || "");
+    setRequestOemNumber(match.oemNumber || "");
+    setStatus(t("store.partMatchSelected", "Catalog match selected. Add your contact details and send the request."));
+  }, [t]);
+
+  const submitPartRequest = useCallback(async () => {
+    if (!isSignedIn) {
+      setStatus(t("store.signInToRequest", "Sign in so we can track your part request."));
+      setActiveView("account");
+      return;
+    }
+
+    if (!customerName.trim() || !requestPartName.trim()) {
+      setStatus(t("store.requestNamePartRequired", "Enter your name and the part you need."));
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus(t("store.sendingPartRequest", "Sending your part request..."));
+    try {
+      const requestId = await api.post("/api/web-catalog/part-requests", {
+        partId: requestPartId ? Number(requestPartId) : null,
+        customerId: null,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim() || null,
+        requestedPartName: requestPartName.trim(),
+        requestedOemNumber: requestOemNumber.trim() || null,
+        vehicleDetails: requestVehicleDetails.trim() || null,
+        quantity: Math.max(1, Number(requestQuantity || 1)),
+        notes: [
+          "Reverse storefront request",
+          requestImageName ? `Customer photo: ${requestImageName}` : "",
+          requestNotes.trim()
+        ].filter(Boolean).join("\n")
+      });
+      setRequestPartId("");
+      setRequestPartName("");
+      setRequestOemNumber("");
+      setRequestVehicleDetails("");
+      setRequestQuantity("1");
+      setRequestNotes("");
+      setRequestMatches([]);
+      setRequestImageName("");
+      setStatus(t("store.partRequestSent", "Request #{id} is in the workshop queue. We will follow up on WhatsApp.", { id: requestId }));
+    } catch (error) {
+      setStatus(error.message || t("store.partRequestFailed", "Could not send your part request."));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    api,
+    customerName,
+    customerPhone,
+    isSignedIn,
+    requestImageName,
+    requestNotes,
+    requestOemNumber,
+    requestPartId,
+    requestPartName,
+    requestQuantity,
+    requestVehicleDetails,
+    t
+  ]);
+
   const renderShop = () => h("section", { className: "store-shop-view" },
     h("section", { className: "store-hero-redesign" },
       h("div", { className: "store-hero-copy" },
@@ -313,6 +415,9 @@ export function CustomerStorefrontView({
         ),
         h("div", { className: "store-hero-specs", "aria-label": "Store capabilities" },
           heroSpecs.map((spec) => h("span", { key: spec }, spec))
+        ),
+        h("button", { className: "secondary-button store-find-part-cta", type: "button", onClick: () => setActiveView("request") },
+          "Can't find it? Send a photo"
         ),
         h("div", { className: "store-brand-filters" },
           germanBrandFilters.map((brand) =>
@@ -400,6 +505,58 @@ export function CustomerStorefrontView({
       checkoutLabel: isSignedIn ? undefined : t("store.signInToOrder", "Sign in to checkout"),
       t
     })
+  );
+
+  const renderPartRequest = () => h("section", { className: "store-request-view" },
+    h("div", { className: "store-page-title" },
+      h("span", null, "Reverse storefront"),
+      h("h1", null, "Show us the part. We will find it.")
+    ),
+    h("div", { className: "store-request-layout" },
+      h("article", { className: "store-form-section store-request-form" },
+        h("h2", null, "Part request"),
+        h("p", null, "Upload a counter photo, OEM marking, or vehicle clue. The workshop receives a structured request and can reply on WhatsApp."),
+        h("label", { className: "store-photo-drop" },
+          h("strong", null, requestImageName || "Upload a part photo"),
+          h("span", null, "JPG, PNG, WebP, or HEIC. Add a clue first for better matching."),
+          h("input", { type: "file", accept: "image/*", onChange: findRequestMatches })
+        ),
+        h("div", { className: "store-field-grid two" },
+          h("label", null, "Requested part", h("input", { value: requestPartName, onChange: (event) => setRequestPartName(event.target.value), placeholder: "Left headlight, turbo hose..." })),
+          h("label", null, "OEM number", h("input", { value: requestOemNumber, onChange: (event) => setRequestOemNumber(event.target.value), placeholder: "Optional marking or OEM code" }))
+        ),
+        h("label", null, "Vehicle details", h("input", { value: requestVehicleDetails, onChange: (event) => setRequestVehicleDetails(event.target.value), placeholder: "2015 Mercedes W205 C200" })),
+        h("div", { className: "store-field-grid two" },
+          h("label", null, "Your name", h("input", { value: customerName, onChange: (event) => setCustomerName(event.target.value) })),
+          h("label", null, "WhatsApp phone", h("input", { value: customerPhone, onChange: (event) => setCustomerPhone(event.target.value) }))
+        ),
+        h("label", null, "Quantity", h("input", { type: "number", min: "1", value: requestQuantity, onChange: (event) => setRequestQuantity(event.target.value) })),
+        h("label", null, "Notes", h("textarea", { value: requestNotes, onChange: (event) => setRequestNotes(event.target.value), placeholder: "Side, color, engine code, or anything the workshop should know." })),
+        h(StatusLine, { status }),
+        h("button", { className: "primary-button", type: "button", disabled: isLoading, onClick: submitPartRequest },
+          isSignedIn ? "Send workshop request" : "Sign in to send request"
+        )
+      ),
+      h("aside", { className: "store-request-results" },
+        h("div", null,
+          h("span", null, "Picture search"),
+          h("h2", null, requestMatches.length ? "Possible matches" : "Your shortlist appears here"),
+          h("p", null, "Choosing a match helps the workshop reserve the exact catalog item. Leave it unselected when you are unsure.")
+        ),
+        requestMatches.map((match) =>
+          h("button", {
+            className: String(match.partId) === requestPartId ? "store-request-match active" : "store-request-match",
+            key: match.partId,
+            type: "button",
+            onClick: () => chooseRequestMatch(match)
+          },
+            h("strong", null, `${match.internalCode} / ${match.partName}`),
+            h("span", null, `${match.availableQuantity} available / ${money(match.salePrice, match.currency)}`),
+            h("small", null, match.matchReason || "Picture search match")
+          )
+        )
+      )
+    )
   );
 
   const renderCheckout = () => h("section", { className: "store-checkout-view" },
@@ -505,6 +662,7 @@ export function CustomerStorefrontView({
     account: renderAccount,
     cart: renderCart,
     checkout: renderCheckout,
+    request: renderPartRequest,
     shop: renderShop
   }[activeView] || renderShop;
 

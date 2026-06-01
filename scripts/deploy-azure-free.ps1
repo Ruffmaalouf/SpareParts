@@ -8,6 +8,7 @@ param(
     [string]$SqlAdminUser = "spadmin",
     [string]$SqlAdminPassword = "",
     [string]$LocalConnectionString = "Server=localhost;Database=SparePartsDb;Trusted_Connection=True;TrustServerCertificate=True;",
+    [string]$PublicWebBaseUrl = "http://localhost:5078",
     [switch]$SkipDatabaseImport
 )
 
@@ -131,6 +132,11 @@ if ([string]::IsNullOrWhiteSpace($SqlAdminPassword)) {
 }
 
 $apiUrl = "https://$AppName.azurewebsites.net"
+$publicWebUrl = if ([string]::IsNullOrWhiteSpace($PublicWebBaseUrl)) {
+    "http://localhost:5078"
+} else {
+    $PublicWebBaseUrl.TrimEnd("/")
+}
 $sqlHost = "$SqlServerName.database.windows.net"
 $azureConnectionString = "Server=tcp:$sqlHost,1433;Initial Catalog=$DatabaseName;Persist Security Info=False;User ID=$SqlAdminUser;Password=$SqlAdminPassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 $jwtSecret = [Convert]::ToBase64String([Guid]::NewGuid().ToByteArray()) + [Convert]::ToBase64String([Guid]::NewGuid().ToByteArray())
@@ -218,6 +224,7 @@ Invoke-Az -Arguments @(
     "Jwt__Audience=SpareParts.Desktop",
     "Cors__AllowedOrigins__0=http://localhost:5078",
     "Cors__AllowedOrigins__1=http://127.0.0.1:5078",
+    "Cors__AllowedOrigins__2=$publicWebUrl",
     "SCM_DO_BUILD_DURING_DEPLOYMENT=false",
     "--output", "none"
 )
@@ -249,6 +256,7 @@ for ($i = 0; $i -lt 24; $i++) {
                 InventoryApiBaseUrl = "$apiUrl/"
                 IdentityApiBaseUrl = "$apiUrl/"
                 CatalogApiBaseUrl = "$apiUrl/"
+                PublicWebBaseUrl = "$publicWebUrl/"
             } | ConvertTo-Json -Depth 3
             Set-Content -Path (Join-Path $artifacts "wpf-appsettings.azure.json") -Value $wpfSettings -Encoding UTF8
 

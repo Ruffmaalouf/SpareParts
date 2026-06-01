@@ -177,6 +177,7 @@ const managementSections = [
 ];
 
 const featureModules = [
+  { key: "part-passport", label: "Part Passport", title: "Part Passport", endpoint: "/api/parts + /api/usedcars", capabilities: ["Select inventory part", "Review public proof card", "Prepare WhatsApp-ready passport link"] },
   { key: "compatibility", label: "Compatibility", title: "Part Compatibility", endpoint: "/api/parts + /api/usedcars", capabilities: ["Visual part-to-vehicle graph", "OEM and donor-car fitment evidence", "Model/year sales assist"] },
   { key: "part-requests", label: "Part Requests", title: "Parts Request Board", endpoint: "/api/partrequests", capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"] },
   { key: "purchase-parts", label: "Part Purchases", title: "Part Purchases", endpoint: "/api/purchases", capabilities: ["Purchase invoice history", "Purchase invoice details", "Create and update purchase invoices"] },
@@ -187,6 +188,7 @@ const featureModules = [
   { key: "repair-prep", label: "Repair / Prep", title: "Repair / Prep Board", endpoint: "/api/usedcars", capabilities: ["Repair prep lanes", "Per-car task checklist", "Prep cost tracking"] },
   { key: "stock", label: "Stock", title: "Stock Management", endpoint: "/api/parts?page=1&pageSize=100", capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"] },
   { key: "dead-stock", label: "Dead Stock", title: "Dead Stock Recovery", endpoint: "/api/parts/dead-stock", capabilities: ["Dormant stock candidates", "Recovery actions", "Shelf-value summary"] },
+  { key: "growth-lab", label: "Money Finder", title: "Money Finder Lab", endpoint: "/api/growth/briefing", capabilities: ["Tonight's money queue", "Donor-car treasure map", "Auction simulator", "Teardown queue", "Duplicate detection", "Buying radar", "WhatsApp voice-to-quote"] },
   { key: "accounting", label: "Accounting", title: "Accounting Review", endpoint: "/api/accounting/trial-balance", capabilities: ["Ledger", "Trial balance", "Statements of account"] },
   { key: "manual-journal", label: "Manual Journal", title: "Manual Journal", endpoint: "/api/accounting/journal-entries", capabilities: ["Journal entry history", "Manual journal posting", "Account configuration"] },
   { key: "report-builder", label: "Report Builder", title: "Report Builder", endpoint: "/api/reportbuilder/saved-reports", capabilities: ["Schema explorer", "Saved reports", "Background runs"] },
@@ -195,8 +197,8 @@ const featureModules = [
 ];
 
 const navigationGroups = [
-  { title: "Core", keys: ["dashboard", "invoices", "parts", "compatibility", "contacts", "management", "settings"] },
-  { title: "Operations", keys: ["part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
+  { title: "Core", keys: ["dashboard", "invoices", "parts", "part-passport", "compatibility", "contacts", "management", "settings"] },
+  { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
   { title: "Finance", keys: ["accounting", "manual-journal", "report-builder"] },
   { title: "Tools", keys: ["whatsapp", "business-assistant", "ar"] }
 ];

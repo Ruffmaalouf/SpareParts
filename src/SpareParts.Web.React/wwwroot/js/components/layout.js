@@ -5,6 +5,7 @@ const iconPaths = {
   dashboard: "M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-5H4v5Zm10 0h6v-5h-6v5Z",
   invoices: "M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6M9 12h6M9 16h4",
   inventory: "M4 7h16v13H4V7Zm2-4h12v4H6V3Zm2 8h8M8 15h5",
+  "part-passport": "M6 3h9l3 3v15H6V3Zm8 0v4h4M9 11h6m-6 4h6m-6 4h4",
   compatibility: "M6 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm12 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM8.5 10.5l7 4M8.6 7.7l7.6-2.1M8.6 9.2l7.8-3.1",
   "part-requests": "M5 5h14v10H8l-3 3V5Zm4 4h6m-6 3h4M17 17l2 2 4-5",
   contacts: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
@@ -18,6 +19,7 @@ const iconPaths = {
   "repair-prep": "M5 6h5l2 3h7v9H5V6Zm2 2v8h10v-5h-6L9 8H7Zm4 5 2-2 1.5 1.5L12.5 14l2 2L13 17.5l-2-2-2 2L7.5 16l2-2-2-2L9 10.5 11 13Z",
   stock: "M4 8 12 4l8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4",
   "dead-stock": "M5 4h14v16H5V4Zm3 4h8M8 12h5m-5 4h7M17 11l2 2-2 2",
+  "growth-lab": "M4 19h16M6 17l3-5 3 2 5-8 2 3M17 6h3v3",
   accounting: "M5 4h14v16H5V4Zm3 4h8M8 12h8M8 16h5",
   "manual-journal": "M6 4h10l2 2v14H6V4Zm3 5h6M9 13h6M9 17h4",
   "report-builder": "M5 19V5h14v14H5Zm3-3h2v-5H8v5Zm4 0h2V8h-2v8Zm4 0h2v-3h-2v3Z",
@@ -28,8 +30,8 @@ const iconPaths = {
 };
 
 const navGroups = [
-  { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "compatibility", "contacts", "management", "settings"] },
-  { key: "operations", label: "Operations", items: ["part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
+  { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "settings"] },
+  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
   { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder"] },
   { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar"] }
 ];
