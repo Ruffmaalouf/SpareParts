@@ -3,7 +3,6 @@ using Dapper;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Testcontainers.MsSql;
-using Xunit;
 
 namespace SpareParts.IntegrationTests;
 
@@ -20,11 +19,6 @@ internal sealed class SqlServerSaleTestDatabase : IAsyncDisposable
         if (IsAvailable)
         {
             return true;
-        }
-
-        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
-        {
-            Skip.Always($"Docker unavailable in CI — SQL Server container could not start. {AvailabilityReason}");
         }
 
         return false;
