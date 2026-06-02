@@ -9,6 +9,7 @@ namespace SpareParts.Infrastructure.Services
 {
     public class CreateSaleHandler : ICreateSaleHandler
     {
+        private const int InvoiceNumberMaxAttempts = 5;
         private const string SalePaymentReferenceType = "SalePayment";
 
         private readonly ISqlConnectionFactory _factory;
@@ -55,7 +56,7 @@ namespace SpareParts.Infrastructure.Services
             EnsureStockAvailability(inventoryRepository, request, parts);
 
             var totals = _totalsCalculator.CalculateSales(request.Items);
-            var invoiceNumber = _invoiceNumberGenerator.NextSalesNumber();
+            var invoiceNumber = GenerateUniqueSalesNumber(salesRepository);
 
             var invoice = new SalesInvoice
             {
@@ -110,6 +111,20 @@ namespace SpareParts.Infrastructure.Services
             }
 
             InvoiceRequestValidator.ValidateSaleItems(request.Items);
+        }
+
+        private string GenerateUniqueSalesNumber(ISalesRepository salesRepository)
+        {
+            for (var attempt = 0; attempt < InvoiceNumberMaxAttempts; attempt++)
+            {
+                var invoiceNumber = _invoiceNumberGenerator.NextSalesNumber();
+                if (!salesRepository.InvoiceNumberExists(invoiceNumber))
+                {
+                    return invoiceNumber;
+                }
+            }
+
+            throw new ConflictException("Failed to generate a unique sales invoice number after multiple attempts.");
         }
 
         private static Dictionary<int, Part> LoadParts(IPartsRepository repository, CreateSaleRequest request)

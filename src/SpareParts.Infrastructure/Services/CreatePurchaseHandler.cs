@@ -9,6 +9,7 @@ namespace SpareParts.Infrastructure.Services
 {
     public class CreatePurchaseHandler : ICreatePurchaseHandler
     {
+        private const int InvoiceNumberMaxAttempts = 5;
         private const string PurchasePaymentReferenceType = "PurchasePayment";
 
         private readonly ISqlConnectionFactory _factory;
@@ -55,7 +56,7 @@ namespace SpareParts.Infrastructure.Services
 
             var (purchaseItems, _) = BuildPurchaseItems(request.Items, parts, userId);
             var totals = _totalsCalculator.CalculatePurchase(request.Items);
-            var purchaseNumber = _invoiceNumberGenerator.NextPurchaseNumber();
+            var purchaseNumber = GenerateUniquePurchaseNumber(purchasesRepository);
 
             var purchase = new PurchaseInvoice
             {
@@ -111,6 +112,20 @@ namespace SpareParts.Infrastructure.Services
             }
 
             InvoiceRequestValidator.ValidatePurchaseItems(request.Items);
+        }
+
+        private string GenerateUniquePurchaseNumber(IPurchasesRepository purchasesRepository)
+        {
+            for (var attempt = 0; attempt < InvoiceNumberMaxAttempts; attempt++)
+            {
+                var purchaseNumber = _invoiceNumberGenerator.NextPurchaseNumber();
+                if (!purchasesRepository.PurchaseNumberExists(purchaseNumber))
+                {
+                    return purchaseNumber;
+                }
+            }
+
+            throw new ConflictException("Failed to generate a unique purchase number after multiple attempts.");
         }
 
         private static Dictionary<int, Part> LoadParts(IPartsRepository repository, CreatePurchaseRequest request)
