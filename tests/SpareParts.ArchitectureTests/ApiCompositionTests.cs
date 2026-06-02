@@ -15,12 +15,12 @@ public class ApiCompositionTests
     public static TheoryData<ServiceCapability[], string[]> CapabilityControllerCases =>
         new()
         {
-            { [ServiceCapability.Sales, ServiceCapability.Health], [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(HealthController)] },
-            { [ServiceCapability.Purchases, ServiceCapability.Health], [nameof(PurchasesController), nameof(SuppliersController), nameof(HealthController)] },
-            { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(HealthController)] },
+            { [ServiceCapability.Sales, ServiceCapability.Health], [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(HealthController)] },
+            { [ServiceCapability.Purchases, ServiceCapability.Health], [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController), nameof(HealthController)] },
+            { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(HealthController)] },
             { [ServiceCapability.Identity, ServiceCapability.Health], [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(HealthController)] },
             { [ServiceCapability.Catalog, ServiceCapability.Health], [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(HealthController)] },
-            { [ServiceCapability.Reporting, ServiceCapability.Health], [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(GrowthController), nameof(SearchController), nameof(HealthController)] }
+            { [ServiceCapability.Reporting, ServiceCapability.Health], [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(GrowthController), nameof(SearchController), nameof(ActivityLogController), nameof(HealthController)] }
         };
 
     [Theory]
