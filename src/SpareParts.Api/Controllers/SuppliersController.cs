@@ -18,12 +18,15 @@ namespace SpareParts.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<SupplierDto>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+        public ActionResult<IEnumerable<SupplierDto>> GetAll([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
-            (page, pageSize) = NormalizePagination(page, pageSize);
+            var pagination = NormalizeOptionalPagination(page, pageSize);
+            var result = _service.GetAll(pagination.Page, pagination.PageSize);
+            if (pagination.IsPaged)
+            {
+                ApplyPaginationHeaders(pagination.Page, pagination.PageSize, result.TotalCount);
+            }
 
-            var result = _service.GetAll(page, pageSize);
-            ApplyPaginationHeaders(page, pageSize, result.TotalCount);
             return Ok(result.Items);
         }
 

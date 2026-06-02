@@ -27,6 +27,18 @@ public abstract class SparePartsControllerBase : ControllerBase
     protected static (int Page, int PageSize) NormalizePagination(int page, int pageSize, int maxPageSize = 500)
         => (Math.Max(1, page), Math.Clamp(pageSize, 1, maxPageSize));
 
+    protected static (int Page, int PageSize, bool IsPaged) NormalizeOptionalPagination(
+        int? page,
+        int? pageSize,
+        int maxPageSize = 500)
+    {
+        var isPaged = page.HasValue || pageSize.HasValue;
+        return (
+            Math.Max(1, page ?? 1),
+            isPaged ? Math.Clamp(pageSize ?? 100, 1, maxPageSize) : int.MaxValue,
+            isPaged);
+    }
+
     protected void ApplyPaginationHeaders(int page, int pageSize, int totalCount)
     {
         Response.Headers["X-Page"] = page.ToString();

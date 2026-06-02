@@ -28,14 +28,17 @@ namespace SpareParts.Api.Controllers
 
         [HttpGet]
         public ActionResult<IEnumerable<PartDto>> GetAll(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 100,
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null,
             [FromQuery] int? usedCarId = null)
         {
-            (page, pageSize) = NormalizePagination(page, pageSize, maxPageSize: 5000);
+            var pagination = NormalizeOptionalPagination(page, pageSize, maxPageSize: 5000);
+            var result = _service.GetAll(pagination.Page, pagination.PageSize, usedCarId);
+            if (pagination.IsPaged)
+            {
+                ApplyPaginationHeaders(pagination.Page, pagination.PageSize, result.TotalCount);
+            }
 
-            var result = _service.GetAll(page, pageSize, usedCarId);
-            ApplyPaginationHeaders(page, pageSize, result.TotalCount);
             return Ok(result.Items);
         }
 
