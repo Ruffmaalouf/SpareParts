@@ -1,0 +1,158 @@
+name: deploy-staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: "Azure App Service URL for the API (e.g. https://spareparts-api-XXXXX.azurewebsites.net)"
+        required: true
+      web_url:
+        description: "Azure App Service URL for the Web app (e.g. https://spareparts-web-XXXXX.azurewebsites.net)"
+        required: true
+
+jobs:
+  build-and-deploy-api:
+    name: Build & Deploy API
+    runs-on: windows-latest
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore src/SpareParts.Api/SpareParts.Api.csproj
+
+      - name: Publish API
+        run: dotnet publish src/SpareParts.Api/SpareParts.Api.csproj -c Release -o artifacts/api-publish --no-restore
+
+      - name: Upload API artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-publish
+          path: artifacts/api-publish/
+          retention-days: 7
+
+      - name: Deploy API to Azure App Service
+        if: ${{ secrets.AZURE_API_PUBLISH_PROFILE != '' }}
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_API_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: artifacts/api-publish/
+
+      - name: Configure API environment variables
+        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
+        uses: azure/CLI@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az webapp config appsettings set \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --name ${{ vars.AZURE_API_APP_NAME }} \
+              --settings \
+                "ASPNETCORE_ENVIRONMENT=Staging" \
+                "Cors__AllowedOrigins__0=${{ github.event.inputs.web_url }}" \
+                --output none
+
+  build-and-deploy-web:
+    name: Build & Deploy Web
+    runs-on: windows-latest
+    needs: build-and-deploy-api
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Patch config.js with staging API URL
+        shell: pwsh
+        run: |
+          $configPath = "src/SpareParts.Web.React/wwwroot/config.js"
+          $content = @"
+          window.SparePartsWebConfig = {
+            defaultApiBaseUrl: "${{ github.event.inputs.api_url }}",
+            googleClientId: "",
+            facebookAppId: ""
+          };
+          "@
+          Set-Content -Path $configPath -Value $content -Encoding UTF8
+          Write-Host "Patched $configPath with API URL: ${{ github.event.inputs.api_url }}"
+
+      - name: Restore
+        run: dotnet restore src/SpareParts.Web.React/SpareParts.Web.React.csproj
+
+      - name: Publish Web
+        run: dotnet publish src/SpareParts.Web.React/SpareParts.Web.React.csproj -c Release -o artifacts/web-publish --no-restore
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-publish
+          path: artifacts/web-publish/
+          retention-days: 7
+
+      - name: Deploy Web to Azure App Service
+        if: ${{ secrets.AZURE_WEB_PUBLISH_PROFILE != '' }}
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEB_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEB_PUBLISH_PROFILE }}
+          package: artifacts/web-publish/
+
+  build-android-apk:
+    name: Build Android APK (EAS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: src/SpareParts.Mobile.ReactNative
+        run: npm ci
+
+      - name: Write staging .env
+        working-directory: src/SpareParts.Mobile.ReactNative
+        run: |
+          cat > .env <<EOF
+          EXPO_PUBLIC_API_BASE_URL=${{ github.event.inputs.api_url }}
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID=
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
+          EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+          EXPO_PUBLIC_FACEBOOK_APP_ID=
+          EOF
+          echo "Written .env with API URL: ${{ github.event.inputs.api_url }}"
+
+      - name: Verify no localhost in .env
+        working-directory: src/SpareParts.Mobile.ReactNative
+        run: |
+          if grep -q "localhost\|127\.0\.0\.1\|10\.0\.2\.2" .env; then
+            echo "ERROR: localhost found in .env — mobile app would not work on a real device"
+            exit 1
+          fi
+          echo "OK: no localhost in .env"
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build Android Preview APK via EAS
+        working-directory: src/SpareParts.Mobile.ReactNative
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile preview --non-interactive

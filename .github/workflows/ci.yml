@@ -73,6 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: "true"
+      TESTCONTAINERS_RYUK_DISABLED: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
