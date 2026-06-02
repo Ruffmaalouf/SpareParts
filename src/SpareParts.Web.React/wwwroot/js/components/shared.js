@@ -35,6 +35,18 @@ export function NotificationCenter({ notifications, onDismiss }) {
   );
 }
 
+export function Badge({ tone = "neutral", children }) {
+  return h("span", { className: `badge badge-${tone}` }, children);
+}
+
+export function EmptyState({ title, subtitle, action }) {
+  return h("div", { className: "empty-state-block" },
+    h("strong", null, title),
+    subtitle ? h("p", null, subtitle) : null,
+    action || null
+  );
+}
+
 export function DataTable({ columns, rows, getRowKey, emptyText }) {
   return h(React.Fragment, null,
     h("table", null,
