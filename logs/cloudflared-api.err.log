@@ -136,3 +136,4 @@
 2026-06-01T20:01:03Z ERR  error="Unable to reach the origin service. The service may be down or it may not be responding to traffic from cloudflared: dial tcp [::1]:5000: connectex: No connection could be made because the target machine actively refused it." connIndex=0 event=1 ingressRule=0 originService=http://localhost:5000
 2026-06-01T20:01:03Z ERR Request failed error="Unable to reach the origin service. The service may be down or it may not be responding to traffic from cloudflared: dial tcp [::1]:5000: connectex: No connection could be made because the target machine actively refused it." connIndex=0 dest=http://insulation-instructions-submitted-union.trycloudflare.com/ event=0 ip=198.41.192.107 type=http
 2026-06-02T05:46:53Z ERR Failed to refresh DNS local resolver error="lookup region1.v2.argotunnel.com: i/o timeout"
+2026-06-02T06:41:59Z ERR Failed to refresh DNS local resolver error="lookup region1.v2.argotunnel.com: i/o timeout"
