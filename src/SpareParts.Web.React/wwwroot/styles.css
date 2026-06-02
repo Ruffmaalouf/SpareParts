@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* Aurora Design System — shared palette with Desktop (AuroraTheme.xaml) & Mobile (aurora key) */
 :root {
   color-scheme: dark;
@@ -20,6 +21,48 @@
   --accent2: #25d366;
   --surface2: #141c2e;
   --confidence: 0%;
+=======
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap');
+
+:root {
+  color-scheme: dark;
+
+  /* — Backgrounds — */
+  --bg:       #07080b;
+  --surface:  #0c0f14;
+  --surface-2:#111620;
+  --sidebar:  #08090d;
+  --input:    #060709;
+
+  /* — Borders — */
+  --line:        #1c2230;
+  --line-bright: #2c3448;
+
+  /* — Text — */
+  --text:  #edf1f9;
+  --muted: #7585a0;
+  --soft:  #404c60;
+
+  /* — Brand accents — */
+  --accent:   #e85012;
+  --accent-2: #22c55e;
+  --amber:    #f59e0b;
+  --danger:   #f43f5e;
+
+  /* — Glow & shadow — */
+  --shadow:       0 28px 90px rgba(0, 0, 0, .52);
+  --shadow-sm:    0 8px 28px  rgba(0, 0, 0, .36);
+  --accent-glow:  0 0 28px rgba(232, 80, 18, .34);
+
+  /* — Geometry — */
+  --r:  5px;
+  --r2: 3px;
+  --r3: 9px;
+
+  /* — Motion — */
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --t:    .13s;
+>>>>>>> origin/claude/magical-hawking-ZjSdY
 }
 
 * {
