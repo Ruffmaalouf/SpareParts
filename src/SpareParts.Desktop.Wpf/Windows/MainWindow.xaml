@@ -1212,9 +1212,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Accounting Review" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Accounting Review" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Review journal activity, inspect posted entries, and monitor ledger and trial balance results."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
@@ -1438,9 +1438,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Manual Journal" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Manual Journal" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Post standalone journal entries with dedicated access control, separate from chart setup and reporting."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
@@ -1500,9 +1500,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="760">
-                        <TextBlock Text="Report Builder" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Report Builder" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Build custom reports from live database tables and preview them in a dedicated viewer with export options."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
@@ -1555,9 +1555,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="760">
-                        <TextBlock Text="WhatsApp Conversations" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="WhatsApp Conversations" FontSize="19" FontWeight="Bold"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="⟵ Home"
@@ -1609,9 +1609,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="760">
-                        <TextBlock Text="AI Business Assistant" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="AI Business Assistant" FontSize="19" FontWeight="Bold"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="⟵ Home"
@@ -1663,9 +1663,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Part Purchases" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Part Purchases" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Search, create, and edit supplier purchases using the same unified transaction flow as sales."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -1698,9 +1698,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Used Car Purchases" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Used Car Purchases" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Received used cars sync to linked purchase drafts here. Review the draft, then post it from Used Car Purchase History."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -1749,9 +1749,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Used Car Wholesale" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Used Car Wholesale" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Sell a complete used car as-is, record the buyer, price, paid amount, and acknowledgement."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -1785,9 +1785,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Used Car Purchase History" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Used Car Purchase History" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Load saved purchases from the purchase table, post drafts, and delete mistakes."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2093,9 +2093,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Stock Arrival Theater" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Stock Arrival Theater" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="When inventory lands, turn it into photos, customer follow-ups, campaigns, and pricing work."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2136,9 +2136,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Repair / Prep Board" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Repair / Prep Board" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Track bought cars through inspection, parts, repair, photos, listing, and sale."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2171,9 +2171,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Stock Management" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Stock Management" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Monitor stock levels and replenish low inventory."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2233,9 +2233,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Dead Stock Resurrection Mode" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Dead Stock Resurrection Mode" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Find stale inventory and choose the recovery action with the best odds."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2270,9 +2270,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Money Finder Lab" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Money Finder Lab" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Turn stock, donor cars, part requests, and auction listings into the next profitable action."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2314,9 +2314,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Part Passport" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Part Passport" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Choose a part, review its customer-facing proof card, and prepare a WhatsApp-ready public link."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2353,9 +2353,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Part Compatibility Graph" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Part Compatibility Graph" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="See which parts fit the same cars, models, and years."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -2384,9 +2384,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="AR Picture Search" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="AR Picture Search" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Search parts by picture, resolve scans, sell parts, move warehouse stock, and link parts to used cars."
                                    FontSize="13"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -3657,9 +3657,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Reorder Center" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Reorder Center" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Parts that have fallen below their reorder point and need restocking."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -3701,9 +3701,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Expiry Alerts" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Expiry Alerts" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Parts approaching or past their expiry date that need immediate attention."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -3744,9 +3744,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Loyalty" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Loyalty" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Top customers ranked by loyalty points. Reward and engage your best clients."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -3785,9 +3785,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Warranty &amp; Returns" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Warranty &amp; Returns" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Track open and resolved warranty claims and return requests."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -3827,9 +3827,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Shipments" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Shipments" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Track incoming and outgoing shipments with real-time status updates."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -3869,9 +3869,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
                     <StackPanel DockPanel.Dock="Left" MaxWidth="720">
-                        <TextBlock Text="Activity Log" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Activity Log" FontSize="19" FontWeight="Bold"/>
                         <TextBlock Text="Full audit trail of system activity. Track who did what and when."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
