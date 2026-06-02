@@ -335,6 +335,62 @@
             </Setter>
         </Style>
 
+        <!-- ══ Sidebar nav item ══════════════════════════════════ -->
+        <Style x:Key="NavItemStyle" TargetType="Button">
+            <Setter Property="Background"               Value="Transparent"/>
+            <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness"          Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Height"                   Value="34"/>
+            <Setter Property="Padding"                  Value="10 0 8 0"/>
+            <Setter Property="Margin"                   Value="0 1"/>
+            <Setter Property="Cursor"                   Value="Hand"/>
+            <Setter Property="FontSize"                 Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="NavRoot"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="7"
+                                Padding="{TemplateBinding Padding}">
+                            <DockPanel>
+                                <Border x:Name="ActiveBar"
+                                        DockPanel.Dock="Left"
+                                        Width="3" CornerRadius="2"
+                                        Margin="0 7 8 7"
+                                        Opacity="0">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#FFE8E8E8" Offset="0"/>
+                                            <GradientStop Color="#FF888888" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <ContentPresenter VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavRoot"   Property="Background" Value="#10FFFFFF"/>
+                                <Setter TargetName="ActiveBar" Property="Opacity"    Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="NavRoot" Property="Background" Value="#1AFFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="NavGroupHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"   Value="9"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#FF505050"/>
+            <Setter Property="Margin"     Value="13 12 0 4"/>
+        </Style>
+
         <Style x:Key="SidebarToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource InvoiceIconButtonStyle}">
             <Setter Property="Width" Value="44"/>
             <Setter Property="Height" Value="44"/>
@@ -387,11 +443,12 @@
         <!-- ══ SIDEBAR ════════════════════════════════════════════════════ -->
         <Border x:Name="SidebarHost"
                 Grid.Column="0"
-                Width="280"
+                Width="290"
                 MinWidth="0"
                 ClipToBounds="True"
-                Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0 0 1 0"
+                Background="{DynamicResource CarbonFiberBrush}"
+                BorderBrush="{DynamicResource SidebarChromeBorderBrush}"
+                BorderThickness="0 0 1 0"
                 Panel.ZIndex="2">
             <Grid x:Name="SidebarContent" Margin="18 18 18 20">
                 <Grid.RenderTransform>
@@ -404,62 +461,98 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header -->
+                <!-- ══ Header — carbon plate with chrome wordmark ══ -->
                 <Border Grid.Row="0"
-                        Background="{DynamicResource AppBackgroundBrush}"
-                        CornerRadius="18"
-                        Padding="16"
-                        Margin="0 0 0 16">
+                        Margin="0 0 0 14">
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                        <!-- Chrome top accent line -->
+                        <Border VerticalAlignment="Top"
+                                Height="2"
+                                CornerRadius="1"
+                                Margin="0 0 0 0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#FF383838" Offset="0"/>
+                                    <GradientStop Color="#FFB0B0B0" Offset="0.35"/>
+                                    <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
+                                    <GradientStop Color="#FFB0B0B0" Offset="0.65"/>
+                                    <GradientStop Color="#FF383838" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
 
-                        <DockPanel Grid.Row="0" LastChildFill="False">
-                            <TextBlock DockPanel.Dock="Left"
-                                       Text="Navigation"
-                                       FontSize="11"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <Button DockPanel.Dock="Right"
-                                    Click="HideSidebarButton_Click"
-                                    Style="{StaticResource SidebarToggleButtonStyle}"
-                                    ToolTip="Hide navigation panel">
-                                <TextBlock Text="◀"
-                                           FontSize="14"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            </Button>
-                        </DockPanel>
+                        <Grid Margin="0 8 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="1" Margin="0 14 0 0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Width="56"
-                                    Height="56"
-                                    Background="#14FFFFFF"
-                                    CornerRadius="14">
-                                <Image Source="/Assets/MaaloufLogo.png"
-                                       Stretch="Uniform"
-                                       Margin="7"/>
-                            </Border>
-                            <StackPanel Grid.Column="1" Margin="14 0 0 0">
-                                <TextBlock FontSize="18"
-                                           FontWeight="SemiBold"
-                                           Foreground="White"
-                                           Text="Maalouf Auto Parts"/>
-                                <TextBlock Text="Browse brands and open tools without clutter."
-                                           FontSize="12"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Margin="0 4 0 0"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                            <Grid.InputBindings>
-                                <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
-                            </Grid.InputBindings>
+                            <DockPanel Grid.Row="0" LastChildFill="False">
+                                <TextBlock DockPanel.Dock="Left"
+                                           Text="COMMAND CENTER"
+                                           FontSize="9"
+                                           FontWeight="Bold"
+                                           Foreground="#FF404040"
+                                           VerticalAlignment="Center"/>
+                                <Button DockPanel.Dock="Right"
+                                        Click="HideSidebarButton_Click"
+                                        Style="{StaticResource SidebarToggleButtonStyle}"
+                                        Width="30" Height="30"
+                                        ToolTip="Collapse navigation">
+                                    <TextBlock Text="◀"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Button>
+                            </DockPanel>
+
+                            <Grid Grid.Row="1" Margin="0 12 0 0" Cursor="Hand">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="52"
+                                        Height="52"
+                                        CornerRadius="12">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#FF1C1C1C" Offset="0"/>
+                                            <GradientStop Color="#FF2E2E2E" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#FF505050" Offset="0"/>
+                                            <GradientStop Color="#FF282828" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.BorderBrush>
+                                    <Border.BorderThickness>1</Border.BorderThickness>
+                                    <Image Source="/Assets/MaaloufLogo.png"
+                                           Stretch="Uniform"
+                                           Margin="8"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" Margin="12 0 0 0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="15"
+                                               FontWeight="Bold"
+                                               Text="MAALOUF">
+                                        <TextBlock.Foreground>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#FFD8D8D8" Offset="0"/>
+                                                <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
+                                                <GradientStop Color="#FFB0B0B0" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Text="AUTO PARTS"
+                                               FontSize="9"
+                                               FontWeight="Bold"
+                                               Foreground="#FF505050"
+                                               Margin="0 2 0 0"/>
+                                </StackPanel>
+                                <Grid.InputBindings>
+                                    <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
+                                </Grid.InputBindings>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Border>
@@ -522,122 +615,247 @@
                     </DockPanel>
                 </Border>
 
-                <!-- Compact brand browser -->
-                <Grid Grid.Row="2">
-                    <StackPanel VerticalAlignment="Top">
-                        <TextBlock Text="Browse Brands"
-                                   FontSize="15"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock Text="Open the drawer when you want to switch manufacturer."
-                                   FontSize="12"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   Margin="0 4 0 0"/>
+                <!-- ══ Navigation Groups Panel ══════════════════════ -->
+                <ScrollViewer Grid.Row="2"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0 4 0 4">
 
-                        <ToggleButton x:Name="BrandsToggle"
-                                      HorizontalAlignment="Stretch"
-                                      Style="{StaticResource QuickMenuToggleStyle}"
-                                      Checked="SidebarMenuToggle_Checked"
-                                      Margin="0 14 0 0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="🏷"
-                                           FontSize="15"
-                                           Margin="0 0 10 0"
-                                           VerticalAlignment="Center"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Brand Browser"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock Text="Open drawer"
-                                               FontSize="10"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </StackPanel>
-                            </Grid>
-                        </ToggleButton>
+                        <!-- ─ CORE ─────────────────────────────────────── -->
+                        <TextBlock Text="CORE" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
+                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                            <StackPanel>
+                                <Button Command="{Binding GoToHomeCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Dashboard" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToPosCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="POS / Sales" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToPartPassportCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Part Passport" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToCompatibilityCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Compatibility" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding OpenManagementCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Management" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
 
-                        <Popup Placement="Right"
-                               PlacementTarget="{Binding ElementName=BrandsToggle}"
-                               HorizontalOffset="14"
-                               VerticalOffset="-8"
-                               IsOpen="{Binding IsChecked, ElementName=BrandsToggle}"
-                               StaysOpen="False"
-                               AllowsTransparency="True"
-                               PopupAnimation="Slide">
-                            <Border Background="{DynamicResource CardBackgroundBrush}"
-                                    BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="16"
-                                    Padding="14"
-                                    Width="372"
-                                    MaxHeight="640">
-                                <StackPanel>
-                                    <TextBlock Text="Brand Browser"
-                                               FontSize="14"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock Text="Pick a region, then choose the manufacturer."
-                                               FontSize="11"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               Margin="0 4 0 12"/>
+                        <!-- ─ OPERATIONS ──────────────────────────────── -->
+                        <TextBlock Text="OPERATIONS" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
+                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                            <StackPanel>
+                                <Button Command="{Binding GoToGrowthLabCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Money Finder" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToPurchasesCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Part Purchases" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToUsedCarPurchasesCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Car Purchases" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToUsedCarWholesaleCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Car Wholesale" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToStockArrivalCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Stock Arrival" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToRepairPrepCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Repair / Prep" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToStockManagementCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Stock" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToDeadStockCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Dead Stock" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToReorderCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Reorder" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToExpiryAlertsCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Expiry Alerts" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToLoyaltyCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Loyalty" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToWarrantyCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Warranty" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToShipmentsCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Shipments" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
 
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Disabled"
-                                                  MaxHeight="560">
-                                        <ItemsControl ItemsSource="{Binding BrandGroups}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Expander Style="{StaticResource SectionExpanderStyle}"
-                                                              Header="{Binding RegionGroup}"
-                                                              IsExpanded="False">
-                                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                                      HorizontalScrollBarVisibility="Disabled"
-                                                                      MaxHeight="228">
-                                                            <ItemsControl ItemsSource="{Binding Brands}">
-                                                                <ItemsControl.ItemsPanel>
-                                                                    <ItemsPanelTemplate>
-                                                                        <WrapPanel/>
-                                                                    </ItemsPanelTemplate>
-                                                                </ItemsControl.ItemsPanel>
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <Button Style="{StaticResource BrandTileStyle}"
-                                                                                Click="BrandMenuItem_Click"
-                                                                                Command="{Binding DataContext.SelectBrandCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                                CommandParameter="{Binding}"
-                                                                                ToolTip="{Binding Name}">
-                                                                            <StackPanel VerticalAlignment="Center">
-                                                                                <Image Source="{Binding Logo}"
-                                                                                       Height="34"
-                                                                                       Margin="0 0 0 6"
-                                                                                       RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                                                <TextBlock Text="{Binding Name}"
-                                                                                           FontSize="11"
-                                                                                           HorizontalAlignment="Center"
-                                                                                           TextTrimming="CharacterEllipsis"/>
-                                                                            </StackPanel>
-                                                                        </Button>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </ScrollViewer>
-                                                    </Expander>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </StackPanel>
-                            </Border>
-                        </Popup>
+                        <!-- ─ FINANCE ──────────────────────────────────── -->
+                        <TextBlock Text="FINANCE" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
+                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                            <StackPanel>
+                                <Button Command="{Binding GoToAccountingCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Accounting" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToManualJournalCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Manual Journal" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToReportBuilderCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Report Builder" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ─ TOOLS ────────────────────────────────────── -->
+                        <TextBlock Text="TOOLS" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
+                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                            <StackPanel>
+                                <Button Command="{Binding GoToWhatsAppCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="WhatsApp" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToBusinessAssistantCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="AI Assistant" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToArCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="AR Search" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToActivityLogCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Activity Log" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
                     </StackPanel>
-                </Grid>
+                </ScrollViewer>
 
-                <!-- Bottom: compact popups + date -->
-                <StackPanel Grid.Row="3" Margin="0 14 0 0" VerticalAlignment="Bottom">
-                    <StackPanel Margin="0 0 0 12">
-                        <ToggleButton x:Name="QuickActionsToggle"
+                <!-- Hidden element kept for code-behind mutual-exclusion logic -->
+                <ToggleButton x:Name="QuickActionsToggle"
+                              Grid.Row="3"
+                              Visibility="Collapsed"
+                              Checked="SidebarMenuToggle_Checked"/>
+
+                <!-- ══ Bottom footer ════════════════════════════════ -->
+                <StackPanel Grid.Row="3" Margin="0 10 0 0" VerticalAlignment="Bottom">
+
+                    <!-- Chrome separator -->
+                    <Border Height="1" Margin="4 0 4 10">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="Transparent" Offset="0"/>
+                                <GradientStop Color="#FF2E2E2E"   Offset="0.2"/>
+                                <GradientStop Color="#FF686868"   Offset="0.5"/>
+                                <GradientStop Color="#FF2E2E2E"   Offset="0.8"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <StackPanel Margin="0 0 0 8">
+                        <!-- Brand Browser toggle -->
+                        <ToggleButton x:Name="BrandsToggle"
                                       HorizontalAlignment="Stretch"
                                       Style="{StaticResource QuickMenuToggleStyle}"
                                       Checked="SidebarMenuToggle_Checked">
@@ -647,26 +865,27 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0"
-                                           Text="☰"
-                                           FontSize="15"
+                                           Text="🏷"
+                                           FontSize="13"
                                            Margin="0 0 10 0"
                                            VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Quick Links"
+                                    <TextBlock Text="Brand Browser"
                                                FontSize="12"
                                                FontWeight="SemiBold"/>
-                                    <TextBlock Text="Hidden list"
+                                    <TextBlock Text="Switch manufacturer"
                                                FontSize="10"
                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </Grid>
                         </ToggleButton>
 
+                        <!-- Themes toggle -->
                         <ToggleButton x:Name="ThemesToggle"
                                       HorizontalAlignment="Stretch"
                                       Style="{StaticResource QuickMenuToggleStyle}"
                                       Checked="SidebarMenuToggle_Checked"
-                                      Margin="0 10 0 0">
+                                      Margin="0 8 0 0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -674,7 +893,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0"
                                            Text="◌"
-                                           FontSize="15"
+                                           FontSize="13"
                                            Margin="0 0 10 0"
                                            VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1">
@@ -689,196 +908,78 @@
                         </ToggleButton>
                     </StackPanel>
 
+                    <!-- Brand Browser Popup -->
                     <Popup Placement="Top"
-                           PlacementTarget="{Binding ElementName=QuickActionsToggle}"
-                           IsOpen="{Binding IsChecked, ElementName=QuickActionsToggle}"
+                           PlacementTarget="{Binding ElementName=BrandsToggle}"
+                           IsOpen="{Binding IsChecked, ElementName=BrandsToggle}"
                            StaysOpen="False"
                            AllowsTransparency="True"
-                           PopupAnimation="Fade">
+                           PopupAnimation="Slide">
                         <Border Background="{DynamicResource CardBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="14"
-                                Padding="10"
-                                Width="238">
+                                CornerRadius="16"
+                                Padding="14"
+                                Width="360"
+                                MaxHeight="580">
                             <StackPanel>
-                                <TextBlock Text="Quick Links"
-                                           FontSize="12"
-                                           FontWeight="SemiBold"
+                                <TextBlock Text="Brand Browser"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Text="Pick a region, then choose the manufacturer."
+                                           FontSize="11"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Margin="4 2 4 10"/>
-
-                                <Button Command="{Binding OpenManagementCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}">
-                                    <Button.Content>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="⚙"
-                                                       FontSize="15"
-                                                       Margin="0 0 12 0"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="Management Center"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsManagementOpen}" Value="True">
-                                                                <Setter Property="Text" Value="Close Management"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </Button.Content>
-                                </Button>
-
-                                <Button Command="{Binding CreateInvoiceCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanCreateInvoice, Converter={StaticResource BoolToVis}}"
-                                        Content="＋  Create Invoice"/>
-
-                                <Button Command="{Binding OpenInvoiceSearchCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
-                                        Content="🔎  Search Invoices"/>
-
-                                <Button Command="{Binding GoToPurchasesCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="🧾  Part Purchases"/>
-
-                                <Button Command="{Binding GoToUsedCarPurchasesCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="🚘  Used Car Purchases"/>
-
-                                <Button Command="{Binding GoToUsedCarWholesaleCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Used Car Wholesale"/>
-
-                                <Button Command="{Binding GoToStockArrivalCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewStockArrivalScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Stock Arrival Theater"/>
-
-                                <Button Command="{Binding GoToRepairPrepCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewPurchasesScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Repair / Prep Board"/>
-
-                                <Button Command="{Binding GoToStockManagementCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="📦  Stock Management"/>
-
-                                <Button Command="{Binding GoToDeadStockCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Dead Stock Resurrection"/>
-
-                                <Button Command="{Binding GoToGrowthLabCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewGrowthLabScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Money Finder Lab"/>
-
-                                <Button Command="{Binding GoToPartPassportCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewPartPassportScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Part Passport"/>
-
-                                <Button Command="{Binding GoToCompatibilityCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="Compatibility Graph"/>
-
-                                <Button Command="{Binding GoToAccountingCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewAccountingScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="📒  Accounting Review"/>
-
-                                <Button Command="{Binding GoToManualJournalCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewManualJournalScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="📝  Manual Journal"/>
-
-                                <Button Command="{Binding GoToReportBuilderCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewReportBuilderScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="📊  Report Builder"/>
-
-                                <Button Command="{Binding GoToWhatsAppCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewWhatsAppScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="WA Conversations"/>
-
-                                <Button Command="{Binding GoToBusinessAssistantCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewBusinessAssistantScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="AI Business Assistant"/>
-
-                                <Button Command="{Binding GoToBarcodeModeCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Visibility="{Binding CanViewBarcodeQrScreen, Converter={StaticResource BoolToVis}}"
-                                        Content="▦  AR Search"/>
-
-                                <Button Command="{Binding GoToReorderCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Content="📦  Reorder Center"/>
-
-                                <Button Command="{Binding GoToExpiryAlertsCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Content="⏰  Expiry Alerts"/>
-
-                                <Button Command="{Binding GoToLoyaltyCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Content="⭐  Loyalty"/>
-
-                                <Button Command="{Binding GoToWarrantyCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Content="🛡  Warranty &amp; Returns"/>
-
-                                <Button Command="{Binding GoToShipmentsCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Content="🚚  Shipments"/>
-
-                                <Button Command="{Binding GoToActivityLogCommand}"
-                                        Click="QuickActionMenuItem_Click"
-                                        Style="{StaticResource QuickActionMenuButtonStyle}"
-                                        Content="📋  Activity Log"/>
+                                           Margin="0 4 0 12"/>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              MaxHeight="500">
+                                    <ItemsControl ItemsSource="{Binding BrandGroups}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Expander Style="{StaticResource SectionExpanderStyle}"
+                                                          Header="{Binding RegionGroup}"
+                                                          IsExpanded="False">
+                                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                                  HorizontalScrollBarVisibility="Disabled"
+                                                                  MaxHeight="228">
+                                                        <ItemsControl ItemsSource="{Binding Brands}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <WrapPanel/>
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Button Style="{StaticResource BrandTileStyle}"
+                                                                            Click="BrandMenuItem_Click"
+                                                                            Command="{Binding DataContext.SelectBrandCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                            CommandParameter="{Binding}"
+                                                                            ToolTip="{Binding Name}">
+                                                                        <StackPanel VerticalAlignment="Center">
+                                                                            <Image Source="{Binding Logo}"
+                                                                                   Height="34"
+                                                                                   Margin="0 0 0 6"
+                                                                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                                            <TextBlock Text="{Binding Name}"
+                                                                                       FontSize="11"
+                                                                                       HorizontalAlignment="Center"
+                                                                                       TextTrimming="CharacterEllipsis"/>
+                                                                        </StackPanel>
+                                                                    </Button>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </ScrollViewer>
+                                                </Expander>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </StackPanel>
                         </Border>
                     </Popup>
 
+                    <!-- Themes Popup -->
                     <Popup Placement="Top"
                            PlacementTarget="{Binding ElementName=ThemesToggle}"
                            IsOpen="{Binding IsChecked, ElementName=ThemesToggle}"
@@ -921,8 +1022,7 @@
                                                                         <ColumnDefinition Width="Auto"/>
                                                                     </Grid.ColumnDefinitions>
                                                                     <Ellipse Grid.Column="0"
-                                                                             Width="10"
-                                                                             Height="10"
+                                                                             Width="10" Height="10"
                                                                              Fill="{Binding AccentBrush}"
                                                                              VerticalAlignment="Center"
                                                                              Margin="0 0 10 0"/>
@@ -962,10 +1062,10 @@
                     </Popup>
 
                     <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='{}{0:D}'}"
-                               FontSize="11"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="10"
+                               Foreground="#FF383838"
                                HorizontalAlignment="Right"
-                               Margin="0 2 4 0"/>
+                               Margin="0 4 4 0"/>
                 </StackPanel>
             </Grid>
         </Border>
