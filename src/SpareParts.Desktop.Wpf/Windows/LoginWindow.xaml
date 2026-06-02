@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Maalouf Auto Parts — Login"
-        Width="1000" Height="620"
+        Width="1020" Height="640"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         WindowStyle="None"
@@ -17,6 +17,7 @@
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+            <!-- Login field style — Aurora themed rounded inputs -->
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
@@ -62,6 +63,7 @@
                 </Setter>
             </Style>
 
+            <!-- Login password style -->
             <Style x:Key="LoginPasswordStyle" TargetType="PasswordBox">
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
@@ -104,6 +106,7 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -168,7 +171,6 @@
 
                         <!-- Aurora logo ring -->
                         <Grid HorizontalAlignment="Center" Margin="0 0 0 32">
-                            <!-- Outer ring -->
                             <Ellipse Width="108" Height="108">
                                 <Ellipse.Stroke>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -181,7 +183,6 @@
                                     <DropShadowEffect Color="#FF00C9A7" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
                                 </Ellipse.Effect>
                             </Ellipse>
-                            <!-- Inner fill -->
                             <Ellipse Width="94" Height="94">
                                 <Ellipse.Fill>
                                     <RadialGradientBrush>
@@ -190,7 +191,6 @@
                                     </RadialGradientBrush>
                                 </Ellipse.Fill>
                             </Ellipse>
-                            <!-- Logo letter -->
                             <TextBlock Text="M" FontSize="44" FontWeight="Bold"
                                        Foreground="#FF00C9A7"
                                        HorizontalAlignment="Center"
@@ -229,16 +229,16 @@
                             </Border.Background>
                         </Border>
 
-                        <!-- Platform badges — shows the three connected apps -->
+                        <!-- Platform badges -->
                         <TextBlock Text="CONNECTED PLATFORMS"
                                    FontSize="9" FontWeight="Bold"
                                    Foreground="#FF4A5A78"
                                    HorizontalAlignment="Center"
                                    Margin="0 0 0 12" FontFamily="Segoe UI"/>
 
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 0">
-                            <!-- Desktop badge -->
-                            <Border CornerRadius="8" Padding="10 6" Margin="4 0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Border CornerRadius="8" Padding="10 6" Margin="4 0"
+                                    BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="#1200C9A7" Offset="0"/>
@@ -248,15 +248,14 @@
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color="#1A00C9A7"/>
                                 </Border.BorderBrush>
-                                <Border.BorderThickness>1</Border.BorderThickness>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🖥" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
                                     <TextBlock Text="Desktop" FontSize="10" Foreground="#FF00C9A7"
                                                VerticalAlignment="Center" FontFamily="Segoe UI"/>
                                 </StackPanel>
                             </Border>
-                            <!-- Web badge -->
-                            <Border CornerRadius="8" Padding="10 6" Margin="4 0">
+                            <Border CornerRadius="8" Padding="10 6" Margin="4 0"
+                                    BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="#12007A65" Offset="0"/>
@@ -266,15 +265,14 @@
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color="#1200C9A7"/>
                                 </Border.BorderBrush>
-                                <Border.BorderThickness>1</Border.BorderThickness>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🌐" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
                                     <TextBlock Text="Web" FontSize="10" Foreground="#FF7A8FAF"
                                                VerticalAlignment="Center" FontFamily="Segoe UI"/>
                                 </StackPanel>
                             </Border>
-                            <!-- Mobile badge -->
-                            <Border CornerRadius="8" Padding="10 6" Margin="4 0">
+                            <Border CornerRadius="8" Padding="10 6" Margin="4 0"
+                                    BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                         <GradientStop Color="#12007A65" Offset="0"/>
@@ -284,7 +282,6 @@
                                 <Border.BorderBrush>
                                     <SolidColorBrush Color="#1200C9A7"/>
                                 </Border.BorderBrush>
-                                <Border.BorderThickness>1</Border.BorderThickness>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📱" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
                                     <TextBlock Text="Mobile" FontSize="10" Foreground="#FF7A8FAF"
@@ -298,10 +295,6 @@
                                    HorizontalAlignment="Center"
                                    Margin="0 22 0 0" FontFamily="Segoe UI"/>
                     </StackPanel>
-
-                    <!-- Bottom checkered hint bar -->
-                    <Border Height="3" VerticalAlignment="Bottom"
-                            Background="{DynamicResource RacingStripeBrush}"/>
                 </Grid>
             </Border>
 
@@ -334,8 +327,8 @@
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="Bd" Property="Background" Value="#22D40000"/>
-                                                    <Setter Property="Foreground"                  Value="{DynamicResource AccentBrush}"/>
+                                                    <Setter TargetName="Bd" Property="Background" Value="#22FF6B6B"/>
+                                                    <Setter Property="Foreground"                  Value="#FFFF6B6B"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -362,7 +355,7 @@
                             <TextBlock Text="Maalouf Auto Parts" FontSize="13" Foreground="#FF00C9A7" FontFamily="Segoe UI"/>
                         </StackPanel>
 
-                        <!-- Username field with icon row -->
+                        <!-- Username field -->
                         <Grid Margin="0 0 0 16">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -385,7 +378,7 @@
                                      Height="48" KeyDown="Field_KeyDown"/>
                         </Grid>
 
-                        <!-- Password field with icon row -->
+                        <!-- Password field -->
                         <Grid Margin="0 0 0 0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -418,7 +411,7 @@
                             </Border.BorderBrush>
                             <Border.BorderThickness>1</Border.BorderThickness>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚠  " Foreground="{DynamicResource AccentBrush}" FontSize="13"/>
+                                <TextBlock Text="⚠  " Foreground="#FFFF6B6B" FontSize="13"/>
                                 <TextBlock Text="{Binding ErrorMessage}"
                                            Foreground="#FFE57373" FontSize="13" TextWrapping="Wrap"/>
                             </StackPanel>

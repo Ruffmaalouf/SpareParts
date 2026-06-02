@@ -4142,6 +4142,485 @@ function createStyles(palette) {
     color: "#b6b0a5",
     fontSize: 12,
     marginTop: 2
+  },
+
+  /* ── Design System v2 additions ── */
+
+  /* KPI Strip */
+  kpiStrip: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10
+  },
+  kpiCard: {
+    flex: 1,
+    minWidth: 0,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    overflow: "hidden"
+  },
+  kpiCardLabel: {
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 6
+  },
+  kpiCardValue: {
+    color: palette.text,
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 26
+  },
+  kpiCardSub: {
+    color: palette.muted,
+    fontSize: 11,
+    marginTop: 5
+  },
+  kpiCardAccentBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    height: 3,
+    width: "45%",
+    backgroundColor: palette.accent,
+    borderRadius: 9999
+  },
+  kpiTrendUp:   { color: "#22c55e" },
+  kpiTrendDown: { color: "#ff6b6b" },
+
+  /* Status / Condition Badges */
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 9999,
+    alignSelf: "flex-start"
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.5
+  },
+  badgeDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 9999
+  },
+  badgeAvailable:  { backgroundColor: "rgba(34,197,94,0.14)"  },
+  badgeReserved:   { backgroundColor: "rgba(245,158,11,0.14)" },
+  badgeSold:       { backgroundColor: "rgba(122,143,175,0.14)"},
+  badgeDamaged:    { backgroundColor: "rgba(255,107,107,0.14)"},
+  badgeNew:        { backgroundColor: "rgba(34,197,94,0.14)"  },
+  badgeGood:       { backgroundColor: "rgba(0,201,167,0.12)"  },
+  badgeFair:       { backgroundColor: "rgba(245,158,11,0.14)" },
+  badgeForParts:   { backgroundColor: "rgba(255,107,107,0.12)"},
+  badgeTextAvailable: { color: "#22c55e" },
+  badgeTextReserved:  { color: "#f59e0b" },
+  badgeTextSold:      { color: "#7a8faf" },
+  badgeTextDamaged:   { color: "#ff6b6b" },
+  badgeTextNew:       { color: "#22c55e" },
+  badgeTextGood:      { color: palette.accent },
+  badgeTextFair:      { color: "#f59e0b" },
+  badgeTextForParts:  { color: "#ff6b6b" },
+
+  /* Improved bottom tab bar */
+  bottomTabBarV2: {
+    height: 74,
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "stretch",
+    borderTopWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.sidebar,
+    elevation: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.36,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 }
+  },
+  bottomTabButtonV2: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 8,
+    paddingTop: 6,
+    gap: 4,
+    position: "relative"
+  },
+  bottomTabIndicator: {
+    position: "absolute",
+    top: 0,
+    left: "20%",
+    right: "20%",
+    height: 2,
+    borderRadius: 9999,
+    backgroundColor: palette.accent
+  },
+  bottomTabIconWrap: {
+    width: 36,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+
+  /* Part List Item */
+  partListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderBottomWidth: 1,
+    borderColor: palette.surface2,
+    backgroundColor: palette.bg
+  },
+  partListItemThumb: {
+    width: 60,
+    height: 48,
+    borderRadius: 6,
+    backgroundColor: palette.surface2
+  },
+  partListItemInfo: {
+    flex: 1,
+    minWidth: 0
+  },
+  partListItemName: {
+    color: palette.text,
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 3
+  },
+  partListItemCode: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.3
+  },
+  partListItemRight: {
+    alignItems: "flex-end",
+    gap: 4,
+    flexShrink: 0
+  },
+  partListItemPrice: {
+    color: palette.accent,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+
+  /* Part Detail Page */
+  partDetailPhoto: {
+    width: "100%",
+    aspectRatio: 4 / 3,
+    backgroundColor: palette.surface2,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  partDetailInfo: {
+    padding: 16,
+    gap: 12
+  },
+  partDetailName: {
+    color: palette.text,
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 28
+  },
+  partDetailCode: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.5
+  },
+  partDetailPrice: {
+    color: palette.accent,
+    fontSize: 26,
+    fontWeight: "900"
+  },
+  partDetailSection: {
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderColor: palette.line
+  },
+  partDetailSectionTitle: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 8
+  },
+
+  /* Skeleton Loader */
+  skeletonBase: {
+    borderRadius: 4,
+    backgroundColor: palette.surface2,
+    overflow: "hidden"
+  },
+  skeletonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderBottomWidth: 1,
+    borderColor: palette.surface2
+  },
+  skeletonThumb: {
+    width: 60,
+    height: 48,
+    borderRadius: 6
+  },
+  skeletonTextLg: {
+    height: 14,
+    borderRadius: 9999,
+    marginBottom: 5
+  },
+  skeletonTextSm: {
+    height: 11,
+    borderRadius: 9999,
+    width: "60%"
+  },
+
+  /* Empty State */
+  emptyScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    padding: 32
+  },
+  emptyScreenIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+  emptyScreenTitle: {
+    color: palette.text,
+    fontSize: 18,
+    fontWeight: "900",
+    textAlign: "center"
+  },
+  emptyScreenText: {
+    color: palette.muted,
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+    maxWidth: 280
+  },
+
+  /* Filter Chips */
+  filterChipRail: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8
+  },
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: `${palette.accent}60`,
+    backgroundColor: `${palette.accent}18`
+  },
+  filterChipText: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  filterChipRemove: {
+    width: 16,
+    height: 16,
+    borderRadius: 9999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: `${palette.accent}28`
+  },
+  filterChipRemoveText: {
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "900",
+    lineHeight: 14
+  },
+
+  /* Improved WhatsApp Button */
+  whatsappBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: "#25d366",
+    justifyContent: "center"
+  },
+  whatsappBtnText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "900"
+  },
+
+  /* Timeline */
+  timeline: {
+    gap: 0
+  },
+  timelineItem: {
+    flexDirection: "row",
+    gap: 12,
+    paddingBottom: 18
+  },
+  timelineNode: {
+    alignItems: "center",
+    width: 20,
+    marginTop: 2
+  },
+  timelineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 9999,
+    backgroundColor: palette.accent
+  },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: palette.line,
+    marginTop: 4
+  },
+  timelineContent: {
+    flex: 1,
+    minWidth: 0
+  },
+  timelineTime: {
+    color: palette.muted,
+    fontSize: 11,
+    marginBottom: 3
+  },
+  timelineAction: {
+    color: palette.text,
+    fontSize: 13,
+    fontWeight: "800"
+  },
+  timelineDetail: {
+    color: palette.muted,
+    fontSize: 12,
+    marginTop: 2,
+    lineHeight: 17
+  },
+
+  /* Improved search bar */
+  searchBarV2: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    minHeight: 46,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: `${palette.accent}48`,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6
+  },
+  searchBarV2Input: {
+    flex: 1,
+    color: palette.text,
+    fontSize: 15,
+    paddingVertical: 0
+  },
+  searchBarV2Icon: {
+    color: palette.accent,
+    fontSize: 16
+  },
+
+  /* Improved top bar */
+  topBarV2: {
+    minHeight: 58,
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.sidebar
+  },
+  topBarV2Title: {
+    color: palette.text,
+    fontSize: 19,
+    fontWeight: "900"
+  },
+  topBarV2Sub: {
+    color: palette.muted,
+    fontSize: 11,
+    marginTop: 1
+  },
+
+  /* Progress bar */
+  progressBarWrap: {
+    height: 5,
+    borderRadius: 9999,
+    backgroundColor: palette.surface2,
+    overflow: "hidden"
+  },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 9999,
+    backgroundColor: palette.accent
+  },
+
+  /* Action button strip */
+  actionStrip: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.sidebar
+  },
+  actionStripBtn: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor: palette.surface2,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+  actionStripBtnPrimary: {
+    backgroundColor: palette.accent,
+    borderColor: palette.accent
+  },
+  actionStripBtnText: {
+    color: palette.text,
+    fontSize: 13,
+    fontWeight: "900"
+  },
+  actionStripBtnTextPrimary: {
+    color: palette.bg
   }
 });
 }
