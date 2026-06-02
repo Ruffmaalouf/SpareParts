@@ -3,6 +3,7 @@ using Dapper;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Testcontainers.MsSql;
+using Xunit;
 
 namespace SpareParts.IntegrationTests;
 
