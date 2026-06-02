@@ -1,6 +1,38 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 
-const quickTerms = ["P-004", "brake", "invoice", "civic"];
+const RECENT_SEARCHES_KEY = "sp_recent_searches";
+const MAX_RECENT = 5;
+const FALLBACK_TERMS = ["brake", "P-004", "civic", "invoice"];
+
+function loadRecentSearches() {
+  try {
+    const raw = window.localStorage.getItem(RECENT_SEARCHES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(term) {
+  const trimmed = term.trim();
+  if (!trimmed) return;
+  const existing = loadRecentSearches().filter((s) => s !== trimmed);
+  const updated = [trimmed, ...existing].slice(0, MAX_RECENT);
+  try {
+    window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  } catch {
+    // localStorage unavailable — skip silently
+  }
+}
+
+function clearRecentSearches() {
+  try {
+    window.localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 function read(row, ...keys) {
   for (const key of keys) {
@@ -31,6 +63,7 @@ export function SmartSearch({ api, onNavigate, t }) {
   const [status, setStatus] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentSearches, setRecentSearches] = useState(loadRecentSearches);
   const latestRequest = useRef(0);
 
   const grouped = useMemo(() => {
@@ -87,9 +120,14 @@ export function SmartSearch({ api, onNavigate, t }) {
 
   const openResult = useCallback((result) => {
     const targetView = normalizeTargetView(read(result, "targetView"));
+    const title = read(result, "title");
+    if (title) {
+      saveRecentSearch(title);
+      setRecentSearches(loadRecentSearches());
+    }
     if (targetView) onNavigate(targetView);
     setIsOpen(false);
-    setStatus(read(result, "title"));
+    setStatus(title);
   }, [onNavigate]);
 
   const handleKeyDown = useCallback((event) => {
@@ -126,16 +164,38 @@ export function SmartSearch({ api, onNavigate, t }) {
           h("span", null, t("search.readyHint", "Barcode, OEM, phone number, invoice number, supplier, or used car."))
         ),
         query.trim().length < 2 && h("div", { className: "smart-search-chips" },
-          quickTerms.map((term) =>
-            h("button", {
-              key: term,
-              type: "button",
-              onClick: () => {
-                setQuery(term);
-                setIsOpen(true);
-              }
-            }, term)
-          )
+          recentSearches.length > 0
+            ? h("div", { className: "smart-search-recents" },
+                h("span", { className: "smart-search-recents-label" }, t("search.recent", "Recent:")),
+                recentSearches.map((term) =>
+                  h("button", {
+                    key: term,
+                    type: "button",
+                    onClick: () => {
+                      setQuery(term);
+                      setIsOpen(true);
+                    }
+                  }, term)
+                ),
+                h("button", {
+                  type: "button",
+                  className: "smart-search-clear-recents",
+                  onClick: () => {
+                    clearRecentSearches();
+                    setRecentSearches([]);
+                  }
+                }, t("search.clearRecent", "Clear"))
+              )
+            : FALLBACK_TERMS.map((term) =>
+                h("button", {
+                  key: term,
+                  type: "button",
+                  onClick: () => {
+                    setQuery(term);
+                    setIsOpen(true);
+                  }
+                }, term)
+              )
         ),
         grouped.map(([section, rows]) =>
           h("div", { className: "smart-search-group", key: section },
