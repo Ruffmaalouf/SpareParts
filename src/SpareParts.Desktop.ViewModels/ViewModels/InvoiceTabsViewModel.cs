@@ -52,6 +52,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public GrowthLabViewModel GrowthLabVm { get; }
         public PartPassportViewModel PartPassportVm { get; }
         public StockArrivalTheaterViewModel StockArrivalVm { get; }
+        public ReorderCenterViewModel ReorderVm { get; }
+        public ExpiryAlertsViewModel ExpiryAlertsVm { get; }
+        public LoyaltyViewModel LoyaltyVm { get; }
+        public WarrantyClaimsViewModel WarrantyVm { get; }
+        public ShipmentsViewModel ShipmentsVm { get; }
+        public ActivityLogViewModel ActivityLogVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -398,6 +404,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             RepairPrepVm.IsLoading ||
             PartCompatibilityVm.IsLoading ||
             ReportBuilderVm.IsLoading ||
+            ReorderVm.IsLoading ||
+            ExpiryAlertsVm.IsLoading ||
+            LoyaltyVm.IsLoading ||
+            WarrantyVm.IsLoading ||
+            ShipmentsVm.IsLoading ||
+            ActivityLogVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -445,6 +457,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToBusinessAssistantCommand { get; }
         public ICommand GoToBarcodeModeCommand { get; }
         public ICommand GoToArCommand { get; }
+        public ICommand GoToReorderCommand { get; }
+        public ICommand GoToExpiryAlertsCommand { get; }
+        public ICommand GoToLoyaltyCommand { get; }
+        public ICommand GoToWarrantyCommand { get; }
+        public ICommand GoToShipmentsCommand { get; }
+        public ICommand GoToActivityLogCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand        { get; }
@@ -487,6 +505,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             StockArrivalVm = new StockArrivalTheaterViewModel(crudApi, NavigateFromStockArrival);
             RepairPrepVm = new RepairPrepBoardViewModel(crudApi);
             PartCompatibilityVm = new PartCompatibilityViewModel(crudApi);
+            ReorderVm = new ReorderCenterViewModel(crudApi);
+            ExpiryAlertsVm = new ExpiryAlertsViewModel(crudApi);
+            LoyaltyVm = new LoyaltyViewModel(crudApi);
+            WarrantyVm = new WarrantyClaimsViewModel(crudApi);
+            ShipmentsVm = new ShipmentsViewModel(crudApi);
+            ActivityLogVm = new ActivityLogViewModel(crudApi);
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -592,6 +616,36 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 {
                     OnPropertyChanged(nameof(IsGlobalLoading));
                 }
+            };
+            ReorderVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ReorderCenterViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ExpiryAlertsVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ExpiryAlertsViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            LoyaltyVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(LoyaltyViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            WarrantyVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(WarrantyClaimsViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ShipmentsVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ShipmentsViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ActivityLogVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ActivityLogViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
             Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Default",       SubTitle = "Sport Orange · Dark",       AccentHex = "#FF5722" });
@@ -864,6 +918,36 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             GoToBarcodeModeCommand = new RelayCommand(_ => OpenBarcodeMode());
             GoToArCommand = new RelayCommand(_ => OpenBarcodeMode());
+            GoToReorderCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Reorder;
+                ReorderVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToExpiryAlertsCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.ExpiryAlerts;
+                ExpiryAlertsVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToLoyaltyCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Loyalty;
+                LoyaltyVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToWarrantyCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Warranty;
+                WarrantyVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToShipmentsCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Shipments;
+                ShipmentsVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToActivityLogCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.ActivityLog;
+                ActivityLogVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());
             ToggleFeedCommand = new RelayCommand(_ => IsFeedVisible = !IsFeedVisible);

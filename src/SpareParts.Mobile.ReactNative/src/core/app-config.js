@@ -193,7 +193,13 @@ const featureModules = [
   { key: "manual-journal", label: "Manual Journal", title: "Manual Journal", endpoint: "/api/accounting/journal-entries", capabilities: ["Journal entry history", "Manual journal posting", "Account configuration"] },
   { key: "report-builder", label: "Report Builder", title: "Report Builder", endpoint: "/api/reportbuilder/saved-reports", capabilities: ["Schema explorer", "Saved reports", "Background runs"] },
   { key: "business-assistant", label: "AI Assistant", title: "AI Business Assistant", endpoint: "/api/business-assistant/ask", capabilities: ["Turn answers into actions", "Create reports and customer reminders", "Draft purchase orders and campaigns", "Build natural-language stock reports"] },
-  { key: "ar", label: "AR Search", title: "AR Picture Search", endpoint: "/api/scans/resolve + /api/scans/visual-search", capabilities: ["Search parts by camera photo", "Overlay ranked matches on the captured image", "Generate printable labels and sell scanned parts"] }
+  { key: "ar", label: "AR Search", title: "AR Picture Search", endpoint: "/api/scans/resolve + /api/scans/visual-search", capabilities: ["Search parts by camera photo", "Overlay ranked matches on the captured image", "Generate printable labels and sell scanned parts"] },
+  { key: "reorder", label: "Reorder Center", title: "Reorder Center", endpoint: "/api/reorder/suggestions", capabilities: ["Parts below reorder point", "Suggested order quantities", "Preferred supplier details"] },
+  { key: "expiry-alerts", label: "Expiry Alerts", title: "Expiry Alerts", endpoint: "/api/parts/expiry/alerts", capabilities: ["Expired parts list", "Parts expiring within 30 days", "Parts expiring within 90 days"] },
+  { key: "loyalty", label: "Loyalty", title: "Customer Loyalty", endpoint: "/api/loyalty/customers/top", capabilities: ["Top loyalty customers by points", "Points balance overview", "Redemption tracking"] },
+  { key: "warranty", label: "Warranty & Returns", title: "Warranty Claims", endpoint: "/api/warranty", capabilities: ["Active warranty claims", "Resolved claims history", "Create and track returns"] },
+  { key: "shipments", label: "Shipments", title: "Shipments", endpoint: "/api/shipments", capabilities: ["Pending shipments list", "Shipment status tracking", "Event history per shipment"] },
+  { key: "activity-log", label: "Activity Log", title: "Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] }
 ];
 
 const navigationGroups = [

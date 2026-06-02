@@ -78,13 +78,13 @@ namespace SpareParts.Desktop.Wpf
         {
             var route = resource.TrimStart('/').ToLowerInvariant();
 
-            if (route.StartsWith("api/customers") || route.StartsWith("api/sales"))
+            if (route.StartsWith("api/customers") || route.StartsWith("api/sales") || route.StartsWith("api/loyalty") || route.StartsWith("api/warranty") || route.StartsWith("api/shipments") || route.StartsWith("api/customer-pricing"))
                 return AppSettings.SalesApiBaseUrl;
 
-            if (route.StartsWith("api/suppliers") || route.StartsWith("api/purchases"))
+            if (route.StartsWith("api/suppliers") || route.StartsWith("api/purchases") || route.StartsWith("api/supplier-price-history"))
                 return AppSettings.PurchasesApiBaseUrl;
 
-            if (route.StartsWith("api/parts") || route.StartsWith("api/partrequests") || route.StartsWith("api/warehouses") || route.StartsWith("api/transactiontypes") || route.StartsWith("api/scans"))
+            if (route.StartsWith("api/parts") || route.StartsWith("api/partrequests") || route.StartsWith("api/warehouses") || route.StartsWith("api/transactiontypes") || route.StartsWith("api/scans") || route.StartsWith("api/reorder"))
                 return AppSettings.InventoryApiBaseUrl;
 
             if (route.StartsWith("api/users") || route.StartsWith("api/roles") || route.StartsWith("api/auth"))
