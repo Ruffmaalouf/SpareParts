@@ -198,9 +198,9 @@ const featureModules = [
 
 const navigationGroups = [
   { title: "Core", keys: ["dashboard", "invoices", "parts", "part-passport", "compatibility", "contacts", "management", "settings"] },
-  { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
+  { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
   { title: "Finance", keys: ["accounting", "manual-journal", "report-builder"] },
-  { title: "Tools", keys: ["whatsapp", "business-assistant", "ar"] }
+  { title: "Tools", keys: ["whatsapp", "business-assistant", "ar", "activity-log"] }
 ];
 
 module.exports = {

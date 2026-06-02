@@ -23,6 +23,12 @@ namespace SpareParts.Desktop.Wpf
         ReportBuilder,
         WhatsAppInbox,
         BusinessAssistant,
-        ArExperience
+        ArExperience,
+        Reorder,
+        ExpiryAlerts,
+        Loyalty,
+        Warranty,
+        Shipments,
+        ActivityLog
     }
 }

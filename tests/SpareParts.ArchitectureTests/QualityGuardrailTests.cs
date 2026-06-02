@@ -18,28 +18,34 @@ public class QualityGuardrailTests
     private static readonly string[] CanonicalScreens =
     [
         "accounting",
+        "activity-log",
         "ar",
         "business-assistant",
         "compatibility",
         "contacts",
         "dashboard",
         "dead-stock",
+        "expiry-alerts",
         "growth-lab",
         "inventory",
         "invoices",
+        "loyalty",
         "management",
         "manual-journal",
         "part-passport",
         "part-requests",
         "purchase-parts",
+        "reorder",
         "repair-prep",
         "report-builder",
         "settings",
+        "shipments",
         "stock",
         "stock-arrival",
         "used-car-wholesale",
         "used-car-purchases",
         "used-cars",
+        "warranty",
         "whatsapp"
     ];
 
@@ -64,7 +70,13 @@ public class QualityGuardrailTests
         ["WhatsAppInbox"] = "whatsapp",
         ["BusinessAssistant"] = "business-assistant",
         ["ArExperience"] = "ar",
-        ["HomePage"] = "dashboard"
+        ["HomePage"] = "dashboard",
+        ["Reorder"] = "reorder",
+        ["ExpiryAlerts"] = "expiry-alerts",
+        ["Loyalty"] = "loyalty",
+        ["Warranty"] = "warranty",
+        ["Shipments"] = "shipments",
+        ["ActivityLog"] = "activity-log"
     };
 
     [Fact]

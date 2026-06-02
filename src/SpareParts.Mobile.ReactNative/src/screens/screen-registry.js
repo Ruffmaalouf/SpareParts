@@ -42,7 +42,13 @@ const screenRegistry = new ScreenRegistry([
   { key: "report-builder", label: "Report Builder", component: createModuleScreen(moduleByKey("report-builder")) },
   { key: "whatsapp", label: "WhatsApp", component: WhatsAppScreen },
   { key: "business-assistant", label: "AI Assistant", component: createModuleScreen(moduleByKey("business-assistant")) },
-  { key: "ar", label: "AR Search", component: createModuleScreen(moduleByKey("ar")) }
+  { key: "ar", label: "AR Search", component: createModuleScreen(moduleByKey("ar")) },
+  { key: "reorder", label: "Reorder Center", component: createModuleScreen(moduleByKey("reorder")) },
+  { key: "expiry-alerts", label: "Expiry Alerts", component: createModuleScreen(moduleByKey("expiry-alerts")) },
+  { key: "loyalty", label: "Loyalty", component: createModuleScreen(moduleByKey("loyalty")) },
+  { key: "warranty", label: "Warranty & Returns", component: createModuleScreen(moduleByKey("warranty")) },
+  { key: "shipments", label: "Shipments", component: createModuleScreen(moduleByKey("shipments")) },
+  { key: "activity-log", label: "Activity Log", component: createModuleScreen(moduleByKey("activity-log")) }
 ]);
 
 module.exports = { screenRegistry };
