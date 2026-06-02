@@ -510,4 +510,12 @@
     <!-- Implicit ScrollBar — picked up by all DataGrids/ScrollViewers -->
     <Style TargetType="ScrollBar" BasedOn="{StaticResource NeonScrollBar}"/>
 
+    <!-- AMG theme overrides for new design-system keys (Chrome Silver) -->
+    <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FFC8C8D0" Offset="0"/>
+        <GradientStop Color="#FF808090" Offset="0.6"/>
+        <GradientStop Color="Transparent" Offset="1"/>
+    </LinearGradientBrush>
+    <DropShadowEffect x:Key="RedGlowEffect" Color="#FFC8C8D0" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+
 </ResourceDictionary>

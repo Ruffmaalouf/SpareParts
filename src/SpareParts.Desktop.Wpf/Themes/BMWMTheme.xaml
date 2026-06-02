@@ -510,4 +510,12 @@
     <!-- Implicit ScrollBar — picked up by all DataGrids/ScrollViewers -->
     <Style TargetType="ScrollBar" BasedOn="{StaticResource NeonScrollBar}"/>
 
+    <!-- BMW M theme overrides for new design-system keys (M-Blue) -->
+    <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF1C69D4" Offset="0"/>
+        <GradientStop Color="#FF0F3D7A" Offset="0.6"/>
+        <GradientStop Color="Transparent" Offset="1"/>
+    </LinearGradientBrush>
+    <DropShadowEffect x:Key="RedGlowEffect" Color="#FF1C69D4" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+
 </ResourceDictionary>

@@ -511,4 +511,12 @@
     <!-- Implicit ScrollBar — picked up by all DataGrids/ScrollViewers -->
     <Style TargetType="ScrollBar" BasedOn="{StaticResource NeonScrollBar}"/>
 
+    <!-- Neon Glow theme overrides for new design-system keys (Electric Cyan) -->
+    <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FF00E5FF" Offset="0"/>
+        <GradientStop Color="#FF007A8C" Offset="0.6"/>
+        <GradientStop Color="Transparent" Offset="1"/>
+    </LinearGradientBrush>
+    <DropShadowEffect x:Key="RedGlowEffect" Color="#FF00E5FF" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+
 </ResourceDictionary>
