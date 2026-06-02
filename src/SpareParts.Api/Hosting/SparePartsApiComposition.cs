@@ -263,13 +263,11 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Inventory))
         {
-<<<<<<< HEAD
             services.TryAddScoped<IInventoryService, InventoryService>();
-=======
+
             services.AddScoped<ReorderAnalysisService>();
             services.AddScoped<PartSubstitutesService>();
             services.AddScoped<PartExpiryService>();
->>>>>>> origin/claude/new-ideas-aBkh4
             services.AddHttpClient<PartNotesAiService>((serviceProvider, client) =>
             {
                 var options = serviceProvider.GetRequiredService<OpenAiOptions>();
@@ -440,26 +438,21 @@ public static class SparePartsApiComposition
             throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
         }
 
-<<<<<<< HEAD
-        if (jwtSecret.StartsWith("CHANGE_ME", StringComparison.Ordinal))
-=======
+
         if (jwtSecret.StartsWith("6533545btwrtrwrt4h563", StringComparison.OrdinalIgnoreCase))
->>>>>>> codex/growth-intelligence-platforms
+
         {
             throw new InvalidOperationException(
                 "Jwt:Secret is still set to the placeholder value. " +
                 "Set a strong secret via dotnet user-secrets (development) or an environment variable (production).");
         }
 
-<<<<<<< HEAD
-=======
         if (jwtSecret.Length < 32)
         {
             throw new InvalidOperationException(
                 "Jwt:Secret must be at least 32 characters to provide sufficient signing key entropy.");
         }
 
->>>>>>> codex/growth-intelligence-platforms
         return new JwtSettings
         {
             Secret = jwtSecret,
