@@ -388,6 +388,116 @@
             <Setter Property="Margin"     Value="12 14 0 4"/>
         </Style>
 
+        <!-- ══ Top command-bar pill button ══════════════════════ -->
+        <Style x:Key="TopBarButtonStyle" TargetType="Button">
+            <Setter Property="Background"      Value="#FF141414"/>
+            <Setter Property="Foreground"      Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush"     Value="#FF242424"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height"          Value="38"/>
+            <Setter Property="Padding"         Value="16 0"/>
+            <Setter Property="Margin"          Value="0 0 8 0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="FontSize"        Value="12.5"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background"  Value="#160F0000"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#240F0000"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ══ Top command-bar primary (red) button ═════════════ -->
+        <Style x:Key="TopBarPrimaryStyle" TargetType="Button" BasedOn="{StaticResource TopBarButtonStyle}">
+            <Setter Property="Foreground"  Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" CornerRadius="3"
+                                BorderBrush="#50FF2020" BorderThickness="1"
+                                Padding="{TemplateBinding Padding}">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FFE01010" Offset="0"/>
+                                    <GradientStop Color="#FF9C0000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#FFD40000" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
+                            </Border.Effect>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Effect" Value="{DynamicResource RedGlowEffect}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Effect" Value="{x:Null}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ══ Top command-bar toggle (Brands / Themes) ═════════ -->
+        <Style x:Key="TopBarToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Background"      Value="#FF141414"/>
+            <Setter Property="Foreground"      Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush"     Value="#FF242424"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height"          Value="38"/>
+            <Setter Property="Padding"         Value="14 0"/>
+            <Setter Property="Margin"          Value="0 0 8 0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="FontSize"        Value="12.5"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background"  Value="#1AD40000"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground"                    Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="SidebarToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource InvoiceIconButtonStyle}">
             <Setter Property="Width" Value="44"/>
             <Setter Property="Height" Value="44"/>
@@ -462,65 +572,8 @@
                 <Border Grid.Row="0" Margin="0 0 0 10">
                     <StackPanel>
 
-                        <!-- F1-style rev lights row -->
-                        <Border Height="10" Margin="-18 0 -18 0">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#FF0A0A0A" Offset="0"/>
-                                    <GradientStop Color="#FF0A0A0A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center">
-                                <!-- Green lights (slow/ready) -->
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF1A8C3A">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FF22CC55" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
-                                    </Border.Effect>
-                                </Border>
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF1A8C3A">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FF22CC55" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
-                                    </Border.Effect>
-                                </Border>
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF1A8C3A">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FF22CC55" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
-                                    </Border.Effect>
-                                </Border>
-                                <!-- Yellow lights (caution) -->
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFCC8800">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FFFFAA00" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
-                                    </Border.Effect>
-                                </Border>
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFCC8800">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FFFFAA00" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
-                                    </Border.Effect>
-                                </Border>
-                                <!-- Red lights (max revs / full power) -->
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF8C0000">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FFD40000" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
-                                    </Border.Effect>
-                                </Border>
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFB00000">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FFD40000" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
-                                    </Border.Effect>
-                                </Border>
-                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFD40000">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#FFFF2020" BlurRadius="10" ShadowDepth="0" Opacity="1.0"/>
-                                    </Border.Effect>
-                                </Border>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Red accent stripe -->
-                        <Border Height="2" Margin="-18 6 -18 0"
+                        <!-- Modern top accent — full-bleed red bar -->
+                        <Border Height="3" Margin="-18 -18 -18 0"
                                 Background="{DynamicResource RacingStripeBrush}"/>
 
                         <!-- Logo + wordmark + collapse button -->
@@ -882,63 +935,16 @@
                     <Border Height="1" Margin="0 0 0 10"
                             Background="{DynamicResource RacingStripeBrush}"/>
 
-                    <StackPanel Margin="0 0 0 8">
-                        <!-- Brand Browser toggle -->
-                        <ToggleButton x:Name="BrandsToggle"
-                                      HorizontalAlignment="Stretch"
-                                      Style="{StaticResource QuickMenuToggleStyle}"
-                                      Checked="SidebarMenuToggle_Checked">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="🏷"
-                                           FontSize="13"
-                                           Margin="0 0 10 0"
-                                           VerticalAlignment="Center"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Brand Browser"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock Text="Switch manufacturer"
-                                               FontSize="10"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </StackPanel>
-                            </Grid>
-                        </ToggleButton>
-
-                        <!-- Themes toggle -->
-                        <ToggleButton x:Name="ThemesToggle"
-                                      HorizontalAlignment="Stretch"
-                                      Style="{StaticResource QuickMenuToggleStyle}"
-                                      Checked="SidebarMenuToggle_Checked"
-                                      Margin="0 8 0 0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="◌"
-                                           FontSize="13"
-                                           Margin="0 0 10 0"
-                                           VerticalAlignment="Center"/>
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Themes"
-                                               FontSize="12"
-                                               FontWeight="SemiBold"/>
-                                    <TextBlock Text="Switch look"
-                                               FontSize="10"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </StackPanel>
-                            </Grid>
-                        </ToggleButton>
-                    </StackPanel>
+                    <!-- Status line -->
+                    <TextBlock Text="ONLINE · READY"
+                               FontSize="9"
+                               FontWeight="Bold"
+                               Foreground="#FF1A8C3A"
+                               Margin="2 0 0 4"/>
 
                     <!-- Brand Browser Popup -->
-                    <Popup Placement="Top"
+                    <Popup Placement="Bottom"
+                           VerticalOffset="6"
                            PlacementTarget="{Binding ElementName=BrandsToggle}"
                            IsOpen="{Binding IsChecked, ElementName=BrandsToggle}"
                            StaysOpen="False"
@@ -1009,7 +1015,8 @@
                     </Popup>
 
                     <!-- Themes Popup -->
-                    <Popup Placement="Top"
+                    <Popup Placement="Bottom"
+                           VerticalOffset="6"
                            PlacementTarget="{Binding ElementName=ThemesToggle}"
                            IsOpen="{Binding IsChecked, ElementName=ThemesToggle}"
                            StaysOpen="False"
@@ -1101,21 +1108,93 @@
 
         <!-- ══ MAIN CONTENT AREA ══════════════════════════════════════════ -->
         <Grid Grid.Column="1">
-            <Button x:Name="ShowSidebarButton"
-                    Click="ShowSidebarButton_Click"
-                    Style="{StaticResource SidebarToggleButtonStyle}"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Margin="18 18 0 0"
-                    Panel.ZIndex="30"
-                    ToolTip="Show navigation panel"
-                    Visibility="Collapsed"
-                    Opacity="0">
-                <TextBlock Text="☰"
-                           FontSize="16"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-            </Button>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ══ TOP COMMAND BAR ══════════════════════════════════════ -->
+            <Border Grid.Row="0"
+                    Background="#FF0A0A0A"
+                    BorderBrush="#FF1A1A1A"
+                    BorderThickness="0 0 0 1"
+                    Panel.ZIndex="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Red hairline along the very top -->
+                    <Border Grid.Row="0" Background="{DynamicResource RacingStripeBrush}"/>
+
+                    <DockPanel Grid.Row="1" Height="64" Margin="18 0" LastChildFill="False">
+
+                        <!-- Reveal-sidebar button (visible only when collapsed) -->
+                        <Button x:Name="ShowSidebarButton"
+                                DockPanel.Dock="Left"
+                                Click="ShowSidebarButton_Click"
+                                Style="{StaticResource SidebarToggleButtonStyle}"
+                                Width="40" Height="40"
+                                VerticalAlignment="Center"
+                                Margin="0 0 14 0"
+                                ToolTip="Show navigation panel"
+                                Visibility="Collapsed"
+                                Opacity="0">
+                            <TextBlock Text="☰"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+
+                        <!-- Context label -->
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="5" Height="24" CornerRadius="2"
+                                    Background="{DynamicResource AccentBrush}" Margin="0 0 12 0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="WORKSPACE"
+                                           FontSize="9" FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="Maalouf Auto Parts"
+                                           FontSize="15" FontWeight="Bold"
+                                           Foreground="#FFEBEBEB"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Right-aligned global actions -->
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding CreateInvoiceCommand}"
+                                    Style="{StaticResource TopBarPrimaryStyle}"
+                                    Visibility="{Binding CanCreateInvoice, Converter={StaticResource BoolToVis}}"
+                                    Content="＋  New Invoice"/>
+                            <Button Command="{Binding OpenInvoiceSearchCommand}"
+                                    Style="{StaticResource TopBarButtonStyle}"
+                                    Visibility="{Binding CanViewInvoiceSearch, Converter={StaticResource BoolToVis}}"
+                                    Content="🔎  Invoices"/>
+                            <Button Command="{Binding OpenManagementCommand}"
+                                    Style="{StaticResource TopBarButtonStyle}"
+                                    Visibility="{Binding CanViewManagementScreen, Converter={StaticResource BoolToVis}}"
+                                    Content="⚙  Management"/>
+
+                            <Border Width="1" Height="24" Background="#FF242424"
+                                    Margin="4 0 12 0" VerticalAlignment="Center"/>
+
+                            <ToggleButton x:Name="BrandsToggle"
+                                          Style="{StaticResource TopBarToggleStyle}"
+                                          Checked="SidebarMenuToggle_Checked"
+                                          Content="🏷  Brands"/>
+                            <ToggleButton x:Name="ThemesToggle"
+                                          Style="{StaticResource TopBarToggleStyle}"
+                                          Checked="SidebarMenuToggle_Checked"
+                                          Margin="0"
+                                          Content="◐  Theme"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
+            </Border>
+
+            <!-- ══ CONTENT HOST — all screens overlap here ══════════════ -->
+            <Grid Grid.Row="1">
 
             <!-- ── Home Page ── -->
             <Grid Margin="5,0,40,10"
@@ -3884,6 +3963,7 @@
                 </Border>
             </Grid>
 
+            </Grid><!-- end content host (Grid.Row=1) -->
         </Grid><!-- end main content Grid -->
 
         <!-- ══ GLOBAL DATA LOADING PRELOADER ══ -->
