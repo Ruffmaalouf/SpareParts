@@ -511,4 +511,12 @@
     <!-- Implicit ScrollBar — picked up by all DataGrids/ScrollViewers -->
     <Style TargetType="ScrollBar" BasedOn="{StaticResource NeonScrollBar}"/>
 
+    <!-- Lamborghini SC theme overrides for new design-system keys (Giallo Yellow) -->
+    <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FFFFD600" Offset="0"/>
+        <GradientStop Color="#FF998200" Offset="0.6"/>
+        <GradientStop Color="Transparent" Offset="1"/>
+    </LinearGradientBrush>
+    <DropShadowEffect x:Key="RedGlowEffect" Color="#FFFFD600" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+
 </ResourceDictionary>

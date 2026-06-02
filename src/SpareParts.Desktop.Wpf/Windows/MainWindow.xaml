@@ -60,30 +60,36 @@
         </Style>
 
         
-        <!-- ══════ Invoice Tab Item ══════ -->
+        <!-- ══════ Invoice Tab Item — bottom-indicator style ══════ -->
         <Style x:Key="InvoiceTabItemStyle" TargetType="TabItem">
             <Setter Property="Background"      Value="Transparent"/>
             <Setter Property="Foreground"      Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding"         Value="0"/>
-            <Setter Property="Margin"          Value="0 0 4 0"/>
+            <Setter Property="Margin"          Value="0 0 2 0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
-                        <Border x:Name="TabBorder"
-                                Background="{DynamicResource CardBackgroundBrush}"
-                                BorderBrush="Transparent" BorderThickness="1"
-                                CornerRadius="6 6 0 0" Padding="14 7">
-                            <ContentPresenter ContentSource="Header"/>
-                        </Border>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="3"/>
+                            </Grid.RowDefinitions>
+                            <Border x:Name="TabBorder" Grid.Row="0"
+                                    Background="Transparent" Padding="18 10">
+                                <ContentPresenter ContentSource="Header"/>
+                            </Border>
+                            <Border x:Name="ActiveBar" Grid.Row="1"
+                                    Background="Transparent" CornerRadius="2 2 0 0"/>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="TabBorder" Property="Background"  Value="{DynamicResource CardHighlightBrush}"/>
-                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="ActiveBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="#0DFFFFFF"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -91,7 +97,7 @@
             </Setter>
         </Style>
 
-        <!-- ══════ Invoice TabControl ══════ -->
+        <!-- ══════ Invoice TabControl — red-accent tab strip ══════ -->
         <Style x:Key="InvoiceTabControlStyle" TargetType="TabControl">
             <Setter Property="Background"      Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -105,21 +111,21 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <Border Grid.Row="0"
-                                    Background="{DynamicResource AppBackgroundBrush}"
+                                    Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="0 0 0 1" Padding="8 6 8 0">
+                                    BorderThickness="0 0 0 1" Padding="8 0">
                                 <DockPanel>
+                                    <Button DockPanel.Dock="Right" Content="＋  New Invoice"
+                                            Command="{Binding CreateInvoiceCommand}"
+                                            Style="{StaticResource TopBarPrimaryStyle}"
+                                            Visibility="{Binding CanCreateInvoice, Converter={StaticResource BoolToVis}}"
+                                            Height="36" Padding="14 4" Margin="0 0 0 0"
+                                            VerticalAlignment="Center"/>
                                     <TabPanel x:Name="HeaderPanel" DockPanel.Dock="Left"
                                               IsItemsHost="True" VerticalAlignment="Bottom"/>
-                                    <Button DockPanel.Dock="Left" Content="＋  New Invoice"
-                                            Command="{Binding CreateInvoiceCommand}"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            Visibility="{Binding CanCreateInvoice, Converter={StaticResource BoolToVis}}"
-                                            Height="30" Padding="12 4"
-                                            Margin="8 0 0 4" VerticalAlignment="Bottom"/>
                                 </DockPanel>
                             </Border>
-                            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}">
+                            <Border Grid.Row="1" Background="{DynamicResource AppBackgroundBrush}">
                                 <ContentPresenter x:Name="PART_SelectedContentHost"
                                                   ContentSource="SelectedContent"/>
                             </Border>
@@ -2978,312 +2984,273 @@
                 </TabControl.ItemTemplate>
                 <TabControl.ContentTemplate>
                     <DataTemplate>
-                        <Grid>
+                        <!-- POS content: 5-row layout, no outer margin (tab strip provides framing) -->
+                        <Grid Background="{DynamicResource AppBackgroundBrush}">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="54"/>   <!-- header command bar -->
+                                <RowDefinition Height="Auto"/> <!-- form card -->
+                                <RowDefinition Height="Auto"/> <!-- timeline (conditional) -->
+                                <RowDefinition Height="*"/>    <!-- cart grid -->
+                                <RowDefinition Height="Auto"/> <!-- footer totals + payment -->
                             </Grid.RowDefinitions>
 
-                            <!-- ── Header ───────────────────────────────────────────────── -->
-                            <DockPanel Grid.Row="0" Margin="20,20,20,10">
-                                <StackPanel DockPanel.Dock="Left">
-                                    <TextBlock Text="{Binding SaleModeTitle}" FontSize="26" FontWeight="Bold"/>
-                                    <TextBlock Text="{Binding SaleModeSubtitle}" FontSize="14"
-                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
-                                </StackPanel>
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsLoadedFromSearch}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <Button ToolTip="Edit Invoice"
-                                            Command="{Binding EditInvoiceCommand}"
-                                            IsEnabled="{Binding IsEditEnabled}"
-                                            Style="{StaticResource InvoiceIconButtonStyle}"
-                                            Width="52"
-                                            Height="52"
-                                            Margin="0 0 8 0">
-                                        <TextBlock Text="✎" FontSize="24" FontWeight="SemiBold"/>
-                                    </Button>
-                                    <Button ToolTip="Save Invoice"
-                                            Command="{Binding SaveInvoiceCommand}"
-                                            IsEnabled="{Binding IsSaveEnabled}"
-                                            Style="{StaticResource InvoiceIconButtonStyle}"
-                                            Width="52"
-                                            Height="52"
-                                            Margin="0 0 8 0">
-                                        <TextBlock Text="💾" FontSize="20"/>
-                                    </Button>
-                                    <Button ToolTip="Reset Invoice"
-                                            Command="{Binding ResetInvoiceCommand}"
-                                            IsEnabled="{Binding IsResetEnabled}"
-                                            Style="{StaticResource InvoiceIconButtonStyle}"
-                                            Width="52"
-                                            Height="52"
-                                            Margin="0 0 8 0">
-                                        <TextBlock Text="↺" FontSize="24" FontWeight="SemiBold"/>
-                                    </Button>
-                                    <Button ToolTip="Send invoice on WhatsApp"
-                                            Command="{Binding SendWhatsAppInvoiceCommand}"
-                                            IsEnabled="{Binding IsCommunicationEnabled}"
-                                            Style="{StaticResource InvoiceIconButtonStyle}"
-                                            Width="52"
-                                            Height="52"
-                                            Margin="0 0 8 0">
-                                        <TextBlock Text="WA" FontSize="14" FontWeight="SemiBold"/>
-                                    </Button>
-                                    <Button ToolTip="Send SMS payment reminder"
-                                            Command="{Binding SendSmsReminderCommand}"
-                                            IsEnabled="{Binding IsCommunicationEnabled}"
-                                            Style="{StaticResource InvoiceIconButtonStyle}"
-                                            Width="52"
-                                            Height="52">
-                                        <TextBlock Text="SMS" FontSize="12" FontWeight="SemiBold"/>
-                                    </Button>
-                                </StackPanel>
-                            </DockPanel>
+                            <!-- ── Header command bar ───────────────────────────────────── -->
+                            <Grid Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}">
+                                <Border Width="3" HorizontalAlignment="Left"
+                                        Background="{DynamicResource AccentBrush}"/>
+                                <DockPanel Margin="12 0">
+                                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding SaleModeTitle}"
+                                                   FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <Border Background="#22D40000" CornerRadius="3" Padding="6 2" Margin="10 0 0 0">
+                                            <TextBlock Text="{Binding SaleModeSubtitle}" FontSize="10"
+                                                       Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <!-- Action buttons — only when viewing a saved invoice -->
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsLoadedFromSearch}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <Button ToolTip="Edit Invoice" Command="{Binding EditInvoiceCommand}"
+                                                IsEnabled="{Binding IsEditEnabled}"
+                                                Style="{StaticResource TopBarButtonStyle}"
+                                                Padding="10 6" Margin="0 0 4 0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✎" FontSize="13" Margin="0 0 5 0"/>
+                                                <TextBlock Text="Edit" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button ToolTip="Save Invoice" Command="{Binding SaveInvoiceCommand}"
+                                                IsEnabled="{Binding IsSaveEnabled}"
+                                                Style="{StaticResource TopBarButtonStyle}"
+                                                Padding="10 6" Margin="0 0 4 0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="💾" FontSize="11" Margin="0 0 5 0"/>
+                                                <TextBlock Text="Save" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button ToolTip="Reset Invoice" Command="{Binding ResetInvoiceCommand}"
+                                                IsEnabled="{Binding IsResetEnabled}"
+                                                Style="{StaticResource TopBarButtonStyle}"
+                                                Padding="10 6" Margin="0 0 4 0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="↺" FontSize="13" Margin="0 0 5 0"/>
+                                                <TextBlock Text="Reset" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button ToolTip="Send WhatsApp" Command="{Binding SendWhatsAppInvoiceCommand}"
+                                                IsEnabled="{Binding IsCommunicationEnabled}"
+                                                Style="{StaticResource TopBarButtonStyle}"
+                                                Padding="10 6" Margin="0 0 4 0">
+                                            <TextBlock Text="WA" FontSize="11" FontWeight="Bold"/>
+                                        </Button>
+                                        <Button ToolTip="Send SMS" Command="{Binding SendSmsReminderCommand}"
+                                                IsEnabled="{Binding IsCommunicationEnabled}"
+                                                Style="{StaticResource TopBarButtonStyle}"
+                                                Padding="10 6">
+                                            <TextBlock Text="SMS" FontSize="11" FontWeight="Bold"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Grid>
 
                             <!-- ── Form card ─────────────────────────────────────────────── -->
-                            <Border Grid.Row="1"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    CornerRadius="8" Padding="20" Margin="20,0,20,15"
-                    IsEnabled="{Binding IsInvoiceContentEnabled}">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="Black" Opacity="0.15" BlurRadius="20" ShadowDepth="5"/>
-                                </Border.Effect>
-
-                                <StackPanel>
-
-                                    <!-- Row 1: Customer + Warehouse -->
-                                    <Grid Margin="0 0 0 16">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="220"/>
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="260"/>
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="270"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <controls:CustomerSearchControl
-                            Grid.Column="0"
-                            SelectedCustomerId="{Binding CustomerId, Mode=TwoWay}"
-                            VerticalAlignment="Top"/>
-
-                                        <controls:WarehouseSearchControl
-                            Grid.Column="4"
-                            SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"
-                            VerticalAlignment="Top"/>
-
-                                        <controls:SaleDatePickerControl
-                            Grid.Column="6"
-                            Label="DATE"
-                            PopupTitle="SELECT INVOICE DATE"
-                            SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
-                            VerticalAlignment="Top"/>
-                                    </Grid>
-
-                                    <Grid Margin="0 0 0 16">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="320"/>
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="220"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="BASE RATE" FontSize="11" FontWeight="Bold"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 6"/>
-                                            <Border Background="#FF1A1A22" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Height="52" Padding="14 0">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding SelectedCounterRate, StringFormat={}{0:N6}}" FontSize="15" FontWeight="SemiBold"/>
-                                                    <TextBlock Text=" " FontSize="15"/>
-                                                    <TextBlock Text="{Binding SelectedCurrencyCode}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <controls:CurrencyCodeSelectorControl
-                                            Grid.Column="2"
-                                            CurrencyCodes="{Binding CurrencyCodes}"
-                                            SelectedCurrencyCode="{Binding SelectedCurrencyCode, Mode=TwoWay}"
-                                            VerticalAlignment="Top"/>
-                                    </Grid>
-
-                                    <!-- Row 2: Part | Qty | Price | [Add] [Submit] -->
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <!-- Part search -->
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="88"/>
-                                            <!-- Qty -->
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="120"/>
-                                            <!-- Unit Price -->
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="130"/>
-                                            <!-- Add button -->
-                                            <ColumnDefinition Width="12"/>
-                                            <ColumnDefinition Width="180"/>
-                                            <!-- Submit button -->
-                                        </Grid.ColumnDefinitions>
-
-                                        <!--
-                            PartSearchControl
-                            SelectedPartId          → NewPartId          (part FK for the invoice line)
-                            SelectedPartPrice       → NewUnitPrice       (auto-fills price)
-                            SelectedPartDescription → NewPartDescription  (stored so Description column shows)
-                        -->
-                                        <controls:PartSearchControl
-                            Grid.Column="0"
-                            SelectedPartId="{Binding NewPartId,          Mode=TwoWay}"
-                            SelectedPartPrice="{Binding NewUnitPrice,     Mode=TwoWay}"
-                            SelectedPartDescription="{Binding NewPartDescription, Mode=TwoWay}"
-                            VerticalAlignment="Top"/>
-
-                                        <!-- Qty pill -->
-                                        <StackPanel Grid.Column="2" VerticalAlignment="Top">
-                                            <TextBlock Text="QTY" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Margin="0 0 0 6"/>
-                                            <Border Background="#FF1A1A22"
-                                    BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1" CornerRadius="10" Height="52">
-                                                <TextBox Text="{Binding NewQuantity, UpdateSourceTrigger=PropertyChanged}"
-                                         Background="Transparent" BorderThickness="0"
-                                         Foreground="White" FontSize="15"
-                                         HorizontalContentAlignment="Center"
-                                         VerticalContentAlignment="Center"
-                                         Padding="8 0" CaretBrush="{DynamicResource AccentBrush}">
-                                                    <TextBox.Style>
-                                                        <Style TargetType="TextBox">
-                                                            <Setter Property="Template">
-                                                                <Setter.Value>
-                                                                    <ControlTemplate TargetType="TextBox">
-                                                                        <ScrollViewer x:Name="PART_ContentHost"
-                                                                      Margin="{TemplateBinding Padding}"
-                                                                      VerticalAlignment="Center"
-                                                                      HorizontalAlignment="Center"/>
-                                                                    </ControlTemplate>
-                                                                </Setter.Value>
-                                                            </Setter>
-                                                        </Style>
-                                                    </TextBox.Style>
-                                                </TextBox>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <!-- Unit Price pill (auto-filled, cashier can override) -->
-                                        <StackPanel Grid.Column="4" VerticalAlignment="Top">
-                                            <TextBlock Text="UNIT PRICE" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                       Margin="0 0 0 6"/>
-                                            <Border Background="#FF1A1A22"
-                                    BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1" CornerRadius="10" Height="52">
-                                                <TextBox Text="{Binding NewUnitPrice, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
-                                         Background="Transparent" BorderThickness="0"
-                                         Foreground="White" FontSize="15"
-                                         HorizontalContentAlignment="Right"
-                                         VerticalContentAlignment="Center"
-                                         Padding="8 0" CaretBrush="{DynamicResource AccentBrush}">
-                                                    <TextBox.Style>
-                                                        <Style TargetType="TextBox">
-                                                            <Setter Property="Template">
-                                                                <Setter.Value>
-                                                                    <ControlTemplate TargetType="TextBox">
-                                                                        <ScrollViewer x:Name="PART_ContentHost"
-                                                                      Margin="{TemplateBinding Padding}"
-                                                                      VerticalAlignment="Center"/>
-                                                                    </ControlTemplate>
-                                                                </Setter.Value>
-                                                            </Setter>
-                                                        </Style>
-                                                    </TextBox.Style>
-                                                </TextBox>
-                                            </Border>
-                                        </StackPanel>
-
-                                        <!--
-                            ＋ Add button  — PrimaryButtonStyle (same glowing pill as Submit)
-                            Height="52" matches the pill inputs above for perfect alignment
-                        -->
-                                        <Button Grid.Column="6"
-                                Content="＋  Add Line"
-                                Command="{Binding AddItemCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Height="52"
-                                Margin="0,17,0,0"
-                                VerticalAlignment="Top"/>
-
-                                        <!-- Submit Invoice button -->
-                                        <Button Grid.Column="8"
-                                Content="✔  Submit Invoice"
-                                Command="{Binding SubmitSaleCommand}" 
-                                Height="52"
-                                Margin="0,17,0,0"
-                                VerticalAlignment="Top">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsModifyMode}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-
-                                    </Grid>
-                                </StackPanel>
+                            <Border Grid.Row="1" CornerRadius="4" Margin="12 8 12 8"
+                                    Background="{DynamicResource CardBackgroundBrush}"
+                                    IsEnabled="{Binding IsInvoiceContentEnabled}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="3"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="{DynamicResource AccentBrush}" CornerRadius="4 4 0 0"/>
+                                    <StackPanel Grid.Row="1" Margin="16 12 16 16">
+                                        <!-- Customer + Warehouse + Date -->
+                                        <Grid Margin="0 0 0 12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="220"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="260"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="270"/>
+                                            </Grid.ColumnDefinitions>
+                                            <controls:CustomerSearchControl Grid.Column="0"
+                                                SelectedCustomerId="{Binding CustomerId, Mode=TwoWay}"
+                                                VerticalAlignment="Top"/>
+                                            <controls:WarehouseSearchControl Grid.Column="4"
+                                                SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"
+                                                VerticalAlignment="Top"/>
+                                            <controls:SaleDatePickerControl Grid.Column="6"
+                                                Label="DATE" PopupTitle="SELECT INVOICE DATE"
+                                                SelectedDate="{Binding InvoiceDate, Mode=TwoWay}"
+                                                VerticalAlignment="Top"/>
+                                        </Grid>
+                                        <!-- Base Rate + Currency -->
+                                        <Grid Margin="0 0 0 12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="320"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="220"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="BASE RATE" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 5"/>
+                                                <Border Background="{DynamicResource AppBackgroundBrush}"
+                                                        BorderBrush="{DynamicResource BorderBrush}"
+                                                        BorderThickness="1" CornerRadius="4" Height="44" Padding="12 0">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding SelectedCounterRate, StringFormat={}{0:N6}}"
+                                                                   FontSize="14" FontWeight="SemiBold"/>
+                                                        <TextBlock Text=" " FontSize="14"/>
+                                                        <TextBlock Text="{Binding SelectedCurrencyCode}"
+                                                                   FontSize="14" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                            <controls:CurrencyCodeSelectorControl Grid.Column="2"
+                                                CurrencyCodes="{Binding CurrencyCodes}"
+                                                SelectedCurrencyCode="{Binding SelectedCurrencyCode, Mode=TwoWay}"
+                                                VerticalAlignment="Top"/>
+                                        </Grid>
+                                        <!-- Part | Qty | Price | Add | Submit -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="12"/>
+                                                <ColumnDefinition Width="130"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="170"/>
+                                            </Grid.ColumnDefinitions>
+                                            <controls:PartSearchControl Grid.Column="0"
+                                                SelectedPartId="{Binding NewPartId, Mode=TwoWay}"
+                                                SelectedPartPrice="{Binding NewUnitPrice, Mode=TwoWay}"
+                                                SelectedPartDescription="{Binding NewPartDescription, Mode=TwoWay}"
+                                                VerticalAlignment="Top"/>
+                                            <!-- QTY -->
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                                                <TextBlock Text="QTY" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 5"/>
+                                                <Border Background="{DynamicResource AppBackgroundBrush}"
+                                                        BorderBrush="{DynamicResource BorderBrush}"
+                                                        BorderThickness="1" CornerRadius="4" Height="44">
+                                                    <TextBox Text="{Binding NewQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                                             Background="Transparent" BorderThickness="0"
+                                                             Foreground="White" FontSize="14"
+                                                             HorizontalContentAlignment="Center"
+                                                             VerticalContentAlignment="Center"
+                                                             Padding="6 0" CaretBrush="{DynamicResource AccentBrush}">
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="TextBox">
+                                                                            <ScrollViewer x:Name="PART_ContentHost"
+                                                                                          Margin="{TemplateBinding Padding}"
+                                                                                          VerticalAlignment="Center"
+                                                                                          HorizontalAlignment="Center"/>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </Border>
+                                            </StackPanel>
+                                            <!-- UNIT PRICE -->
+                                            <StackPanel Grid.Column="4" VerticalAlignment="Top">
+                                                <TextBlock Text="UNIT PRICE" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 5"/>
+                                                <Border Background="{DynamicResource AppBackgroundBrush}"
+                                                        BorderBrush="{DynamicResource BorderBrush}"
+                                                        BorderThickness="1" CornerRadius="4" Height="44">
+                                                    <TextBox Text="{Binding NewUnitPrice, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
+                                                             Background="Transparent" BorderThickness="0"
+                                                             Foreground="White" FontSize="14"
+                                                             HorizontalContentAlignment="Right"
+                                                             VerticalContentAlignment="Center"
+                                                             Padding="8 0" CaretBrush="{DynamicResource AccentBrush}">
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="TextBox">
+                                                                            <ScrollViewer x:Name="PART_ContentHost"
+                                                                                          Margin="{TemplateBinding Padding}"
+                                                                                          VerticalAlignment="Center"/>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </Border>
+                                            </StackPanel>
+                                            <!-- Add Line -->
+                                            <Button Grid.Column="6" Content="＋  Add Line"
+                                                    Command="{Binding AddItemCommand}"
+                                                    Style="{StaticResource PrimaryButtonStyle}"
+                                                    Height="44" Margin="0 15 0 0" VerticalAlignment="Top"/>
+                                            <!-- Submit Invoice -->
+                                            <Button Grid.Column="8" Content="✔  Submit Invoice"
+                                                    Command="{Binding SubmitSaleCommand}"
+                                                    Height="44" Margin="0 15 0 0" VerticalAlignment="Top">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsModifyMode}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
 
                             <!-- ── Auto Posting Timeline ─────────────────────────────────── -->
-                            <Border Grid.Row="2"
-                                    CornerRadius="8"
+                            <Border Grid.Row="2" CornerRadius="4"
                                     Background="{DynamicResource CardBackgroundBrush}"
-                                    BorderBrush="{DynamicResource BorderBrush}"
-                                    BorderThickness="1"
-                                    Padding="14"
-                                    Margin="20,0,20,15"
+                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                    Padding="14" Margin="12 0 12 8"
                                     Visibility="{Binding HasPostingTimeline, Converter={StaticResource BoolToVis}}">
                                 <StackPanel>
-                                    <DockPanel Margin="0 0 0 10">
-                                        <TextBlock Text="Auto Posting Timeline"
-                                                   FontSize="16"
-                                                   FontWeight="Bold"
-                                                   DockPanel.Dock="Left"/>
+                                    <DockPanel Margin="0 0 0 8">
+                                        <TextBlock Text="AUTO POSTING TIMELINE" FontSize="10" FontWeight="Bold"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   VerticalAlignment="Center" DockPanel.Dock="Left"/>
                                         <TextBlock Text="{Binding Header}"
                                                    Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   DockPanel.Dock="Right"/>
+                                                   FontSize="12" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                     </DockPanel>
-
                                     <ItemsControl ItemsSource="{Binding PostingTimeline}">
                                         <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel/>
-                                            </ItemsPanelTemplate>
+                                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Width="198"
-                                                        MinHeight="118"
-                                                        Margin="0 0 10 10"
-                                                        Padding="12"
+                                                <Border Width="190" MinHeight="110" Margin="0 0 8 8" Padding="12"
                                                         Background="{DynamicResource AppBackgroundBrush}"
                                                         BorderBrush="{DynamicResource BorderBrush}"
-                                                        BorderThickness="1"
-                                                        CornerRadius="8">
+                                                        BorderThickness="1" CornerRadius="4">
                                                     <Grid>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto"/>
@@ -3291,50 +3258,27 @@
                                                             <RowDefinition Height="Auto"/>
                                                             <RowDefinition Height="*"/>
                                                         </Grid.RowDefinitions>
-
                                                         <DockPanel Grid.Row="0">
-                                                            <Border x:Name="StepDot"
-                                                                    Width="22"
-                                                                    Height="22"
-                                                                    CornerRadius="11"
-                                                                    Background="#FF757575"
-                                                                    DockPanel.Dock="Left">
-                                                                <TextBlock Text="{Binding Sequence}"
-                                                                           FontSize="11"
-                                                                           FontWeight="Bold"
-                                                                           Foreground="White"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
+                                                            <Border x:Name="StepDot" Width="20" Height="20" CornerRadius="10"
+                                                                    Background="#FF757575" DockPanel.Dock="Left">
+                                                                <TextBlock Text="{Binding Sequence}" FontSize="10" FontWeight="Bold"
+                                                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
-                                                            <Border x:Name="StatusBadge"
-                                                                    Padding="7 2"
-                                                                    BorderBrush="#66757575"
-                                                                    BorderThickness="1"
-                                                                    CornerRadius="8"
-                                                                    HorizontalAlignment="Right"
-                                                                    DockPanel.Dock="Right">
-                                                                <TextBlock x:Name="StatusText"
-                                                                           Text="{Binding Status}"
-                                                                           FontSize="10"
-                                                                           FontWeight="SemiBold"
+                                                            <Border x:Name="StatusBadge" Padding="6 2"
+                                                                    BorderBrush="#66757575" BorderThickness="1" CornerRadius="3"
+                                                                    HorizontalAlignment="Right" DockPanel.Dock="Right">
+                                                                <TextBlock x:Name="StatusText" Text="{Binding Status}"
+                                                                           FontSize="10" FontWeight="SemiBold"
                                                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                             </Border>
                                                         </DockPanel>
-
-                                                        <TextBlock Grid.Row="1"
-                                                                   Text="{Binding Title}"
-                                                                   Margin="0 9 0 0"
-                                                                   FontWeight="Bold"/>
-                                                        <TextBlock Grid.Row="2"
-                                                                   Text="{Binding OccurredAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
-                                                                   Margin="0 2 0 0"
-                                                                   FontSize="11"
+                                                        <TextBlock Grid.Row="1" Text="{Binding Title}"
+                                                                   Margin="0 7 0 0" FontWeight="Bold" FontSize="12"/>
+                                                        <TextBlock Grid.Row="2" Text="{Binding OccurredAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}"
+                                                                   Margin="0 2 0 0" FontSize="10"
                                                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                        <TextBlock Grid.Row="3"
-                                                                   Text="{Binding Detail}"
-                                                                   Margin="0 8 0 0"
-                                                                   FontSize="11"
-                                                                   TextWrapping="Wrap"
+                                                        <TextBlock Grid.Row="3" Text="{Binding Detail}"
+                                                                   Margin="0 6 0 0" FontSize="10" TextWrapping="Wrap"
                                                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                     </Grid>
                                                 </Border>
@@ -3356,86 +3300,117 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- ── Items DataGrid ────────────────────────────────────────── -->
-                            <Border Grid.Row="3" CornerRadius="8"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    Margin="20,0,20,0"
-                    IsEnabled="{Binding IsInvoiceContentEnabled}">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="Black" Opacity="0.10" BlurRadius="15" ShadowDepth="3"/>
-                                </Border.Effect>
-                                <DataGrid ItemsSource="{Binding Items}"
-                          AutoGenerateColumns="False" CanUserAddRows="False"
-                          HeadersVisibility="Column" BorderThickness="0"
-                          GridLinesVisibility="None"
-                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          ScrollViewer.CanContentScroll="True">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Part #"
-                                            Binding="{Binding PartId, Mode=OneWay}"
-                                            Width="80"/>
-                                        <DataGridTextColumn Header="Description"
-                                            Binding="{Binding Description, Mode=OneWay}"
-                                            Width="*"/>
-                                        <DataGridTextColumn Header="Qty"
-                                            Binding="{Binding Quantity}"
-                                            Width="60"/>
-                                        <DataGridTextColumn Header="Unit Price"
-                                            Binding="{Binding UnitPrice, StringFormat={}{0:N0}}"
-                                            Width="120"/>
-                                        <DataGridTextColumn Header="Total"
-                                            Binding="{Binding LineTotal, Mode=OneWay, StringFormat={}{0:N0}}"
-                                            Width="110"
-                                            FontWeight="Bold"/>
-                                        <DataGridTextColumn Header="Base Amount"
-                                            Binding="{Binding BaseAmount, Mode=OneWay, StringFormat={}{0:N0}}"
-                                            Width="130"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
+                            <!-- ── Cart Items DataGrid ───────────────────────────────────── -->
+                            <Border Grid.Row="3" CornerRadius="4" Margin="12 0 12 0"
+                                    Background="{DynamicResource CardBackgroundBrush}"
+                                    IsEnabled="{Binding IsInvoiceContentEnabled}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="36"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="{DynamicResource AppBackgroundBrush}"
+                                            CornerRadius="4 4 0 0" Padding="12 0">
+                                        <DockPanel VerticalAlignment="Center">
+                                            <Border Width="3" Height="14" Background="{DynamicResource AccentBrush}"
+                                                    CornerRadius="2" Margin="0 0 8 0" DockPanel.Dock="Left"/>
+                                            <TextBlock Text="CART" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                        </DockPanel>
+                                    </Border>
+                                    <DataGrid Grid.Row="1" ItemsSource="{Binding Items}"
+                                              AutoGenerateColumns="False" CanUserAddRows="False"
+                                              HeadersVisibility="Column" BorderThickness="0"
+                                              GridLinesVisibility="None"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                              ScrollViewer.CanContentScroll="True">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Part #" Binding="{Binding PartId, Mode=OneWay}" Width="80"/>
+                                            <DataGridTextColumn Header="Description" Binding="{Binding Description, Mode=OneWay}" Width="*"/>
+                                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
+                                            <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice, StringFormat={}{0:N0}}" Width="120"/>
+                                            <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, Mode=OneWay, StringFormat={}{0:N0}}" Width="110" FontWeight="Bold"/>
+                                            <DataGridTextColumn Header="Base Amount" Binding="{Binding BaseAmount, Mode=OneWay, StringFormat={}{0:N0}}" Width="130"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
                             </Border>
 
-                            <!-- ── Footer totals ─────────────────────────────────────────── -->
-                            <Border Grid.Row="4" Margin="20,10,20,20" Padding="16 12">
-                                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding TotalCounterLabel}" FontSize="14"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
-                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
-
-                                    <TextBlock Text="Base Amount:" FontSize="14"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding BaseAmountTotal, StringFormat={}{0:N0}}"
-                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
-
-                                    <TextBlock Text="{Binding PaidCounterLabel}" FontSize="14"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
-                             Width="150" FontSize="14" FontWeight="SemiBold"
-                             Background="Transparent" BorderThickness="0 0 0 1"
-                             IsEnabled="{Binding IsInvoiceContentEnabled}"
-                             Margin="0 0 30 0"/>
-
-                                    <TextBlock Text="Paid (Base):" FontSize="14"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding PaidAmountBase, StringFormat={}{0:N0}}"
-                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
-
-                                    <TextBlock Text="{Binding RemainingCounterLabel}" FontSize="14"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding RemainingAmountUsd, StringFormat={}{0:N0}}"
-                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
-
-                                    <TextBlock Text="Remaining (Base):" FontSize="14"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 10 0"/>
-                                    <TextBlock Text="{Binding RemainingAmountBase, StringFormat={}{0:N0}}"
-                               FontSize="14" FontWeight="SemiBold" Margin="0 0 30 0"/>
-
-                                    <Border Padding="12 10"
-                                            Margin="0 8 0 0"
-                                            Background="{DynamicResource CardBackgroundBrush}"
+                            <!-- ── Footer: financial totals + payment ────────────────────── -->
+                            <Border Grid.Row="4" Background="{DynamicResource CardBackgroundBrush}"
+                                    Margin="12 8 12 12" CornerRadius="4" Padding="12 10">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <!-- Totals strip — uniform columns -->
+                                    <UniformGrid Grid.Row="0" Rows="1" Margin="0 0 0 8">
+                                        <Border Margin="0 0 4 0" Padding="12 8"
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding TotalCounterLabel}" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
+                                                <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:N0}}"
+                                                           FontSize="16" FontWeight="Bold"
+                                                           Foreground="{DynamicResource AccentBrush}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Margin="0 0 4 0" Padding="12 8"
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Text="BASE AMOUNT" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
+                                                <TextBlock Text="{Binding BaseAmountTotal, StringFormat={}{0:N0}}"
+                                                           FontSize="16" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Margin="0 0 4 0" Padding="12 8"
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding PaidCounterLabel}" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
+                                                <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
+                                                         FontSize="16" FontWeight="SemiBold"
+                                                         Background="Transparent" BorderThickness="0 0 0 1"
+                                                         BorderBrush="{DynamicResource AccentBrush}"
+                                                         IsEnabled="{Binding IsInvoiceContentEnabled}"
+                                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Margin="0 0 4 0" Padding="12 8"
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Text="PAID (BASE)" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
+                                                <TextBlock Text="{Binding PaidAmountBase, StringFormat={}{0:N0}}"
+                                                           FontSize="16" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Margin="0 0 4 0" Padding="12 8"
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding RemainingCounterLabel}" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
+                                                <TextBlock Text="{Binding RemainingAmountUsd, StringFormat={}{0:N0}}"
+                                                           FontSize="16" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Padding="12 8"
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                            <StackPanel>
+                                                <TextBlock Text="REMAINING (BASE)" FontSize="10" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
+                                                <TextBlock Text="{Binding RemainingAmountBase, StringFormat={}{0:N0}}"
+                                                           FontSize="16" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+                                    <!-- Payment panel — only for saved invoices -->
+                                    <Border Grid.Row="1" Padding="12 10"
+                                            Background="{DynamicResource AppBackgroundBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="1"
-                                            CornerRadius="10">
+                                            BorderThickness="1" CornerRadius="4">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -3446,51 +3421,40 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <WrapPanel VerticalAlignment="Center">
-                                            <TextBlock Text="Issue Sale Payment"
-                                                       FontSize="14"
-                                                       FontWeight="Bold"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0 0 14 0"/>
-                                            <TextBlock Text="Amount"
-                                                       FontSize="12"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0 0 8 0"/>
-                                            <TextBox Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
-                                                     Width="120"
-                                                     FontSize="14"
-                                                     FontWeight="SemiBold"
-                                                     Background="Transparent"
-                                                     BorderThickness="0 0 0 1"
-                                                     Margin="0 0 14 0"/>
-                                            <controls:SaleDatePickerControl
-                                                Width="220"
-                                                Label="PAYMENT DATE"
-                                                PopupTitle="SELECT PAYMENT DATE"
-                                                DisplayFormat="dd MMM yyyy"
-                                                SelectedDate="{Binding PaymentDate, Mode=TwoWay}"
-                                                Margin="0 0 14 0"/>
-                                            <TextBlock Text="Method"
-                                                       FontSize="12"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0 0 8 0"/>
-                                            <TextBox Text="{Binding PaymentMethod, UpdateSourceTrigger=PropertyChanged}"
-                                                     Width="110"
-                                                     FontSize="14"
-                                                     Background="Transparent"
-                                                     BorderThickness="0 0 0 1"
-                                                     Margin="0 0 14 0"/>
+                                        <DockPanel VerticalAlignment="Center">
+                                            <TextBlock Text="ISSUE PAYMENT" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       VerticalAlignment="Center" Margin="0 0 16 0"
+                                                       DockPanel.Dock="Left"/>
                                             <Button Content="Post Payment"
                                                     Command="{Binding IssueSalePaymentCommand}"
                                                     IsEnabled="{Binding CanIssueSalePayment}"
                                                     Style="{StaticResource PrimaryButtonStyle}"
-                                                    MinWidth="135"
-                                                    Height="40"/>
-                                        </WrapPanel>
+                                                    MinWidth="130" Height="38" DockPanel.Dock="Right"/>
+                                            <WrapPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Amount" FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           VerticalAlignment="Center" Margin="0 0 6 0"/>
+                                                <TextBox Text="{Binding PaymentAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                                         Width="110" FontSize="13" FontWeight="SemiBold"
+                                                         Background="Transparent" BorderThickness="0 0 0 1"
+                                                         BorderBrush="{DynamicResource AccentBrush}" Margin="0 0 12 0"/>
+                                                <controls:SaleDatePickerControl Width="210"
+                                                    Label="PAYMENT DATE" PopupTitle="SELECT PAYMENT DATE"
+                                                    DisplayFormat="dd MMM yyyy"
+                                                    SelectedDate="{Binding PaymentDate, Mode=TwoWay}"
+                                                    Margin="0 0 12 0"/>
+                                                <TextBlock Text="Method" FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           VerticalAlignment="Center" Margin="0 0 6 0"/>
+                                                <TextBox Text="{Binding PaymentMethod, UpdateSourceTrigger=PropertyChanged}"
+                                                         Width="100" FontSize="13"
+                                                         Background="Transparent" BorderThickness="0 0 0 1"
+                                                         BorderBrush="{DynamicResource AccentBrush}" Margin="0 0 12 0"/>
+                                            </WrapPanel>
+                                        </DockPanel>
                                     </Border>
-                                </WrapPanel>
+                                </Grid>
                             </Border>
 
                         </Grid>
