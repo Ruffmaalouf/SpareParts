@@ -18,7 +18,6 @@
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
-<<<<<<< HEAD
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
                 <Setter Property="BorderBrush"              Value="#1A00C9A7"/>
@@ -28,23 +27,11 @@
                 <Setter Property="FontFamily"               Value="Segoe UI"/>
                 <Setter Property="CaretBrush"               Value="#FF00C9A7"/>
                 <Setter Property="SelectionBrush"           Value="#3300C9A7"/>
-=======
-                <Setter Property="Background"               Value="#FF111111"/>
-                <Setter Property="Foreground"               Value="#FFEBEBEB"/>
-                <Setter Property="BorderBrush"              Value="#FF262626"/>
-                <Setter Property="BorderThickness"          Value="0 0 0 2"/>
-                <Setter Property="Padding"                  Value="14 0"/>
-                <Setter Property="FontSize"                 Value="14"/>
-                <Setter Property="FontFamily"               Value="Segoe UI"/>
-                <Setter Property="CaretBrush"               Value="{DynamicResource AccentBrush}"/>
-                <Setter Property="SelectionBrush"           Value="#55D40000"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
                             <Border x:Name="Bd"
-<<<<<<< HEAD
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
@@ -68,24 +55,6 @@
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bd" Property="BorderBrush" Value="#4400C9A7"/>
-=======
-                                    Background="#FF111111"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="3 3 0 0"
-                                    MinHeight="46">
-                                <ScrollViewer x:Name="PART_ContentHost"
-                                              Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="Center"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="Bd" Property="Background"  Value="#FF161616"/>
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#88D40000"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -94,17 +63,10 @@
             </Style>
 
             <Style x:Key="LoginPasswordStyle" TargetType="PasswordBox">
-<<<<<<< HEAD
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
                 <Setter Property="BorderBrush"              Value="#1A00C9A7"/>
                 <Setter Property="BorderThickness"          Value="1"/>
-=======
-                <Setter Property="Background"               Value="#FF111111"/>
-                <Setter Property="Foreground"               Value="#FFEBEBEB"/>
-                <Setter Property="BorderBrush"              Value="#FF262626"/>
-                <Setter Property="BorderThickness"          Value="0 0 0 2"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="18"/>
                 <Setter Property="FontFamily"               Value="Segoe UI"/>
@@ -114,26 +76,17 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="PasswordBox">
                             <Border x:Name="Bd"
-<<<<<<< HEAD
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="10"
                                     MinHeight="48">
-=======
-                                    Background="#FF111111"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="3 3 0 0"
-                                    MinHeight="46">
->>>>>>> origin/claude/new-ideas-aBkh4
                                 <ScrollViewer x:Name="PART_ContentHost"
                                               Margin="{TemplateBinding Padding}"
                                               VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-<<<<<<< HEAD
                                     <Setter TargetName="Bd" Property="BorderBrush" Value="#FF00C9A7"/>
                                     <Setter TargetName="Bd" Property="Background"  Value="#0F1830"/>
                                     <Setter TargetName="Bd" Property="Effect">
@@ -145,13 +98,6 @@
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bd" Property="BorderBrush" Value="#4400C9A7"/>
-=======
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="Bd" Property="Background"  Value="#FF161616"/>
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#88D40000"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -161,23 +107,14 @@
         </ResourceDictionary>
     </Window.Resources>
 
-<<<<<<< HEAD
     <!-- Outer shell with drop shadow -->
     <Border CornerRadius="20" Background="#FF080C14">
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="60" ShadowDepth="12" Opacity="0.7"/>
-=======
-    <!-- Outer shell with red rim + drop shadow -->
-    <Border CornerRadius="6" Background="#FF080808"
-            BorderBrush="#FF1E1E1E" BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect Color="Black" BlurRadius="48" ShadowDepth="0" Opacity="0.8"/>
->>>>>>> origin/claude/new-ideas-aBkh4
         </Border.Effect>
 
         <Grid>
             <Grid.ColumnDefinitions>
-<<<<<<< HEAD
                 <ColumnDefinition Width="420"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -215,37 +152,6 @@
                             </RadialGradientBrush>
                         </Ellipse.Fill>
                     </Ellipse>
-=======
-                <ColumnDefinition Width="440"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- ══════════ LEFT — CARBON HERO ══════════ -->
-            <Border Grid.Column="0" CornerRadius="6 0 0 6" ClipToBounds="True"
-                    Background="{DynamicResource CarbonFiberBrush}">
-                <Grid>
-                    <!-- Big diagonal red speed wedge -->
-                    <Path Stretch="Fill" Opacity="0.10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          Data="M 0,0 L 1,0 L 1,0.42 L 0,1 Z">
-                        <Path.Fill>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#FFD40000" Offset="0"/>
-                                <GradientStop Color="Transparent" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Path.Fill>
-                    </Path>
-
-                    <!-- Thin diagonal speed lines -->
-                    <Canvas ClipToBounds="True">
-                        <Line X1="-40" Y1="640" X2="320" Y2="-40" Stroke="#22D40000" StrokeThickness="2"/>
-                        <Line X1="20"  Y1="640" X2="380" Y2="-40" Stroke="#18D40000" StrokeThickness="2"/>
-                        <Line X1="80"  Y1="640" X2="440" Y2="-40" Stroke="#10D40000" StrokeThickness="2"/>
-                    </Canvas>
-
-                    <!-- Top full-bleed red stripe -->
-                    <Border Height="4" VerticalAlignment="Top"
-                            Background="{DynamicResource RacingStripeBrush}"/>
->>>>>>> origin/claude/new-ideas-aBkh4
 
                     <Ellipse Width="160" Height="160"
                              HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -258,7 +164,6 @@
                         </Ellipse.Fill>
                     </Ellipse>
 
-<<<<<<< HEAD
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="44">
 
                         <!-- Aurora logo ring -->
@@ -288,30 +193,6 @@
                             <!-- Logo letter -->
                             <TextBlock Text="M" FontSize="44" FontWeight="Bold"
                                        Foreground="#FF00C9A7"
-=======
-                        <!-- Monogram plate -->
-                        <Border Width="104" Height="104" CornerRadius="6"
-                                Margin="0 0 0 30" HorizontalAlignment="Center"
-                                BorderThickness="1.5">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#FF161616" Offset="0"/>
-                                    <GradientStop Color="#FF0A0A0A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#FFD40000" Offset="0"/>
-                                    <GradientStop Color="#FF3A0000" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.BorderBrush>
-                            <Border.Effect>
-                                <DropShadowEffect Color="#FFD40000" BlurRadius="28"
-                                                  ShadowDepth="0" Opacity="0.45"/>
-                            </Border.Effect>
-                            <TextBlock Text="M" FontSize="52" FontWeight="Bold"
-                                       Foreground="{DynamicResource AccentBrush}"
->>>>>>> origin/claude/new-ideas-aBkh4
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        FontFamily="Segoe UI">
@@ -322,7 +203,6 @@
                         </Grid>
 
                         <TextBlock Text="MAALOUF"
-<<<<<<< HEAD
                                    FontSize="28" FontWeight="Bold"
                                    Foreground="#FFE8F0FF" HorizontalAlignment="Center"
                                    FontFamily="Segoe UI"/>
@@ -417,30 +297,6 @@
                                    FontSize="10" Foreground="#FF2E3D58"
                                    HorizontalAlignment="Center"
                                    Margin="0 22 0 0" FontFamily="Segoe UI"/>
-=======
-                                   FontSize="34" FontWeight="Bold"
-                                   Foreground="#FFEBEBEB" HorizontalAlignment="Center"
-                                   FontFamily="Segoe UI"/>
-                        <TextBlock Text="A U T O   P A R T S"
-                                   FontSize="12" FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentBrush}"
-                                   HorizontalAlignment="Center"
-                                   Margin="0 4 0 0" FontFamily="Segoe UI"/>
-
-                        <!-- Red divider -->
-                        <Border Height="2" Width="160" Margin="0 26 0 24"
-                                HorizontalAlignment="Center"
-                                Background="{DynamicResource RacingStripeBrush}"/>
-
-                        <TextBlock Text="PARTS MANAGEMENT SYSTEM"
-                                   FontSize="11" Foreground="#FF707070"
-                                   HorizontalAlignment="Center" FontFamily="Segoe UI"
-                                   TextAlignment="Center"/>
-                        <TextBlock Text="v3.0  ·  API-CONNECTED"
-                                   FontSize="9" Foreground="#FF4A4A4A"
-                                   HorizontalAlignment="Center"
-                                   Margin="0 6 0 0" FontFamily="Segoe UI"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                     </StackPanel>
 
                     <!-- Bottom checkered hint bar -->
@@ -449,7 +305,6 @@
                 </Grid>
             </Border>
 
-<<<<<<< HEAD
             <!-- ══ RIGHT — Login Form ══ -->
             <Border Grid.Column="1" CornerRadius="0 20 20 0">
                 <Border.Background>
@@ -459,32 +314,20 @@
                     </LinearGradientBrush>
                 </Border.Background>
 
-=======
-            <!-- ══════════ RIGHT — LOGIN FORM ══════════ -->
-            <Border Grid.Column="1" CornerRadius="0 6 6 0" Background="#FF0C0C0C">
->>>>>>> origin/claude/new-ideas-aBkh4
                 <Grid>
                     <!-- Close button -->
                     <Button Content="✕"
                             HorizontalAlignment="Right" VerticalAlignment="Top"
                             Margin="0 16 16 0" Width="30" Height="30"
                             Background="Transparent" BorderThickness="0"
-<<<<<<< HEAD
                             Foreground="#FF3A4A6A" FontSize="13"
-=======
-                            Foreground="#FF555555" FontSize="13"
->>>>>>> origin/claude/new-ideas-aBkh4
                             Cursor="Hand" Click="CloseButton_Click">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-<<<<<<< HEAD
                                             <Border x:Name="Bd" CornerRadius="6"
-=======
-                                            <Border x:Name="Bd" CornerRadius="3"
->>>>>>> origin/claude/new-ideas-aBkh4
                                                     Background="{TemplateBinding Background}" Padding="2">
                                                 <ContentPresenter HorizontalAlignment="Center"
                                                                   VerticalAlignment="Center"/>
@@ -502,7 +345,6 @@
                         </Button.Style>
                     </Button>
 
-<<<<<<< HEAD
                     <!-- Drag area -->
                     <Border Height="48" VerticalAlignment="Top" Background="Transparent"
                             MouseLeftButtonDown="DragBar_MouseDown"/>
@@ -567,45 +409,6 @@
 
                         <!-- Error banner -->
                         <Border Margin="0 16 0 0" CornerRadius="10" Padding="14 10"
-=======
-                    <!-- Drag bar -->
-                    <Border Height="46" VerticalAlignment="Top" Background="Transparent"
-                            MouseLeftButtonDown="DragBar_MouseDown"/>
-
-                    <!-- Form -->
-                    <StackPanel VerticalAlignment="Center" Margin="56 0 56 0">
-
-                        <TextBlock Text="WELCOME BACK"
-                                   FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentBrush}"
-                                   Margin="0 0 0 6" FontFamily="Segoe UI"/>
-                        <TextBlock Text="Driver Sign-In"
-                                   FontSize="26" FontWeight="Bold"
-                                   Foreground="#FFEBEBEB" Margin="0 0 0 2" FontFamily="Segoe UI"/>
-                        <TextBlock Text="Enter your credentials to enter the pit."
-                                   FontSize="13" Foreground="#FF707070"
-                                   Margin="0 0 0 34" FontFamily="Segoe UI"/>
-
-                        <!-- Username -->
-                        <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                   Foreground="#FF808080" Margin="0 0 0 7" FontFamily="Segoe UI"/>
-                        <TextBox x:Name="UsernameBox"
-                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource LoginFieldStyle}"
-                                 Height="46" KeyDown="Field_KeyDown"/>
-
-                        <!-- Password -->
-                        <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
-                                   Foreground="#FF808080" Margin="0 20 0 7" FontFamily="Segoe UI"/>
-                        <PasswordBox x:Name="PasswordBox"
-                                     Style="{StaticResource LoginPasswordStyle}"
-                                     Height="46" KeyDown="Field_KeyDown"/>
-
-                        <!-- Error banner -->
-                        <Border Margin="0 14 0 0" Background="#1AD40000" CornerRadius="3"
-                                BorderBrush="#44D40000" BorderThickness="1"
-                                Padding="12 8"
->>>>>>> origin/claude/new-ideas-aBkh4
                                 Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
                             <Border.Background>
                                 <SolidColorBrush Color="#1AE53935"/>
@@ -623,12 +426,7 @@
 
                         <!-- Sign In button -->
                         <Button x:Name="LoginBtn"
-<<<<<<< HEAD
                                 Height="50" Margin="0 24 0 0"
-=======
-                                Height="48" Margin="0 24 0 0"
-                                FontSize="13" FontWeight="Bold"
->>>>>>> origin/claude/new-ideas-aBkh4
                                 Cursor="Hand" Click="LoginButton_Click"
                                 IsEnabled="{Binding IsIdle}">
                             <Button.Style>
@@ -636,7 +434,6 @@
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="Button">
-<<<<<<< HEAD
                                                 <Border x:Name="Bd" CornerRadius="12">
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -647,18 +444,6 @@
                                                     <Border.Effect>
                                                         <DropShadowEffect Color="#FF00C9A7" BlurRadius="20"
                                                                           ShadowDepth="0" Opacity="0.4"/>
-=======
-                                                <Border x:Name="Bd" CornerRadius="3">
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                            <GradientStop Color="#FFE01010" Offset="0"/>
-                                                            <GradientStop Color="#FF9C0000" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <Border.Effect>
-                                                        <DropShadowEffect Color="#FFD40000" BlurRadius="18"
-                                                                          ShadowDepth="0" Opacity="0.45"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                                                     </Border.Effect>
                                                     <TextBlock x:Name="Txt" Text="SIGN IN  →"
                                                                HorizontalAlignment="Center"
@@ -669,31 +454,21 @@
                                                 </Border>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-<<<<<<< HEAD
                                                         <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
                                                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                                     <GradientStop Color="#FF00E5BF" Offset="0"/>
                                                                     <GradientStop Color="#FF00C9A7" Offset="1"/>
                                                                 </LinearGradientBrush>
-=======
-                                                        <Setter TargetName="Bd" Property="Effect">
-                                                            <Setter.Value>
-                                                                <DropShadowEffect Color="#FFFF2020" BlurRadius="26"
-                                                                                  ShadowDepth="0" Opacity="0.7"/>
->>>>>>> origin/claude/new-ideas-aBkh4
                                                             </Setter.Value>
                                                         </Setter>
                                                     </Trigger>
                                                     <Trigger Property="IsPressed" Value="True">
-<<<<<<< HEAD
                                                         <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
                                                                 <SolidColorBrush Color="#FF007A65"/>
                                                             </Setter.Value>
                                                         </Setter>
-=======
->>>>>>> origin/claude/new-ideas-aBkh4
                                                         <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsEnabled" Value="False">
@@ -711,39 +486,24 @@
                     </StackPanel>
 
                     <!-- API status bar -->
-<<<<<<< HEAD
                     <Border VerticalAlignment="Bottom" Padding="22 12" CornerRadius="0 0 20 0">
                         <Border.BorderBrush>
                             <SolidColorBrush Color="#0A00C9A7"/>
                         </Border.BorderBrush>
                         <Border.BorderThickness>0 1 0 0</Border.BorderThickness>
-=======
-                    <Border VerticalAlignment="Bottom" Padding="22 12"
-                            CornerRadius="0 0 6 0"
-                            Background="#FF0A0A0A"
-                            BorderBrush="#FF1A1A1A" BorderThickness="0 1 0 0">
->>>>>>> origin/claude/new-ideas-aBkh4
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding StatusDot}" FontSize="9"
                                            Foreground="{Binding StatusBrush}"
                                            VerticalAlignment="Center" Margin="0 0 7 0"/>
                                 <TextBlock Text="{Binding StatusText}"
-<<<<<<< HEAD
                                            FontSize="11" Foreground="#FF3A4A6A"
-=======
-                                           FontSize="11" Foreground="#FF707070"
->>>>>>> origin/claude/new-ideas-aBkh4
                                            VerticalAlignment="Center" FontFamily="Segoe UI"/>
                             </StackPanel>
                             <TextBlock Text="{Binding ServiceStatusText}"
                                        Margin="16 5 0 0"
                                        FontSize="10"
-<<<<<<< HEAD
                                        Foreground="#FF2A3A56"
-=======
-                                       Foreground="#FF5A5A5A"
->>>>>>> origin/claude/new-ideas-aBkh4
                                        TextWrapping="Wrap"
                                        LineHeight="16"
                                        FontFamily="Consolas"/>
