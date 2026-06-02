@@ -8,24 +8,36 @@ namespace SpareParts.IntegrationTests;
 
 internal sealed class SqlServerSaleTestDatabase : IAsyncDisposable
 {
-    private readonly MsSqlContainer _container;
-
-    public SqlServerSaleTestDatabase()
-    {
-        _container = new MsSqlBuilder()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-            .WithCleanUp(true)
-            .Build();
-    }
+    private MsSqlContainer? _container;
 
     public string? ConnectionString { get; private set; }
     public bool IsAvailable { get; private set; }
     public string? AvailabilityReason { get; private set; }
 
+    public bool CanRunIntegrationTests()
+    {
+        if (IsAvailable)
+        {
+            return true;
+        }
+
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"SQL Server integration tests require a working Docker endpoint in CI. {AvailabilityReason}");
+        }
+
+        return false;
+    }
+
     public async Task InitializeAsync()
     {
         try
         {
+            _container = new MsSqlBuilder()
+                .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+                .WithCleanUp(true)
+                .Build();
             await _container.StartAsync();
             ConnectionString = _container.GetConnectionString();
             IsAvailable = true;
@@ -245,7 +257,7 @@ internal sealed class SqlServerSaleTestDatabase : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (IsAvailable)
+        if (_container != null)
         {
             await _container.DisposeAsync();
         }

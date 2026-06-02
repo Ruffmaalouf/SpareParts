@@ -69,5 +69,18 @@ jobs:
       - name: Test management suite
         run: dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj --configuration Release
 
+  sql-server-integration:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
       - name: Test SQL Server integration suite
         run: dotnet test tests/SpareParts.IntegrationTests/SpareParts.IntegrationTests.csproj --configuration Release

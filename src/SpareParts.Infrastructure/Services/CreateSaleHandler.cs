@@ -150,11 +150,11 @@ namespace SpareParts.Infrastructure.Services
 
             foreach (var item in request.Items)
             {
-                var part     = parts[item.PartId];
+                var part = parts[item.PartId];
                 var baseLine = Round2(item.Quantity * item.UnitPrice);
                 var discount = Round2(item.DiscountAmount);
-                var net      = baseLine - discount;
-                var tax      = Round2(net * (item.TaxRate / 100m));
+                var net = baseLine - discount;
+                var tax = Round2(net * (item.TaxRate / 100m));
                 var lineTotal = net + tax;
 
                 items.Add(new SalesInvoiceItem

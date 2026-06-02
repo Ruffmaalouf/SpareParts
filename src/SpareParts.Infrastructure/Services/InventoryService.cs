@@ -64,11 +64,7 @@ namespace SpareParts.Infrastructure.Services
             {
                 if (quantityChange < 0)
                 {
-                    // Sales clear any reservation held for these units in the same atomic statement.
-                    var isSale = movementType == StockMovementType.Sale;
-                    var updated = isSale
-                        ? inventoryRepository.TryUpdateStockOnSale(stockId, -quantityChange, userId)
-                        : inventoryRepository.TryUpdateStockQuantityAtomically(stockId, quantityChange, userId);
+                    var updated = inventoryRepository.TryUpdateStockQuantityAtomically(stockId, quantityChange, userId);
                     if (!updated)
                     {
                         throw new ConflictException($"Cannot reduce stock below zero for part {partId} in warehouse {warehouseId}.");

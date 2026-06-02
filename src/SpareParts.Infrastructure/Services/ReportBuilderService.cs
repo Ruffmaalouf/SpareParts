@@ -1,4 +1,5 @@
 using Dapper;
+using SpareParts.Domain.Auth;
 using SpareParts.Domain.Reports;
 using SpareParts.Infrastructure.Data;
 using System.Data;
@@ -8,6 +9,17 @@ namespace SpareParts.Infrastructure.Services;
 
 public sealed partial class ReportBuilderService
 {
+    private static readonly HashSet<string> RestrictedTableNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Users",
+        "Roles",
+        "RoleMenuAccess",
+        "AppMenus",
+        "AppConstants",
+        "ApplicationExceptionLogs",
+        "__EFMigrationsHistory"
+    };
+
     private static readonly HashSet<string> UnsupportedSqlTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "timestamp",
@@ -54,6 +66,7 @@ GROUP BY s.name, t.name
 HAVING COUNT(c.column_id) > 0
 ORDER BY s.name, t.name;",
                 new { UnsupportedSqlTypes })
+            .Where(table => !IsRestrictedTable(table.SchemaName, table.TableName))
             .ToList();
 
         foreach (var table in tables)
@@ -79,8 +92,10 @@ ORDER BY s.name, t.name;",
         return GetLinks(connection);
     }
 
-    public ReportTableLinkDto SaveLink(SaveReportTableLinkRequest request)
+    public ReportTableLinkDto SaveLink(SaveReportTableLinkRequest request, int currentRoleId)
     {
+        EnsureAdmin(currentRoleId);
+
         if (request == null)
         {
             throw new ValidationException("Table link payload is required.");
@@ -218,8 +233,10 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
             .First(link => link.Id == linkId);
     }
 
-    public void DeleteLink(int id)
+    public void DeleteLink(int id, int currentRoleId)
     {
+        EnsureAdmin(currentRoleId);
+
         using var connection = _factory.CreateConnection();
         var deleted = connection.Execute("DELETE FROM dbo.ReportBuilderTableLinks WHERE Id = @Id;", new { Id = id });
         if (deleted == 0)
@@ -1282,6 +1299,8 @@ ORDER BY fk.name, ps.name, pt.name, pc.name;")
 
         var links = customLinks
             .Concat(systemLinks)
+            .Where(link => !IsRestrictedTableKey(link.SourceTableKey)
+                && !IsRestrictedTableKey(link.TargetTableKey))
             .ToList();
 
         foreach (var link in links)
@@ -1300,7 +1319,9 @@ ORDER BY fk.name, ps.name, pt.name, pc.name;")
     private static ReportTableDto? GetTable(IDbConnection connection, string tableKey)
     {
         var (schemaName, tableName) = ParseTableKey(tableKey);
-        if (string.IsNullOrWhiteSpace(schemaName) || string.IsNullOrWhiteSpace(tableName))
+        if (string.IsNullOrWhiteSpace(schemaName)
+            || string.IsNullOrWhiteSpace(tableName)
+            || IsRestrictedTable(schemaName, tableName))
         {
             return null;
         }
@@ -1323,6 +1344,32 @@ WHERE t.is_ms_shipped = 0
         }
 
         return table;
+    }
+
+    public static bool IsTableAllowedForReporting(string tableKey)
+    {
+        var (schemaName, tableName) = ParseTableKey(tableKey);
+        return !string.IsNullOrWhiteSpace(schemaName)
+            && !string.IsNullOrWhiteSpace(tableName)
+            && !IsRestrictedTable(schemaName, tableName);
+    }
+
+    private static bool IsRestrictedTableKey(string tableKey)
+    {
+        var (schemaName, tableName) = ParseTableKey(tableKey);
+        return IsRestrictedTable(schemaName, tableName);
+    }
+
+    private static bool IsRestrictedTable(string schemaName, string tableName)
+        => RestrictedTableNames.Contains(tableName)
+            || tableName.StartsWith("ReportBuilder", StringComparison.OrdinalIgnoreCase);
+
+    private static void EnsureAdmin(int currentRoleId)
+    {
+        if (currentRoleId != (int)UserRole.Admin)
+        {
+            throw new UnauthorizedAccessException("Only administrators can modify report table links.");
+        }
     }
 
     private static IReadOnlyList<ReportColumnDto> GetColumns(IDbConnection connection, ReportTableDto table)

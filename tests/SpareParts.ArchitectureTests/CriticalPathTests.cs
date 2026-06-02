@@ -63,6 +63,40 @@ public class CriticalPathTests
     }
 
     [Fact]
+    public void StockMovement_Sale_ShouldNotConsumeAnonymousReservation()
+    {
+        var repo = new FakeInventoryRepository();
+        var service = new InventoryService();
+        repo.StockRows.Add(new Stock
+        {
+            Id = 1,
+            PartId = 10,
+            WarehouseId = 3,
+            Quantity = 5,
+            ReservedQuantity = 3
+        });
+
+        service.AdjustStock(
+            repo,
+            partId: 10,
+            warehouseId: 3,
+            quantityChange: -2,
+            StockMovementType.Sale,
+            DomainReferenceType.Sale,
+            referenceId: 101,
+            unitCost: 20m,
+            userId: 7);
+
+        var stock = repo.GetStock(10, 3);
+        Assert.NotNull(stock);
+        Assert.Equal(3, stock!.Quantity);
+        Assert.Equal(3, stock.ReservedQuantity);
+        Assert.Throws<ConflictException>(() =>
+            service.AdjustStock(repo, 10, 3, -1, StockMovementType.Sale, DomainReferenceType.Sale, 102, 20m, 7));
+        Assert.Equal(3, stock.ReservedQuantity);
+    }
+
+    [Fact]
     public void ReservationClock_DefaultExpiry_ShouldUseTomorrowAtSixPmLocalTime()
     {
         var now = new DateTimeOffset(2026, 5, 20, 10, 30, 0, TimeSpan.FromHours(3));

@@ -426,8 +426,8 @@ namespace SpareParts.Infrastructure.Services
 
             foreach (var item in requestItems)
             {
-                var baseLine  = Round2(item.Quantity * item.UnitCost);
-                var tax       = Round2(baseLine * (item.TaxRate / 100m));
+                var baseLine = Round2(item.Quantity * item.UnitCost);
+                var tax = Round2(baseLine * (item.TaxRate / 100m));
                 var lineTotal = baseLine + tax;
 
                 purchaseItems.Add(new PurchaseInvoiceItem

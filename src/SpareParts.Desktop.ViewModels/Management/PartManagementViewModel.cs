@@ -39,11 +39,11 @@ namespace SpareParts.Desktop.Wpf.Management
             _ctx = context;
             _filePickerService = filePickerService;
             _notificationService = notificationService;
-            SaveCommand              = new RelayCommand(_ => _ = SaveAsync());
-            DeleteCommand            = new RelayCommand(_ => _ = DeleteAsync());
-            StartNewCommand          = new RelayCommand(_ => StartNew());
-            RefreshCommand           = new RelayCommand(_ => _ = _ctx.RefreshAsync());
-            ImportFromExcelCommand   = new RelayCommand(_ => _ = ImportFromExcelAsync());
+            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand = new RelayCommand(_ => StartNew());
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ = ImportFromExcelAsync());
             GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
         }
 
@@ -296,7 +296,7 @@ namespace SpareParts.Desktop.Wpf.Management
             try
             {
                 var categoryLookup = Categories.ToDictionary(item => item.Id, item => item.Name);
-                var brandLookup    = BrandOptions.ToDictionary(item => item.Id, item => item.Name);
+                var brandLookup = BrandOptions.ToDictionary(item => item.Id, item => item.Name);
                 var result = await _ctx.Coordinator.GeneratePartNotesAsync(this, categoryLookup, brandLookup);
                 _ctx.SetStatus(result.Message, result.Success);
             }

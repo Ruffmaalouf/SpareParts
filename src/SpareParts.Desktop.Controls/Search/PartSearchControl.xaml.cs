@@ -188,7 +188,7 @@ namespace SpareParts.Desktop.Wpf
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             HidePlaceholder();
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
 
@@ -290,17 +290,17 @@ namespace SpareParts.Desktop.Wpf
                 ? _allParts
                 : _allParts.Where(p =>
                     (p.InternalCode ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                    (p.Barcode      ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                    (p.Name         ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                    (p.OEMNumber    ?? "").Contains(q, StringComparison.OrdinalIgnoreCase)
+                    (p.Barcode ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    (p.Name ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    (p.OEMNumber ?? "").Contains(q, StringComparison.OrdinalIgnoreCase)
                   ).ToList();
 
             FilteredParts.Clear();
             foreach (var p in results) FilteredParts.Add(p);
 
-            CountLabel.Text        = FilteredParts.Count == 0 ? "no results" : $"{FilteredParts.Count} found";
-            EmptyState.Visibility  = FilteredParts.Count == 0 ? Visibility.Visible  : Visibility.Collapsed;
-            ResultsList.Visibility = FilteredParts.Count > 0  ? Visibility.Visible  : Visibility.Collapsed;
+            CountLabel.Text = FilteredParts.Count == 0 ? "no results" : $"{FilteredParts.Count} found";
+            EmptyState.Visibility = FilteredParts.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ResultsList.Visibility = FilteredParts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
             if (FilteredParts.Count > 0) ResultsPopup.IsOpen = true;
         }
@@ -320,33 +320,33 @@ namespace SpareParts.Desktop.Wpf
 
         private void SelectPart(PartDto part)
         {
-            SelectedPartId          = part.Id;
-            SelectedPartPrice       = part.SalePrice;
-            SelectedPartCostPrice   = part.CostPrice;
+            SelectedPartId = part.Id;
+            SelectedPartPrice = part.SalePrice;
+            SelectedPartCostPrice = part.CostPrice;
             SelectedPartDescription = part.Name;           // ← populates Description column
 
             SelectedNameInline.Text = $"{part.InternalCode} — {part.Name}";
-            PriceLabel.Text         = $"{part.SalePrice:N0} {part.Currency}";
-            PriceLabel.Visibility   = Visibility.Visible;
+            PriceLabel.Text = $"{part.SalePrice:N0} {part.Currency}";
+            PriceLabel.Visibility = Visibility.Visible;
 
             SelectedIndicator.Visibility = Visibility.Visible;
-            SearchIcon.Visibility        = Visibility.Collapsed;
-            SearchBtn.Visibility         = Visibility.Collapsed;
-            ClearBtn.Visibility          = Visibility.Visible;
+            SearchIcon.Visibility = Visibility.Collapsed;
+            SearchBtn.Visibility = Visibility.Collapsed;
+            ClearBtn.Visibility = Visibility.Visible;
 
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
-            PartSearchText            = string.Empty;
-            SearchBox.Text            = string.Empty;
+            PartSearchText = string.Empty;
+            SearchBox.Text = string.Empty;
             HidePlaceholder();
             ClosePopup();
         }
 
         private void ClearSelection()
         {
-            SelectedPartId          = null;
-            SelectedPartPrice       = 0;
-            SelectedPartCostPrice   = 0;
+            SelectedPartId = null;
+            SelectedPartPrice = 0;
+            SelectedPartCostPrice = 0;
             SelectedPartDescription = string.Empty;
 
             ClearSelectionVisualState();
@@ -354,29 +354,29 @@ namespace SpareParts.Desktop.Wpf
 
         private void ClearSelectionVisualState()
         {
-            SelectedPartPrice       = 0;
-            SelectedPartCostPrice   = 0;
+            SelectedPartPrice = 0;
+            SelectedPartCostPrice = 0;
             SelectedPartDescription = string.Empty;
 
             SelectedIndicator.Visibility = Visibility.Collapsed;
-            SearchIcon.Visibility        = Visibility.Visible;
-            SelectedNameInline.Text      = string.Empty;
-            PriceLabel.Visibility        = Visibility.Hidden;
-            PriceLabel.Text              = string.Empty;
-            SearchBtn.Visibility         = Visibility.Visible;
-            ClearBtn.Visibility          = Visibility.Collapsed;
+            SearchIcon.Visibility = Visibility.Visible;
+            SelectedNameInline.Text = string.Empty;
+            PriceLabel.Visibility = Visibility.Hidden;
+            PriceLabel.Text = string.Empty;
+            SearchBtn.Visibility = Visibility.Visible;
+            ClearBtn.Visibility = Visibility.Collapsed;
 
             RestorePillBorder();
             ShowPlaceholder();
             SearchBox.Focus();
         }
 
-        private void ClosePopup()    { ResultsPopup.IsOpen = false; _suppressClose = false; }
+        private void ClosePopup() { ResultsPopup.IsOpen = false; _suppressClose = false; }
         private void ShowPlaceholder() => Placeholder.Visibility = Visibility.Visible;
         private void HidePlaceholder() => Placeholder.Visibility = Visibility.Collapsed;
         private void RestorePillBorder()
         {
-            InputPill.BorderBrush     = (Brush)FindResource("BorderBrush");
+            InputPill.BorderBrush = (Brush)FindResource("BorderBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
     }

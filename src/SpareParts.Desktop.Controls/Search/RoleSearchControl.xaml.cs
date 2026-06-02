@@ -185,7 +185,7 @@ namespace SpareParts.Desktop.Wpf
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             HidePlaceholder();
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
             OpenPopup();
         }
@@ -343,9 +343,9 @@ namespace SpareParts.Desktop.Wpf
 
             var newRole = new RoleItem
             {
-                Name           = name,
-                Description    = "Custom role",
-                BadgeColor     = "#22AAAAAA",
+                Name = name,
+                Description = "Custom role",
+                BadgeColor = "#22AAAAAA",
                 BadgeTextColor = "#CCCCCC"
             };
             _allRoles.Add(newRole);
@@ -370,27 +370,27 @@ namespace SpareParts.Desktop.Wpf
             }
             catch { SelectedRoleText.Foreground = Brushes.White; }
 
-            SelectedRoleText.Text        = role.Name;
+            SelectedRoleText.Text = role.Name;
             SelectedIndicator.Visibility = Visibility.Visible;
-            RoleIcon.Visibility          = Visibility.Collapsed;
-            DropBtn.Visibility           = Visibility.Collapsed;
-            ClearBtn.Visibility          = Visibility.Visible;
+            RoleIcon.Visibility = Visibility.Collapsed;
+            DropBtn.Visibility = Visibility.Collapsed;
+            ClearBtn.Visibility = Visibility.Visible;
 
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
-            RoleSearchText            = string.Empty;
-            SearchBox.Text            = string.Empty;
+            RoleSearchText = string.Empty;
+            SearchBox.Text = string.Empty;
             ShowPlaceholder();
         }
 
         private void ResetVisuals()
         {
             SelectedIndicator.Visibility = Visibility.Collapsed;
-            RoleIcon.Visibility          = Visibility.Visible;
-            DropBtn.Visibility           = Visibility.Visible;
-            ClearBtn.Visibility          = Visibility.Collapsed;
-            RoleSearchText               = string.Empty;
-            SearchBox.Text               = string.Empty;
+            RoleIcon.Visibility = Visibility.Visible;
+            DropBtn.Visibility = Visibility.Visible;
+            ClearBtn.Visibility = Visibility.Collapsed;
+            RoleSearchText = string.Empty;
+            SearchBox.Text = string.Empty;
             NewRoleBox.Clear();
             RestorePill();
             ShowPlaceholder();
@@ -407,7 +407,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void RestorePill()
         {
-            InputPill.BorderBrush     = (Brush)FindResource("BorderBrush");
+            InputPill.BorderBrush = (Brush)FindResource("BorderBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
     }

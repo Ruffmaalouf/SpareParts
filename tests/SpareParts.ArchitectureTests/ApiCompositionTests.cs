@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SpareParts.Api.Controllers;
 using SpareParts.Api.Hosting;
+using SpareParts.Api.Notifications;
 using SpareParts.Domain.Purchases;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Services;
@@ -116,6 +118,10 @@ public class ApiCompositionTests
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(SmartSearchService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(ScanLookupService));
         Assert.Contains(services, descriptor => descriptor.ServiceType == typeof(GrowthIntelligenceService));
+        Assert.Contains(
+            services,
+            descriptor => descriptor.ServiceType == typeof(IHostedService)
+                && descriptor.ImplementationType == typeof(ReportBuilderBackgroundRunHostedService));
     }
 
     private static string[] GetControllerNames(params ServiceCapability[] capabilities)

@@ -438,8 +438,6 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
                 RequestJson = requestJson
             });
 
-        _ = Task.Run(() => ExecuteBackgroundRun(runId));
-
         return new BackgroundReportRunSummaryDto
         {
             Id = runId,
@@ -451,6 +449,41 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
             ResultAvailable = false,
             CanExport = false
         };
+    }
+
+    public int ProcessQueuedBackgroundRuns(int maxRuns = 3)
+    {
+        var runLimit = Math.Clamp(maxRuns, 1, 20);
+        var processedCount = 0;
+
+        while (processedCount < runLimit)
+        {
+            var runId = ClaimNextBackgroundRun();
+            if (runId is not > 0)
+            {
+                break;
+            }
+
+            ExecuteBackgroundRun(runId.Value);
+            processedCount++;
+        }
+
+        return processedCount;
+    }
+
+    public int RequeueStaleBackgroundRuns()
+    {
+        using var connection = _factory.CreateConnection();
+        return connection.Execute(
+            @"
+UPDATE dbo.ReportBuilderBackgroundRuns
+SET [Status] = N'Queued',
+    ProgressPercent = 0,
+    StartedAt = NULL,
+    ErrorMessage = NULL,
+    [Summary] = N'Background report queued again after an interrupted run.'
+WHERE [Status] = N'Running'
+  AND StartedAt < DATEADD(MINUTE, -60, SYSUTCDATETIME());");
     }
 
     public IReadOnlyList<BackgroundReportRunSummaryDto> GetBackgroundRuns(int currentUserId, int currentRoleId)
@@ -532,21 +565,31 @@ WHERE Id = @Id;",
             ?? throw new ValidationException("The background report result is empty.");
     }
 
+    private int? ClaimNextBackgroundRun()
+    {
+        using var connection = _factory.CreateConnection();
+        return connection.QueryFirstOrDefault<int?>(
+            @"
+;WITH NextRun AS
+(
+    SELECT TOP (1) *
+    FROM dbo.ReportBuilderBackgroundRuns WITH (UPDLOCK, READPAST, ROWLOCK)
+    WHERE [Status] = N'Queued'
+    ORDER BY Id
+)
+UPDATE NextRun
+SET [Status] = N'Running',
+    ProgressPercent = 15,
+    StartedAt = SYSUTCDATETIME(),
+    ErrorMessage = NULL
+OUTPUT INSERTED.Id;");
+    }
+
     private void ExecuteBackgroundRun(int runId)
     {
         using var connection = _factory.CreateConnection();
         try
         {
-            connection.Execute(
-                @"
-UPDATE dbo.ReportBuilderBackgroundRuns
-SET [Status] = N'Running',
-    ProgressPercent = 15,
-    StartedAt = COALESCE(StartedAt, SYSUTCDATETIME()),
-    ErrorMessage = NULL
-WHERE Id = @Id;",
-                new { Id = runId });
-
             var row = connection.QuerySingleOrDefault(
                 "SELECT RequestJson FROM dbo.ReportBuilderBackgroundRuns WHERE Id = @Id;",
                 new { Id = runId });

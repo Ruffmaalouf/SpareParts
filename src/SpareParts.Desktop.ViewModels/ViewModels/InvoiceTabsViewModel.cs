@@ -21,9 +21,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 {
     public class InvoiceTabsViewModel : INotifyPropertyChanged
     {
-        public ObservableCollection<BrandGroupViewModel> BrandGroups    { get; } = new();
-        public ObservableCollection<CarModelViewModel>   AvailableCars  { get; } = new();
-        public ObservableCollection<CarPartModel>        AvailableParts { get; } = new();
+        public ObservableCollection<BrandGroupViewModel> BrandGroups { get; } = new();
+        public ObservableCollection<CarModelViewModel> AvailableCars { get; } = new();
+        public ObservableCollection<CarPartModel> AvailableParts { get; } = new();
         public ObservableCollection<StatusMessage> Notifications { get; } = AppNotificationCenter.Instance.Messages;
 
         private readonly ICarCatalogApiClient _carCatalogApi;
@@ -427,19 +427,19 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             set { _selectedTab = value; OnPropertyChanged(nameof(SelectedTab)); }
         }
 
-        public ICommand AddTabCommand            { get; }
-        public ICommand CloseTabCommand          { get; }
-        public ICommand SelectBrandCommand       { get; }
-        public ICommand SelectCarCommand         { get; }
-        public ICommand SelectPartCommand        { get; }
-        public ICommand GoToPosCommand           { get; }
-        public ICommand GoToCarSelectionCommand  { get; }
-        public ICommand GoToHomeCommand          { get; }
-        public ICommand CreateInvoiceCommand    { get; }
-        public ICommand OpenManagementCommand    { get; }
+        public ICommand AddTabCommand { get; }
+        public ICommand CloseTabCommand { get; }
+        public ICommand SelectBrandCommand { get; }
+        public ICommand SelectCarCommand { get; }
+        public ICommand SelectPartCommand { get; }
+        public ICommand GoToPosCommand { get; }
+        public ICommand GoToCarSelectionCommand { get; }
+        public ICommand GoToHomeCommand { get; }
+        public ICommand CreateInvoiceCommand { get; }
+        public ICommand OpenManagementCommand { get; }
         public ICommand OpenInvoiceSearchCommand { get; }
         public ICommand ReloadInvoiceSearchCommand { get; }
-        public ICommand GoToPurchasesCommand     { get; }
+        public ICommand GoToPurchasesCommand { get; }
         public ICommand GoToUsedCarPurchasesCommand { get; }
         public ICommand GoToUsedCarWholesaleCommand { get; }
         public ICommand GoToPurchaseHistoryCommand { get; }
@@ -465,7 +465,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToActivityLogCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
-        public ICommand ToggleFeedCommand        { get; }
+        public ICommand ToggleFeedCommand { get; }
 
         public InvoiceTabsViewModel(
             ICarCatalogApiClient carCatalogApi,
@@ -648,11 +648,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
-            Themes.Add(new ThemeOption { Key = AppTheme.Default,       Name = "Aurora",        SubTitle = "Deep Navy · Electric Teal", AccentHex = "#00C9A7" });
-            Themes.Add(new ThemeOption { Key = AppTheme.MPower,        Name = "M Power",       SubTitle = "BMW · Midnight Blue",        AccentHex = "#1C69D4" });
-            Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow,      Name = "Neon Glow",     SubTitle = "Cyberpunk · Electric Cyan",  AccentHex = "#00E5FF" });
-            Themes.Add(new ThemeOption { Key = AppTheme.AMG,           Name = "AMG",           SubTitle = "Mercedes · Titanium Grey",   AccentHex = "#C0C0C0" });
-            Themes.Add(new ThemeOption { Key = AppTheme.PorscheRS,     Name = "Porsche RS",    SubTitle = "Racing · Guards Red",        AccentHex = "#E30613" });
+            Themes.Add(new ThemeOption { Key = AppTheme.Default, Name = "Aurora", SubTitle = "Deep Navy · Electric Teal", AccentHex = "#00C9A7" });
+            Themes.Add(new ThemeOption { Key = AppTheme.MPower, Name = "M Power", SubTitle = "BMW · Midnight Blue", AccentHex = "#1C69D4" });
+            Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow, Name = "Neon Glow", SubTitle = "Cyberpunk · Electric Cyan", AccentHex = "#00E5FF" });
+            Themes.Add(new ThemeOption { Key = AppTheme.AMG, Name = "AMG", SubTitle = "Mercedes · Titanium Grey", AccentHex = "#C0C0C0" });
+            Themes.Add(new ThemeOption { Key = AppTheme.PorscheRS, Name = "Porsche RS", SubTitle = "Racing · Guards Red", AccentHex = "#E30613" });
             Themes.Add(new ThemeOption { Key = AppTheme.LamborghiniSC, Name = "Squadra Corse", SubTitle = "Lamborghini · Giallo Orion", AccentHex = "#FFD600" });
 
             SelectThemeCommand = new RelayCommand(o =>
@@ -665,10 +665,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             Themes[0].IsSelected = true;
             ThemeManager.ApplyTheme(AppTheme.Default);
 
-            SelectBrandCommand      = new RelayCommand(SelectBrand);
-            SelectCarCommand        = new RelayCommand(SelectCar);
-            SelectPartCommand       = new RelayCommand(SelectPart);
-            GoToPosCommand          = new RelayCommand(_ =>
+            SelectBrandCommand = new RelayCommand(SelectBrand);
+            SelectCarCommand = new RelayCommand(SelectCar);
+            SelectPartCommand = new RelayCommand(SelectPart);
+            GoToPosCommand = new RelayCommand(_ =>
             {
                 if (!CanViewPosScreen)
                 {
@@ -688,9 +688,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
                 ActiveScreen = AppScreen.CarSelection;
             });
-            GoToHomeCommand         = new RelayCommand(_ =>
+            GoToHomeCommand = new RelayCommand(_ =>
             {
-                ActiveScreen  = AppScreen.HomePage;
+                ActiveScreen = AppScreen.HomePage;
                 SelectedBrand = null;
                 AvailableCars.Clear();
                 OwnerCockpitVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
@@ -955,7 +955,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             AddTabCommand = CreateInvoiceCommand;
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
 
-           // SeedPurchasesAndStock();
+            // SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
             OwnerCockpitVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
@@ -1337,9 +1337,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                         {
                             var bvm = new CarBrandViewModel
                             {
-                                Id          = b.Id,
-                                Name        = b.Name,
-                                Country     = b.Country,
+                                Id = b.Id,
+                                Name = b.Name,
+                                Country = b.Country,
                                 RegionGroup = b.RegionGroup
                             };
                             groupVm.Brands.Add(bvm);
@@ -1404,7 +1404,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
 
             SelectedBrand = brand;
-            ActiveScreen  = AppScreen.CarSelection;
+            ActiveScreen = AppScreen.CarSelection;
             var loadVersion = Interlocked.Increment(ref _carsLoadVersion);
             LoadCarsAsync(brand.Id, loadVersion).SafeFireAndForget(HandleBackgroundException);
         }
@@ -1433,13 +1433,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     {
                         var vm = new CarModelViewModel
                         {
-                            Id         = dto.Id,
+                            Id = dto.Id,
                             CarBrandId = dto.CarBrandId,
                             CarBrandName = dto.CarBrandName,
-                            Name       = string.IsNullOrWhiteSpace(dto.CarBrandName)
+                            Name = string.IsNullOrWhiteSpace(dto.CarBrandName)
                                 ? dto.Name
                                 : $"{dto.CarBrandName} {dto.Name}",
-                            HasImage   = dto.HasImage
+                            HasImage = dto.HasImage
                         };
                         AvailableCars.Add(vm);
                         if (dto.HasImage) LoadCarImageAsync(vm).SafeFireAndForget(HandleBackgroundException);
@@ -1476,7 +1476,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 return;
             }
 
-            SelectedCar  = car;
+            SelectedCar = car;
             ActiveScreen = AppScreen.PartSelection;
             LoadPartsAsync().SafeFireAndForget(HandleBackgroundException);
         }
@@ -1494,10 +1494,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     foreach (var dto in dtos)
                         AvailableParts.Add(new CarPartModel
                         {
-                            PartId      = dto.Id,
-                            Code        = dto.InternalCode,
+                            PartId = dto.Id,
+                            Code = dto.InternalCode,
                             Description = dto.Name,
-                            UnitPrice   = dto.SalePrice
+                            UnitPrice = dto.SalePrice
                         });
                 });
             }
@@ -1569,10 +1569,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             if (parameter is not CarPartModel part || SelectedTab == null) return;
             SelectedTab.Items.Add(new PosItemViewModel
             {
-                PartId      = part.PartId,
+                PartId = part.PartId,
                 Description = part.Description,
-                Quantity    = 1,
-                UnitPrice   = part.UnitPrice
+                Quantity = 1,
+                UnitPrice = part.UnitPrice
             });
             ActiveScreen = AppScreen.Pos;
         }
@@ -1608,7 +1608,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
 
 
-       
+
 
         public void OpenInvoiceFromSearch(InvoiceTabViewModel? tab)
         {

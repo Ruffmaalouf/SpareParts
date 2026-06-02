@@ -10,6 +10,24 @@ namespace SpareParts.Infrastructure.Services;
 
 public sealed class ExcelImportService
 {
+    private static readonly IReadOnlyDictionary<string, HashSet<string>> ImportableColumnsByTable =
+        new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["dbo.Brands"] = Columns("Name", "IsActive"),
+            ["dbo.Categories"] = Columns("Name", "ParentId"),
+            ["dbo.Parts"] = Columns(
+                "InternalCode", "Barcode", "Name", "OEMNumber", "Condition", "CategoryId", "BrandId",
+                "CostPrice", "SalePrice", "AveragePrice", "EstimatedMarketPrice", "CostAllocationPercent",
+                "AllocatedCost", "MinimumSellPrice", "FastSalePrice", "WholesalePrice", "RecommendedPrice",
+                "PricingStatus", "PricingCalculatedAt", "Currency", "MinStock", "Notes", "UsedCarId", "IsActive"),
+            ["dbo.Customers"] = Columns("Name", "Phone", "Email", "Address", "TaxNumber", "OpeningBalance"),
+            ["dbo.Suppliers"] = Columns("Name", "Phone", "Email", "Address", "TaxNumber", "OpeningBalance"),
+            ["dbo.Warehouses"] = Columns("Name", "Barcode", "Address", "IsMain"),
+            ["dbo.CarBrands"] = Columns("Name", "Country", "RegionGroup", "SortOrder", "IsActive"),
+            ["dbo.CarModels"] = Columns("CarBrandId", "Name", "BodyType", "IsActive"),
+            ["dbo.Location"] = Columns("Name", "ShippingFees", "ShippingFeesCurrencyCode")
+        };
+
     private readonly ISqlConnectionFactory _factory;
 
     public ExcelImportService(ISqlConnectionFactory factory)
@@ -23,9 +41,11 @@ public sealed class ExcelImportService
         var repository = new ExcelImportMetadataRepository(connection);
 
         var tables = repository.GetTables()
+            .Where(table => IsTableAllowedForImport(table.SchemaName, table.TableName))
             .Select(table =>
             {
                 var columns = repository.GetColumns(table.SchemaName, table.TableName)
+                    .Where(column => IsColumnAllowedForImport(table.SchemaName, table.TableName, column.ColumnName))
                     .Select(PrepareColumn)
                     .ToList();
 
@@ -48,12 +68,18 @@ public sealed class ExcelImportService
             throw new ValidationException("Choose a system table before importing.");
         }
 
+        if (!IsTableAllowedForImport(request.TableKey))
+        {
+            throw new ValidationException($"System table '{request.TableKey}' is not approved for Excel import.");
+        }
+
         using var session = new DbSession(_factory);
         var metadata = new ExcelImportMetadataRepository(session.Connection, session.Transaction);
         var table = metadata.GetTable(request.TableKey)
             ?? throw new NotFoundException($"System table '{request.TableKey}' was not found.");
 
         var columns = metadata.GetColumns(table.SchemaName, table.TableName)
+            .Where(column => IsColumnAllowedForImport(table.SchemaName, table.TableName, column.ColumnName))
             .Select(PrepareColumn)
             .ToList();
 
@@ -66,6 +92,30 @@ public sealed class ExcelImportService
         ApplyPostInsertSideEffects(session, metadata, table, request.Values, insertedId, userId);
         session.Commit();
     }
+
+    public static bool IsTableAllowedForImport(string tableKey)
+    {
+        var parts = (tableKey ?? string.Empty)
+            .Trim()
+            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        return parts.Length switch
+        {
+            1 => IsTableAllowedForImport("dbo", parts[0]),
+            2 => IsTableAllowedForImport(parts[0], parts[1]),
+            _ => false
+        };
+    }
+
+    public static bool IsTableAllowedForImport(string schemaName, string tableName)
+        => ImportableColumnsByTable.ContainsKey($"{schemaName}.{tableName}");
+
+    public static bool IsColumnAllowedForImport(string schemaName, string tableName, string columnName)
+        => ImportableColumnsByTable.TryGetValue($"{schemaName}.{tableName}", out var columns)
+            && columns.Contains(columnName);
+
+    private static HashSet<string> Columns(params string[] values)
+        => new(values, StringComparer.OrdinalIgnoreCase);
 
     private static ExcelImportColumnDto PrepareColumn(ExcelImportColumnDto column)
     {

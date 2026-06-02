@@ -289,19 +289,19 @@ namespace SpareParts.Desktop.Wpf
                 LoadAllAsync,
                 ExcelManagerFeature.ImportTableCommand);
 
-            var stdCtx          = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
-            var counterCtx      = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand, () => _counterCurrencyCode);
+            var stdCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
+            var counterCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand, () => _counterCurrencyCode);
             var baseCurrencyCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand, () => _baseCurrencyCode);
-            var noImportCtx     = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus);
+            var noImportCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus);
 
-            CustomersFeature        = new CustomerManagementViewModel(stdCtx);
-            SuppliersFeature        = new SupplierManagementViewModel(stdCtx);
-            BrandsFeature           = new BrandManagementViewModel(stdCtx);
-            PartsFeature            = new PartManagementViewModel(baseCurrencyCtx, filePickerService, notificationService);
-            PartRequestsFeature     = new PartRequestsManagementViewModel(noImportCtx);
-            CarModelsFeature        = new CarModelManagementViewModel(stdCtx);
-            LocationsFeature        = new LocationManagementViewModel(counterCtx);
-            WarehousesFeature       = new WarehouseManagementViewModel(stdCtx);
+            CustomersFeature = new CustomerManagementViewModel(stdCtx);
+            SuppliersFeature = new SupplierManagementViewModel(stdCtx);
+            BrandsFeature = new BrandManagementViewModel(stdCtx);
+            PartsFeature = new PartManagementViewModel(baseCurrencyCtx, filePickerService, notificationService);
+            PartRequestsFeature = new PartRequestsManagementViewModel(noImportCtx);
+            CarModelsFeature = new CarModelManagementViewModel(stdCtx);
+            LocationsFeature = new LocationManagementViewModel(counterCtx);
+            WarehousesFeature = new WarehouseManagementViewModel(stdCtx);
             TransactionTypesFeature = new TransactionTypeManagementViewModel(counterCtx);
 
             UsedCarsFeature = new UsedCarsManagementViewModel(
@@ -339,7 +339,7 @@ namespace SpareParts.Desktop.Wpf
         {
             SuppliersFeature.SetPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
         }
- 
+
 
         public async Task LoadAllAsync()
         {

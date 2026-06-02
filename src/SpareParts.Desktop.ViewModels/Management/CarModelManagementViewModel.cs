@@ -21,15 +21,15 @@ namespace SpareParts.Desktop.Wpf.Management
         public CarModelManagementViewModel(IManagementFeatureContext context)
         {
             _ctx = context;
-            SaveCarBrandCommand             = new RelayCommand(_ => _ = SaveCarBrandAsync());
-            DeleteCarBrandCommand           = new RelayCommand(_ => _ = DeleteCarBrandAsync());
-            StartNewCarBrandCommand         = new RelayCommand(_ => StartNewCarBrand());
+            SaveCarBrandCommand = new RelayCommand(_ => _ = SaveCarBrandAsync());
+            DeleteCarBrandCommand = new RelayCommand(_ => _ = DeleteCarBrandAsync());
+            StartNewCarBrandCommand = new RelayCommand(_ => StartNewCarBrand());
             ImportCarBrandsFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.CarBrands"));
-            SaveCarModelCommand             = new RelayCommand(_ => _ = SaveCarModelAsync());
-            DeleteCarModelCommand           = new RelayCommand(_ => _ = DeleteCarModelAsync());
-            StartNewCarModelCommand         = new RelayCommand(_ => StartNewCarModel());
+            SaveCarModelCommand = new RelayCommand(_ => _ = SaveCarModelAsync());
+            DeleteCarModelCommand = new RelayCommand(_ => _ = DeleteCarModelAsync());
+            StartNewCarModelCommand = new RelayCommand(_ => StartNewCarModel());
             ImportCarModelsFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.CarModels"));
-            RefreshCommand                  = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
         }
 
         public ObservableCollection<CarModelDto> CarModels { get; } = new();

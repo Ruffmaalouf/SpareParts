@@ -357,10 +357,10 @@ public class QualityGuardrailTests
             }
 
             foreach (var controllerRoute in controllerRoutes)
-            foreach (var actionRoute in actionRoutes)
-            {
-                yield return NormalizeRouteTemplate(CombineRouteTemplates(controllerRoute, actionRoute.Template), controllerName);
-            }
+                foreach (var actionRoute in actionRoutes)
+                {
+                    yield return NormalizeRouteTemplate(CombineRouteTemplates(controllerRoute, actionRoute.Template), controllerName);
+                }
         }
     }
 

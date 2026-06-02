@@ -4,7 +4,7 @@ using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
-    
+
 
     public class InvoiceTotalsCalculator : IInvoiceTotalsCalculator
     {
@@ -16,14 +16,14 @@ namespace SpareParts.Infrastructure.Services
 
             foreach (var item in items)
             {
-                var baseLine  = Round2(item.Quantity * item.UnitPrice);
-                var discount  = Round2(item.DiscountAmount);
-                var net       = baseLine - discount;
-                var tax       = Round2(net * (item.TaxRate / 100m));
+                var baseLine = Round2(item.Quantity * item.UnitPrice);
+                var discount = Round2(item.DiscountAmount);
+                var net = baseLine - discount;
+                var tax = Round2(net * (item.TaxRate / 100m));
 
-                subtotal      += baseLine;
+                subtotal += baseLine;
                 discountTotal += discount;
-                taxTotal      += tax;
+                taxTotal += tax;
             }
 
             return new SalesTotalsResult(subtotal, discountTotal, taxTotal);
@@ -37,7 +37,7 @@ namespace SpareParts.Infrastructure.Services
             foreach (var item in items)
             {
                 var baseLine = Round2(item.Quantity * item.UnitCost);
-                var tax      = Round2(baseLine * (item.TaxRate / 100m));
+                var tax = Round2(baseLine * (item.TaxRate / 100m));
 
                 subtotal += baseLine;
                 taxTotal += tax;

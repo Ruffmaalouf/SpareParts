@@ -166,17 +166,17 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
     public PartRequestsManagementViewModel(IManagementFeatureContext context)
     {
         _ctx = context;
-        SaveCommand               = new RelayCommand(_ => _ = SaveAsync());
-        DeleteCommand             = new RelayCommand(_ => _ = DeleteAsync());
-        StartNewCommand           = new RelayCommand(_ => StartNew());
-        RefreshCommand            = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+        SaveCommand = new RelayCommand(_ => _ = SaveAsync());
+        DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
+        StartNewCommand = new RelayCommand(_ => StartNew());
+        RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
         ReserveAutoReleaseCommand = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.AutoRelease));
-        ReserveReminderCommand    = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.StaffReminder));
+        ReserveReminderCommand = new RelayCommand(_ => _ = ReserveSelectedAsync(PartReservationExpirationAction.StaffReminder));
         ReleaseReservationCommand = new RelayCommand(_ => _ = ReleaseSelectedReservationAsync());
-        MarkContactedCommand      = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Contacted));
-        MarkFulfilledCommand      = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Fulfilled));
-        CancelCommand             = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Cancelled));
-        ReopenCommand             = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Open));
+        MarkContactedCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Contacted));
+        MarkFulfilledCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Fulfilled));
+        CancelCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Cancelled));
+        ReopenCommand = new RelayCommand(_ => _ = UpdateStatusAsync(PartRequestStatus.Open));
     }
 
     public void Load(IEnumerable<PartRequestDto> requests)

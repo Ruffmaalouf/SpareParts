@@ -22,10 +22,10 @@ namespace SpareParts.Desktop.Wpf.Management
         {
             _ctx = context;
             _permissions.PropertyChanged += PermissionsOnPropertyChanged;
-            SaveCommand            = new RelayCommand(_ => _ = SaveAsync());
-            DeleteCommand          = new RelayCommand(_ => _ = DeleteAsync());
-            StartNewCommand        = new RelayCommand(_ => StartNew());
-            RefreshCommand         = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand = new RelayCommand(_ => StartNew());
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
             ImportFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.Suppliers"));
         }
 

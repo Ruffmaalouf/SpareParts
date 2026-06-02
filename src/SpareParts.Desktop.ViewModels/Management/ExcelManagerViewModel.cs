@@ -54,7 +54,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public string WorkbookPath
         {
             get => _workbookPath;
-             set
+            set
             {
                 if (_workbookPath == value)
                 {

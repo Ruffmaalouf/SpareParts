@@ -20,10 +20,10 @@ namespace SpareParts.Desktop.Wpf
     // ── UI-only display models (never sent to API) ────────────────────────────
     public class CarPartModel
     {
-        public int     PartId      { get; set; }
-        public string  Code        { get; set; } = string.Empty;
-        public string  Description { get; set; } = string.Empty;
-        public decimal UnitPrice   { get; set; }
+        public int PartId { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
     }
     // ─────────────────────────────────────────────────────────────────────────
 }

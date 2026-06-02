@@ -23,7 +23,7 @@ public class CreateSaleSqlServerIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Handle_ShouldCreateInvoice_DecrementStock_AndWriteJournal()
     {
-        if (!_database.IsAvailable)
+        if (!_database.CanRunIntegrationTests())
         {
             return;
         }
@@ -47,7 +47,7 @@ public class CreateSaleSqlServerIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Handle_ConcurrentSingleStock_ShouldAllowOnlyOneSale()
     {
-        if (!_database.IsAvailable)
+        if (!_database.CanRunIntegrationTests())
         {
             return;
         }
@@ -90,7 +90,7 @@ public class CreateSaleSqlServerIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task Handle_WhenJournalInsertFails_ShouldRollbackInvoiceAndStock()
     {
-        if (!_database.IsAvailable)
+        if (!_database.CanRunIntegrationTests())
         {
             return;
         }

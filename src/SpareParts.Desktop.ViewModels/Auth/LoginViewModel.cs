@@ -43,10 +43,10 @@ namespace SpareParts.Desktop.Wpf
         }
         public bool IsIdle => !_isLoading;
 
-        private string _statusDot  = "●";
+        private string _statusDot = "●";
         private string _statusText = "Connecting to API…";
         private string _serviceStatusText = string.Empty;
-        private Brush  _statusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
+        private Brush _statusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
 
         public string StatusDot
         {
@@ -102,8 +102,8 @@ namespace SpareParts.Desktop.Wpf
             if (IsLoading) return;
             ClearError();
 
-            if (string.IsNullOrWhiteSpace(Username))  { ErrorMessage = "Please enter your username."; return; }
-            if (string.IsNullOrWhiteSpace(password))  { ErrorMessage = "Please enter your password."; return; }
+            if (string.IsNullOrWhiteSpace(Username)) { ErrorMessage = "Please enter your username."; return; }
+            if (string.IsNullOrWhiteSpace(password)) { ErrorMessage = "Please enter your password."; return; }
 
             IsLoading = true;
             try
@@ -169,7 +169,7 @@ namespace SpareParts.Desktop.Wpf
         // ── Ping API health indicator ─────────────────────────────────────────
         private async Task CheckApiAsync()
         {
-            StatusText  = "Checking service endpoints…";
+            StatusText = "Checking service endpoints…";
             StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x9E, 0x9E, 0xA5));
             ServiceStatusText = string.Empty;
 
@@ -181,12 +181,12 @@ namespace SpareParts.Desktop.Wpf
 
             if (onlineCount == statuses.Count)
             {
-                StatusText  = "All API endpoints are online";
+                StatusText = "All API endpoints are online";
                 StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x4C, 0xAF, 0x50)); // green
             }
             else
             {
-                StatusText  = $"{onlineCount}/{statuses.Count} API endpoints online";
+                StatusText = $"{onlineCount}/{statuses.Count} API endpoints online";
                 StatusBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xE5, 0x39, 0x35)); // red
             }
         }

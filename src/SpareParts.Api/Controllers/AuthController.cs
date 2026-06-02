@@ -40,9 +40,9 @@ namespace SpareParts.Api.Controllers
         [Authorize]
         public ActionResult<MeResponse> GetMe() => Ok(new MeResponse
         {
-            UserId   = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+            UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
             FullName = User.FindFirst(ClaimTypes.Name)?.Value,
-            RoleId   = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value
+            RoleId = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value
         });
 
         [HttpGet("hashpassword")]

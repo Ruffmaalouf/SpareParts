@@ -322,6 +322,7 @@ public static class SparePartsApiComposition
             services.AddScoped<CommunicationsService>();
             services.AddScoped<WhatsAppCampaignService>();
             services.AddScoped<ReportBuilderService>();
+            services.AddHostedService<ReportBuilderBackgroundRunHostedService>();
             services.AddScoped<OwnerCockpitService>();
             services.AddScoped<SmartSearchService>();
             services.AddScoped<GrowthIntelligenceService>();
@@ -439,8 +440,7 @@ public static class SparePartsApiComposition
         }
 
 
-        if (jwtSecret.StartsWith("6533545btwrtrwrt4h563", StringComparison.OrdinalIgnoreCase))
-
+        if (IsPlaceholderJwtSecret(jwtSecret))
         {
             throw new InvalidOperationException(
                 "Jwt:Secret is still set to the placeholder value. " +
@@ -461,6 +461,11 @@ public static class SparePartsApiComposition
             ExpiryHours = int.TryParse(jwtSection["ExpiryHours"], out var hours) ? hours : 12
         };
     }
+
+    private static bool IsPlaceholderJwtSecret(string jwtSecret)
+        => jwtSecret.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase)
+            || jwtSecret.StartsWith("6533545btwrtrwrt4h563", StringComparison.OrdinalIgnoreCase)
+            || jwtSecret.Contains("USE_ENV_OR_USER_SECRETS", StringComparison.OrdinalIgnoreCase);
 
     private static OpenAiOptions ResolveOpenAiOptions(IConfiguration configuration)
     {

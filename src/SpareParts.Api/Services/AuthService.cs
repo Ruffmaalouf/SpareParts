@@ -128,12 +128,16 @@ public sealed class AuthService
         }
         else
         {
+            if (!user.IsActive)
+            {
+                throw new UnauthorizedAccessException("This account is disabled.");
+            }
+
             conn.Execute(
                 @"UPDATE Users
                   SET FullName = @FullName,
                       Email = @Email,
                       RoleId = @RoleId,
-                      IsActive = 1,
                       LastLoginAt = @Now,
                       ModifiedAt = @Now
                   WHERE Id = @Id",
@@ -149,7 +153,6 @@ public sealed class AuthService
             user.FullName = profile.FullName;
             user.Email = profile.Email;
             user.RoleId = WebAppUserRoleMigration.RoleId;
-            user.IsActive = true;
         }
 
         return CreateLoginResponse(user);

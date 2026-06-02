@@ -151,7 +151,7 @@ namespace SpareParts.Desktop.Wpf
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             HidePlaceholder();
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
 
@@ -283,29 +283,29 @@ namespace SpareParts.Desktop.Wpf
 
         private void Select(WarehouseDto w)
         {
-            SelectedWarehouseId          = w.Id;
-            SelectedNameInline.Text      = w.Name + (w.IsMain ? " ★" : "");
+            SelectedWarehouseId = w.Id;
+            SelectedNameInline.Text = w.Name + (w.IsMain ? " ★" : "");
             SelectedIndicator.Visibility = Visibility.Visible;
-            WSearchIcon.Visibility       = Visibility.Collapsed;
-            SearchBtn.Visibility         = Visibility.Collapsed;
-            ClearBtn.Visibility          = Visibility.Visible;
+            WSearchIcon.Visibility = Visibility.Collapsed;
+            SearchBtn.Visibility = Visibility.Collapsed;
+            ClearBtn.Visibility = Visibility.Visible;
 
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
-            WarehouseSearchText       = string.Empty;
-            SearchBox.Text            = string.Empty;
+            WarehouseSearchText = string.Empty;
+            SearchBox.Text = string.Empty;
             HidePlaceholder();
             ClosePopup();
         }
 
         private void Clear()
         {
-            SelectedWarehouseId          = null;
+            SelectedWarehouseId = null;
             SelectedIndicator.Visibility = Visibility.Collapsed;
-            WSearchIcon.Visibility       = Visibility.Visible;
-            SelectedNameInline.Text      = string.Empty;
-            SearchBtn.Visibility         = Visibility.Visible;
-            ClearBtn.Visibility          = Visibility.Collapsed;
+            WSearchIcon.Visibility = Visibility.Visible;
+            SelectedNameInline.Text = string.Empty;
+            SearchBtn.Visibility = Visibility.Visible;
+            ClearBtn.Visibility = Visibility.Collapsed;
             RestorePill();
             ShowPlaceholder();
             SearchBox.Focus();
@@ -322,7 +322,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void RestorePill()
         {
-            InputPill.BorderBrush     = (Brush)FindResource("BorderBrush");
+            InputPill.BorderBrush = (Brush)FindResource("BorderBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
     }

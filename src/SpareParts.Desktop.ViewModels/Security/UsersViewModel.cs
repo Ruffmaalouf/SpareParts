@@ -35,19 +35,19 @@ namespace SpareParts.Desktop.Wpf
 
         private string _formUsername = string.Empty;
         private string _formFullName = string.Empty;
-        private string _formEmail    = string.Empty;
+        private string _formEmail = string.Empty;
         private string _formPassword = string.Empty;
-        private string _formRole     = "Cashier";
-        private int?   _formRoleId   = (int)UserRole.Cashier;
-        private bool   _formIsActive = true;
+        private string _formRole = "Cashier";
+        private int? _formRoleId = (int)UserRole.Cashier;
+        private bool _formIsActive = true;
 
         public string FormUsername { get => _formUsername; set { _formUsername = value; OnPropertyChanged(nameof(FormUsername)); } }
         public string FormFullName { get => _formFullName; set { _formFullName = value; OnPropertyChanged(nameof(FormFullName)); } }
-        public string FormEmail    { get => _formEmail;    set { _formEmail    = value; OnPropertyChanged(nameof(FormEmail)); } }
+        public string FormEmail { get => _formEmail; set { _formEmail = value; OnPropertyChanged(nameof(FormEmail)); } }
         public string FormPassword { get => _formPassword; set { _formPassword = value; OnPropertyChanged(nameof(FormPassword)); } }
-        public string FormRole     { get => _formRole;     set { _formRole     = value; OnPropertyChanged(nameof(FormRole)); } }
-        public int?   FormRoleId   { get => _formRoleId;   set { _formRoleId   = value; OnPropertyChanged(nameof(FormRoleId)); } }
-        public bool   FormIsActive { get => _formIsActive; set { _formIsActive = value; OnPropertyChanged(nameof(FormIsActive)); } }
+        public string FormRole { get => _formRole; set { _formRole = value; OnPropertyChanged(nameof(FormRole)); } }
+        public int? FormRoleId { get => _formRoleId; set { _formRoleId = value; OnPropertyChanged(nameof(FormRoleId)); } }
+        public bool FormIsActive { get => _formIsActive; set { _formIsActive = value; OnPropertyChanged(nameof(FormIsActive)); } }
 
         private string _status = string.Empty;
         public string Status
@@ -74,9 +74,9 @@ namespace SpareParts.Desktop.Wpf
         private readonly IUserApiClient _usersApi;
         private readonly IRoleApiClient _rolesApi;
 
-        public ICommand LoadCommand       { get; }
-        public ICommand NewCommand        { get; }
-        public ICommand SaveCommand       { get; }
+        public ICommand LoadCommand { get; }
+        public ICommand NewCommand { get; }
+        public ICommand SaveCommand { get; }
         public ICommand DeactivateCommand { get; }
 
         public UsersViewModel(IUserApiClient usersApi, IRoleApiClient rolesApi)
@@ -84,9 +84,9 @@ namespace SpareParts.Desktop.Wpf
             _usersApi = usersApi;
             _rolesApi = rolesApi;
 
-            LoadCommand       = new RelayCommand(_ => _ = LoadAsync());
-            NewCommand        = new RelayCommand(_ => ClearForm());
-            SaveCommand       = new RelayCommand(_ => _ = SaveAsync());
+            LoadCommand = new RelayCommand(_ => _ = LoadAsync());
+            NewCommand = new RelayCommand(_ => ClearForm());
+            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeactivateCommand = new RelayCommand(u => _ = DeactivateAsync(u as UserManagementDto));
         }
 
@@ -144,9 +144,9 @@ namespace SpareParts.Desktop.Wpf
                     {
                         Username = FormUsername.Trim(),
                         FullName = FormFullName.Trim(),
-                        Email    = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
+                        Email = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
                         Password = FormPassword,
-                        RoleId   = ResolveRoleId()
+                        RoleId = ResolveRoleId()
                     });
                     SetStatus($"✓ User '{FormUsername}' created.", true);
                 }
@@ -154,10 +154,10 @@ namespace SpareParts.Desktop.Wpf
                 {
                     await _usersApi.UpdateUserAsync(_selectedUser.Id, new UpdateUserRequest
                     {
-                        FullName    = FormFullName.Trim(),
-                        Email       = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
-                        RoleId      = ResolveRoleId(),
-                        IsActive    = FormIsActive,
+                        FullName = FormFullName.Trim(),
+                        Email = string.IsNullOrWhiteSpace(FormEmail) ? null : FormEmail.Trim(),
+                        RoleId = ResolveRoleId(),
+                        IsActive = FormIsActive,
                         NewPassword = string.IsNullOrWhiteSpace(FormPassword) ? null : FormPassword
                     });
                     SetStatus($"✓ User '{_selectedUser.Username}' updated.", true);
@@ -199,10 +199,10 @@ namespace SpareParts.Desktop.Wpf
         {
             FormUsername = u.Username;
             FormFullName = u.FullName;
-            FormEmail    = u.Email ?? string.Empty;
+            FormEmail = u.Email ?? string.Empty;
             FormPassword = string.Empty; // never pre-fill password
-            FormRoleId   = u.RoleId;
-            FormRole     = GetRoleName(FormRoleId) ?? u.Role;
+            FormRoleId = u.RoleId;
+            FormRole = GetRoleName(FormRoleId) ?? u.Role;
             FormIsActive = u.IsActive;
         }
 
@@ -210,8 +210,8 @@ namespace SpareParts.Desktop.Wpf
         {
             SelectedUser = null;
             FormUsername = FormFullName = FormEmail = FormPassword = string.Empty;
-            FormRoleId   = (int)UserRole.Cashier;
-            FormRole     = GetRoleName(FormRoleId) ?? string.Empty;
+            FormRoleId = (int)UserRole.Cashier;
+            FormRole = GetRoleName(FormRoleId) ?? string.Empty;
             FormIsActive = true;
         }
 
