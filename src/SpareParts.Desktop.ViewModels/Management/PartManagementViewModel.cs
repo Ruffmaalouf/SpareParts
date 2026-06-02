@@ -10,12 +10,9 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class PartManagementViewModel : ManagementFeatureViewModelBase
     {
-        private ManagementCoordinator? _coordinator;
-        private IFilePickerService? _filePickerService;
-        private IUserNotificationService? _notificationService;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
-        private Func<string>? _getDefaultCurrencyCode;
+        private readonly IManagementFeatureContext _ctx;
+        private readonly IFilePickerService _filePickerService;
+        private readonly IUserNotificationService _notificationService;
         private string _newPartCode = string.Empty;
         private string _newPartBarcode = string.Empty;
         private string _newPartName = string.Empty;
@@ -34,16 +31,32 @@ namespace SpareParts.Desktop.Wpf.Management
         private bool _isGeneratingPartNotes;
         private bool _isImportingParts;
 
+        public PartManagementViewModel(
+            IManagementFeatureContext context,
+            IFilePickerService filePickerService,
+            IUserNotificationService notificationService)
+        {
+            _ctx = context;
+            _filePickerService = filePickerService;
+            _notificationService = notificationService;
+            SaveCommand              = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand            = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand          = new RelayCommand(_ => StartNew());
+            RefreshCommand           = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand   = new RelayCommand(_ => _ = ImportFromExcelAsync());
+            GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
+        }
+
         public ObservableCollection<PartDto> Parts { get; } = new();
         public ObservableCollection<CategoryDto> Categories { get; } = new();
         public ObservableCollection<BrandDto> BrandOptions { get; } = new();
         public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
-        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand GeneratePartNotesCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand StartNewCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand ImportFromExcelCommand { get; }
+        public ICommand GeneratePartNotesCommand { get; }
 
         public bool IsGeneratingPartNotes
         {
@@ -79,28 +92,6 @@ namespace SpareParts.Desktop.Wpf.Management
         public string SmartPricingCoachBadge => _pricingCoach.Badge;
         public string SmartPricingCoachTone => _pricingCoach.Tone;
 
-        public void Configure(
-            ManagementCoordinator coordinator,
-            IFilePickerService filePickerService,
-            IUserNotificationService notificationService,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            Func<string> getDefaultCurrencyCode,
-            ICommand? importTableCommand = null)
-        {
-            _coordinator = coordinator;
-            _filePickerService = filePickerService;
-            _notificationService = notificationService;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
-            _getDefaultCurrencyCode = getDefaultCurrencyCode;
-            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
-            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
-            StartNewCommand = new RelayCommand(_ => StartNew());
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-            ImportFromExcelCommand = new RelayCommand(_ => _ = ImportFromExcelAsync());
-            GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
-        }
 
         public void LoadReferenceData(
             IEnumerable<CategoryDto> categories,
@@ -277,60 +268,37 @@ namespace SpareParts.Desktop.Wpf.Management
             UpdatePricingCoach();
         }
 
-        public void StartNew() => ClearForm(_getDefaultCurrencyCode?.Invoke() ?? "USD");
+        public void StartNew() => ClearForm(_ctx.GetDefaultCurrencyCode());
 
         private async Task SaveAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SavePartAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SavePartAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
 
         private async Task DeleteAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeletePartAsync(SelectedPart);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeletePartAsync(SelectedPart);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
 
         private async Task GeneratePartNotesAsync()
         {
-            if (_coordinator == null || _setStatus == null || IsGeneratingPartNotes)
-            {
-                return;
-            }
-
+            if (IsGeneratingPartNotes) return;
             IsGeneratingPartNotes = true;
-            _setStatus("Drafting part notes with AI…", true);
-
+            _ctx.SetStatus("Drafting part notes with AI…", true);
             try
             {
                 var categoryLookup = Categories.ToDictionary(item => item.Id, item => item.Name);
-                var brandLookup = BrandOptions.ToDictionary(item => item.Id, item => item.Name);
-                var result = await _coordinator.GeneratePartNotesAsync(this, categoryLookup, brandLookup);
-                _setStatus(result.Message, result.Success);
+                var brandLookup    = BrandOptions.ToDictionary(item => item.Id, item => item.Name);
+                var result = await _ctx.Coordinator.GeneratePartNotesAsync(this, categoryLookup, brandLookup);
+                _ctx.SetStatus(result.Message, result.Success);
             }
             finally
             {
@@ -340,10 +308,7 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private async Task ImportFromExcelAsync()
         {
-            if (_coordinator == null || _filePickerService == null || _notificationService == null || _refreshAsync == null || _setStatus == null || IsImportingParts)
-            {
-                return;
-            }
+            if (IsImportingParts) return;
 
             var filePath = _filePickerService
                 .PickFiles(new FilePickerRequest
@@ -354,22 +319,18 @@ namespace SpareParts.Desktop.Wpf.Management
                 })
                 .FirstOrDefault();
 
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(filePath)) return;
 
             IsImportingParts = true;
-            _setStatus("Importing parts from Excel…", true);
-
+            _ctx.SetStatus("Importing parts from Excel…", true);
             try
             {
-                var result = await _coordinator.ImportPartsFromExcelAsync(filePath, Categories.ToList(), BrandOptions.ToList());
-                _setStatus(result.SummaryMessage, result.HasImportedRows);
+                var result = await _ctx.Coordinator.ImportPartsFromExcelAsync(filePath, Categories.ToList(), BrandOptions.ToList());
+                _ctx.SetStatus(result.SummaryMessage, result.HasImportedRows);
 
                 if (result.HasImportedRows)
                 {
-                    await _refreshAsync();
+                    await _ctx.RefreshAsync();
                     StartNew();
                 }
 

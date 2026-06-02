@@ -21,7 +21,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<CreatePurchaseResponse> CreatePurchase([FromBody] CreatePurchaseRequest request)
         {
             var result = _purchaseService.CreatePurchase(request, CurrentUserId);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetById), new { purchaseId = result.PurchaseId }, result);
         }
 
         [HttpGet]
@@ -67,7 +67,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<CreateUsedCarPurchaseResponse> CreateUsedCarPurchase([FromBody] CreateUsedCarPurchaseRequest request)
         {
             var result = _purchaseService.CreateUsedCarPurchase(request, CurrentUserId);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetUsedCarPurchase), new { id = result.PurchaseId }, result);
         }
 
         [HttpPost("used-cars/{id:int}/post")]

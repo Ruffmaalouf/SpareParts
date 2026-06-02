@@ -3,6 +3,7 @@ using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
 namespace SpareParts.Infrastructure.Services;
@@ -14,11 +15,13 @@ public sealed class PartsService
 
     private readonly ISqlConnectionFactory _factory;
     private readonly PartNotesAiService _partNotesAiService;
+    private readonly IInventoryService _inventoryService;
 
-    public PartsService(ISqlConnectionFactory factory, PartNotesAiService partNotesAiService)
+    public PartsService(ISqlConnectionFactory factory, PartNotesAiService partNotesAiService, IInventoryService inventoryService)
     {
         _factory = factory;
         _partNotesAiService = partNotesAiService;
+        _inventoryService = inventoryService;
     }
 
     public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize, int? usedCarId = null)
@@ -438,8 +441,7 @@ ORDER BY
             session.Transaction) ?? 0m;
 
         var inventoryRepository = new InventoryRepository(session);
-        var inventoryService = new InventoryService();
-        inventoryService.AdjustStock(
+        _inventoryService.AdjustStock(
             inventoryRepository,
             id,
             request.FromWarehouseId,
@@ -449,7 +451,7 @@ ORDER BY
             null,
             unitCost,
             userId);
-        inventoryService.AdjustStock(
+        _inventoryService.AdjustStock(
             inventoryRepository,
             id,
             request.ToWarehouseId,

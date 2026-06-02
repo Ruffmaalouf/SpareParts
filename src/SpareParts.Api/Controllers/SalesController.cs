@@ -21,7 +21,7 @@ namespace SpareParts.Api.Controllers
         public ActionResult<CreateSaleResponse> CreateSale([FromBody] CreateSaleRequest request)
         {
             var result = _salesService.CreateSale(request, CurrentUserId);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetById), new { invoiceId = result.InvoiceId }, result);
         }
 
         [HttpGet]

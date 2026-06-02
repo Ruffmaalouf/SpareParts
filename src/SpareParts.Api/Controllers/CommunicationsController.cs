@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Communications;
@@ -92,8 +94,14 @@ namespace SpareParts.Api.Controllers
                 return false;
             }
 
-            return Request.Headers.TryGetValue(WebhookSecretHeader, out var submittedSecret)
-                && string.Equals(submittedSecret.ToString(), _options.WebhookSecret, StringComparison.Ordinal);
+            if (!Request.Headers.TryGetValue(WebhookSecretHeader, out var submittedSecret))
+            {
+                return false;
+            }
+
+            var expected = Encoding.UTF8.GetBytes(_options.WebhookSecret);
+            var submitted = Encoding.UTF8.GetBytes(submittedSecret.ToString());
+            return CryptographicOperations.FixedTimeEquals(expected, submitted);
         }
     }
 }

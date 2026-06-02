@@ -169,7 +169,7 @@
 
                         <TextBlock Text="PUBLIC PASSPORT URL" Style="{StaticResource PassportLabelStyle}"/>
                         <TextBox Margin="0 6 0 14"
-                                 Text="{Binding PublicUrl}"
+                                 Text="{Binding PublicUrl, Mode=OneWay}"
                                  IsReadOnly="True"
                                  TextWrapping="Wrap"/>
 

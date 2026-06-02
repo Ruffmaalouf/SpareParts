@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
@@ -16,12 +17,14 @@ using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Services;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace SpareParts.Api.Hosting;
 
 public static class SparePartsApiComposition
 {
     public const string NotificationsHubPath = "/hubs/notifications";
+    public const string AuthRateLimitPolicy = "auth-login";
 
     public static readonly IReadOnlyList<ServiceProfile> ExpectedServiceProfiles =
     [
@@ -179,6 +182,26 @@ public static class SparePartsApiComposition
                 else
                     p.WithOrigins("http://localhost:5000").AllowAnyMethod().AllowAnyHeader();
             }));
+
+        builder.Services.AddRateLimiter(opt =>
+        {
+            opt.OnRejected = async (ctx, _) =>
+            {
+                ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                await ctx.HttpContext.Response.WriteAsync("Too many requests. Please try again later.");
+            };
+
+            opt.AddPolicy(AuthRateLimitPolicy, httpCtx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpCtx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
+        });
     }
 
     public static void AddCapabilities(this IServiceCollection services, string serviceName, params ServiceCapability[] capabilities)
@@ -226,6 +249,7 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Inventory))
         {
+            services.TryAddScoped<IInventoryService, InventoryService>();
             services.AddHttpClient<PartNotesAiService>((serviceProvider, client) =>
             {
                 var options = serviceProvider.GetRequiredService<OpenAiOptions>();
@@ -352,6 +376,7 @@ public static class SparePartsApiComposition
 
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseMiddleware<WebAppUserRestrictionMiddleware>();
         app.UseAuthorization();
@@ -385,13 +410,26 @@ public static class SparePartsApiComposition
             throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
         }
 
+<<<<<<< HEAD
         if (jwtSecret.StartsWith("CHANGE_ME", StringComparison.Ordinal))
+=======
+        if (jwtSecret.StartsWith("6533545btwrtrwrt4h563", StringComparison.OrdinalIgnoreCase))
+>>>>>>> codex/growth-intelligence-platforms
         {
             throw new InvalidOperationException(
                 "Jwt:Secret is still set to the placeholder value. " +
                 "Set a strong secret via dotnet user-secrets (development) or an environment variable (production).");
         }
 
+<<<<<<< HEAD
+=======
+        if (jwtSecret.Length < 32)
+        {
+            throw new InvalidOperationException(
+                "Jwt:Secret must be at least 32 characters to provide sufficient signing key entropy.");
+        }
+
+>>>>>>> codex/growth-intelligence-platforms
         return new JwtSettings
         {
             Secret = jwtSecret,

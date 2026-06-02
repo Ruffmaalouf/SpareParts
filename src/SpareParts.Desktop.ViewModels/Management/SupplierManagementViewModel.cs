@@ -8,10 +8,8 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class SupplierManagementViewModel : ManagementFeatureViewModelBase
     {
+        private readonly IManagementFeatureContext _ctx;
         private readonly SupplierPermissionState _permissions = new();
-        private ManagementCoordinator? _coordinator;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
         private SupplierDto? _selectedSupplier;
         private string _newSupplierName = string.Empty;
         private string _newSupplierPhone = string.Empty;
@@ -20,39 +18,29 @@ namespace SpareParts.Desktop.Wpf.Management
         private string _newSupplierTax = string.Empty;
         private decimal _newSupplierBalance;
 
-        public SupplierManagementViewModel()
+        public SupplierManagementViewModel(IManagementFeatureContext context)
         {
+            _ctx = context;
             _permissions.PropertyChanged += PermissionsOnPropertyChanged;
+            SaveCommand            = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand          = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand        = new RelayCommand(_ => StartNew());
+            RefreshCommand         = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.Suppliers"));
         }
 
         public ObservableCollection<SupplierDto> Suppliers { get; } = new();
-        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand StartNewCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand ImportFromExcelCommand { get; }
 
         public bool CanViewSupplierTab => _permissions.CanViewSupplierTab;
         public bool CanEditSupplier => _permissions.CanEditSupplier;
         public bool CanModifySupplier => _permissions.CanModifySupplier;
         public bool CanDeleteSupplier => _permissions.CanDeleteSupplier;
         public bool CanSaveSupplier => _permissions.CanSaveSupplier;
-
-        public void Configure(
-            ManagementCoordinator coordinator,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            ICommand? importTableCommand = null)
-        {
-            _coordinator = coordinator;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
-            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
-            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
-            StartNewCommand = new RelayCommand(_ => StartNew());
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-            ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.Suppliers"));
-        }
 
         public void SetPermissions(bool canViewSupplierTab, bool canEditSupplier, bool canModifySupplier, bool canDeleteSupplier)
             => _permissions.Set(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
@@ -139,68 +127,50 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private async Task SaveAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
             if (!CanViewSupplierTab)
             {
-                _setStatus("✗ You do not have permission to view the supplier tab.", false);
+                _ctx.SetStatus("✗ You do not have permission to view the supplier tab.", false);
                 return;
             }
 
             var isEditing = SelectedSupplier != null;
             if (!isEditing && !CanEditSupplier)
             {
-                _setStatus("✗ You do not have permission to create suppliers.", false);
+                _ctx.SetStatus("✗ You do not have permission to create suppliers.", false);
                 return;
             }
 
             if (isEditing && !CanModifySupplier)
             {
-                _setStatus("✗ You do not have permission to modify suppliers.", false);
+                _ctx.SetStatus("✗ You do not have permission to modify suppliers.", false);
                 return;
             }
 
-            var result = await _coordinator.SaveSupplierAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveSupplierAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
 
         private async Task DeleteAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
             if (!CanViewSupplierTab)
             {
-                _setStatus("✗ You do not have permission to view the supplier tab.", false);
+                _ctx.SetStatus("✗ You do not have permission to view the supplier tab.", false);
                 return;
             }
 
             if (!CanDeleteSupplier)
             {
-                _setStatus("✗ You do not have permission to delete suppliers.", false);
+                _ctx.SetStatus("✗ You do not have permission to delete suppliers.", false);
                 return;
             }
 
-            var result = await _coordinator.DeleteSupplierAsync(SelectedSupplier);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteSupplierAsync(SelectedSupplier);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
 

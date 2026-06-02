@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using SpareParts.Api.Hosting;
 using SpareParts.Api.Infrastructure;
 using SpareParts.Api.Services;
 using SpareParts.Domain.Auth;
@@ -22,11 +24,13 @@ namespace SpareParts.Api.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
+        [EnableRateLimiting(SparePartsApiComposition.AuthRateLimitPolicy)]
         public ActionResult<LoginResponse> Login([FromBody] LoginRequest req)
             => Ok(_service.Login(req));
 
         [HttpPost("external-login")]
         [AllowAnonymous]
+        [EnableRateLimiting(SparePartsApiComposition.AuthRateLimitPolicy)]
         public async Task<ActionResult<LoginResponse>> ExternalLogin(
             [FromBody] ExternalLoginRequest req,
             CancellationToken cancellationToken)
@@ -34,11 +38,11 @@ namespace SpareParts.Api.Controllers
 
         [HttpGet("me")]
         [Authorize]
-        public ActionResult GetMe() => Ok(new
+        public ActionResult<MeResponse> GetMe() => Ok(new MeResponse
         {
-            UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+            UserId   = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
             FullName = User.FindFirst(ClaimTypes.Name)?.Value,
-            RoleId = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value
+            RoleId   = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value
         });
 
         [HttpGet("hashpassword")]

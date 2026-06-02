@@ -67,6 +67,32 @@ namespace SpareParts.Infrastructure.Data
             return affectedRows > 0;
         }
 
+        public bool TryUpdateStockOnSale(int stockId, int quantityToSell, int userId)
+        {
+            // Single atomic statement: decrement Quantity and release the matching reserved units.
+            // The WHERE guard prevents Quantity from going below 0.
+            const string sql = @"UPDATE Stock
+                                 SET Quantity          = Quantity - @Qty,
+                                     ReservedQuantity  = CASE
+                                                             WHEN ReservedQuantity - @Qty < 0 THEN 0
+                                                             ELSE ReservedQuantity - @Qty
+                                                         END,
+                                     ModifiedAt        = @ModifiedAt,
+                                     ModifiedByUserId  = @ModifiedByUserId
+                                 WHERE Id = @Id
+                                   AND Quantity - @Qty >= 0";
+
+            var affectedRows = _session.Connection.Execute(sql, new
+            {
+                Id = stockId,
+                Qty = quantityToSell,
+                ModifiedAt = DateTime.UtcNow,
+                ModifiedByUserId = userId
+            }, _session.Transaction);
+
+            return affectedRows > 0;
+        }
+
         public int InsertStockMovement(StockMovement movement)
         {
             const string sql = @"INSERT INTO StockMovements
