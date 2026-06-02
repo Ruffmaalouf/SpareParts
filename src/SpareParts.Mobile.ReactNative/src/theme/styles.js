@@ -53,7 +53,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 9,
-    borderRadius: 8,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: palette.accent,
     backgroundColor: palette.surface,
@@ -330,7 +330,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: "transparent",
     backgroundColor: "transparent",
@@ -487,18 +487,18 @@ function createStyles(palette) {
   },
   loginScreen: {
     flex: 1,
-    backgroundColor: "#050609"
+    backgroundColor: "#04050a"
   },
   loginBackdrop: {
     flex: 1,
-    backgroundColor: "#050609"
+    backgroundColor: "#04050a"
   },
   loginBackdropImage: {
     opacity: 0.98
   },
   loginShade: {
     flex: 1,
-    backgroundColor: "rgba(5,6,9,0.10)"
+    backgroundColor: "rgba(4,5,10,0.10)"
   },
   loginWarmGlow: {
     position: "absolute",
@@ -563,11 +563,11 @@ function createStyles(palette) {
   },
   loginFuelStripHot: {
     flex: 3,
-    backgroundColor: "#ff3b1f"
+    backgroundColor: "#e85012"
   },
   loginFuelStripWarm: {
     flex: 2,
-    backgroundColor: "#ffb000"
+    backgroundColor: "#f59e0b"
   },
   loginFuelStripCool: {
     flex: 1,
@@ -584,7 +584,7 @@ function createStyles(palette) {
   },
   loginPanel: {
     padding: 18,
-    borderRadius: 8,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
     backgroundColor: "rgba(9,10,14,0.86)",
@@ -608,7 +608,7 @@ function createStyles(palette) {
     paddingBottom: 2
   },
   loginPanelKicker: {
-    color: "#ffb000",
+    color: "#f59e0b",
     fontSize: 11,
     fontWeight: "900",
     textTransform: "uppercase"
@@ -626,16 +626,16 @@ function createStyles(palette) {
     justifyContent: "center",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "rgba(255,176,0,0.44)",
-    backgroundColor: "rgba(255,176,0,0.13)"
+    borderColor: "rgba(245,158,11,0.44)",
+    backgroundColor: "rgba(245,158,11,0.13)"
   },
   loginPanelBadgeText: {
-    color: "#ffcf5b",
+    color: "#fbbf24",
     fontSize: 11,
     fontWeight: "900"
   },
   loginEyebrow: {
-    color: "#ffb000",
+    color: "#f59e0b",
     fontSize: 11,
     fontWeight: "900",
     textTransform: "uppercase"
@@ -749,7 +749,7 @@ function createStyles(palette) {
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.30)",
-    backgroundColor: "#ff3b1f",
+    backgroundColor: "#e85012",
     alignItems: "center",
     justifyContent: "center"
   },
@@ -1250,7 +1250,7 @@ function createStyles(palette) {
   },
   input: {
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -1265,7 +1265,7 @@ function createStyles(palette) {
     minHeight: 46,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 5,
     backgroundColor: palette.accent,
     paddingHorizontal: 14
   },
@@ -1280,7 +1280,7 @@ function createStyles(palette) {
     minHeight: 38,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,

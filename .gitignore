@@ -67,11 +67,29 @@ src/SpareParts.Mobile.ReactNative/node_modules/
 src/SpareParts.Mobile.ReactNative/.expo/
 src/SpareParts.Mobile.ReactNative/dist/
 src/SpareParts.Mobile.ReactNative/web-build/
+src/SpareParts.Mobile.ReactNative/dist-test/
+src/SpareParts.Mobile.ReactNative/test-results/
+src/SpareParts.Mobile.ReactNative/.last-run.json
 
 artifacts/
+.codex-build/
+logs/
+test-results/
+bin/
+obj/
+**/bin/
+**/obj/
+**/artifacts/
+*.log
+tmp-*.png
+*.user
 
 # Local mobile credentials and oversized database dumps
 src/SpareParts.Mobile.ReactNative/.env
 src/SpareParts.Mobile.ReactNative/*.jks
 src/SpareParts.Mobile.ReactNative/credentials/
 docs/DBScrpit.sql
+src/SpareParts.Desktop.Wpf/UpdateLogos.sql
+
+# Dev JWT secrets — set via dotnet user-secrets or environment variable
+appsettings.Development.json

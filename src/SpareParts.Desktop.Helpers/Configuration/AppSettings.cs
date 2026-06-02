@@ -13,6 +13,7 @@ namespace SpareParts.Desktop.Wpf
     public static class AppSettings
     {
         private const string FallbackApiUrl = "http://localhost:5000/";
+        private const string FallbackPublicWebUrl = "http://localhost:5078/";
         private static readonly IReadOnlyDictionary<string, string> _serviceEndpoints = LoadServiceEndpoints();
 
         /// <summary>Legacy base URL support (single-host mode).</summary>
@@ -22,6 +23,7 @@ namespace SpareParts.Desktop.Wpf
         public static string InventoryApiBaseUrl => _serviceEndpoints["inventory"];
         public static string IdentityApiBaseUrl => _serviceEndpoints["identity"];
         public static string CatalogApiBaseUrl => _serviceEndpoints["catalog"];
+        public static string PublicWebBaseUrl => _serviceEndpoints["web"];
 
         public static IReadOnlyDictionary<string, string> ServiceEndpoints => _serviceEndpoints;
 
@@ -34,7 +36,8 @@ namespace SpareParts.Desktop.Wpf
                 ["purchases"] = FallbackApiUrl,
                 ["inventory"] = FallbackApiUrl,
                 ["identity"] = FallbackApiUrl,
-                ["catalog"] = FallbackApiUrl
+                ["catalog"] = FallbackApiUrl,
+                ["web"] = FallbackPublicWebUrl
             };
 
             try
@@ -56,6 +59,7 @@ namespace SpareParts.Desktop.Wpf
                 defaults["inventory"] = ReadUrl(root, "InventoryApiBaseUrl", monolithUrl);
                 defaults["identity"] = ReadUrl(root, "IdentityApiBaseUrl", monolithUrl);
                 defaults["catalog"] = ReadUrl(root, "CatalogApiBaseUrl", monolithUrl);
+                defaults["web"] = ReadUrl(root, "PublicWebBaseUrl", FallbackPublicWebUrl);
             }
             catch
             {

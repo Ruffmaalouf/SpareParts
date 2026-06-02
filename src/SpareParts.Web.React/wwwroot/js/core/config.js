@@ -157,6 +157,14 @@ export const featureModules = [
     capabilities: ["Browse parts", "Filter by code, name, and OEM", "Send part availability"]
   },
   {
+    key: "part-passport",
+    label: "Part Passport",
+    title: "Part Passport",
+    source: "Inventory passport workspace and public proof card",
+    endpoint: "/api/parts + /api/usedcars",
+    capabilities: ["Select inventory part", "Review public proof card", "Prepare WhatsApp-ready passport link"]
+  },
+  {
     key: "compatibility",
     label: "Compatibility",
     title: "Part Compatibility",
@@ -259,6 +267,14 @@ export const featureModules = [
     source: "MainWindow Dead Stock Resurrection",
     endpoint: "/api/parts/dead-stock",
     capabilities: ["Dormant stock candidates", "Recovery actions", "Shelf-value summary"]
+  },
+  {
+    key: "growth-lab",
+    label: "Money Finder",
+    title: "Money Finder Lab",
+    source: "Growth intelligence workspace",
+    endpoint: "/api/growth/briefing",
+    capabilities: ["Tonight's money queue", "Donor-car treasure map", "Auction simulator", "Teardown queue", "Duplicate detection", "Buying radar", "WhatsApp voice-to-quote"]
   },
   {
     key: "accounting",

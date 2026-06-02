@@ -1,0 +1,621 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.GrowthLabControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="760"
+             d:DesignWidth="1320">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="GrowthCardStyle" TargetType="Border">
+            <Setter Property="Padding" Value="14"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+        </Style>
+
+        <Style x:Key="GrowthFieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0 0 0 5"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="GrowthListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0 0 0 8"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Root"
+                                Padding="12"
+                                Background="{DynamicResource AppBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Style="{StaticResource GrowthCardStyle}"
+                Margin="0 0 0 12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left">
+                    <TextBlock Text="{Binding Status}"
+                               Foreground="{Binding StatusBrush}"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Live opportunities from stock, waiting customers, donor cars, and workshop demand."
+                               Margin="0 4 0 0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <ProgressBar Width="120"
+                                 Height="8"
+                                 IsIndeterminate="True"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                                 Foreground="{DynamicResource AccentBrush}"
+                                 Margin="0 0 12 0"/>
+                    <Button Content="Refresh live data"
+                            Command="{Binding RefreshCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Width="145"
+                            Height="36"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <ItemsControl Grid.Row="1"
+                      ItemsSource="{Binding MetricTiles}"
+                      Margin="0 0 0 12">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="1" Columns="5"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0 0 10 0"
+                            Padding="12"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{Binding AccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Label}"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="12"/>
+                            <TextBlock Text="{Binding Value}"
+                                       Margin="0 4 0 0"
+                                       FontSize="22"
+                                       FontWeight="Bold"
+                                       Foreground="{Binding AccentBrush}"/>
+                            <TextBlock Text="{Binding Detail}"
+                                       Margin="0 4 0 0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TabControl Grid.Row="2">
+            <TabItem Header="Tonight's Money">
+                <Border Style="{StaticResource GrowthCardStyle}" Margin="0 10 0 0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Margin="0 0 0 12">
+                            <TextBlock Text="Tonight's Money Screen" FontSize="20" FontWeight="Bold"/>
+                            <TextBlock Text="Prioritized calls, pricing work, dormant-stock moves, and donor-car opportunities."
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding MoneyActions}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Type" Binding="{Binding Kind}" Width="130"/>
+                                <DataGridTextColumn Header="Action" Binding="{Binding Title}" Width="260"/>
+                                <DataGridTextColumn Header="Why now" Binding="{Binding Detail}" Width="*"/>
+                                <DataGridTextColumn Header="Value" Binding="{Binding EstimatedValue, StringFormat={}{0:N2}}" Width="110"/>
+                                <DataGridTextColumn Header="Currency" Binding="{Binding Currency}" Width="75"/>
+                                <DataGridTextColumn Header="Open" Binding="{Binding TargetView}" Width="115"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </TabItem>
+
+            <TabItem Header="Donor Treasure Map">
+                <Grid Margin="0 10 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource GrowthCardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Margin="0 0 0 12">
+                                <TextBlock Text="Donor Cars" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="Pick a car to inspect its recoverable zones."
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <ListBox Grid.Row="1"
+                                     ItemsSource="{Binding DonorCars}"
+                                     SelectedItem="{Binding SelectedDonorCar, Mode=TwoWay}"
+                                     ItemContainerStyle="{StaticResource GrowthListItemStyle}"
+                                     BorderThickness="0"
+                                     Background="Transparent">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Car}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Barcode}" Margin="0 4 0 0" Foreground="{DynamicResource AccentBrush}"/>
+                                            <TextBlock Text="{Binding RecoveryPercent, StringFormat=Recovered {0:N0}%}"
+                                                       Margin="0 6 0 0"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding BreakEvenGap, StringFormat=Break-even gap {0:N2}}"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Style="{StaticResource GrowthCardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SelectedDonorCar.Car, TargetNullValue=Select a donor car}"
+                                               FontSize="20"
+                                               FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedDonorCar.Barcode}"
+                                               Margin="0 4 0 0"
+                                               Foreground="{DynamicResource AccentBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                    <TextBlock Text="{Binding SelectedDonorCar.ProjectedStockRevenue, StringFormat=Projected stock {0:N2}}"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding SelectedDonorCar.RecoveredValue, StringFormat=Recovered {0:N2}}"
+                                               Margin="0 4 0 0"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="0.85*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="1.3*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Style="{StaticResource GrowthCardStyle}">
+                                <DataGrid ItemsSource="{Binding SelectedDonorCar.Hotspots}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          IsReadOnly="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Zone" Binding="{Binding Zone}" Width="*"/>
+                                        <DataGridTextColumn Header="Parts" Binding="{Binding PartCount}" Width="65"/>
+                                        <DataGridTextColumn Header="Waiting" Binding="{Binding WaitingCustomers}" Width="75"/>
+                                        <DataGridTextColumn Header="Value" Binding="{Binding OpportunityValue, StringFormat={}{0:N2}}" Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource GrowthCardStyle}">
+                                <DataGrid ItemsSource="{Binding SelectedDonorCar.Parts}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          IsReadOnly="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Zone" Binding="{Binding Zone}" Width="80"/>
+                                        <DataGridTextColumn Header="Part" Binding="{Binding PartName}" Width="*"/>
+                                        <DataGridTextColumn Header="Waiting" Binding="{Binding WaitingCustomers}" Width="75"/>
+                                        <DataGridTextColumn Header="Suggested" Binding="{Binding SuggestedPrice, StringFormat={}{0:N2}}" Width="90"/>
+                                        <DataGridTextColumn Header="Next" Binding="{Binding Action}" Width="160"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Auction Simulator">
+                <ScrollViewer Margin="0 10 0 0" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="390"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource GrowthCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Auction Profit Simulator" FontSize="20" FontWeight="Bold"/>
+                                <TextBlock Text="Enter the auction listing and landed costs. Money Finder protects your target profit."
+                                           Margin="0 4 0 14"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+
+                                <TextBlock Text="Auction price" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding AuctionPrice, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Transportation" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding Transportation, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Customs" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding Customs, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Shipping" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding Shipping, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Repairs" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding Repairs, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Part-out cost" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding PartOutCost, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Desired profit" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding DesiredProfit, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Car model ID (optional)" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding AuctionCarModelId, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                                <TextBlock Text="Model year (optional)" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding AuctionModelYear, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
+
+                                <Button Content="Simulate maximum bid"
+                                        Command="{Binding SimulateAuctionCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="40"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource GrowthCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding AuctionResult.Car, TargetNullValue=Run a donor-car simulation}"
+                                           FontSize="24"
+                                           FontWeight="Bold"/>
+                                <TextBlock Text="{Binding AuctionResult.Confidence, StringFormat=Confidence: {0}}"
+                                           Margin="0 6 0 18"
+                                           Foreground="{DynamicResource AccentBrush}"/>
+                                <UniformGrid Columns="2">
+                                    <Border Style="{StaticResource GrowthCardStyle}" Margin="0 0 8 8">
+                                        <StackPanel>
+                                            <TextBlock Text="Maximum bid" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding AuctionResult.MaximumBid, StringFormat={}{0:N2}}"
+                                                       FontSize="26"
+                                                       FontWeight="Bold"
+                                                       Foreground="{DynamicResource AccentBrush}"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource GrowthCardStyle}" Margin="0 0 0 8">
+                                        <StackPanel>
+                                            <TextBlock Text="Estimated profit" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding AuctionResult.EstimatedProfit, StringFormat={}{0:N2}}"
+                                                       FontSize="26"
+                                                       FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource GrowthCardStyle}" Margin="0 0 8 8">
+                                        <StackPanel>
+                                            <TextBlock Text="Loaded cost" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding AuctionResult.LoadedCost, StringFormat={}{0:N2}}"
+                                                       FontSize="22"
+                                                       FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource GrowthCardStyle}" Margin="0 0 0 8">
+                                        <StackPanel>
+                                            <TextBlock Text="Estimated recovery" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding AuctionResult.EstimatedRecovery, StringFormat={}{0:N2}}"
+                                                       FontSize="22"
+                                                       FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+                                <ItemsControl ItemsSource="{Binding AuctionResult.Notes}" Margin="0 12 0 0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding StringFormat=- {0}}"
+                                                       Margin="0 0 0 6"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Teardown Queue">
+                <Border Style="{StaticResource GrowthCardStyle}" Margin="0 10 0 0">
+                    <DataGrid ItemsSource="{Binding TeardownQueue}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Score" Binding="{Binding PriorityScore}" Width="65"/>
+                            <DataGridTextColumn Header="Donor car" Binding="{Binding Car}" Width="210"/>
+                            <DataGridTextColumn Header="Zone" Binding="{Binding Zone}" Width="95"/>
+                            <DataGridTextColumn Header="Part" Binding="{Binding PartName}" Width="230"/>
+                            <DataGridTextColumn Header="Workshop action" Binding="{Binding Action}" Width="*"/>
+                            <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="260"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding EstimatedValue, StringFormat={}{0:N2}}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </TabItem>
+
+            <TabItem Header="Duplicate Detective">
+                <Border Style="{StaticResource GrowthCardStyle}" Margin="0 10 0 0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Potential duplicate inventory records grouped by matching evidence."
+                                   Margin="0 0 0 12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding DuplicateGroups}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Expander Margin="0 0 0 10">
+                                            <Expander.Header>
+                                                <TextBlock>
+                                                    <Run Text="{Binding MatchKey}"/>
+                                                    <Run Text="  |  "/>
+                                                    <Run Text="{Binding CandidateCount}"/>
+                                                    <Run Text=" candidates  |  "/>
+                                                    <Run Text="{Binding Reason}"/>
+                                                </TextBlock>
+                                            </Expander.Header>
+                                            <DataGrid ItemsSource="{Binding Candidates}"
+                                                      AutoGenerateColumns="False"
+                                                      CanUserAddRows="False"
+                                                      IsReadOnly="True"
+                                                      MaxHeight="260"
+                                                      Margin="0 8 0 0">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Code" Binding="{Binding InternalCode}" Width="130"/>
+                                                    <DataGridTextColumn Header="Part" Binding="{Binding PartName}" Width="*"/>
+                                                    <DataGridTextColumn Header="OEM" Binding="{Binding OemNumber}" Width="130"/>
+                                                    <DataGridTextColumn Header="Category" Binding="{Binding CategoryName}" Width="130"/>
+                                                    <DataGridTextColumn Header="Available" Binding="{Binding AvailableQuantity}" Width="90"/>
+                                                    <DataGridTextColumn Header="Sale" Binding="{Binding SalePrice, StringFormat={}{0:N2}}" Width="90"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Expander>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </TabItem>
+
+            <TabItem Header="Buying Radar">
+                <Border Style="{StaticResource GrowthCardStyle}" Margin="0 10 0 0">
+                    <DataGrid ItemsSource="{Binding BuyingRadar}"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Urgency" Binding="{Binding UrgencyScore}" Width="75"/>
+                            <DataGridTextColumn Header="Code" Binding="{Binding InternalCode}" Width="130"/>
+                            <DataGridTextColumn Header="Part" Binding="{Binding PartName}" Width="*"/>
+                            <DataGridTextColumn Header="OEM" Binding="{Binding OemNumber}" Width="120"/>
+                            <DataGridTextColumn Header="Available" Binding="{Binding AvailableQuantity}" Width="85"/>
+                            <DataGridTextColumn Header="Sold 90d" Binding="{Binding SoldQuantityLast90}" Width="80"/>
+                            <DataGridTextColumn Header="Waiting" Binding="{Binding WaitingCustomers}" Width="75"/>
+                            <DataGridTextColumn Header="Buy qty" Binding="{Binding SuggestedQuantity}" Width="75"/>
+                            <DataGridTextColumn Header="Revenue" Binding="{Binding EstimatedRevenue, StringFormat={}{0:N2}}" Width="100"/>
+                            <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="260"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </TabItem>
+
+            <TabItem Header="Voice-to-Quote">
+                <Grid Margin="0 10 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource GrowthCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="WhatsApp Voice-to-Quote" FontSize="20" FontWeight="Bold"/>
+                            <TextBlock Text="Paste the voice-note transcript, then generate a stock-ranked WhatsApp reply."
+                                       Margin="0 4 0 14"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="Voice-note transcript" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                            <TextBox Text="{Binding VoiceTranscript, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True"
+                                     Height="120"
+                                     TextWrapping="Wrap"
+                                     Margin="0 0 0 10"/>
+                            <TextBlock Text="Customer name" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                            <TextBox Text="{Binding VoiceCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 10"/>
+                            <TextBlock Text="WhatsApp phone" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                            <TextBox Text="{Binding VoiceCustomerPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 14"/>
+                            <Button Content="Build WhatsApp quote"
+                                    Command="{Binding BuildVoiceQuoteCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Height="40"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Style="{StaticResource GrowthCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Draft reply" FontWeight="Bold" FontSize="18"/>
+                                <TextBlock Text="{Binding VoiceDraft}"
+                                           Margin="0 8 0 0"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Row="2" Style="{StaticResource GrowthCardStyle}">
+                            <DataGrid ItemsSource="{Binding QuoteMatches}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Score" Binding="{Binding Score}" Width="65"/>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding InternalCode}" Width="135"/>
+                                    <DataGridTextColumn Header="Part" Binding="{Binding PartName}" Width="*"/>
+                                    <DataGridTextColumn Header="OEM" Binding="{Binding OemNumber}" Width="120"/>
+                                    <DataGridTextColumn Header="Available" Binding="{Binding AvailableQuantity}" Width="85"/>
+                                    <DataGridTextColumn Header="Price" Binding="{Binding SalePrice, StringFormat={}{0:N2}}" Width="90"/>
+                                    <DataGridTextColumn Header="Currency" Binding="{Binding Currency}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Reverse Requests">
+                <ScrollViewer Margin="0 10 0 0" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="430"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource GrowthCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Reverse Storefront Intake" FontSize="20" FontWeight="Bold"/>
+                                <TextBlock Text="Search a counter picture, pick the likely part, and send the structured request to the workshop board."
+                                           Margin="0 4 0 14"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+
+                                <TextBlock Text="Picture hint" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding PictureHint, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <Button Content="Choose picture and search"
+                                        Command="{Binding SearchPictureCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Height="38"/>
+                                <TextBlock Text="{Binding PicturePathDisplay}"
+                                           Margin="0 6 0 12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+
+                                <TextBlock Text="Customer name" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding RequestCustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <TextBlock Text="WhatsApp phone" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding RequestCustomerPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <TextBlock Text="Requested part" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding RequestedPartName, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <TextBlock Text="OEM number" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding RequestedOemNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <TextBlock Text="Vehicle details" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding VehicleDetails, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <TextBlock Text="Quantity" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding RequestQuantity, UpdateSourceTrigger=PropertyChanged}" Margin="0 0 0 8"/>
+                                <TextBlock Text="Workshop notes" Style="{StaticResource GrowthFieldLabelStyle}"/>
+                                <TextBox Text="{Binding RequestNotes, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True"
+                                         Height="70"
+                                         TextWrapping="Wrap"
+                                         Margin="0 0 0 12"/>
+                                <Button Content="Create workshop request"
+                                        Command="{Binding CreateReverseRequestCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="40"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource GrowthCardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Margin="0 0 0 12">
+                                    <TextBlock Text="Picture Search Shortlist" FontSize="20" FontWeight="Bold"/>
+                                    <TextBlock Text="Select a match to prefill the request, or leave the request unmatched for workshop review."
+                                               Margin="0 4 0 0"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <DataGrid Grid.Row="1"
+                                          ItemsSource="{Binding VisualMatches}"
+                                          SelectedItem="{Binding SelectedVisualMatch, Mode=TwoWay}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          IsReadOnly="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Score" Binding="{Binding Score, StringFormat={}{0:N0}}" Width="65"/>
+                                        <DataGridTextColumn Header="Code" Binding="{Binding InternalCode}" Width="135"/>
+                                        <DataGridTextColumn Header="Part" Binding="{Binding PartName}" Width="*"/>
+                                        <DataGridTextColumn Header="OEM" Binding="{Binding OemNumber}" Width="120"/>
+                                        <DataGridTextColumn Header="Available" Binding="{Binding AvailableQuantity}" Width="85"/>
+                                        <DataGridTextColumn Header="Price" Binding="{Binding SalePrice, StringFormat={}{0:N2}}" Width="90"/>
+                                        <DataGridTextColumn Header="Why" Binding="{Binding MatchReason}" Width="220"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

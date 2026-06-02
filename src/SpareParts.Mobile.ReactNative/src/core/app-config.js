@@ -29,7 +29,7 @@ const CommunicationTemplateKey = {
 const defaultApiBaseUrl =
   process.env.EXPO_PUBLIC_API_BASE_URL ||
   (Platform.OS === "android" ? "http://10.0.2.2:5000" : "http://localhost:5000");
-const defaultThemeKey = "default";
+const defaultThemeKey = "aurora";
 const defaultLanguageKey = "en";
 const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
 const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "";
@@ -40,21 +40,40 @@ const webAppRoleId = 4;
 
 const wpfThemes = [
   {
+    key: "aurora",
+    name: "Aurora",
+    colors: {
+      bg: "#080c14",
+      surface: "#0e1420",
+      surface2: "#141c2e",
+      sidebar: "#060a12",
+      input: "#0e1420",
+      line: "#1a2840",
+      text: "#e8f0ff",
+      muted: "#7a8faf",
+      soft: "#4a5a78",
+      accent: "#00c9a7",
+      accentViolet: "#7c5cfc",
+      whatsapp: "#25d366",
+      danger: "#ff6b6b"
+    }
+  },
+  {
     key: "default",
     name: "Default",
     colors: {
-      bg: "#101114",
-      surface: "#17191f",
-      surface2: "#20232b",
-      sidebar: "#121318",
-      input: "#0f1014",
-      line: "#313642",
-      text: "#f4f5f7",
-      muted: "#a9afbd",
-      soft: "#737b8c",
-      accent: "#ff5722",
-      whatsapp: "#25d366",
-      danger: "#ff6b5f"
+      bg: "#07080b",
+      surface: "#0c0f14",
+      surface2: "#111620",
+      sidebar: "#08090d",
+      input: "#060709",
+      line: "#1c2230",
+      text: "#edf1f9",
+      muted: "#7585a0",
+      soft: "#404c60",
+      accent: "#e85012",
+      whatsapp: "#22c55e",
+      danger: "#f43f5e"
     }
   },
   {
@@ -177,6 +196,7 @@ const managementSections = [
 ];
 
 const featureModules = [
+  { key: "part-passport", label: "Part Passport", title: "Part Passport", endpoint: "/api/parts + /api/usedcars", capabilities: ["Select inventory part", "Review public proof card", "Prepare WhatsApp-ready passport link"] },
   { key: "compatibility", label: "Compatibility", title: "Part Compatibility", endpoint: "/api/parts + /api/usedcars", capabilities: ["Visual part-to-vehicle graph", "OEM and donor-car fitment evidence", "Model/year sales assist"] },
   { key: "part-requests", label: "Part Requests", title: "Parts Request Board", endpoint: "/api/partrequests", capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"] },
   { key: "purchase-parts", label: "Part Purchases", title: "Part Purchases", endpoint: "/api/purchases", capabilities: ["Purchase invoice history", "Purchase invoice details", "Create and update purchase invoices"] },
@@ -187,6 +207,7 @@ const featureModules = [
   { key: "repair-prep", label: "Repair / Prep", title: "Repair / Prep Board", endpoint: "/api/usedcars", capabilities: ["Repair prep lanes", "Per-car task checklist", "Prep cost tracking"] },
   { key: "stock", label: "Stock", title: "Stock Management", endpoint: "/api/parts?page=1&pageSize=100", capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"] },
   { key: "dead-stock", label: "Dead Stock", title: "Dead Stock Recovery", endpoint: "/api/parts/dead-stock", capabilities: ["Dormant stock candidates", "Recovery actions", "Shelf-value summary"] },
+  { key: "growth-lab", label: "Money Finder", title: "Money Finder Lab", endpoint: "/api/growth/briefing", capabilities: ["Tonight's money queue", "Donor-car treasure map", "Auction simulator", "Teardown queue", "Duplicate detection", "Buying radar", "WhatsApp voice-to-quote"] },
   { key: "accounting", label: "Accounting", title: "Accounting Review", endpoint: "/api/accounting/trial-balance", capabilities: ["Ledger", "Trial balance", "Statements of account"] },
   { key: "manual-journal", label: "Manual Journal", title: "Manual Journal", endpoint: "/api/accounting/journal-entries", capabilities: ["Journal entry history", "Manual journal posting", "Account configuration"] },
   { key: "report-builder", label: "Report Builder", title: "Report Builder", endpoint: "/api/reportbuilder/saved-reports", capabilities: ["Schema explorer", "Saved reports", "Background runs"] },
@@ -195,8 +216,8 @@ const featureModules = [
 ];
 
 const navigationGroups = [
-  { title: "Core", keys: ["dashboard", "invoices", "parts", "compatibility", "contacts", "management", "settings"] },
-  { title: "Operations", keys: ["part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
+  { title: "Core", keys: ["dashboard", "invoices", "parts", "part-passport", "compatibility", "contacts", "management", "settings"] },
+  { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock"] },
   { title: "Finance", keys: ["accounting", "manual-journal", "report-builder"] },
   { title: "Tools", keys: ["whatsapp", "business-assistant", "ar"] }
 ];

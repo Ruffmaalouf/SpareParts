@@ -3,8 +3,9 @@ import { asRows, money } from "../core/formatters.js";
 import { CommunicationPayloadFactory } from "../services/communication-payload-factory.js";
 import { PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
+import { selectPartPassport } from "./part-passport-workspace-view.js";
 
-export function InventoryView({ api }) {
+export function InventoryView({ api, onView }) {
   const [parts, setParts] = useState([]);
   const [partRequests, setPartRequests] = useState([]);
   const [filter, setFilter] = useState("");
@@ -43,6 +44,7 @@ export function InventoryView({ api }) {
       )
     );
   }, [parts, filter]);
+  const displayedParts = useMemo(() => visibleParts.slice(0, 150), [visibleParts]);
 
   const waitingByPart = useMemo(
     () => waitingCustomersByPart(partRequests),
@@ -96,12 +98,18 @@ export function InventoryView({ api }) {
             })
           },
           { key: "status", label: "Status", render: (part) => part.isActive ? "Active" : "Inactive" },
-          { key: "action", label: "Action", render: (part) => h("button", { onClick: () => sendAvailability(part) }, "Send Availability") }
+          { key: "action", label: "Action", render: (part) => h("div", { className: "row-actions" },
+            h("button", { type: "button", onClick: () => selectPartPassport(part, onView) }, "Passport"),
+            h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send Availability")
+          ) }
         ],
-        rows: visibleParts,
+        rows: displayedParts,
         getRowKey: (part) => part.id,
         emptyText: "No parts found."
-      })
+      }),
+      visibleParts.length > displayedParts.length && h("p", { className: "inventory-list-note" },
+        `Showing the first ${displayedParts.length} of ${visibleParts.length} matching parts. Refine the filter to find a specific row.`
+      )
     )
   );
 }

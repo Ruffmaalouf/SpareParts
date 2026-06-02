@@ -154,8 +154,8 @@ public sealed class WpfSurfaceSmokeTests
                 "<ResourceDictionary xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">",
                 StringComparison.Ordinal)
             .Replace(
-                "Source=\"/Themes/DefaultTheme.xaml\"",
-                "Source=\"/SpareParts.Desktop.Wpf;component/Themes/DefaultTheme.xaml\"",
+                "Source=\"/Themes/AuroraTheme.xaml\"",
+                "Source=\"/SpareParts.Desktop.Wpf;component/Themes/AuroraTheme.xaml\"",
                 StringComparison.Ordinal);
 
         using var stringReader = new StringReader(dictionaryXaml);

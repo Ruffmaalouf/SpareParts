@@ -792,6 +792,18 @@
                                         Visibility="{Binding CanViewStockManagementScreen, Converter={StaticResource BoolToVis}}"
                                         Content="Dead Stock Resurrection"/>
 
+                                <Button Command="{Binding GoToGrowthLabCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewGrowthLabScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="Money Finder Lab"/>
+
+                                <Button Command="{Binding GoToPartPassportCommand}"
+                                        Click="QuickActionMenuItem_Click"
+                                        Style="{StaticResource QuickActionMenuButtonStyle}"
+                                        Visibility="{Binding CanViewPartPassportScreen, Converter={StaticResource BoolToVis}}"
+                                        Content="Part Passport"/>
+
                                 <Button Command="{Binding GoToCompatibilityCommand}"
                                         Click="QuickActionMenuItem_Click"
                                         Style="{StaticResource QuickActionMenuButtonStyle}"
@@ -2010,6 +2022,89 @@
 
                 <local:DeadStockResurrectionControl Grid.Row="1"
                                                      DataContext="{Binding DeadStockVm}"/>
+            </Grid>
+
+            <!-- Money Finder Lab -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=GrowthLab}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Money Finder Lab" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Turn stock, donor cars, part requests, and auction listings into the next profitable action."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <Button Content="Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="110"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Stock"
+                                Command="{Binding GoToStockManagementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="110"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Part Requests"
+                                Command="{Binding OpenManagementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="135"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Refresh"
+                                Command="{Binding GrowthLabVm.RefreshCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="110"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <local:GrowthLabControl Grid.Row="1"
+                                        DataContext="{Binding GrowthLabVm}"/>
+            </Grid>
+
+            <!-- Part Passport -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=PartPassport}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0" Margin="0 0 0 20">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Part Passport" FontSize="30" FontWeight="Bold"/>
+                        <TextBlock Text="Choose a part, review its customer-facing proof card, and prepare a WhatsApp-ready public link."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <Button Content="Home"
+                                Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="110"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Stock"
+                                Command="{Binding GoToStockManagementCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Width="110"
+                                Margin="0 0 10 0"/>
+                        <Button Content="Refresh"
+                                Command="{Binding PartPassportVm.RefreshCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Width="110"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <local:PartPassportControl Grid.Row="1"
+                                           DataContext="{Binding PartPassportVm}"/>
             </Grid>
 
             <!-- ── Part Compatibility Graph ── -->

@@ -140,6 +140,47 @@ function buildPartRecommendations(linkedParts, unassignedParts) {
     .slice(0, 5);
 }
 
+function partValueInCarBase(item, car) {
+  const value = item.expectedSale || item.salePrice;
+  const partCurrency = String(read(item.part, "currency") || "").trim().toUpperCase();
+  const carBaseCurrency = String(baseCurrency(car)).trim().toUpperCase();
+  if (!partCurrency || partCurrency === carBaseCurrency) return value;
+
+  const counterCurrency = String(read(car, "counterCurrencyCode") || "").trim().toUpperCase();
+  const counterRateToBase = toNumber(read(car, "counterRateToBase"));
+  return partCurrency === counterCurrency && counterRateToBase > 0
+    ? value * counterRateToBase
+    : value;
+}
+
+function buildPushParts(car, recommendations, breakEvenGap) {
+  let cumulativeSale = 0;
+  return recommendations.slice(0, 3).map((item) => {
+    const gapWasOpen = cumulativeSale < breakEvenGap;
+    cumulativeSale += partValueInCarBase(item, car);
+    return {
+      ...item,
+      closesGap: breakEvenGap > 0 && gapWasOpen && cumulativeSale >= breakEvenGap
+    };
+  });
+}
+
+function estimatedDaysToProfit(car, project, recommendations) {
+  if (project.breakEvenGap <= 0) return 0;
+
+  const expectedSellThroughRate = Math.min(
+    Math.max(toNumber(read(car, "expectedSellThroughRate")) || 0.8, 0.1),
+    1
+  );
+  const projectedThirtyDayRecovery = recommendations
+    .slice(0, 3)
+    .reduce((total, item) => total + partValueInCarBase(item, car), 0)
+    * expectedSellThroughRate;
+
+  if (projectedThirtyDayRecovery <= 0) return null;
+  return Math.max(1, Math.ceil(project.breakEvenGap / (projectedThirtyDayRecovery / 30)));
+}
+
 function buildProfitProject(car) {
   const bought = toNumber(read(car, "purchaseCostBase", "priceBase"));
   const fullCost = toNumber(read(car, "fullCostBase", "grandTotalBase"));
@@ -250,6 +291,84 @@ function PartRecommendation({ item, car, t, onAssign }) {
     item.isLinked
       ? h("span", { className: "profit-status-chip" }, t("usedCars.linked", "Linked"))
       : h("button", { className: "secondary-button", type: "button", onClick: () => onAssign(itemId(part)) }, t("usedCars.assign", "Assign"))
+  );
+}
+
+function BreakEvenRacer({ entry, index, isActive, onSelect, t, displayContext }) {
+  const { car, estimatedDays, project, pushParts } = entry;
+  const displayMoney = (value) => displayMoneyFromBase(value, displayContext);
+  const recoveredPercent = Math.min(project.recoveredPercent, 100);
+  const isProfitable = project.breakEvenGap <= 0;
+
+  return h("button", {
+    className: `break-even-racer ${isActive ? "active" : ""}`,
+    type: "button",
+    onClick: () => onSelect(itemId(car))
+  },
+    h("div", { className: "break-even-racer-topline" },
+      h("span", { className: "break-even-position" }, `#${String(index + 1).padStart(2, "0")}`),
+      h("span", { className: `break-even-state ${isProfitable ? "positive" : "watch"}` },
+        isProfitable ? t("usedCars.profitUnlocked", "Profit unlocked") : t("usedCars.closingGap", "Closing gap"))
+    ),
+    h("div", { className: "break-even-racer-heading" },
+      h("h3", null, carTitle(car, t)),
+      h("strong", null, `${project.recoveredPercent}%`)
+    ),
+    h("div", { className: "break-even-racer-progress", "aria-label": t("usedCars.recovered", "Recovered") },
+      h("span", { style: { width: `${recoveredPercent}%` } })
+    ),
+    h("div", { className: "break-even-racer-summary" },
+      h("strong", null, isProfitable
+        ? t("usedCars.inProfit", "In profit")
+        : `${displayMoney(project.breakEvenGap)} ${t("usedCars.remaining", "Remaining").toLowerCase()}`),
+      h("span", null, isProfitable
+        ? t("usedCars.breakEvenReached", "Break-even reached")
+        : estimatedDays
+          ? t("usedCars.estimatedDaysToProfit", "Estimated {count} days to profit", { count: estimatedDays })
+          : t("usedCars.linkPartsToForecast", "Link parts to forecast profit"))
+    ),
+    h("div", { className: "break-even-push-parts" },
+      h("span", { className: "break-even-push-label" }, t("usedCars.topPushParts", "Top push parts")),
+      pushParts.length > 0
+        ? pushParts.map((item) => {
+          const part = item.part;
+          const currency = read(part, "currency") || baseCurrency(car);
+          return h("span", {
+            className: `break-even-push-part ${item.closesGap ? "closes-gap" : ""}`,
+            key: itemId(part)
+          },
+            h("b", null, read(part, "internalCode") || read(part, "name") || `#${itemId(part)}`),
+            h("small", null, money(item.expectedSale || item.salePrice, currency)),
+            item.closesGap && h("em", null, t("usedCars.closesGap", "Closes gap"))
+          );
+        })
+        : h("small", { className: "break-even-no-parts" }, t("usedCars.noPushParts", "No ranked parts yet."))
+    )
+  );
+}
+
+function BreakEvenRace({ entries, selectedId, onSelect, t, displayContextForCar }) {
+  return h("article", { className: "panel break-even-race" },
+    h("div", { className: "break-even-race-heading" },
+      h("div", null,
+        h("h2", null, t("usedCars.breakEvenRace", "Break-Even Race")),
+        h("p", null, t("usedCars.breakEvenRaceSubtitle", "Turn donor cars into live projects. Closest to profit first, with the parts most likely to push each car over the line."))
+      ),
+      h("strong", null, t("usedCars.donorProjects", "{count} donor projects", { count: entries.length }))
+    ),
+    entries.length > 0
+      ? h("div", { className: "break-even-race-grid" },
+        entries.map((entry, index) => h(BreakEvenRacer, {
+          entry,
+          index,
+          isActive: String(itemId(entry.car)) === String(selectedId),
+          key: itemId(entry.car),
+          onSelect,
+          t,
+          displayContext: displayContextForCar(entry.car)
+        }))
+      )
+      : h("p", { className: "empty-state" }, t("usedCars.noCars", "No used cars returned."))
   );
 }
 
@@ -520,6 +639,17 @@ export function UsedCarsView({ api, t }) {
   const unassignedParts = useMemo(() =>
     parts.filter((part) => !read(part, "usedCarId")),
   [parts]);
+  const partsByUsedCarId = useMemo(() => {
+    const grouped = new Map();
+    parts.forEach((part) => {
+      const usedCarId = String(read(part, "usedCarId") || "");
+      if (!usedCarId) return;
+      const current = grouped.get(usedCarId) || [];
+      current.push(part);
+      grouped.set(usedCarId, current);
+    });
+    return grouped;
+  }, [parts]);
   const assignedParts = useMemo(() =>
     selectedCarParts.filter((part) =>
       [read(part, "internalCode"), read(part, "name"), read(part, "oemNumber")].join(" ").toLowerCase().includes(partSearch.toLowerCase())),
@@ -531,6 +661,29 @@ export function UsedCarsView({ api, t }) {
   const nextPartRecommendations = useMemo(() =>
     selectedCar ? buildPartRecommendations(selectedCarParts, unassignedParts) : [],
   [selectedCar, selectedCarParts, unassignedParts]);
+  const breakEvenEntries = useMemo(() => cars
+    .map((car) => {
+      const project = buildProfitProject(car);
+      const recommendations = buildPartRecommendations(
+        partsByUsedCarId.get(String(itemId(car))) || [],
+        unassignedParts
+      );
+      return {
+        car,
+        project,
+        estimatedDays: estimatedDaysToProfit(car, project, recommendations),
+        pushParts: buildPushParts(car, recommendations, project.breakEvenGap)
+      };
+    })
+    .sort((left, right) => {
+      const leftProfitable = left.project.breakEvenGap <= 0 ? 1 : 0;
+      const rightProfitable = right.project.breakEvenGap <= 0 ? 1 : 0;
+      return leftProfitable - rightProfitable
+        || right.project.recoveredPercent - left.project.recoveredPercent
+        || left.project.breakEvenGap - right.project.breakEvenGap
+        || carTitle(left.car, t).localeCompare(carTitle(right.car, t));
+    }),
+  [cars, partsByUsedCarId, t, unassignedParts]);
   const displayContextForCar = useCallback((car) => displayCurrencyContext({
     constants: appConstants,
     rates: currencyRates,
@@ -814,6 +967,13 @@ export function UsedCarsView({ api, t }) {
       }, isLoading ? t("common.loading", "Loading") : t("common.refresh", "Refresh"))
     }),
     h(StatusLine, { status }),
+    h(BreakEvenRace, {
+      entries: breakEvenEntries,
+      selectedId,
+      onSelect: (id) => setSelectedId(String(id)),
+      displayContextForCar,
+      t
+    }),
     h("section", { className: "used-car-layout" },
       h("div", { className: "used-car-primary" },
         h("article", { className: "panel used-car-gallery" },
