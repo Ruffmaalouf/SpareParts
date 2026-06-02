@@ -335,48 +335,44 @@
             </Setter>
         </Style>
 
-        <!-- ══ Sidebar nav item ══════════════════════════════════ -->
+        <!-- ══ Sidebar nav item — red bar, clean ═══════════════ -->
         <Style x:Key="NavItemStyle" TargetType="Button">
-            <Setter Property="Background"               Value="Transparent"/>
-            <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}"/>
-            <Setter Property="BorderThickness"          Value="0"/>
+            <Setter Property="Background"                 Value="Transparent"/>
+            <Setter Property="Foreground"                 Value="#FFA0A0A0"/>
+            <Setter Property="BorderThickness"            Value="0"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Height"                   Value="34"/>
-            <Setter Property="Padding"                  Value="10 0 8 0"/>
-            <Setter Property="Margin"                   Value="0 1"/>
-            <Setter Property="Cursor"                   Value="Hand"/>
-            <Setter Property="FontSize"                 Value="12"/>
+            <Setter Property="Height"                     Value="32"/>
+            <Setter Property="Padding"                    Value="10 0 8 0"/>
+            <Setter Property="Margin"                     Value="0 1"/>
+            <Setter Property="Cursor"                     Value="Hand"/>
+            <Setter Property="FontSize"                   Value="12"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="NavRoot"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="7"
+                                CornerRadius="2"
                                 Padding="{TemplateBinding Padding}">
                             <DockPanel>
-                                <Border x:Name="ActiveBar"
+                                <!-- Red left indicator bar -->
+                                <Border x:Name="RedBar"
                                         DockPanel.Dock="Left"
-                                        Width="3" CornerRadius="2"
-                                        Margin="0 7 8 7"
-                                        Opacity="0">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="#FFE8E8E8" Offset="0"/>
-                                            <GradientStop Color="#FF888888" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                </Border>
+                                        Width="3" CornerRadius="1"
+                                        Margin="0 6 9 6"
+                                        Opacity="0"
+                                        Background="{DynamicResource AccentBrush}"/>
                                 <ContentPresenter VerticalAlignment="Center"
                                                   HorizontalAlignment="Left"/>
                             </DockPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavRoot"   Property="Background" Value="#10FFFFFF"/>
-                                <Setter TargetName="ActiveBar" Property="Opacity"    Value="1"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#0ED40000"/>
+                                <Setter TargetName="RedBar"  Property="Opacity"    Value="1"/>
+                                <Setter Property="Foreground" Value="#FFEBEBEB"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="NavRoot" Property="Background" Value="#1AFFFFFF"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#1ED40000"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -384,11 +380,12 @@
             </Setter>
         </Style>
 
+        <!-- ══ Nav group header — racing sector label ══════════ -->
         <Style x:Key="NavGroupHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontSize"   Value="9"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#FF505050"/>
-            <Setter Property="Margin"     Value="13 12 0 4"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Margin"     Value="12 14 0 4"/>
         </Style>
 
         <Style x:Key="SidebarToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource InvoiceIconButtonStyle}">
@@ -443,11 +440,11 @@
         <!-- ══ SIDEBAR ════════════════════════════════════════════════════ -->
         <Border x:Name="SidebarHost"
                 Grid.Column="0"
-                Width="290"
+                Width="288"
                 MinWidth="0"
                 ClipToBounds="True"
                 Background="{DynamicResource CarbonFiberBrush}"
-                BorderBrush="{DynamicResource SidebarChromeBorderBrush}"
+                BorderBrush="#FF1A1A1A"
                 BorderThickness="0 0 1 0"
                 Panel.ZIndex="2">
             <Grid x:Name="SidebarContent" Margin="18 18 18 20">
@@ -461,100 +458,141 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- ══ Header — carbon plate with chrome wordmark ══ -->
-                <Border Grid.Row="0"
-                        Margin="0 0 0 14">
-                    <Grid>
-                        <!-- Chrome top accent line -->
-                        <Border VerticalAlignment="Top"
-                                Height="2"
-                                CornerRadius="1"
-                                Margin="0 0 0 0">
+                <!-- ══ Header — Pit-wall nameplate ══════════════════ -->
+                <Border Grid.Row="0" Margin="0 0 0 10">
+                    <StackPanel>
+
+                        <!-- F1-style rev lights row -->
+                        <Border Height="10" Margin="-18 0 -18 0">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#FF383838" Offset="0"/>
-                                    <GradientStop Color="#FFB0B0B0" Offset="0.35"/>
-                                    <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
-                                    <GradientStop Color="#FFB0B0B0" Offset="0.65"/>
-                                    <GradientStop Color="#FF383838" Offset="1"/>
+                                    <GradientStop Color="#FF0A0A0A" Offset="0"/>
+                                    <GradientStop Color="#FF0A0A0A" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <!-- Green lights (slow/ready) -->
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF1A8C3A">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FF22CC55" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                                    </Border.Effect>
+                                </Border>
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF1A8C3A">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FF22CC55" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                                    </Border.Effect>
+                                </Border>
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF1A8C3A">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FF22CC55" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- Yellow lights (caution) -->
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFCC8800">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FFFFAA00" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                                    </Border.Effect>
+                                </Border>
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFCC8800">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FFFFAA00" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- Red lights (max revs / full power) -->
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FF8C0000">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FFD40000" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
+                                    </Border.Effect>
+                                </Border>
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFB00000">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FFD40000" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
+                                    </Border.Effect>
+                                </Border>
+                                <Border Width="24" Height="6" CornerRadius="1" Margin="2 0" Background="#FFD40000">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FFFF2020" BlurRadius="10" ShadowDepth="0" Opacity="1.0"/>
+                                    </Border.Effect>
+                                </Border>
+                            </StackPanel>
                         </Border>
 
-                        <Grid Margin="0 8 0 0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                        <!-- Red accent stripe -->
+                        <Border Height="2" Margin="-18 6 -18 0"
+                                Background="{DynamicResource RacingStripeBrush}"/>
 
-                            <DockPanel Grid.Row="0" LastChildFill="False">
-                                <TextBlock DockPanel.Dock="Left"
-                                           Text="COMMAND CENTER"
-                                           FontSize="9"
-                                           FontWeight="Bold"
-                                           Foreground="#FF404040"
-                                           VerticalAlignment="Center"/>
-                                <Button DockPanel.Dock="Right"
-                                        Click="HideSidebarButton_Click"
-                                        Style="{StaticResource SidebarToggleButtonStyle}"
-                                        Width="30" Height="30"
-                                        ToolTip="Collapse navigation">
-                                    <TextBlock Text="◀"
-                                               FontSize="11"
-                                               FontWeight="Bold"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </Button>
-                            </DockPanel>
+                        <!-- Logo + wordmark + collapse button -->
+                        <Grid Margin="0 12 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                            <Grid Grid.Row="1" Margin="0 12 0 0" Cursor="Hand">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Width="52"
-                                        Height="52"
-                                        CornerRadius="12">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#FF1C1C1C" Offset="0"/>
-                                            <GradientStop Color="#FF2E2E2E" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                    <Border.BorderBrush>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#FF505050" Offset="0"/>
-                                            <GradientStop Color="#FF282828" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Border.BorderBrush>
-                                    <Border.BorderThickness>1</Border.BorderThickness>
-                                    <Image Source="/Assets/MaaloufLogo.png"
-                                           Stretch="Uniform"
-                                           Margin="8"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" Margin="12 0 0 0" VerticalAlignment="Center">
-                                    <TextBlock FontSize="15"
-                                               FontWeight="Bold"
-                                               Text="MAALOUF">
-                                        <TextBlock.Foreground>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                <GradientStop Color="#FFD8D8D8" Offset="0"/>
-                                                <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
-                                                <GradientStop Color="#FFB0B0B0" Offset="1"/>
-                                            </LinearGradientBrush>
-                                        </TextBlock.Foreground>
-                                    </TextBlock>
-                                    <TextBlock Text="AUTO PARTS"
-                                               FontSize="9"
-                                               FontWeight="Bold"
-                                               Foreground="#FF505050"
-                                               Margin="0 2 0 0"/>
-                                </StackPanel>
-                                <Grid.InputBindings>
+                            <!-- Logo plate -->
+                            <Border Width="48" Height="48"
+                                    CornerRadius="3"
+                                    BorderThickness="1"
+                                    Cursor="Hand">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FF1A1A1A" Offset="0"/>
+                                        <GradientStop Color="#FF0E0E0E" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FF303030" Offset="0"/>
+                                        <GradientStop Color="#FF181818" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.BorderBrush>
+                                <Image Source="/Assets/MaaloufLogo.png"
+                                       Stretch="Uniform"
+                                       Margin="8"/>
+                                <Border.InputBindings>
                                     <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
-                                </Grid.InputBindings>
-                            </Grid>
+                                </Border.InputBindings>
+                            </Border>
+
+                            <!-- Wordmark -->
+                            <StackPanel Grid.Column="1"
+                                        Margin="12 0 0 0"
+                                        VerticalAlignment="Center"
+                                        Cursor="Hand">
+                                <TextBlock Text="MAALOUF"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="#FFEBEBEB"
+                                           LineHeight="18"/>
+                                <TextBlock Text="AUTO PARTS"
+                                           FontSize="8"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           Margin="0 2 0 0"/>
+                                <StackPanel.InputBindings>
+                                    <MouseBinding Command="{Binding GoToHomeCommand}" MouseAction="LeftClick"/>
+                                </StackPanel.InputBindings>
+                            </StackPanel>
+
+                            <!-- Collapse button -->
+                            <Button Grid.Column="2"
+                                    Click="HideSidebarButton_Click"
+                                    Style="{StaticResource SidebarToggleButtonStyle}"
+                                    Width="28" Height="28"
+                                    VerticalAlignment="Center"
+                                    ToolTip="Collapse">
+                                <TextBlock Text="◀"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            </Button>
                         </Grid>
-                    </Grid>
+
+                        <!-- Bottom red line -->
+                        <Border Height="1" Margin="-18 10 -18 0" Background="#FF1E1E1E"/>
+                    </StackPanel>
                 </Border>
 
                 <!-- Selected brand card -->
@@ -623,41 +661,41 @@
 
                         <!-- ─ CORE ─────────────────────────────────────── -->
                         <TextBlock Text="CORE" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
-                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToHomeCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dashboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPosCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="POS / Sales" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartPassportCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Passport" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCompatibilityCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Compatibility" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding OpenManagementCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Management" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -666,97 +704,97 @@
 
                         <!-- ─ OPERATIONS ──────────────────────────────── -->
                         <TextBlock Text="OPERATIONS" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
-                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToGrowthLabCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Money Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPurchasesCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToUsedCarPurchasesCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToUsedCarWholesaleCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Wholesale" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToStockArrivalCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock Arrival" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToRepairPrepCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Repair / Prep" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToStockManagementCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDeadStockCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dead Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReorderCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Reorder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToExpiryAlertsCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Expiry Alerts" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToLoyaltyCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Loyalty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWarrantyCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Warranty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToShipmentsCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Shipments" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -765,27 +803,27 @@
 
                         <!-- ─ FINANCE ──────────────────────────────────── -->
                         <TextBlock Text="FINANCE" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
-                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToAccountingCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Accounting" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToManualJournalCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Manual Journal" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReportBuilderCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Report Builder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -794,34 +832,34 @@
 
                         <!-- ─ TOOLS ────────────────────────────────────── -->
                         <TextBlock Text="TOOLS" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#0A0A0A0A" CornerRadius="10" Padding="4 4 4 4"
-                                BorderBrush="#FF1E1E1E" BorderThickness="1">
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToWhatsAppCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToBusinessAssistantCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AI Assistant" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToArCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AR Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToActivityLogCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF606060" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activity Log" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -840,18 +878,9 @@
                 <!-- ══ Bottom footer ════════════════════════════════ -->
                 <StackPanel Grid.Row="3" Margin="0 10 0 0" VerticalAlignment="Bottom">
 
-                    <!-- Chrome separator -->
-                    <Border Height="1" Margin="4 0 4 10">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="Transparent" Offset="0"/>
-                                <GradientStop Color="#FF2E2E2E"   Offset="0.2"/>
-                                <GradientStop Color="#FF686868"   Offset="0.5"/>
-                                <GradientStop Color="#FF2E2E2E"   Offset="0.8"/>
-                                <GradientStop Color="Transparent" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                    </Border>
+                    <!-- Red racing separator -->
+                    <Border Height="1" Margin="0 0 0 10"
+                            Background="{DynamicResource RacingStripeBrush}"/>
 
                     <StackPanel Margin="0 0 0 8">
                         <!-- Brand Browser toggle -->
