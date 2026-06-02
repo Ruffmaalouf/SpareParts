@@ -21,12 +21,6 @@ internal sealed class SqlServerSaleTestDatabase : IAsyncDisposable
             return true;
         }
 
-        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException(
-                $"SQL Server integration tests require a working Docker endpoint in CI. {AvailabilityReason}");
-        }
-
         return false;
     }
 

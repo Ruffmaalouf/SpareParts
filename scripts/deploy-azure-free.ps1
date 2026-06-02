@@ -2,14 +2,16 @@ param(
     [string]$ResourceGroup = "rg-spareparts-free",
     [string]$Location = "westeurope",
     [string]$AppName = "",
+    [string]$WebAppName = "",
     [string]$PlanName = "spareparts-free-plan",
     [string]$SqlServerName = "",
     [string]$DatabaseName = "SparePartsDb",
     [string]$SqlAdminUser = "spadmin",
     [string]$SqlAdminPassword = "",
     [string]$LocalConnectionString = "Server=localhost;Database=SparePartsDb;Trusted_Connection=True;TrustServerCertificate=True;",
-    [string]$PublicWebBaseUrl = "http://localhost:5078",
-    [switch]$SkipDatabaseImport
+    [string]$PublicWebBaseUrl = "",
+    [switch]$SkipDatabaseImport,
+    [switch]$SkipWebDeploy
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,8 +20,12 @@ $root = Split-Path -Parent $PSScriptRoot
 $artifacts = Join-Path $root "artifacts\azure-free"
 $publishDir = Join-Path $artifacts "api"
 $zipPath = Join-Path $artifacts "spareparts-api.zip"
+$webPublishDir = Join-Path $artifacts "web"
+$webZipPath = Join-Path $artifacts "spareparts-web.zip"
 $bacpacPath = Join-Path $artifacts "SparePartsDb.bacpac"
 $apiProject = Join-Path $root "src\SpareParts.Api\SpareParts.Api.csproj"
+$webProject = Join-Path $root "src\SpareParts.Web.React\SpareParts.Web.React.csproj"
+$webConfigPath = Join-Path $root "src\SpareParts.Web.React\wwwroot\config.js"
 
 function Get-AzPath {
     $command = Get-Command az -ErrorAction SilentlyContinue
@@ -123,6 +129,9 @@ $suffix = New-SafeSuffix
 if ([string]::IsNullOrWhiteSpace($AppName)) {
     $AppName = "spareparts-api-$suffix"
 }
+if ([string]::IsNullOrWhiteSpace($WebAppName)) {
+    $WebAppName = "spareparts-web-$suffix"
+}
 if ([string]::IsNullOrWhiteSpace($SqlServerName)) {
     $SqlServerName = "spareparts-sql-$suffix"
 }
@@ -132,8 +141,9 @@ if ([string]::IsNullOrWhiteSpace($SqlAdminPassword)) {
 }
 
 $apiUrl = "https://$AppName.azurewebsites.net"
+$webUrl  = "https://$WebAppName.azurewebsites.net"
 $publicWebUrl = if ([string]::IsNullOrWhiteSpace($PublicWebBaseUrl)) {
-    "http://localhost:5078"
+    $webUrl
 } else {
     $PublicWebBaseUrl.TrimEnd("/")
 }
@@ -146,7 +156,8 @@ New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 Write-Host "Using Azure CLI: $script:AzPath"
 Write-Host "Using SqlPackage: $sqlPackage"
 Write-Host "Resource group: $ResourceGroup"
-Write-Host "App Service: $AppName"
+Write-Host "API App Service: $AppName"
+Write-Host "Web App Service: $WebAppName"
 Write-Host "SQL server: $SqlServerName"
 Write-Host ""
 
@@ -224,7 +235,7 @@ Invoke-Az -Arguments @(
     "Jwt__Audience=SpareParts.Desktop",
     "Cors__AllowedOrigins__0=http://localhost:5078",
     "Cors__AllowedOrigins__1=http://127.0.0.1:5078",
-    "Cors__AllowedOrigins__2=$publicWebUrl",
+    "Cors__AllowedOrigins__2=$webUrl",
     "SCM_DO_BUILD_DURING_DEPLOYMENT=false",
     "--output", "none"
 )
@@ -279,6 +290,77 @@ window.SparePartsWebConfig = {
             Write-Host "Client config files were written to:"
             Write-Host (Join-Path $artifacts "wpf-appsettings.azure.json")
             Write-Host (Join-Path $artifacts "web-config.azure.js")
+
+            # ── Deploy Web App ─────────────────────────────────────────────
+            if (-not $SkipWebDeploy) {
+                Write-Host ""
+                Write-Host "Creating Web App Service..."
+                if (-not (Test-AzResource -Arguments @("webapp", "show", "--resource-group", $ResourceGroup, "--name", $WebAppName))) {
+                    Invoke-Az -Arguments @("webapp", "create", "--resource-group", $ResourceGroup, "--plan", $PlanName, "--name", $WebAppName, "--runtime", "DOTNETCORE:8.0", "--output", "none")
+                }
+
+                Invoke-Az -Arguments @("webapp", "config", "appsettings", "set", "--resource-group", $ResourceGroup, "--name", $WebAppName, "--settings", "ASPNETCORE_ENVIRONMENT=Staging", "SCM_DO_BUILD_DURING_DEPLOYMENT=false", "--output", "none")
+
+                Write-Host "Patching web config.js with API URL..."
+                $webConfigContent = @"
+window.SparePartsWebConfig = {
+  defaultApiBaseUrl: "$apiUrl",
+  googleClientId: "",
+  facebookAppId: ""
+};
+"@
+                Set-Content -Path $webConfigPath -Value $webConfigContent -Encoding UTF8
+
+                Write-Host "Publishing Web App..."
+                if (Test-Path $webPublishDir) { Remove-Item -LiteralPath $webPublishDir -Recurse -Force }
+                Invoke-Native -FilePath "dotnet" -Arguments @("publish", $webProject, "-c", "Release", "-o", $webPublishDir)
+
+                if (Test-Path $webZipPath) { Remove-Item -LiteralPath $webZipPath -Force }
+                Compress-Archive -Path (Join-Path $webPublishDir "*") -DestinationPath $webZipPath -Force
+
+                Write-Host "Deploying Web zip to Azure App Service..."
+                Invoke-Az -Arguments @("webapp", "deploy", "--resource-group", $ResourceGroup, "--name", $WebAppName, "--src-path", $webZipPath, "--type", "zip", "--restart", "true", "--async", "false", "--output", "none")
+
+                Write-Host "Restoring local config.js to localhost (keeping dev config clean)..."
+                $devConfigContent = @"
+window.SparePartsWebConfig = {
+  defaultApiBaseUrl: "http://localhost:5000",
+  googleClientId: "",
+  facebookAppId: ""
+};
+"@
+                Set-Content -Path $webConfigPath -Value $devConfigContent -Encoding UTF8
+            }
+
+            # ── Mobile .env ────────────────────────────────────────────────
+            $mobileEnvPath = Join-Path $root "src\SpareParts.Mobile.ReactNative\.env"
+            $mobileEnvContent = @"
+EXPO_PUBLIC_API_BASE_URL=$apiUrl
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+EXPO_PUBLIC_FACEBOOK_APP_ID=
+"@
+            Set-Content -Path $mobileEnvPath -Value $mobileEnvContent -Encoding UTF8
+
+            Write-Host ""
+            Write-Host "============================================================"
+            Write-Host "STAGING DEPLOYMENT COMPLETE"
+            Write-Host "============================================================"
+            Write-Host "API:        $apiUrl"
+            Write-Host "Web:        $webUrl"
+            Write-Host "Health:     $healthUrl"
+            Write-Host "Swagger:    $apiUrl/swagger"
+            Write-Host ""
+            Write-Host "Mobile .env written to:"
+            Write-Host $mobileEnvPath
+            Write-Host ""
+            Write-Host "Next step — build Android APK:"
+            Write-Host "  cd src\SpareParts.Mobile.ReactNative"
+            Write-Host "  npm install"
+            Write-Host "  eas build --platform android --profile preview"
+            Write-Host "============================================================"
             return
         }
     }
