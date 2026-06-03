@@ -41,21 +41,21 @@ const webAppRoleId = 4;
 const wpfThemes = [
   {
     key: "aurora",
-    name: "Aurora",
+    name: "Apex",
     colors: {
-      bg: "#080c14",
-      surface: "#0e1420",
-      surface2: "#141c2e",
-      sidebar: "#060a12",
-      input: "#0e1420",
-      line: "#1a2840",
-      text: "#e8f0ff",
-      muted: "#7a8faf",
-      soft: "#4a5a78",
-      accent: "#00c9a7",
+      bg: "#0f0e0c",
+      surface: "#1a1917",
+      surface2: "#252320",
+      sidebar: "#0a0908",
+      input: "#141310",
+      line: "#302e2a",
+      text: "#f5f3f0",
+      muted: "#9a9590",
+      soft: "#6b6560",
+      accent: "#d4500c",
       accentViolet: "#7c5cfc",
-      whatsapp: "#25d366",
-      danger: "#ff6b6b"
+      whatsapp: "#16a34a",
+      danger: "#dc2626"
     }
   },
   {

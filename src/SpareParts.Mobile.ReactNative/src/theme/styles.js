@@ -4672,6 +4672,591 @@ function createStyles(palette) {
   },
   actionStripBtnTextPrimary: {
     color: palette.bg
+  },
+
+  /* ═══════════════════════════════════════════════════════════
+     APEX MOBILE — Complete override block
+     New palette: warm dark / orange accent / clean typography
+     ═══════════════════════════════════════════════════════════ */
+
+  app: { flex: 1, backgroundColor: palette.bg },
+  appFrame: { flex: 1, flexDirection: "row", backgroundColor: palette.bg },
+  contentPane: { flex: 1, backgroundColor: palette.bg, flexDirection: "column" },
+
+  /* Top bar */
+  topBar: {
+    minHeight: 60,
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 }
+  },
+  topBarTitle: {
+    color: palette.text,
+    fontSize: 18,
+    fontWeight: "900",
+    letterSpacing: -0.5
+  },
+  topBarSubtitle: {
+    color: palette.muted,
+    fontSize: 11,
+    marginTop: 1
+  },
+
+  /* Sidebar */
+  sidePanel: {
+    width: 280,
+    flexShrink: 0,
+    zIndex: 30,
+    borderRightWidth: 0,
+    backgroundColor: palette.sidebar,
+    borderRightColor: "transparent"
+  },
+  sideHeader: {
+    minHeight: 68,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)"
+  },
+  sideBrandTitle: {
+    color: "#f5f3f0",
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: -0.3
+  },
+  sideBrandSubtitle: {
+    color: "rgba(255,255,255,0.35)",
+    fontSize: 11,
+    marginTop: 2
+  },
+  sideBrandMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.accent
+  },
+  navGroupTitle: {
+    color: "rgba(255,255,255,0.28)",
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1
+  },
+  sideNavItem: {
+    minHeight: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 7,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    paddingHorizontal: 10
+  },
+  sideNavItemActive: {
+    backgroundColor: palette.accent,
+    borderColor: "transparent"
+  },
+  sideNavText: {
+    flex: 1,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 13,
+    fontWeight: "600"
+  },
+  sideNavTextActive: {
+    color: "#fff",
+    fontWeight: "700"
+  },
+  navActiveMark: { display: "none" },
+  navActiveMarkOn: { display: "none" },
+  sideUserPanel: {
+    borderTopWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    padding: 12,
+    gap: 10
+  },
+  sideAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.accent
+  },
+  sideUserName: {
+    color: "#f5f3f0",
+    fontSize: 13,
+    fontWeight: "800"
+  },
+  sideUserRole: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 11,
+    marginTop: 2
+  },
+  sideLogoutButton: {
+    minHeight: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(255,255,255,0.06)"
+  },
+  sideLogoutText: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  sideCloseButton: {
+    minHeight: 32,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10
+  },
+  sideCloseText: { color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "700" },
+
+  /* Bottom tabs — orange active state */
+  bottomTabBar: {
+    height: 82,
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "stretch",
+    paddingHorizontal: 6,
+    paddingTop: 6,
+    paddingBottom: 10,
+    borderTopWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: -4 }
+  },
+  bottomTabButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+    borderRadius: 9,
+    backgroundColor: "transparent",
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+    marginHorizontal: 2
+  },
+  bottomTabButtonActive: {
+    backgroundColor: `${palette.accent}18`
+  },
+  bottomTabMark: {
+    width: 44,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  bottomTabMarkActive: { backgroundColor: "transparent" },
+  bottomTabLabel: {
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: "600",
+    textAlign: "center"
+  },
+  bottomTabLabelActive: {
+    color: palette.accent,
+    fontWeight: "800"
+  },
+  bottomTabDescription: { display: "none" },
+  bottomTabDescriptionActive: { display: "none" },
+
+  /* Screen content */
+  screenTitle: {
+    color: palette.text,
+    fontSize: 24,
+    fontWeight: "900",
+    letterSpacing: -0.8
+  },
+  screenContent: {
+    padding: 16,
+    gap: 14,
+    paddingBottom: 32
+  },
+
+  /* Cards & panels */
+  panel: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 16,
+    gap: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 }
+  },
+  panelTitle: {
+    color: palette.text,
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: -0.4
+  },
+
+  /* Metric tiles */
+  metricGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  metricTile: {
+    width: "48%",
+    minHeight: 88,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    justifyContent: "space-between",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 }
+  },
+  metricLabel: {
+    color: palette.soft,
+    fontSize: 10,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.8
+  },
+  metricValue: {
+    color: palette.text,
+    fontSize: 24,
+    fontWeight: "900",
+    letterSpacing: -0.8,
+    marginTop: 6
+  },
+  metricAction: {
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "800",
+    marginTop: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5
+  },
+
+  /* Dashboard action cards */
+  dashboardActionButton: {
+    width: "48%",
+    minHeight: 116,
+    justifyContent: "space-between",
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 }
+  },
+  dashboardActionButtonFeatured: {
+    borderColor: palette.accent,
+    elevation: 4,
+    shadowColor: palette.accent,
+    shadowOpacity: 0.22
+  },
+  dashboardActionBadge: {
+    alignSelf: "flex-start",
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.8
+  },
+  dashboardActionTitle: {
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: -0.3
+  },
+  dashboardActionSubtitle: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17
+  },
+
+  /* Inputs & buttons */
+  input: {
+    minHeight: 46,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: palette.line,
+    backgroundColor: palette.input,
+    color: palette.text,
+    paddingHorizontal: 14,
+    fontSize: 14
+  },
+  fieldLabel: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6
+  },
+  primaryButton: {
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9,
+    backgroundColor: palette.accent,
+    paddingHorizontal: 20,
+    elevation: 4,
+    shadowColor: palette.accent,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 }
+  },
+  primaryButtonText: {
+    color: "#fff",
+    fontWeight: "900",
+    fontSize: 14,
+    letterSpacing: 0.2
+  },
+  secondaryButton: {
+    minHeight: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 14
+  },
+  secondaryButtonText: {
+    color: palette.text,
+    fontWeight: "700",
+    fontSize: 13
+  },
+
+  /* List rows */
+  listRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: palette.line
+  },
+  dashboardActionRow: {
+    minHeight: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }
+  },
+
+  /* Login */
+  loginPanel: {
+    padding: 22,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderTopColor: "rgba(255,255,255,0.18)",
+    borderLeftColor: "rgba(255,255,255,0.10)",
+    borderRightColor: "rgba(255,255,255,0.08)",
+    borderBottomColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(10,9,8,0.92)",
+    gap: 14,
+    overflow: "hidden",
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.45,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 14 }
+  },
+  loginTitle: {
+    color: "#f5f3f0",
+    fontSize: 38,
+    lineHeight: 40,
+    fontWeight: "900",
+    letterSpacing: -1.2
+  },
+  loginSubtitle: {
+    color: "#8a8580",
+    fontSize: 14,
+    lineHeight: 20
+  },
+  loginEyebrow: {
+    color: palette.accent,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1.2
+  },
+  loginPanelTitle: {
+    color: "#f5f3f0",
+    fontSize: 22,
+    fontWeight: "900",
+    marginTop: 2,
+    letterSpacing: -0.5
+  },
+  loginPanelKicker: {
+    color: palette.accent,
+    fontSize: 11,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.8
+  },
+
+  /* Smart search */
+  smartSearchInputRow: {
+    minHeight: 54,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 12,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.14,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 }
+  },
+  smartSearchMark: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.accent
+  },
+  smartSearchInput: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 42,
+    color: palette.text,
+    fontSize: 15,
+    paddingVertical: 0
+  },
+  smartSearchResult: {
+    minHeight: 52,
+    borderRadius: 9,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    backgroundColor: palette.surface2,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+
+  /* Heatmap */
+  heatmapTile: {
+    minHeight: 170,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    gap: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 }
+  },
+  heatmapTileGreen:  { borderLeftWidth: 4, borderLeftColor: "#16a34a" },
+  heatmapTileYellow: { borderLeftWidth: 4, borderLeftColor: "#d97706" },
+  heatmapTileRed:    { borderLeftWidth: 4, borderLeftColor: "#dc2626" },
+
+  /* Profit/loss hero */
+  profitLossHero: {
+    minHeight: 120,
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.text,
+    padding: 16
+  },
+  profitLossHeroLabel: {
+    color: "rgba(15,14,12,0.45)",
+    fontSize: 10,
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.8
+  },
+  profitLossHeroValue: {
+    fontSize: 34,
+    lineHeight: 38,
+    fontWeight: "900",
+    letterSpacing: -1,
+    color: palette.bg
+  },
+  profitLossHeroMeta: {
+    color: "rgba(15,14,12,0.55)",
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  profitLossRow: {
+    width: "48%",
+    minHeight: 64,
+    justifyContent: "space-between",
+    gap: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 12
+  },
+  profitLossRowLabel: {
+    color: palette.soft,
+    fontSize: 10,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6
+  },
+  profitLossRowValue: {
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: -0.4,
+    color: palette.text
   }
 });
 }
