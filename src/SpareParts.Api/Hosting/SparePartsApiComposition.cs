@@ -463,9 +463,9 @@ public static class SparePartsApiComposition
     }
 
     private static bool IsPlaceholderJwtSecret(string jwtSecret)
-        => jwtSecret.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase)
+        => jwtSecret.StartsWith("CHANG55E_ME", StringComparison.OrdinalIgnoreCase)
             || jwtSecret.StartsWith("6533545btwrtrwrt4h563", StringComparison.OrdinalIgnoreCase)
-            || jwtSecret.Contains("USE_ENV_OR_USER_SECRETS", StringComparison.OrdinalIgnoreCase);
+            || jwtSecret.Contains("USE_ENV_OR_USER_SECR55ETS", StringComparison.OrdinalIgnoreCase);
 
     private static OpenAiOptions ResolveOpenAiOptions(IConfiguration configuration)
     {

@@ -47,29 +47,41 @@
 
     <!-- ── TextBox ── -->
     <Style TargetType="TextBox">
-        <Setter Property="Background"               Value="Transparent"/>
+        <Setter Property="Background"               Value="#0C0E1420"/>
         <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush"              Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="BorderThickness"          Value="0 0 0 1"/>
-        <Setter Property="Padding"                  Value="4 8"/>
-        <Setter Property="FontSize"                 Value="14"/>
+        <Setter Property="BorderThickness"          Value="1"/>
+        <Setter Property="Padding"                  Value="10 8"/>
+        <Setter Property="FontSize"                 Value="13"/>
         <Setter Property="CaretBrush"               Value="{DynamicResource AccentBrush}"/>
         <Setter Property="SelectionBrush"           Value="#3300C9A7"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Height"                   Value="36"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="bdr"
+                            Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="bdr" Property="Background"  Value="#1000C9A7"/>
+                            <Setter TargetName="bdr" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#FF00C9A7" BlurRadius="10" ShadowDepth="0" Opacity="0.22"/>
+                                </Setter.Value>
+                            </Setter>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#0800C9A7"/>
+                            <Setter TargetName="bdr" Property="Background" Value="#0E00C9A7"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="bdr" Property="Opacity" Value="0.5"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -233,23 +245,23 @@
         <Setter Property="HorizontalGridLinesBrush" Value="Transparent"/>
         <Setter Property="VerticalGridLinesBrush"   Value="Transparent"/>
         <Setter Property="GridLinesVisibility"      Value="None"/>
-        <Setter Property="ColumnHeaderHeight"       Value="36"/>
-        <Setter Property="RowHeight"                Value="38"/>
+        <Setter Property="ColumnHeaderHeight"       Value="38"/>
+        <Setter Property="RowHeight"                Value="46"/>
         <Setter Property="FontSize"                 Value="13"/>
         <Setter Property="SelectionMode"            Value="Single"/>
     </Style>
 
     <Style TargetType="DataGridRow">
         <Setter Property="Background"      Value="Transparent"/>
-        <Setter Property="BorderBrush"     Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderBrush"     Value="#0C00C9A7"/>
+        <Setter Property="BorderThickness" Value="0 0 0 1"/>
         <Setter Property="Foreground"      Value="{DynamicResource TextPrimaryBrush}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource CardHighlightBrush}"/>
+                <Setter Property="Background" Value="#1000C9A7"/>
                 <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
             </Trigger>
         </Style.Triggers>
@@ -257,21 +269,22 @@
 
     <Style TargetType="DataGridColumnHeader">
         <Setter Property="Background"      Value="{DynamicResource CardBackgroundBrush}"/>
-        <Setter Property="Foreground"      Value="{DynamicResource TextSecondaryBrush}"/>
-        <Setter Property="FontSize"        Value="11"/>
-        <Setter Property="FontWeight"      Value="SemiBold"/>
-        <Setter Property="Padding"         Value="12 10"/>
-        <Setter Property="BorderBrush"     Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource TextSoftBrush}"/>
+        <Setter Property="FontSize"        Value="10"/>
+        <Setter Property="FontWeight"      Value="Bold"/>
+        <Setter Property="Padding"         Value="14 10"/>
+        <Setter Property="BorderBrush"     Value="#1400C9A7"/>
         <Setter Property="BorderThickness" Value="0 0 0 1"/>
     </Style>
 
     <Style TargetType="DataGridCell">
-        <Setter Property="Padding"         Value="12 8"/>
+        <Setter Property="Padding"         Value="14 8"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="DataGridCell">
-                    <Border Background="{TemplateBinding Background}" BorderThickness="0">
+                    <Border Background="{TemplateBinding Background}" BorderThickness="0"
+                            Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center"/>
                     </Border>
                 </ControlTemplate>
@@ -596,30 +609,41 @@
 
     <!-- ── PasswordBox ── -->
     <Style TargetType="PasswordBox">
-        <Setter Property="Background"               Value="Transparent"/>
+        <Setter Property="Background"               Value="#0C0E1420"/>
         <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="BorderBrush"              Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="BorderThickness"          Value="0 0 0 1"/>
-        <Setter Property="Padding"                  Value="4 8"/>
-        <Setter Property="FontSize"                 Value="14"/>
+        <Setter Property="BorderThickness"          Value="1"/>
+        <Setter Property="Padding"                  Value="10 8"/>
+        <Setter Property="FontSize"                 Value="13"/>
         <Setter Property="CaretBrush"               Value="{DynamicResource AccentBrush}"/>
         <Setter Property="SelectionBrush"           Value="#3300C9A7"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Height"                   Value="36"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="PasswordBox">
                     <Border x:Name="bdr"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="bdr" Property="Background"  Value="#1000C9A7"/>
+                            <Setter TargetName="bdr" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="#FF00C9A7" BlurRadius="10" ShadowDepth="0" Opacity="0.22"/>
+                                </Setter.Value>
+                            </Setter>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bdr" Property="Background" Value="#0800C9A7"/>
+                            <Setter TargetName="bdr" Property="Background" Value="#0E00C9A7"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="bdr" Property="Opacity" Value="0.5"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -880,10 +904,10 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="Background"      Value="{DynamicResource CardBackgroundBrush}"/>
-        <Setter Property="Padding"         Value="16"/>
+        <Setter Property="Padding"         Value="18 16"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="Black" BlurRadius="14" ShadowDepth="2" Opacity="0.22"/>
+                <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="2" Opacity="0.28"/>
             </Setter.Value>
         </Setter>
     </Style>
@@ -894,7 +918,84 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="Background"      Value="{DynamicResource CardBackgroundBrush}"/>
-        <Setter Property="Padding"         Value="18"/>
+        <Setter Property="Padding"         Value="20"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="Black" BlurRadius="14" ShadowDepth="1" Opacity="0.16"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ── Elevated Card ── -->
+    <Style x:Key="ElevatedCardStyle" TargetType="Border">
+        <Setter Property="CornerRadius"    Value="12"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
+        <Setter Property="Background"      Value="{DynamicResource CardHighlightBrush}"/>
+        <Setter Property="Padding"         Value="20"/>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#FF00C9A7" BlurRadius="24" ShadowDepth="0" Opacity="0.14"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ── Metric Value TextBlock ── -->
+    <Style x:Key="MetricValueStyle" TargetType="TextBlock">
+        <Setter Property="Foreground"     Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="FontSize"       Value="28"/>
+        <Setter Property="FontWeight"     Value="Bold"/>
+    </Style>
+
+    <!-- ── Metric Label TextBlock ── -->
+    <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
+        <Setter Property="Foreground"     Value="{DynamicResource TextSoftBrush}"/>
+        <Setter Property="FontSize"       Value="10"/>
+        <Setter Property="FontWeight"     Value="Bold"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    </Style>
+
+    <!-- ── Input Label ── -->
+    <Style x:Key="InputLabelStyle" TargetType="TextBlock">
+        <Setter Property="Foreground"  Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="FontSize"    Value="11"/>
+        <Setter Property="FontWeight"  Value="Bold"/>
+        <Setter Property="Margin"      Value="0 0 0 5"/>
+    </Style>
+
+    <!-- ── Accent Tag / Badge ── -->
+    <Style x:Key="AccentTagStyle" TargetType="Border">
+        <Setter Property="CornerRadius"    Value="6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="#2200C9A7"/>
+        <Setter Property="Background"      Value="#1400C9A7"/>
+        <Setter Property="Padding"         Value="8 3"/>
+    </Style>
+
+    <!-- ── Success Tag ── -->
+    <Style x:Key="SuccessTagStyle" TargetType="Border">
+        <Setter Property="CornerRadius"    Value="6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="#2222C55E"/>
+        <Setter Property="Background"      Value="#1222C55E"/>
+        <Setter Property="Padding"         Value="8 3"/>
+    </Style>
+
+    <!-- ── Warning Tag ── -->
+    <Style x:Key="WarningTagStyle" TargetType="Border">
+        <Setter Property="CornerRadius"    Value="6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="#22F59E0B"/>
+        <Setter Property="Background"      Value="#12F59E0B"/>
+        <Setter Property="Padding"         Value="8 3"/>
+    </Style>
+
+    <!-- ── Toolbar-strip container ── -->
+    <Style x:Key="ToolbarStripStyle" TargetType="Border">
+        <Setter Property="Background"      Value="{DynamicResource CardBackgroundBrush}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0 0 0 1"/>
+        <Setter Property="Padding"         Value="14 10"/>
     </Style>
 
     <!-- ── Danger Button ── -->

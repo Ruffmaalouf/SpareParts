@@ -49,19 +49,19 @@ function createStyles(palette) {
     backgroundColor: palette.bg
   },
   smartSearchInputRow: {
-    minHeight: 52,
+    minHeight: 54,
     flexDirection: "row",
     alignItems: "center",
-    gap: 9,
-    borderRadius: 5,
+    gap: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: palette.accent,
     backgroundColor: palette.surface,
-    paddingHorizontal: 10,
-    shadowColor: "#000000",
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
+    paddingHorizontal: 12,
+    shadowColor: palette.accent,
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
     elevation: 10
   },
   smartSearchMark: {
@@ -178,16 +178,21 @@ function createStyles(palette) {
     textAlign: "right"
   },
   topBar: {
-    minHeight: 62,
+    minHeight: 64,
     flexShrink: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: palette.line,
-    backgroundColor: palette.bg
+    backgroundColor: palette.bg,
+    shadowColor: "#000000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4
   },
   menuButton: {
     minWidth: 68,
@@ -583,13 +588,18 @@ function createStyles(palette) {
     minWidth: 0
   },
   loginPanel: {
-    padding: 18,
-    borderRadius: 9,
+    padding: 20,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-    backgroundColor: "rgba(9,10,14,0.86)",
-    gap: 13,
-    overflow: "hidden"
+    borderColor: "rgba(255,255,255,0.16)",
+    borderTopColor: "rgba(255,255,255,0.22)",
+    backgroundColor: "rgba(7,9,14,0.90)",
+    gap: 14,
+    overflow: "hidden",
+    shadowColor: "#000000",
+    shadowOpacity: 0.4,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 12 }
   },
   loginPanelKeyboard: {
     padding: 14,
@@ -842,44 +852,46 @@ function createStyles(palette) {
     color: palette.text
   },
   bottomTabBar: {
-    height: 92,
+    height: 86,
     flexShrink: 0,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "stretch",
     justifyContent: "space-between",
-    gap: 6,
-    paddingHorizontal: 8,
-    paddingTop: 8,
-    paddingBottom: 10,
+    gap: 0,
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 8,
     borderTopWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.sidebar,
-    elevation: 20,
+    elevation: 24,
     shadowColor: "#000000",
-    shadowOpacity: 0.32,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: -4 }
+    shadowOpacity: 0.38,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -6 }
   },
   bottomTabButton: {
     flex: 1,
     minWidth: 0,
-    minHeight: 70,
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
-    borderRadius: 8,
+    gap: 3,
+    borderRadius: 10,
     backgroundColor: "transparent",
-    paddingHorizontal: 4
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    marginHorizontal: 2
   },
   bottomTabButtonActive: {
-    backgroundColor: "transparent"
+    backgroundColor: palette.surface2
   },
   bottomTabMark: {
-    width: 42,
+    width: 48,
     height: 34,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
+    borderRadius: 8
   },
   bottomTabMarkActive: {
     backgroundColor: "transparent"
@@ -890,17 +902,19 @@ function createStyles(palette) {
     fontWeight: "900"
   },
   bottomTabMarkTextActive: {
-    color: palette.text
+    color: palette.accent
   },
   bottomTabLabel: {
     maxWidth: "100%",
     color: palette.muted,
     fontSize: 10,
     fontWeight: "800",
-    textAlign: "center"
+    textAlign: "center",
+    letterSpacing: 0.2
   },
   bottomTabLabelActive: {
-    color: palette.accent
+    color: palette.accent,
+    fontWeight: "900"
   },
   bottomTabDescription: {
     maxWidth: "100%",
@@ -910,7 +924,7 @@ function createStyles(palette) {
     textAlign: "center"
   },
   bottomTabDescriptionActive: {
-    color: palette.text
+    color: palette.muted
   },
   bottomIconBox: {
     width: 24,
@@ -1222,8 +1236,9 @@ function createStyles(palette) {
   },
   screenTitle: {
     color: palette.text,
-    fontSize: 28,
-    fontWeight: "900"
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: -0.6
   },
   headerAction: {
     minWidth: 86,
@@ -1249,47 +1264,55 @@ function createStyles(palette) {
     fontWeight: "800"
   },
   input: {
-    minHeight: 44,
-    borderRadius: 5,
+    minHeight: 46,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
     color: palette.text,
-    paddingHorizontal: 12
+    paddingHorizontal: 14,
+    fontSize: 14
   },
   statusText: {
     color: palette.muted,
     fontSize: 12
   },
   primaryButton: {
-    minHeight: 46,
+    minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 5,
+    borderRadius: 8,
     backgroundColor: palette.accent,
-    paddingHorizontal: 14
+    paddingHorizontal: 18,
+    shadowColor: palette.accent,
+    shadowOpacity: 0.34,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6
   },
   compactButton: {
-    minHeight: 48
+    minHeight: 46
   },
   primaryButtonText: {
-    color: palette.text,
-    fontWeight: "900"
+    color: "#04080e",
+    fontWeight: "900",
+    fontSize: 14,
+    letterSpacing: 0.2
   },
   secondaryButton: {
-    minHeight: 38,
+    minHeight: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 5,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
-    paddingHorizontal: 12
+    paddingHorizontal: 14
   },
   secondaryButtonText: {
     color: palette.text,
     fontWeight: "800",
-    fontSize: 12
+    fontSize: 13
   },
   disabledButton: {
     opacity: 0.55
@@ -1301,29 +1324,40 @@ function createStyles(palette) {
   },
   metricTile: {
     width: "48%",
-    minHeight: 82,
-    borderRadius: 8,
+    minHeight: 92,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
-    padding: 12,
-    justifyContent: "space-between"
+    padding: 14,
+    justifyContent: "space-between",
+    shadowColor: "#000000",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4
   },
   metricLabel: {
-    color: palette.muted,
-    fontSize: 12,
-    fontWeight: "700"
+    color: palette.soft,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.6
   },
   metricValue: {
     color: palette.text,
-    fontSize: 17,
-    fontWeight: "900"
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+    marginTop: 4
   },
   metricAction: {
     color: palette.accent,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "900",
-    marginTop: 8
+    marginTop: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.4
   },
   dashboardActionGrid: {
     flexDirection: "row",
@@ -1332,48 +1366,65 @@ function createStyles(palette) {
   },
   dashboardActionButton: {
     width: "48%",
-    minHeight: 112,
+    minHeight: 120,
     justifyContent: "space-between",
     gap: 7,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
-    padding: 12
+    padding: 14,
+    shadowColor: "#000000",
+    shadowOpacity: 0.14,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3
   },
   dashboardActionButtonFeatured: {
     borderColor: palette.accent,
-    backgroundColor: palette.surface
+    backgroundColor: palette.surface,
+    shadowColor: palette.accent,
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 5
   },
   dashboardActionBadge: {
     alignSelf: "flex-start",
     color: palette.accent,
     fontSize: 10,
     fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    letterSpacing: 0.6
   },
   dashboardActionTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900"
+    fontWeight: "900",
+    letterSpacing: -0.2
   },
   dashboardActionSubtitle: {
     color: palette.muted,
     fontSize: 12,
-    lineHeight: 17
+    lineHeight: 18
   },
   panel: {
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
-    padding: 14,
-    gap: 10
+    padding: 16,
+    gap: 12,
+    shadowColor: "#000000",
+    shadowOpacity: 0.14,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3
   },
   panelTitle: {
     color: palette.text,
-    fontSize: 18,
-    fontWeight: "900"
+    fontSize: 17,
+    fontWeight: "900",
+    letterSpacing: -0.3
   },
   listRow: {
     flexDirection: "row",

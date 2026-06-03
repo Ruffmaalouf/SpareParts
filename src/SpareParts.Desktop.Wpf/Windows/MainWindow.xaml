@@ -117,7 +117,7 @@
                                 <DockPanel>
                                     <Button DockPanel.Dock="Right" Content="＋  New Invoice"
                                             Command="{Binding CreateInvoiceCommand}"
-                                            Style="{StaticResource TopBarPrimaryStyle}"
+                                            Style="{DynamicResource TopBarPrimaryStyle}"
                                             Visibility="{Binding CanCreateInvoice, Converter={StaticResource BoolToVis}}"
                                             Height="36" Padding="14 4" Margin="0 0 0 0"
                                             VerticalAlignment="Center"/>
