@@ -816,7 +816,6 @@
         <Setter Property="Foreground"      Value="#22C55E"/>
         <Setter Property="FontSize"        Value="10"/>
         <Setter Property="FontWeight"      Value="Bold"/>
-        <Setter Property="TextTransform"   Value="Uppercase"/>
     </Style>
 
     <Style x:Key="BadgeTextReservedStyle" TargetType="TextBlock">
@@ -855,7 +854,6 @@
         <Setter Property="FontSize"        Value="11"/>
         <Setter Property="FontWeight"      Value="Bold"/>
         <Setter Property="Foreground"      Value="{DynamicResource TextSecondaryBrush}"/>
-        <Setter Property="TextTransform"   Value="Uppercase"/>
     </Style>
 
     <Style x:Key="MutedTextStyle" TargetType="TextBlock">

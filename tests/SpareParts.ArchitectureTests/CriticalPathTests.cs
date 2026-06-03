@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -460,6 +461,7 @@ public class CriticalPathTests
 
         public FakeDbConnection(IDbTransaction transaction) => _transaction = transaction;
 
+        [AllowNull]
         public string ConnectionString { get; set; } = string.Empty;
         public int ConnectionTimeout => 0;
         public string Database => "test";
@@ -490,6 +492,7 @@ public class CriticalPathTests
     {
         public string NextSalesNumber() => salesNumber;
         public string NextPurchaseNumber() => purchaseNumber;
+        public string NextUsedCarPurchaseNumber() => purchaseNumber;
     }
 
     private sealed class AlwaysDuplicateSalesRepository : ISalesRepository
