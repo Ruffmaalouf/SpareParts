@@ -2276,6 +2276,11 @@ BEGIN
     ALTER TABLE dbo.UsedCarPurchaseLines ADD CounterAmount DECIMAL(19, 4) NULL;
 END;
 
+IF COL_LENGTH('dbo.UsedCarPurchaseLines', 'DetailKey') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCarPurchaseLines ADD DetailKey NVARCHAR(80) NULL;
+END;
+
 IF NOT EXISTS (
     SELECT 1
     FROM sys.indexes
@@ -2603,7 +2608,7 @@ BEGIN
         ItemType NVARCHAR(40) NOT NULL,
         PartId INT NULL,
         AccountId INT NULL,
-        DetailKey NVARCHAR(80) NULL,
+        DetailKey NVARCHAR(80) NULL, -- backfilled by ADD COLUMN guard below if table pre-existed
         Description NVARCHAR(160) NULL,
         Quantity DECIMAL(19, 4) NULL,
         UnitPrice DECIMAL(19, 4) NULL,
@@ -2623,6 +2628,11 @@ BEGIN
         ModifiedByUserId INT NULL,
         CONSTRAINT FK_TransactionItems_Transactions FOREIGN KEY (TransactionId) REFERENCES dbo.Transactions(Id) ON DELETE CASCADE
     );
+END;
+
+IF COL_LENGTH('dbo.TransactionItems', 'DetailKey') IS NULL
+BEGIN
+    ALTER TABLE dbo.TransactionItems ADD DetailKey NVARCHAR(80) NULL;
 END;
 
 IF NOT EXISTS
