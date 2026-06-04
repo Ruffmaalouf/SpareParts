@@ -425,12 +425,39 @@ GO
 -- ── AccountingPostingRoles ────────────────────────────────────────────────────
 IF OBJECT_ID('dbo.AccountingPostingRoles', 'U') IS NULL
 CREATE TABLE dbo.AccountingPostingRoles (
-    RoleKey     NVARCHAR(50)  NOT NULL PRIMARY KEY,
+    RoleKey     NVARCHAR(80)  NOT NULL PRIMARY KEY,
     Label       NVARCHAR(120) NOT NULL,
     Description NVARCHAR(500) NULL,
     SortOrder   INT           NOT NULL DEFAULT 0,
     IsActive    BIT           NOT NULL DEFAULT 1
 );
+GO
+
+-- Resize RoleKey from NVARCHAR(50) to NVARCHAR(80) on existing databases
+IF COL_LENGTH('dbo.AccountingPostingRoles', 'RoleKey') IS NOT NULL
+   AND COLUMNPROPERTY(OBJECT_ID('dbo.AccountingPostingRoles'), 'RoleKey', 'CharMaxLen') < 80
+BEGIN
+    -- Drop FK that references this PK
+    IF OBJECT_ID('dbo.FK_AccountingPostingSettings_Roles', 'F') IS NOT NULL
+        ALTER TABLE dbo.AccountingPostingSettings DROP CONSTRAINT FK_AccountingPostingSettings_Roles;
+
+    -- Drop existing PK (name may be auto-generated)
+    DECLARE @pkName NVARCHAR(256);
+    SELECT @pkName = kc.name
+    FROM   sys.key_constraints kc
+    JOIN   sys.tables t ON t.object_id = kc.parent_object_id
+    WHERE  t.name = 'AccountingPostingRoles'
+      AND  kc.type = 'PK';
+    IF @pkName IS NOT NULL
+        EXEC('ALTER TABLE dbo.AccountingPostingRoles DROP CONSTRAINT [' + @pkName + ']');
+
+    ALTER TABLE dbo.AccountingPostingRoles ALTER COLUMN RoleKey NVARCHAR(80) NOT NULL;
+    ALTER TABLE dbo.AccountingPostingRoles ADD CONSTRAINT PK_AccountingPostingRoles PRIMARY KEY (RoleKey);
+
+    -- Re-add FK
+    ALTER TABLE dbo.AccountingPostingSettings ADD CONSTRAINT FK_AccountingPostingSettings_Roles
+        FOREIGN KEY (RoleKey) REFERENCES dbo.AccountingPostingRoles(RoleKey);
+END;
 GO
 
 -- ── JournalEntries ────────────────────────────────────────────────────────────
