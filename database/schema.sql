@@ -17,7 +17,7 @@ CREATE TABLE dbo.AppConstants (
     [Key]         NVARCHAR(255) NOT NULL PRIMARY KEY,
     [Value]       NVARCHAR(MAX) NOT NULL,
     [Description] NVARCHAR(MAX) NULL,
-    UpdatedAt     DATETIME2     NOT NULL
+    UpdatedAt     DATETIME2     NOT NULL CONSTRAINT DF_AppConstants_UpdatedAt DEFAULT SYSUTCDATETIME()
 );
 GO
 
