@@ -355,7 +355,7 @@ CREATE TABLE dbo.Accounts (
     Code              NVARCHAR(20)  NOT NULL,
     Name              NVARCHAR(160) NOT NULL,
     AccountType       NVARCHAR(50)  NULL,
-    AccountTypeKey    NVARCHAR(50)  NULL,
+    AccountTypeKey    NVARCHAR(40)  NULL,
     ParentId          INT           NULL,
     CreatedAt         DATETIME2     NOT NULL,
     ModifiedAt        DATETIME2     NULL,
@@ -367,12 +367,49 @@ GO
 -- ── AccountingAccountTypes ────────────────────────────────────────────────────
 IF OBJECT_ID('dbo.AccountingAccountTypes', 'U') IS NULL
 CREATE TABLE dbo.AccountingAccountTypes (
-    TypeKey     NVARCHAR(50)  NOT NULL PRIMARY KEY,
+    TypeKey     NVARCHAR(40)  NOT NULL PRIMARY KEY,
     Label       NVARCHAR(120) NOT NULL,
     Description NVARCHAR(500) NULL,
     SortOrder   INT           NOT NULL DEFAULT 0,
     IsActive    BIT           NOT NULL DEFAULT 1
 );
+GO
+
+-- Resize AccountingAccountTypes.TypeKey from NVARCHAR(50) to NVARCHAR(40) on
+-- existing DBs so it matches what AccountingMigration expects for the FK.
+-- Only runs if no FK already references this column (safe resize window).
+IF OBJECT_ID('dbo.AccountingAccountTypes', 'U') IS NOT NULL
+   AND EXISTS (
+       SELECT 1 FROM sys.columns
+       WHERE object_id = OBJECT_ID('dbo.AccountingAccountTypes')
+         AND name = 'TypeKey' AND max_length = 100  -- NVARCHAR(50) = 100 bytes
+   )
+   AND NOT EXISTS (
+       SELECT 1 FROM sys.foreign_keys
+       WHERE referenced_object_id = OBJECT_ID('dbo.AccountingAccountTypes')
+   )
+BEGIN
+    DECLARE @pkName NVARCHAR(200);
+    SELECT @pkName = name FROM sys.key_constraints
+    WHERE parent_object_id = OBJECT_ID('dbo.AccountingAccountTypes') AND type = 'PK';
+    EXEC('ALTER TABLE dbo.AccountingAccountTypes DROP CONSTRAINT [' + @pkName + ']');
+    ALTER TABLE dbo.AccountingAccountTypes ALTER COLUMN TypeKey NVARCHAR(40) NOT NULL;
+    ALTER TABLE dbo.AccountingAccountTypes ADD CONSTRAINT PK_AccountingAccountTypes PRIMARY KEY CLUSTERED (TypeKey);
+END
+GO
+
+-- Resize Accounts.AccountTypeKey from NVARCHAR(50) to NVARCHAR(40) on existing
+-- DBs that were created before this fix (no-op if already NVARCHAR(40)).
+IF OBJECT_ID('dbo.Accounts', 'U') IS NOT NULL
+   AND EXISTS (
+       SELECT 1 FROM sys.columns
+       WHERE object_id = OBJECT_ID('dbo.Accounts')
+         AND name = 'AccountTypeKey' AND max_length = 100  -- NVARCHAR(50)
+   )
+   AND NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Accounts_AccountTypeKey')
+BEGIN
+    ALTER TABLE dbo.Accounts ALTER COLUMN AccountTypeKey NVARCHAR(40) NULL;
+END
 GO
 
 -- ── AccountingPostingSettings ─────────────────────────────────────────────────
@@ -618,14 +655,3 @@ IF NOT EXISTS (SELECT 1 FROM dbo.AccountingAccountTypes WHERE TypeKey = 'income'
     VALUES ('income', 'Income', 'Revenue and income accounts.', 40, 1);
 GO
 
--- Pre-create FK so AccountingMigration cannot resize AccountTypeKey to NVARCHAR(40)
--- (migration expects NVARCHAR(40) on both sides; schema creates NVARCHAR(50);
---  adding the FK here causes the migration's ALTER COLUMN to fail silently,
---  keeping both columns at NVARCHAR(50) and matching each other for the FK.)
-IF OBJECT_ID('dbo.Accounts', 'U') IS NOT NULL
-   AND OBJECT_ID('dbo.AccountingAccountTypes', 'U') IS NOT NULL
-   AND NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Accounts_AccountTypeKey')
-    ALTER TABLE dbo.Accounts WITH NOCHECK
-    ADD CONSTRAINT FK_Accounts_AccountTypeKey
-        FOREIGN KEY (AccountTypeKey) REFERENCES dbo.AccountingAccountTypes(TypeKey);
-GO
