@@ -366,43 +366,6 @@ public static class SparePartsApiComposition
 
     public static void UseSparePartsApiPipeline(this WebApplication app)
     {
-        var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
-        InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
-        AccountingMigration.EnsureApplied(sqlConnectionFactory);
-        WebAppUserRoleMigration.EnsureApplied(sqlConnectionFactory);
-        UserRoleIdMigration.EnsureApplied(sqlConnectionFactory);
-        MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
-        TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
-        PartAveragePriceMigration.EnsureApplied(sqlConnectionFactory);
-        PartUsedCarMigration.EnsureApplied(sqlConnectionFactory);
-        CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);
-        AppConstantsMigration.EnsureApplied(sqlConnectionFactory);
-        CarModelsMigration.EnsureApplied(sqlConnectionFactory);
-        LocationsMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarPartPricingMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarWholesaleSalesMigration.EnsureApplied(sqlConnectionFactory);
-        TransactionsMigration.EnsureApplied(sqlConnectionFactory);
-        AccountingCurrencyRateRepairMigration.EnsureApplied(sqlConnectionFactory);
-        BarcodeScanningMigration.EnsureApplied(sqlConnectionFactory);
-        PartRequestsMigration.EnsureApplied(sqlConnectionFactory);
-        PartUsedCarStockMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
-        CommunicationsMigration.EnsureApplied(sqlConnectionFactory);
-        WhatsAppCampaignsMigration.EnsureApplied(sqlConnectionFactory);
-        ReportBuilderLinksMigration.EnsureApplied(sqlConnectionFactory);
-        ReportBuilderAdvancedMigration.EnsureApplied(sqlConnectionFactory);
-        ReorderRulesMigration.EnsureApplied(sqlConnectionFactory);
-        PartSubstitutesMigration.EnsureApplied(sqlConnectionFactory);
-        PartExpiryMigration.EnsureApplied(sqlConnectionFactory);
-        CustomerLoyaltyMigration.EnsureApplied(sqlConnectionFactory);
-        CustomerPriceTierMigration.EnsureApplied(sqlConnectionFactory);
-        WarrantyClaimsMigration.EnsureApplied(sqlConnectionFactory);
-        SupplierPriceHistoryMigration.EnsureApplied(sqlConnectionFactory);
-        ShipmentsMigration.EnsureApplied(sqlConnectionFactory);
-        ActivityLogMigration.EnsureApplied(sqlConnectionFactory);
-
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
         app.UseRateLimiter();
