@@ -530,9 +530,11 @@ CREATE TABLE dbo.OutboundMessages (
 GO
 
 -- ── Seed: Roles ───────────────────────────────────────────────────────────────
+SET IDENTITY_INSERT dbo.Roles ON;
 IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE Id = 1)
     INSERT INTO dbo.Roles (Id, Name, IsActive, CreatedAt)
     VALUES (1, 'Admin', 1, SYSUTCDATETIME());
+SET IDENTITY_INSERT dbo.Roles OFF;
 GO
 
 -- ── Seed: Default admin user (password: Admin@1234) ──────────────────────────
