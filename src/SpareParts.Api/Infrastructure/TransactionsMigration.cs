@@ -11,6 +11,14 @@ public static class TransactionsMigration
 
         conn.Execute(
             @"
+IF OBJECT_ID('dbo.TransactionItems', 'U') IS NOT NULL
+   AND COL_LENGTH('dbo.TransactionItems', 'DetailKey') IS NULL
+BEGIN
+    ALTER TABLE dbo.TransactionItems ADD DetailKey NVARCHAR(80) NULL;
+END;");
+
+        conn.Execute(
+            @"
 IF COL_LENGTH('dbo.TransactionTypes', 'TypeKey') IS NULL
 BEGIN
     ALTER TABLE dbo.TransactionTypes ADD TypeKey NVARCHAR(80) NULL;

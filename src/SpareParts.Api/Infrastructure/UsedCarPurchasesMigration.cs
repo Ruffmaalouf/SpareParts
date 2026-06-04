@@ -135,6 +135,11 @@ BEGIN
     ALTER TABLE dbo.UsedCarPurchaseLines ADD CounterAmount DECIMAL(19, 4) NULL;
 END;
 
+IF COL_LENGTH('dbo.UsedCarPurchaseLines', 'DetailKey') IS NULL
+BEGIN
+    ALTER TABLE dbo.UsedCarPurchaseLines ADD DetailKey NVARCHAR(80) NULL;
+END;
+
 IF NOT EXISTS (
     SELECT 1
     FROM sys.indexes

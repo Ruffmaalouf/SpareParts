@@ -2639,6 +2639,7 @@ IF COL_LENGTH('dbo.TransactionItems', 'DetailKey') IS NULL
 BEGIN
     ALTER TABLE dbo.TransactionItems ADD DetailKey NVARCHAR(80) NULL;
 END;
+GO
 
 IF NOT EXISTS
 (
