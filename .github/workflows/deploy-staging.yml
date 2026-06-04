@@ -198,7 +198,7 @@ jobs:
           fi
           echo "Applying schema..."
           sqlcmd -S "$SQL_HOST" -d "${{ env.SQL_DB_NAME }}" -U "${{ env.SQL_ADMIN_USER }}" -P "$SQL_PASS" \
-            -i database/schema.sql -C -b
+            -i database/schema.sql -C -b -I
           echo "Schema applied."
 
       - name: Configure API app settings

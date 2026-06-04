@@ -3,6 +3,7 @@
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+SET QUOTED_IDENTIFIER ON;
 GO
 
 -- ── Table-Valued Parameter type ───────────────────────────────────────────────
