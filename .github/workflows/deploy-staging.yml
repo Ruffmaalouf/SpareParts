@@ -83,7 +83,7 @@ jobs:
               exit 1
             fi
           else
-            REGION=$(az appservice plan show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --query location -o tsv)
+            REGION=$(az appservice plan show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --query location -o tsv | tr '[:upper:]' '[:lower:]' | tr -d ' ')
             echo "DEPLOY_REGION=$REGION" >> $GITHUB_ENV
           fi
 
