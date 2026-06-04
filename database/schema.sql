@@ -542,7 +542,7 @@ GO
 IF NOT EXISTS (SELECT 1 FROM dbo.Users WHERE Username = 'admin')
     INSERT INTO dbo.Users (Username, FullName, Email, PasswordHash, RoleId, IsActive, CreatedAt)
     VALUES ('admin', 'Administrator', 'admin@spareparts.local',
-            '$2a$11$K5rWqnYMiJl9JJuJvM9TXOtWMFqB4Y7kL2nP1dXz3qR8s6vN7mU8G',
+            '$2b$11$32KjpgtHeSQmaygaD8nLu.nXbtbFrTntkIdr1oorKUy4sGQkNmruO',
             1, 1, SYSUTCDATETIME());
 GO
 
