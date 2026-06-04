@@ -142,6 +142,28 @@ jobs:
               --output none
           fi
 
+      - name: Run database schema
+        run: |
+          echo "Installing sqlcmd..."
+          curl -s https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add - 2>/dev/null || true
+          curl -s https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update -qq
+          ACCEPT_EULA=Y sudo apt-get install -y -qq mssql-tools18 unixodbc-dev
+          export PATH="$PATH:/opt/mssql-tools18/bin"
+          SQL_PASS="${{ steps.sql_pass.outputs.password }}"
+          SQL_HOST="${{ env.SQL_SERVER_NAME }}.database.windows.net"
+          echo "Waiting for SQL to be reachable..."
+          for i in $(seq 1 12); do
+            sleep 15
+            sqlcmd -S "$SQL_HOST" -d "${{ env.SQL_DB_NAME }}" -U "${{ env.SQL_ADMIN_USER }}" -P "$SQL_PASS" \
+              -Q "SELECT 1" -C -l 30 2>/dev/null && break
+            echo "Attempt $i: SQL not ready yet..."
+          done
+          echo "Applying schema..."
+          sqlcmd -S "$SQL_HOST" -d "${{ env.SQL_DB_NAME }}" -U "${{ env.SQL_ADMIN_USER }}" -P "$SQL_PASS" \
+            -i database/schema.sql -C -b
+          echo "Schema applied."
+
       - name: Configure API app settings
         run: |
           JWT_SECRET=$(openssl rand -base64 48)
