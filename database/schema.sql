@@ -1635,6 +1635,11 @@ BEGIN
     );
 END;
 
+IF COL_LENGTH('dbo.RoleMenuAccess', 'ModifiedAt') IS NULL
+BEGIN
+    ALTER TABLE dbo.RoleMenuAccess ADD ModifiedAt DATETIME2 NULL;
+END;
+
 MERGE dbo.AppMenus AS target
 USING (VALUES
     ('home_screen', 'Home Screen', 5),
