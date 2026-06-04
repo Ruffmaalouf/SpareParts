@@ -21,6 +21,16 @@ CREATE TABLE dbo.AppConstants (
 );
 GO
 
+-- Backfill DEFAULT on UpdatedAt for existing databases that lack it
+IF NOT EXISTS (
+    SELECT 1 FROM sys.default_constraints dc
+    JOIN sys.columns c ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id
+    WHERE OBJECT_NAME(dc.parent_object_id) = 'AppConstants' AND c.name = 'UpdatedAt'
+)
+    ALTER TABLE dbo.AppConstants
+        ADD CONSTRAINT DF_AppConstants_UpdatedAt DEFAULT SYSUTCDATETIME() FOR UpdatedAt;
+GO
+
 -- ── Brands ────────────────────────────────────────────────────────────────────
 IF OBJECT_ID('dbo.Brands', 'U') IS NULL
 CREATE TABLE dbo.Brands (
