@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Reports;
 using SpareParts.Infrastructure.Services;
 
@@ -7,7 +8,7 @@ namespace SpareParts.Api.Controllers;
 
 [ApiController]
 [Route("api/reportbuilder")]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
 public sealed class ReportBuilderController : SparePartsControllerBase
 {
     private readonly ReportBuilderService _service;
@@ -77,13 +78,15 @@ public sealed class ReportBuilderController : SparePartsControllerBase
         => Ok(_service.GetBackgroundRunResult(id, CurrentUserId, CurrentRoleId));
 
     [HttpPost("links")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
     public ActionResult<ReportTableLinkDto> SaveLink([FromBody] SaveReportTableLinkRequest request)
-        => Ok(_service.SaveLink(request));
+        => Ok(_service.SaveLink(request, CurrentRoleId));
 
     [HttpDelete("links/{id:int}")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
     public IActionResult DeleteLink(int id)
     {
-        _service.DeleteLink(id);
+        _service.DeleteLink(id, CurrentRoleId);
         return NoContent();
     }
 

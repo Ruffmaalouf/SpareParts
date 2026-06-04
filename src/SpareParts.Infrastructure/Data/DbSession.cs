@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics;
 
 namespace SpareParts.Infrastructure.Data
 {
@@ -32,7 +33,16 @@ namespace SpareParts.Infrastructure.Data
         {
             if (!_committed)
             {
-                try { Transaction.Rollback(); } catch { }
+                try
+                {
+                    Transaction.Rollback();
+                }
+                catch (Exception ex)
+                {
+                    // Rollback on an already-closed connection is expected and harmless.
+                    // Any other failure is surfaced so it is visible in diagnostic logs.
+                    Trace.TraceError($"DbSession rollback failed during dispose: {ex}");
+                }
             }
 
             Transaction.Dispose();

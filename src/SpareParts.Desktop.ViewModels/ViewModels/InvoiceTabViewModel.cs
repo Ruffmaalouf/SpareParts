@@ -273,10 +273,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private bool _isSynchronizingSelection;
         private readonly Dictionary<string, decimal> _currencyRatesByCode = new(StringComparer.OrdinalIgnoreCase);
 
-        public ICommand AddItemCommand      { get; }
-        public ICommand SubmitSaleCommand   { get; }
-        public ICommand EditInvoiceCommand  { get; }
-        public ICommand SaveInvoiceCommand  { get; }
+        public ICommand AddItemCommand { get; }
+        public ICommand SubmitSaleCommand { get; }
+        public ICommand EditInvoiceCommand { get; }
+        public ICommand SaveInvoiceCommand { get; }
         public ICommand ResetInvoiceCommand { get; }
         public ICommand IssueSalePaymentCommand { get; }
         public ICommand SendWhatsAppInvoiceCommand { get; }
@@ -286,10 +286,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             _salesApi = salesApi;
             _crudApi = crudApi;
-            AddItemCommand      = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand   = new RelayCommand(_ => SubmitSaleAsync().SafeFireAndForget(HandleBackgroundException));
-            EditInvoiceCommand  = new RelayCommand(_ => BeginEditMode());
-            SaveInvoiceCommand  = new RelayCommand(_ => SaveEditsAsync().SafeFireAndForget(HandleBackgroundException));
+            AddItemCommand = new RelayCommand(_ => AddItem());
+            SubmitSaleCommand = new RelayCommand(_ => SubmitSaleAsync().SafeFireAndForget(HandleBackgroundException));
+            EditInvoiceCommand = new RelayCommand(_ => BeginEditMode());
+            SaveInvoiceCommand = new RelayCommand(_ => SaveEditsAsync().SafeFireAndForget(HandleBackgroundException));
             ResetInvoiceCommand = new RelayCommand(_ => ResetEdits());
             IssueSalePaymentCommand = new RelayCommand(_ => IssueSalePaymentAsync().SafeFireAndForget(HandleBackgroundException));
             SendWhatsAppInvoiceCommand = new RelayCommand(_ =>
@@ -525,16 +525,16 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             Items.Add(new PosItemViewModel
             {
-                PartId      = NewPartId.Value,
+                PartId = NewPartId.Value,
                 Description = NewPartDescription,
-                Quantity    = NewQuantity,
-                UnitPrice   = NewUnitPrice,
-                BaseAmount  = NewQuantity * NewUnitPrice * SelectedCounterRate
+                Quantity = NewQuantity,
+                UnitPrice = NewUnitPrice,
+                BaseAmount = NewQuantity * NewUnitPrice * SelectedCounterRate
             });
 
-            NewPartId          = null;
-            NewQuantity        = 1;
-            NewUnitPrice       = 0;
+            NewPartId = null;
+            NewQuantity = 1;
+            NewUnitPrice = 0;
             NewPartDescription = string.Empty;
 
             RaiseTotalsChanged();
@@ -906,18 +906,18 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 _isSubmitting = true;
                 var req = new CreateSaleRequest
                 {
-                    InvoiceDate   = InvoiceDate,
-                    CustomerId    = CustomerId,
-                    WarehouseId   = WarehouseId.Value,
+                    InvoiceDate = InvoiceDate,
+                    CustomerId = CustomerId,
+                    WarehouseId = WarehouseId.Value,
                     PaymentMethod = "Cash",
-                    PaidAmount    = PaidAmount,
-                    Items         = Items.Select(i => new SaleItemDto
+                    PaidAmount = PaidAmount,
+                    Items = Items.Select(i => new SaleItemDto
                     {
-                        PartId         = i.PartId,
-                        Quantity       = i.Quantity,
-                        UnitPrice      = i.UnitPrice,
+                        PartId = i.PartId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
                         DiscountAmount = 0,
-                        TaxRate        = 0
+                        TaxRate = 0
                     }).ToList()
                 };
 

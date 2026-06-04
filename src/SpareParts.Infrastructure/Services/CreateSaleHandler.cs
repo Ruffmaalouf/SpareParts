@@ -151,9 +151,10 @@ namespace SpareParts.Infrastructure.Services
             foreach (var item in request.Items)
             {
                 var part = parts[item.PartId];
-                var baseLine = item.Quantity * item.UnitPrice;
-                var net = baseLine - item.DiscountAmount;
-                var tax = net * (item.TaxRate / 100m);
+                var baseLine = Round2(item.Quantity * item.UnitPrice);
+                var discount = Round2(item.DiscountAmount);
+                var net = baseLine - discount;
+                var tax = Round2(net * (item.TaxRate / 100m));
                 var lineTotal = net + tax;
 
                 items.Add(new SalesInvoiceItem
@@ -161,18 +162,21 @@ namespace SpareParts.Infrastructure.Services
                     PartId = item.PartId,
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice,
-                    DiscountAmount = item.DiscountAmount,
+                    DiscountAmount = discount,
                     TaxRate = item.TaxRate,
                     LineTotal = lineTotal,
                     CreatedAt = DateTime.UtcNow,
                     CreatedByUserId = userId
                 });
 
-                totalCost += part.CostPrice * item.Quantity;
+                totalCost += Round2(part.CostPrice * item.Quantity);
             }
 
             return (items, totalCost);
         }
+
+        private static decimal Round2(decimal value)
+            => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
 
         private void AdjustStockForSale(
             IInventoryRepository inventoryRepository,

@@ -1,0 +1,435 @@
+name: deploy-staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      reset_db:
+        description: 'Drop and recreate the staging database (wipes all data)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+env:
+  RESOURCE_GROUP: spareparts-rg
+  LOCATION: eastus
+  PLAN_NAME: spareparts-plan
+  API_APP_NAME: spareparts-api-ralph
+  WEB_APP_NAME: spareparts-web-ralph
+  SQL_SERVER_NAME: spareparts-sql-ralph
+  SQL_DB_NAME: SparePartsDb
+  SQL_ADMIN_USER: spadmin
+
+jobs:
+  provision:
+    name: Provision Azure Resources
+    runs-on: ubuntu-latest
+    outputs:
+      api_url: ${{ steps.urls.outputs.api_url }}
+      web_url: ${{ steps.urls.outputs.web_url }}
+      sql_password: ${{ steps.sql_pass.outputs.password }}
+      connection_string: ${{ steps.urls.outputs.connection_string }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Generate SQL password
+        id: sql_pass
+        run: |
+          PASS="SpareParts!$(shuf -i 100000-999999 -n 1)Rg$(openssl rand -hex 7)"
+          echo "password=$PASS" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$PASS"
+
+      - name: Set URL outputs
+        id: urls
+        run: |
+          echo "api_url=https://${{ env.API_APP_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
+          echo "web_url=https://${{ env.WEB_APP_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
+          PASS="${{ steps.sql_pass.outputs.password }}"
+          CS="Server=tcp:${{ env.SQL_SERVER_NAME }}.database.windows.net,1433;Initial Catalog=${{ env.SQL_DB_NAME }};Persist Security Info=False;User ID=${{ env.SQL_ADMIN_USER }};Password=${PASS};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          echo "connection_string=$CS" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$CS"
+
+      - name: Register required resource providers
+        run: |
+          az provider register --namespace Microsoft.Sql --wait --output none
+          az provider register --namespace Microsoft.Web --wait --output none
+
+      - name: Create resource group
+        run: |
+          az group create \
+            --name ${{ env.RESOURCE_GROUP }} \
+            --location ${{ env.LOCATION }} \
+            --output none
+
+      - name: Create App Service Plan (Free F1 - try multiple regions)
+        run: |
+          if ! az appservice plan show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.PLAN_NAME }} \
+               --output none 2>/dev/null; then
+            for REGION in westeurope northeurope eastus eastus2 westus2 centralus southeastasia; do
+              echo "Trying region: $REGION"
+              if az appservice plan create \
+                   --resource-group ${{ env.RESOURCE_GROUP }} \
+                   --name ${{ env.PLAN_NAME }} \
+                   --location $REGION \
+                   --sku B1 \
+                   --is-linux \
+                   --output none 2>/dev/null; then
+                echo "DEPLOY_REGION=$REGION" >> $GITHUB_ENV
+                echo "Plan created in $REGION"
+                break
+              fi
+              echo "Region $REGION failed, trying next..."
+            done
+            if ! az appservice plan show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --output none 2>/dev/null; then
+              echo "All regions failed — check subscription quota"
+              exit 1
+            fi
+          else
+            REGION=$(az appservice plan show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --query location -o tsv | tr '[:upper:]' '[:lower:]' | tr -d ' ')
+            echo "DEPLOY_REGION=$REGION" >> $GITHUB_ENV
+          fi
+
+      - name: Create API Web App
+        run: |
+          if ! az webapp show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.API_APP_NAME }} \
+               --output none 2>/dev/null; then
+            az webapp create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --plan ${{ env.PLAN_NAME }} \
+              --name ${{ env.API_APP_NAME }} \
+              --runtime "DOTNETCORE:8.0" \
+              --output none
+          fi
+
+      - name: Create Web App
+        run: |
+          if ! az webapp show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.WEB_APP_NAME }} \
+               --output none 2>/dev/null; then
+            az webapp create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --plan ${{ env.PLAN_NAME }} \
+              --name ${{ env.WEB_APP_NAME }} \
+              --runtime "DOTNETCORE:8.0" \
+              --output none
+          fi
+
+      - name: Create SQL Server
+        run: |
+          if ! az sql server show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.SQL_SERVER_NAME }} \
+               --output none 2>/dev/null; then
+            az sql server create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --location ${{ env.DEPLOY_REGION || env.LOCATION }} \
+              --name ${{ env.SQL_SERVER_NAME }} \
+              --admin-user ${{ env.SQL_ADMIN_USER }} \
+              --admin-password "${{ steps.sql_pass.outputs.password }}" \
+              --output none
+          else
+            az sql server update \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.SQL_SERVER_NAME }} \
+              --admin-password "${{ steps.sql_pass.outputs.password }}" \
+              --output none
+          fi
+
+      - name: Allow Azure services to reach SQL
+        run: |
+          az sql server firewall-rule create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --server ${{ env.SQL_SERVER_NAME }} \
+            --name AllowAzureServices \
+            --start-ip-address 0.0.0.0 \
+            --end-ip-address 0.0.0.0 \
+            --output none
+
+      - name: Create SQL Database (or reset if requested)
+        run: |
+          DB_EXISTS=false
+          if az sql db show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --server ${{ env.SQL_SERVER_NAME }} \
+               --name ${{ env.SQL_DB_NAME }} \
+               --output none 2>/dev/null; then
+            DB_EXISTS=true
+          fi
+
+          if [ "$DB_EXISTS" = "true" ] && [ "${{ inputs.reset_db }}" = "true" ]; then
+            echo "reset_db=true: dropping existing database..."
+            az sql db delete \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.SQL_SERVER_NAME }} \
+              --name ${{ env.SQL_DB_NAME }} \
+              --yes \
+              --output none
+            DB_EXISTS=false
+          fi
+
+          if [ "$DB_EXISTS" = "false" ]; then
+            echo "Creating database..."
+            az sql db create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.SQL_SERVER_NAME }} \
+              --name ${{ env.SQL_DB_NAME }} \
+              --edition GeneralPurpose \
+              --family Gen5 \
+              --capacity 2 \
+              --compute-model Serverless \
+              --max-size 32GB \
+              --use-free-limit \
+              --free-limit-exhaustion-behavior AutoPause \
+              --backup-storage-redundancy Local \
+              --output none
+          else
+            echo "Database already exists, keeping data."
+          fi
+
+      - name: Run database schema
+        run: |
+          echo "Installing sqlcmd..."
+          curl -s https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add - 2>/dev/null || true
+          curl -s https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update -qq
+          ACCEPT_EULA=Y sudo apt-get install -y -qq mssql-tools18 unixodbc-dev
+          export PATH="$PATH:/opt/mssql-tools18/bin"
+          SQL_PASS="${{ steps.sql_pass.outputs.password }}"
+          SQL_HOST="${{ env.SQL_SERVER_NAME }}.database.windows.net"
+          echo "Waiting for SQL to be reachable..."
+          SQL_READY=0
+          for i in $(seq 1 12); do
+            sleep 15
+            if sqlcmd -S "$SQL_HOST" -d "${{ env.SQL_DB_NAME }}" -U "${{ env.SQL_ADMIN_USER }}" -P "$SQL_PASS" \
+              -Q "SELECT 1" -C -l 30 2>/dev/null; then
+              SQL_READY=1
+              break
+            fi
+            echo "Attempt $i: SQL not ready yet..."
+          done
+          if [ "$SQL_READY" = "0" ]; then
+            echo "ERROR: SQL not reachable after 3 minutes"
+            exit 1
+          fi
+          echo "Applying schema..."
+          sqlcmd -S "$SQL_HOST" -d "${{ env.SQL_DB_NAME }}" -U "${{ env.SQL_ADMIN_USER }}" -P "$SQL_PASS" \
+            -i database/schema.sql -C -b -I
+          echo "Schema applied."
+
+      - name: Configure API app settings
+        run: |
+          JWT_SECRET=$(openssl rand -base64 48)
+          echo "::add-mask::$JWT_SECRET"
+          az webapp config appsettings set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.API_APP_NAME }} \
+            --settings \
+              "ASPNETCORE_ENVIRONMENT=Staging" \
+              "ConnectionStrings__DefaultConnection=${{ steps.urls.outputs.connection_string }}" \
+              "Jwt__Secret=$JWT_SECRET" \
+              "Jwt__Issuer=SpareParts.Api" \
+              "Jwt__Audience=SpareParts.Desktop" \
+              "Cors__AllowedOrigins__0=https://${{ env.WEB_APP_NAME }}.azurewebsites.net" \
+              "Cors__AllowedOrigins__1=http://localhost:5078" \
+              "SCM_DO_BUILD_DURING_DEPLOYMENT=false" \
+              "WEBSITE_CONTAINER_START_TIME_LIMIT=600" \
+            --output none
+          az webapp log config \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.API_APP_NAME }} \
+            --docker-container-logging filesystem \
+            --output none
+
+      - name: Configure Web app settings
+        run: |
+          az webapp config appsettings set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEB_APP_NAME }} \
+            --settings \
+              "ASPNETCORE_ENVIRONMENT=Staging" \
+              "SCM_DO_BUILD_DURING_DEPLOYMENT=false" \
+            --output none
+
+  deploy-api:
+    name: Build & Deploy API
+    runs-on: ubuntu-latest
+    needs: provision
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish API
+        run: dotnet publish src/SpareParts.Api/SpareParts.Api.csproj -c Release -o artifacts/api
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Deploy API
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.API_APP_NAME }}
+          package: artifacts/api
+
+      - name: Wait for API health check
+        run: |
+          echo "Waiting for API to warm up (up to 10 min)..."
+          for i in $(seq 1 36); do
+            sleep 15
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ needs.provision.outputs.api_url }}/api/health" || echo "000")
+            echo "Attempt $i — HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "API is healthy!"
+              exit 0
+            fi
+          done
+
+          echo "=== API did not respond — downloading startup logs ==="
+          az webapp log download \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.API_APP_NAME }} \
+            --log-file /tmp/app-logs.zip 2>/dev/null || true
+
+          if [ -f /tmp/app-logs.zip ]; then
+            mkdir -p /tmp/app-logs
+            unzip -q /tmp/app-logs.zip -d /tmp/app-logs/ || true
+            echo "=== All log files found ==="
+            find /tmp/app-logs -type f | sort
+            echo "=== Application stdout (default_docker.log) — last 300 lines ==="
+            find /tmp/app-logs -type f -name "*default_docker*" | \
+              xargs -I{} sh -c 'echo "--- {} ---" && tail -300 {}' 2>/dev/null || \
+            find /tmp/app-logs -type f -name "*.log" | sort -r | head -3 | \
+              xargs -I{} sh -c 'echo "--- {} ---" && tail -300 {}' 2>/dev/null || true
+            echo "=== Exception/Error lines (all logs) ==="
+            find /tmp/app-logs -type f | \
+              xargs grep -ih "exception\|unhandled\|SqlException\|Migration\|fail\|Msg [0-9]" 2>/dev/null | \
+              grep -iv "^State:\|ContainerTimeout\|cold start" | \
+              tail -80 || true
+          else
+            echo "No logs archive — streaming live logs for 20s..."
+            timeout 20 az webapp log tail \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.API_APP_NAME }} 2>/dev/null || true
+          fi
+
+          echo "ERROR: API did not respond with 200 in time"
+          exit 1
+
+  deploy-web:
+    name: Build & Deploy Web
+    runs-on: ubuntu-latest
+    needs: [provision, deploy-api]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Patch config.js with API URL
+        run: |
+          cat > src/SpareParts.Web.React/wwwroot/config.js <<EOF
+          window.SparePartsWebConfig = {
+            defaultApiBaseUrl: "${{ needs.provision.outputs.api_url }}",
+            googleClientId: "",
+            facebookAppId: ""
+          };
+          EOF
+
+      - name: Publish Web
+        run: dotnet publish src/SpareParts.Web.React/SpareParts.Web.React.csproj -c Release -o artifacts/web
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Deploy Web
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEB_APP_NAME }}
+          package: artifacts/web
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: provision
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: src/SpareParts.Mobile.ReactNative
+        run: npm ci
+
+      - name: Write .env
+        working-directory: src/SpareParts.Mobile.ReactNative
+        run: |
+          cat > .env <<EOF
+          EXPO_PUBLIC_API_BASE_URL=${{ needs.provision.outputs.api_url }}
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID=
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
+          EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+          EXPO_PUBLIC_FACEBOOK_APP_ID=
+          EOF
+
+      - name: Verify no localhost
+        working-directory: src/SpareParts.Mobile.ReactNative
+        run: |
+          if grep -q "localhost\|127\.0\.0\.1\|10\.0\.2\.2" .env; then
+            echo "ERROR: localhost in .env"
+            exit 1
+          fi
+          echo "OK: no localhost"
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build Android APK via EAS
+        working-directory: src/SpareParts.Mobile.ReactNative
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: eas build --platform android --profile staging --non-interactive
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [provision, deploy-api, deploy-web]
+    if: always()
+    steps:
+      - name: Print URLs
+        run: |
+          echo "============================================"
+          echo "STAGING DEPLOYMENT COMPLETE"
+          echo "============================================"
+          echo "API:     ${{ needs.provision.outputs.api_url }}"
+          echo "Web:     ${{ needs.provision.outputs.web_url }}"
+          echo "Health:  ${{ needs.provision.outputs.api_url }}/api/health"
+          echo "Swagger: ${{ needs.provision.outputs.api_url }}/swagger"
+          echo "============================================"

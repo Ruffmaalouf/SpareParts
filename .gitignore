@@ -90,3 +90,6 @@ src/SpareParts.Mobile.ReactNative/*.jks
 src/SpareParts.Mobile.ReactNative/credentials/
 docs/DBScrpit.sql
 src/SpareParts.Desktop.Wpf/UpdateLogos.sql
+
+# Dev JWT secrets — set via dotnet user-secrets or environment variable
+appsettings.Development.json

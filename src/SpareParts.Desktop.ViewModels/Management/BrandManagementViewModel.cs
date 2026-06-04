@@ -7,35 +7,27 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class BrandManagementViewModel : ManagementFeatureViewModelBase
     {
-        private ManagementCoordinator? _coordinator;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
+        private readonly IManagementFeatureContext _ctx;
         private string _newBrandName = string.Empty;
         private bool _newBrandIsActive = true;
         private BrandDto? _selectedBrand;
 
-        public ObservableCollection<BrandDto> Brands { get; } = new();
-        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
-
-        public void Configure(
-            ManagementCoordinator coordinator,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            ICommand? importTableCommand = null)
+        public BrandManagementViewModel(IManagementFeatureContext context)
         {
-            _coordinator = coordinator;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
+            _ctx = context;
             SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
             StartNewCommand = new RelayCommand(_ => StartNew());
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-            ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.Brands"));
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.Brands"));
         }
+
+        public ObservableCollection<BrandDto> Brands { get; } = new();
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand StartNewCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand ImportFromExcelCommand { get; }
 
         public string NewBrandName
         {
@@ -83,37 +75,19 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private async Task SaveAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SaveBrandAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveBrandAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearForm();
         }
 
         private async Task DeleteAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeleteBrandAsync(SelectedBrand);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteBrandAsync(SelectedBrand);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearForm();
         }
     }

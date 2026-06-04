@@ -12,43 +12,49 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Themes/DefaultTheme.xaml"/>
+                <ResourceDictionary Source="/Themes/AuroraTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-            <!-- Underline TextBox -->
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
-                <Setter Property="Background"               Value="#FF111111"/>
-                <Setter Property="Foreground"               Value="#FFEBEBEB"/>
-                <Setter Property="BorderBrush"              Value="#FF262626"/>
-                <Setter Property="BorderThickness"          Value="0 0 0 2"/>
+                <Setter Property="Background"               Value="#0E1420"/>
+                <Setter Property="Foreground"               Value="#FFE8F0FF"/>
+                <Setter Property="BorderBrush"              Value="#1A00C9A7"/>
+                <Setter Property="BorderThickness"          Value="1"/>
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="14"/>
                 <Setter Property="FontFamily"               Value="Segoe UI"/>
-                <Setter Property="CaretBrush"               Value="{DynamicResource AccentBrush}"/>
-                <Setter Property="SelectionBrush"           Value="#55D40000"/>
+                <Setter Property="CaretBrush"               Value="#FF00C9A7"/>
+                <Setter Property="SelectionBrush"           Value="#3300C9A7"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
                             <Border x:Name="Bd"
-                                    Background="#FF111111"
+                                    Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="3 3 0 0"
-                                    MinHeight="46">
+                                    CornerRadius="10"
+                                    MinHeight="48">
                                 <ScrollViewer x:Name="PART_ContentHost"
                                               Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="Center"/>
+                                              VerticalAlignment="Center"
+                                              Foreground="#FFE8F0FF"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="Bd" Property="Background"  Value="#FF161616"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FF00C9A7"/>
+                                    <Setter TargetName="Bd" Property="Background"  Value="#0F1830"/>
+                                    <Setter TargetName="Bd" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#FF00C9A7" BlurRadius="10"
+                                                              ShadowDepth="0" Opacity="0.25"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#88D40000"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#4400C9A7"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -56,12 +62,11 @@
                 </Setter>
             </Style>
 
-            <!-- Underline PasswordBox -->
             <Style x:Key="LoginPasswordStyle" TargetType="PasswordBox">
-                <Setter Property="Background"               Value="#FF111111"/>
-                <Setter Property="Foreground"               Value="#FFEBEBEB"/>
-                <Setter Property="BorderBrush"              Value="#FF262626"/>
-                <Setter Property="BorderThickness"          Value="0 0 0 2"/>
+                <Setter Property="Background"               Value="#0E1420"/>
+                <Setter Property="Foreground"               Value="#FFE8F0FF"/>
+                <Setter Property="BorderBrush"              Value="#1A00C9A7"/>
+                <Setter Property="BorderThickness"          Value="1"/>
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="18"/>
                 <Setter Property="FontFamily"               Value="Segoe UI"/>
@@ -71,22 +76,28 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="PasswordBox">
                             <Border x:Name="Bd"
-                                    Background="#FF111111"
+                                    Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="3 3 0 0"
-                                    MinHeight="46">
+                                    CornerRadius="10"
+                                    MinHeight="48">
                                 <ScrollViewer x:Name="PART_ContentHost"
                                               Margin="{TemplateBinding Padding}"
                                               VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                                    <Setter TargetName="Bd" Property="Background"  Value="#FF161616"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FF00C9A7"/>
+                                    <Setter TargetName="Bd" Property="Background"  Value="#0F1830"/>
+                                    <Setter TargetName="Bd" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#FF00C9A7" BlurRadius="10"
+                                                              ShadowDepth="0" Opacity="0.25"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#88D40000"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#4400C9A7"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -96,97 +107,196 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <!-- Outer shell with red rim + drop shadow -->
-    <Border CornerRadius="6" Background="#FF080808"
-            BorderBrush="#FF1E1E1E" BorderThickness="1">
+    <!-- Outer shell with drop shadow -->
+    <Border CornerRadius="20" Background="#FF080C14">
         <Border.Effect>
-            <DropShadowEffect Color="Black" BlurRadius="48" ShadowDepth="0" Opacity="0.8"/>
+            <DropShadowEffect Color="Black" BlurRadius="60" ShadowDepth="12" Opacity="0.7"/>
         </Border.Effect>
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="440"/>
+                <ColumnDefinition Width="420"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ══════════ LEFT — CARBON HERO ══════════ -->
-            <Border Grid.Column="0" CornerRadius="6 0 0 6" ClipToBounds="True"
-                    Background="{DynamicResource CarbonFiberBrush}">
+            <!-- ══ LEFT — Aurora Branding Panel ══ -->
+            <Border Grid.Column="0" CornerRadius="20 0 0 20" ClipToBounds="True">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FF060B12" Offset="0"/>
+                        <GradientStop Color="#FF091524" Offset="0.5"/>
+                        <GradientStop Color="#FF040A10" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
                 <Grid>
-                    <!-- Big diagonal red speed wedge -->
-                    <Path Stretch="Fill" Opacity="0.10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                          Data="M 0,0 L 1,0 L 1,0.42 L 0,1 Z">
-                        <Path.Fill>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#FFD40000" Offset="0"/>
+                    <!-- Decorative aurora glow orbs -->
+                    <Ellipse Width="420" Height="420"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-140,-140,0,0" Opacity="0.12">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#FF00C9A7" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Path.Fill>
-                    </Path>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
 
-                    <!-- Thin diagonal speed lines -->
-                    <Canvas ClipToBounds="True">
-                        <Line X1="-40" Y1="640" X2="320" Y2="-40" Stroke="#22D40000" StrokeThickness="2"/>
-                        <Line X1="20"  Y1="640" X2="380" Y2="-40" Stroke="#18D40000" StrokeThickness="2"/>
-                        <Line X1="80"  Y1="640" X2="440" Y2="-40" Stroke="#10D40000" StrokeThickness="2"/>
-                    </Canvas>
+                    <Ellipse Width="300" Height="300"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-100,-100" Opacity="0.08">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#FF7C5CFC" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
 
-                    <!-- Top full-bleed red stripe -->
-                    <Border Height="4" VerticalAlignment="Top"
-                            Background="{DynamicResource RacingStripeBrush}"/>
+                    <Ellipse Width="160" Height="160"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                             Margin="0,60,0,0" Opacity="0.06">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#FF00C9A7" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
 
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="44">
 
-                        <!-- Monogram plate -->
-                        <Border Width="104" Height="104" CornerRadius="6"
-                                Margin="0 0 0 30" HorizontalAlignment="Center"
-                                BorderThickness="1.5">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#FF161616" Offset="0"/>
-                                    <GradientStop Color="#FF0A0A0A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Border.BorderBrush>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#FFD40000" Offset="0"/>
-                                    <GradientStop Color="#FF3A0000" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.BorderBrush>
-                            <Border.Effect>
-                                <DropShadowEffect Color="#FFD40000" BlurRadius="28"
-                                                  ShadowDepth="0" Opacity="0.45"/>
-                            </Border.Effect>
-                            <TextBlock Text="M" FontSize="52" FontWeight="Bold"
-                                       Foreground="{DynamicResource AccentBrush}"
+                        <!-- Aurora logo ring -->
+                        <Grid HorizontalAlignment="Center" Margin="0 0 0 32">
+                            <!-- Outer ring -->
+                            <Ellipse Width="108" Height="108">
+                                <Ellipse.Stroke>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FF00C9A7" Offset="0"/>
+                                        <GradientStop Color="#FF7C5CFC" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Stroke>
+                                <Ellipse.StrokeThickness>1.5</Ellipse.StrokeThickness>
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="#FF00C9A7" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <!-- Inner fill -->
+                            <Ellipse Width="94" Height="94">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="#1400C9A7" Offset="0"/>
+                                        <GradientStop Color="#0800C9A7" Offset="1"/>
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <!-- Logo letter -->
+                            <TextBlock Text="M" FontSize="44" FontWeight="Bold"
+                                       Foreground="#FF00C9A7"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
-                                       FontFamily="Segoe UI"/>
-                        </Border>
+                                       FontFamily="Segoe UI">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="#FF00C9A7" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </Grid>
 
                         <TextBlock Text="MAALOUF"
-                                   FontSize="34" FontWeight="Bold"
-                                   Foreground="#FFEBEBEB" HorizontalAlignment="Center"
+                                   FontSize="28" FontWeight="Bold"
+                                   Foreground="#FFE8F0FF" HorizontalAlignment="Center"
                                    FontFamily="Segoe UI"/>
-                        <TextBlock Text="A U T O   P A R T S"
-                                   FontSize="12" FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentBrush}"
+                        <TextBlock Text="AUTO PARTS"
+                                   FontSize="12" FontWeight="Light"
                                    HorizontalAlignment="Center"
-                                   Margin="0 4 0 0" FontFamily="Segoe UI"/>
+                                   Margin="0 3 0 0" FontFamily="Segoe UI">
+                            <TextBlock.Foreground>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#FF00C9A7" Offset="0"/>
+                                    <GradientStop Color="#FF7C5CFC" Offset="1"/>
+                                </LinearGradientBrush>
+                            </TextBlock.Foreground>
+                        </TextBlock>
 
-                        <!-- Red divider -->
-                        <Border Height="2" Width="160" Margin="0 26 0 24"
-                                HorizontalAlignment="Center"
-                                Background="{DynamicResource RacingStripeBrush}"/>
+                        <!-- Divider line gradient -->
+                        <Border Height="1" Width="160" Margin="0 28 0 28" HorizontalAlignment="Center">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="Transparent" Offset="0"/>
+                                    <GradientStop Color="#4400C9A7" Offset="0.5"/>
+                                    <GradientStop Color="Transparent" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
 
-                        <TextBlock Text="PARTS MANAGEMENT SYSTEM"
-                                   FontSize="11" Foreground="#FF707070"
-                                   HorizontalAlignment="Center" FontFamily="Segoe UI"
-                                   TextAlignment="Center"/>
-                        <TextBlock Text="v3.0  ·  API-CONNECTED"
-                                   FontSize="9" Foreground="#FF4A4A4A"
+                        <!-- Platform badges — shows the three connected apps -->
+                        <TextBlock Text="CONNECTED PLATFORMS"
+                                   FontSize="9" FontWeight="Bold"
+                                   Foreground="#FF4A5A78"
                                    HorizontalAlignment="Center"
-                                   Margin="0 6 0 0" FontFamily="Segoe UI"/>
+                                   Margin="0 0 0 12" FontFamily="Segoe UI"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 0">
+                            <!-- Desktop badge -->
+                            <Border CornerRadius="8" Padding="10 6" Margin="4 0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#1200C9A7" Offset="0"/>
+                                        <GradientStop Color="#0A007A65" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#1A00C9A7"/>
+                                </Border.BorderBrush>
+                                <Border.BorderThickness>1</Border.BorderThickness>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🖥" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
+                                    <TextBlock Text="Desktop" FontSize="10" Foreground="#FF00C9A7"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                                </StackPanel>
+                            </Border>
+                            <!-- Web badge -->
+                            <Border CornerRadius="8" Padding="10 6" Margin="4 0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#12007A65" Offset="0"/>
+                                        <GradientStop Color="#0A007A65" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#1200C9A7"/>
+                                </Border.BorderBrush>
+                                <Border.BorderThickness>1</Border.BorderThickness>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🌐" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
+                                    <TextBlock Text="Web" FontSize="10" Foreground="#FF7A8FAF"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                                </StackPanel>
+                            </Border>
+                            <!-- Mobile badge -->
+                            <Border CornerRadius="8" Padding="10 6" Margin="4 0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#12007A65" Offset="0"/>
+                                        <GradientStop Color="#0A007A65" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="#1200C9A7"/>
+                                </Border.BorderBrush>
+                                <Border.BorderThickness>1</Border.BorderThickness>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📱" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
+                                    <TextBlock Text="Mobile" FontSize="10" Foreground="#FF7A8FAF"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Text="v4.0  ·  Aurora Design System"
+                                   FontSize="10" Foreground="#FF2E3D58"
+                                   HorizontalAlignment="Center"
+                                   Margin="0 22 0 0" FontFamily="Segoe UI"/>
                     </StackPanel>
 
                     <!-- Bottom checkered hint bar -->
@@ -195,22 +305,29 @@
                 </Grid>
             </Border>
 
-            <!-- ══════════ RIGHT — LOGIN FORM ══════════ -->
-            <Border Grid.Column="1" CornerRadius="0 6 6 0" Background="#FF0C0C0C">
+            <!-- ══ RIGHT — Login Form ══ -->
+            <Border Grid.Column="1" CornerRadius="0 20 20 0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FF0C1220" Offset="0"/>
+                        <GradientStop Color="#FF0A1018" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
                 <Grid>
                     <!-- Close button -->
                     <Button Content="✕"
                             HorizontalAlignment="Right" VerticalAlignment="Top"
                             Margin="0 16 16 0" Width="30" Height="30"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#FF555555" FontSize="13"
+                            Foreground="#FF3A4A6A" FontSize="13"
                             Cursor="Hand" Click="CloseButton_Click">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="Bd" CornerRadius="3"
+                                            <Border x:Name="Bd" CornerRadius="6"
                                                     Background="{TemplateBinding Background}" Padding="2">
                                                 <ContentPresenter HorizontalAlignment="Center"
                                                                   VerticalAlignment="Center"/>
@@ -228,56 +345,88 @@
                         </Button.Style>
                     </Button>
 
-                    <!-- Drag bar -->
-                    <Border Height="46" VerticalAlignment="Top" Background="Transparent"
+                    <!-- Drag area -->
+                    <Border Height="48" VerticalAlignment="Top" Background="Transparent"
                             MouseLeftButtonDown="DragBar_MouseDown"/>
 
-                    <!-- Form -->
+                    <!-- Form content -->
                     <StackPanel VerticalAlignment="Center" Margin="56 0 56 0">
 
-                        <TextBlock Text="WELCOME BACK"
-                                   FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentBrush}"
-                                   Margin="0 0 0 6" FontFamily="Segoe UI"/>
-                        <TextBlock Text="Driver Sign-In"
-                                   FontSize="26" FontWeight="Bold"
-                                   Foreground="#FFEBEBEB" Margin="0 0 0 2" FontFamily="Segoe UI"/>
-                        <TextBlock Text="Enter your credentials to enter the pit."
-                                   FontSize="13" Foreground="#FF707070"
-                                   Margin="0 0 0 34" FontFamily="Segoe UI"/>
+                        <!-- Welcome header -->
+                        <TextBlock Text="Welcome back"
+                                   FontSize="26" FontWeight="SemiBold"
+                                   Foreground="#FFE8F0FF" Margin="0 0 0 4"
+                                   FontFamily="Segoe UI"/>
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 36">
+                            <TextBlock Text="Sign in to " FontSize="13" Foreground="#FF7A8FAF" FontFamily="Segoe UI"/>
+                            <TextBlock Text="Maalouf Auto Parts" FontSize="13" Foreground="#FF00C9A7" FontFamily="Segoe UI"/>
+                        </StackPanel>
 
-                        <!-- Username -->
-                        <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                   Foreground="#FF808080" Margin="0 0 0 7" FontFamily="Segoe UI"/>
-                        <TextBox x:Name="UsernameBox"
-                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource LoginFieldStyle}"
-                                 Height="46" KeyDown="Field_KeyDown"/>
+                        <!-- Username field with icon row -->
+                        <Grid Margin="0 0 0 16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
+                                <Border Width="16" Height="16" CornerRadius="3"
+                                        Background="#1400C9A7" Margin="0 0 7 0">
+                                    <TextBlock Text="U" FontSize="8" FontWeight="Bold"
+                                               Foreground="#FF00C9A7"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
+                                           Foreground="#FF4A5A78" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                            <TextBox x:Name="UsernameBox" Grid.Row="1"
+                                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource LoginFieldStyle}"
+                                     Height="48" KeyDown="Field_KeyDown"/>
+                        </Grid>
 
-                        <!-- Password -->
-                        <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
-                                   Foreground="#FF808080" Margin="0 20 0 7" FontFamily="Segoe UI"/>
-                        <PasswordBox x:Name="PasswordBox"
-                                     Style="{StaticResource LoginPasswordStyle}"
-                                     Height="46" KeyDown="Field_KeyDown"/>
+                        <!-- Password field with icon row -->
+                        <Grid Margin="0 0 0 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
+                                <Border Width="16" Height="16" CornerRadius="3"
+                                        Background="#1400C9A7" Margin="0 0 7 0">
+                                    <TextBlock Text="P" FontSize="8" FontWeight="Bold"
+                                               Foreground="#FF00C9A7"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
+                                           Foreground="#FF4A5A78" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                            <PasswordBox x:Name="PasswordBox" Grid.Row="1"
+                                         Style="{StaticResource LoginPasswordStyle}"
+                                         Height="48" KeyDown="Field_KeyDown"/>
+                        </Grid>
 
                         <!-- Error banner -->
-                        <Border Margin="0 14 0 0" Background="#1AD40000" CornerRadius="3"
-                                BorderBrush="#44D40000" BorderThickness="1"
-                                Padding="12 8"
+                        <Border Margin="0 16 0 0" CornerRadius="10" Padding="14 10"
                                 Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
+                            <Border.Background>
+                                <SolidColorBrush Color="#1AE53935"/>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="#33E53935"/>
+                            </Border.BorderBrush>
+                            <Border.BorderThickness>1</Border.BorderThickness>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="⚠  " Foreground="{DynamicResource AccentBrush}" FontSize="13"/>
                                 <TextBlock Text="{Binding ErrorMessage}"
-                                           Foreground="#FFE57373" FontSize="13"
-                                           TextWrapping="Wrap"/>
+                                           Foreground="#FFE57373" FontSize="13" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Sign In button -->
                         <Button x:Name="LoginBtn"
-                                Height="48" Margin="0 24 0 0"
-                                FontSize="13" FontWeight="Bold"
+                                Height="50" Margin="0 24 0 0"
                                 Cursor="Hand" Click="LoginButton_Click"
                                 IsEnabled="{Binding IsIdle}">
                             <Button.Style>
@@ -285,34 +434,41 @@
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="Button">
-                                                <Border x:Name="Bd" CornerRadius="3">
+                                                <Border x:Name="Bd" CornerRadius="12">
                                                     <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                            <GradientStop Color="#FFE01010" Offset="0"/>
-                                                            <GradientStop Color="#FF9C0000" Offset="1"/>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                            <GradientStop Color="#FF00C9A7" Offset="0"/>
+                                                            <GradientStop Color="#FF00A890" Offset="1"/>
                                                         </LinearGradientBrush>
                                                     </Border.Background>
                                                     <Border.Effect>
-                                                        <DropShadowEffect Color="#FFD40000" BlurRadius="18"
-                                                                          ShadowDepth="0" Opacity="0.45"/>
+                                                        <DropShadowEffect Color="#FF00C9A7" BlurRadius="20"
+                                                                          ShadowDepth="0" Opacity="0.4"/>
                                                     </Border.Effect>
                                                     <TextBlock x:Name="Txt" Text="SIGN IN  →"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center"
-                                                               Foreground="White"
+                                                               Foreground="#FF080C14"
                                                                FontSize="13" FontWeight="Bold"
                                                                FontFamily="Segoe UI"/>
                                                 </Border>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Bd" Property="Effect">
+                                                        <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
-                                                                <DropShadowEffect Color="#FFFF2020" BlurRadius="26"
-                                                                                  ShadowDepth="0" Opacity="0.7"/>
+                                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                    <GradientStop Color="#FF00E5BF" Offset="0"/>
+                                                                    <GradientStop Color="#FF00C9A7" Offset="1"/>
+                                                                </LinearGradientBrush>
                                                             </Setter.Value>
                                                         </Setter>
                                                     </Trigger>
                                                     <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background">
+                                                            <Setter.Value>
+                                                                <SolidColorBrush Color="#FF007A65"/>
+                                                            </Setter.Value>
+                                                        </Setter>
                                                         <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsEnabled" Value="False">
@@ -330,23 +486,24 @@
                     </StackPanel>
 
                     <!-- API status bar -->
-                    <Border VerticalAlignment="Bottom" Padding="22 12"
-                            CornerRadius="0 0 6 0"
-                            Background="#FF0A0A0A"
-                            BorderBrush="#FF1A1A1A" BorderThickness="0 1 0 0">
+                    <Border VerticalAlignment="Bottom" Padding="22 12" CornerRadius="0 0 20 0">
+                        <Border.BorderBrush>
+                            <SolidColorBrush Color="#0A00C9A7"/>
+                        </Border.BorderBrush>
+                        <Border.BorderThickness>0 1 0 0</Border.BorderThickness>
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding StatusDot}" FontSize="9"
                                            Foreground="{Binding StatusBrush}"
-                                           VerticalAlignment="Center" Margin="0 0 6 0"/>
+                                           VerticalAlignment="Center" Margin="0 0 7 0"/>
                                 <TextBlock Text="{Binding StatusText}"
-                                           FontSize="11" Foreground="#FF707070"
+                                           FontSize="11" Foreground="#FF3A4A6A"
                                            VerticalAlignment="Center" FontFamily="Segoe UI"/>
                             </StackPanel>
                             <TextBlock Text="{Binding ServiceStatusText}"
-                                       Margin="15 6 0 0"
+                                       Margin="16 5 0 0"
                                        FontSize="10"
-                                       Foreground="#FF5A5A5A"
+                                       Foreground="#FF2A3A56"
                                        TextWrapping="Wrap"
                                        LineHeight="16"
                                        FontFamily="Consolas"/>

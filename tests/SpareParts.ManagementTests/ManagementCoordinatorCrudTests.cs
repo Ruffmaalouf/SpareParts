@@ -75,7 +75,7 @@ public sealed class ManagementCoordinatorCrudTests
     {
         var sut = CreateSut(new RecordingCrudApiClient());
 
-        var result = await sut.SaveWarehouseAsync(new WarehouseManagementViewModel());
+        var result = await sut.SaveWarehouseAsync(new WarehouseManagementViewModel(NullManagementFeatureContext.Instance));
 
         Assert.False(result.Success);
         Assert.Contains("Warehouse name is required", result.Message);
@@ -106,7 +106,7 @@ public sealed class ManagementCoordinatorCrudTests
         };
 
         var sut = CreateSut(crud, partsApi);
-        var feature = new PartManagementViewModel
+        var feature = new PartManagementViewModel(NullManagementFeatureContext.Instance, new NullFilePickerService(), new NullUserNotificationService())
         {
             NewPartCode = "BP-100",
             NewPartName = "Brake Pad",
@@ -134,7 +134,7 @@ public sealed class ManagementCoordinatorCrudTests
     {
         yield return SaveCase(
             "customer-create",
-            sut => sut.SaveCustomerAsync(new CustomerManagementViewModel
+            sut => sut.SaveCustomerAsync(new CustomerManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewCustomerName = "Acme Customer",
                 NewCustomerPhone = "123456"
@@ -144,7 +144,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "supplier-create",
-            sut => sut.SaveSupplierAsync(new SupplierManagementViewModel
+            sut => sut.SaveSupplierAsync(new SupplierManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewSupplierName = "Acme Supplier",
                 NewSupplierEmail = "supplier@example.com"
@@ -154,7 +154,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "brand-create",
-            sut => sut.SaveBrandAsync(new BrandManagementViewModel
+            sut => sut.SaveBrandAsync(new BrandManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewBrandName = "Bosch",
                 NewBrandIsActive = true
@@ -164,7 +164,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "part-create",
-            sut => sut.SavePartAsync(new PartManagementViewModel
+            sut => sut.SavePartAsync(new PartManagementViewModel(NullManagementFeatureContext.Instance, new NullFilePickerService(), new NullUserNotificationService())
             {
                 NewPartCode = "P-001",
                 NewPartName = "Brake Pad",
@@ -176,7 +176,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "car-brand-create",
-            sut => sut.SaveCarBrandAsync(new CarModelManagementViewModel
+            sut => sut.SaveCarBrandAsync(new CarModelManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewCarBrandName = "Toyota",
                 NewCarBrandCountry = "Japan",
@@ -187,7 +187,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "car-model-create",
-            sut => sut.SaveCarModelAsync(new CarModelManagementViewModel
+            sut => sut.SaveCarModelAsync(new CarModelManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewCarModelBrandId = 9,
                 NewCarModelName = "Corolla",
@@ -198,7 +198,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "location-create",
-            sut => sut.SaveLocationAsync(new LocationManagementViewModel
+            sut => sut.SaveLocationAsync(new LocationManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewLocationName = "Beirut Port",
                 NewLocationShippingFees = 125m,
@@ -209,7 +209,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "warehouse-create",
-            sut => sut.SaveWarehouseAsync(new WarehouseManagementViewModel
+            sut => sut.SaveWarehouseAsync(new WarehouseManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewWarehouseName = "Main Warehouse",
                 NewWarehouseAddress = "Industrial Road",
@@ -220,7 +220,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "transaction-type-create",
-            sut => sut.SaveTransactionTypeAsync(new TransactionTypeManagementViewModel
+            sut => sut.SaveTransactionTypeAsync(new TransactionTypeManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 NewTransactionTypeName = "Retail Sale",
                 NewTransactionCurrencyCode = "USD",
@@ -251,7 +251,7 @@ public sealed class ManagementCoordinatorCrudTests
     {
         yield return SaveCase(
             "customer-update",
-            sut => sut.SaveCustomerAsync(new CustomerManagementViewModel
+            sut => sut.SaveCustomerAsync(new CustomerManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 SelectedCustomer = new CustomerDto { Id = 7 },
                 NewCustomerName = "Updated Customer"
@@ -261,7 +261,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "supplier-update",
-            sut => sut.SaveSupplierAsync(new SupplierManagementViewModel
+            sut => sut.SaveSupplierAsync(new SupplierManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 SelectedSupplier = new SupplierDto { Id = 9 },
                 NewSupplierName = "Updated Supplier",
@@ -272,7 +272,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "location-update",
-            sut => sut.SaveLocationAsync(new LocationManagementViewModel
+            sut => sut.SaveLocationAsync(new LocationManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 SelectedLocation = new LocationDto { LocationId = 11 },
                 NewLocationName = "Updated Location",
@@ -284,7 +284,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "warehouse-update",
-            sut => sut.SaveWarehouseAsync(new WarehouseManagementViewModel
+            sut => sut.SaveWarehouseAsync(new WarehouseManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 SelectedWarehouse = new WarehouseDto { Id = 15 },
                 NewWarehouseName = "Updated Warehouse",
@@ -296,7 +296,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "transaction-type-update",
-            sut => sut.SaveTransactionTypeAsync(new TransactionTypeManagementViewModel
+            sut => sut.SaveTransactionTypeAsync(new TransactionTypeManagementViewModel(NullManagementFeatureContext.Instance)
             {
                 SelectedTransactionType = new TransactionTypeDto { Id = 4 },
                 NewTransactionTypeName = "Wholesale",

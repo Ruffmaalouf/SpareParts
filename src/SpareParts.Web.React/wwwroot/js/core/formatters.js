@@ -16,6 +16,8 @@ export function applyWebTheme(themeKey) {
     const cssKey = key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
     root.style.setProperty(`--${cssKey}`, value);
   });
+  root.style.setProperty("--surface-2", theme.colors.surface2);
+  root.style.setProperty("--accent-2", theme.colors.accent2);
 }
 
 export function pickFirst(row, keys) {

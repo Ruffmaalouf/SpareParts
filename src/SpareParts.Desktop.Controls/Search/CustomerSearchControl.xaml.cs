@@ -161,7 +161,7 @@ namespace SpareParts.Desktop.Wpf
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             HidePlaceholder();
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
 
@@ -279,7 +279,7 @@ namespace SpareParts.Desktop.Wpf
             var results = string.IsNullOrEmpty(q)
                 ? _allCustomers
                 : _allCustomers.Where(c =>
-                    (c.Name  ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                    (c.Name ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
                     (c.Phone ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
                     (c.Email ?? "").Contains(q, StringComparison.OrdinalIgnoreCase)
                   ).ToList();
@@ -291,8 +291,8 @@ namespace SpareParts.Desktop.Wpf
                 ? "no results"
                 : $"{FilteredCustomers.Count} found";
 
-            EmptyState.Visibility  = FilteredCustomers.Count == 0 ? Visibility.Visible  : Visibility.Collapsed;
-            ResultsList.Visibility = FilteredCustomers.Count > 0  ? Visibility.Visible  : Visibility.Collapsed;
+            EmptyState.Visibility = FilteredCustomers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ResultsList.Visibility = FilteredCustomers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
             if (FilteredCustomers.Count > 0)
                 ResultsPopup.IsOpen = true;
@@ -300,41 +300,41 @@ namespace SpareParts.Desktop.Wpf
 
         private void SelectCustomer(CustomerDto customer)
         {
-            SelectedCustomerId   = customer.Id;
-            HasSelectedCustomer  = true;
+            SelectedCustomerId = customer.Id;
+            HasSelectedCustomer = true;
 
             SelectedNameInline.Text = customer.Name;
-            PhoneLabel.Text         = customer.Phone ?? string.Empty;
-            PhoneLabel.Visibility   = string.IsNullOrEmpty(customer.Phone)
+            PhoneLabel.Text = customer.Phone ?? string.Empty;
+            PhoneLabel.Visibility = string.IsNullOrEmpty(customer.Phone)
                                       ? Visibility.Collapsed : Visibility.Visible;
 
             SelectedIndicator.Visibility = Visibility.Visible;
-            SearchIcon.Visibility        = Visibility.Collapsed;
-            SearchBtn.Visibility         = Visibility.Collapsed;
-            ClearBtn.Visibility          = Visibility.Visible;
+            SearchIcon.Visibility = Visibility.Collapsed;
+            SearchBtn.Visibility = Visibility.Collapsed;
+            ClearBtn.Visibility = Visibility.Visible;
 
-            InputPill.BorderBrush     = (Brush)FindResource("AccentBrush");
+            InputPill.BorderBrush = (Brush)FindResource("AccentBrush");
             InputPill.BorderThickness = new Thickness(1);
 
-            CustomerSearchText  = string.Empty;
-            SearchBox.Text      = string.Empty;
+            CustomerSearchText = string.Empty;
+            SearchBox.Text = string.Empty;
             HidePlaceholder();
             ClosePopup();
         }
 
         private void ClearSelection()
         {
-            SelectedCustomerId   = null;
-            HasSelectedCustomer  = false;
+            SelectedCustomerId = null;
+            HasSelectedCustomer = false;
 
             SelectedIndicator.Visibility = Visibility.Collapsed;
-            SearchIcon.Visibility        = Visibility.Visible;
-            SelectedNameInline.Text      = string.Empty;
-            PhoneLabel.Visibility        = Visibility.Collapsed;
-            PhoneLabel.Text              = string.Empty;
+            SearchIcon.Visibility = Visibility.Visible;
+            SelectedNameInline.Text = string.Empty;
+            PhoneLabel.Visibility = Visibility.Collapsed;
+            PhoneLabel.Text = string.Empty;
 
             SearchBtn.Visibility = Visibility.Visible;
-            ClearBtn.Visibility  = Visibility.Collapsed;
+            ClearBtn.Visibility = Visibility.Collapsed;
 
             RestorePillBorder();
             ShowPlaceholder();
@@ -352,7 +352,7 @@ namespace SpareParts.Desktop.Wpf
 
         private void RestorePillBorder()
         {
-            InputPill.BorderBrush     = (Brush)FindResource("BorderBrush");
+            InputPill.BorderBrush = (Brush)FindResource("BorderBrush");
             InputPill.BorderThickness = new Thickness(1);
         }
     }

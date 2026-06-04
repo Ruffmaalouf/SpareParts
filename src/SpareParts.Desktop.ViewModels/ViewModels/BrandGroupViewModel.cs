@@ -1,5 +1,5 @@
-﻿ 
-using System.Collections.ObjectModel; 
+﻿
+using System.Collections.ObjectModel;
 
 namespace SpareParts.Desktop.Wpf.ViewModels
 {
@@ -8,5 +8,5 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public string RegionGroup { get; set; } = string.Empty;
         public ObservableCollection<CarBrandViewModel> Brands { get; } = new();
     }
-  
+
 }

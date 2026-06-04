@@ -3,7 +3,7 @@ using SpareParts.Api.Hosting;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddSparePartsApiCore();
-builder.Services.AddCapabilities(builder.Environment.ApplicationName, 
+builder.Services.AddCapabilities(builder.Environment.ApplicationName,
     ServiceCapability.Sales,
     ServiceCapability.Purchases,
     ServiceCapability.Inventory,

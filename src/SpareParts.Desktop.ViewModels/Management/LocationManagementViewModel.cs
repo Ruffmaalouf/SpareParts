@@ -7,40 +7,29 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class LocationManagementViewModel : ManagementFeatureViewModelBase
     {
-        private ManagementCoordinator? _coordinator;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
-        private Func<string>? _getDefaultCurrencyCode;
+        private readonly IManagementFeatureContext _ctx;
         private LocationDto? _selectedLocation;
         private string _newLocationName = string.Empty;
         private decimal _newLocationShippingFees;
         private string _newLocationShippingFeesCurrencyCode = "USD";
 
-        public ObservableCollection<LocationDto> Locations { get; } = new();
-        public ObservableCollection<string> CurrencyCodes { get; } = new();
-        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
-
-        public void Configure(
-            ManagementCoordinator coordinator,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            Func<string> getDefaultCurrencyCode,
-            ICommand? importTableCommand = null)
+        public LocationManagementViewModel(IManagementFeatureContext context)
         {
-            _coordinator = coordinator;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
-            _getDefaultCurrencyCode = getDefaultCurrencyCode;
+            _ctx = context;
             SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
             StartNewCommand = new RelayCommand(_ => StartNew());
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-            ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.Location"));
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.Location"));
         }
+
+        public ObservableCollection<LocationDto> Locations { get; } = new();
+        public ObservableCollection<string> CurrencyCodes { get; } = new();
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand StartNewCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand ImportFromExcelCommand { get; }
 
         public void LoadCurrencyCodes(IEnumerable<string> currencyCodes)
         {
@@ -105,41 +94,23 @@ namespace SpareParts.Desktop.Wpf.Management
             SelectedLocation = null;
         }
 
-        public void StartNew() => ClearForm(_getDefaultCurrencyCode?.Invoke() ?? "USD");
+        public void StartNew() => ClearForm(_ctx.GetDefaultCurrencyCode());
 
         private async Task SaveAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SaveLocationAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveLocationAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
 
         private async Task DeleteAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeleteLocationAsync(SelectedLocation);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteLocationAsync(SelectedLocation);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
     }

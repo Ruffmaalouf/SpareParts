@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.ExcelImport;
 using SpareParts.Infrastructure.Services;
 
@@ -7,7 +8,7 @@ namespace SpareParts.Api.Controllers;
 
 [ApiController]
 [Route("api/excelimport")]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.Admin)]
 public sealed class ExcelImportController : SparePartsControllerBase
 {
     private readonly ExcelImportService _service;

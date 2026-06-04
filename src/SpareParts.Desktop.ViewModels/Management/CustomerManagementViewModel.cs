@@ -7,9 +7,7 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class CustomerManagementViewModel : ManagementFeatureViewModelBase
     {
-        private ManagementCoordinator? _coordinator;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
+        private readonly IManagementFeatureContext _ctx;
         private CustomerDto? _selectedCustomer;
         private string _newCustomerName = string.Empty;
         private string _newCustomerPhone = string.Empty;
@@ -18,28 +16,22 @@ namespace SpareParts.Desktop.Wpf.Management
         private string _newCustomerTax = string.Empty;
         private decimal _newCustomerBalance;
 
-        public ObservableCollection<CustomerDto> Customers { get; } = new();
-        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
-
-        public void Configure(
-            ManagementCoordinator coordinator,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            ICommand? importTableCommand = null)
+        public CustomerManagementViewModel(IManagementFeatureContext context)
         {
-            _coordinator = coordinator;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
+            _ctx = context;
             SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
             StartNewCommand = new RelayCommand(_ => StartNew());
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-            ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.Customers"));
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.Customers"));
         }
+
+        public ObservableCollection<CustomerDto> Customers { get; } = new();
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand StartNewCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand ImportFromExcelCommand { get; }
 
         public CustomerDto? SelectedCustomer
         {
@@ -115,37 +107,19 @@ namespace SpareParts.Desktop.Wpf.Management
 
         private async Task SaveAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SaveCustomerAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveCustomerAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearForm();
         }
 
         private async Task DeleteAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeleteCustomerAsync(SelectedCustomer);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteCustomerAsync(SelectedCustomer);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             ClearForm();
         }
     }

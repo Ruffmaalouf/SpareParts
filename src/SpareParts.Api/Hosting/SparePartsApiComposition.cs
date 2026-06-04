@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
@@ -16,12 +17,14 @@ using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Services;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace SpareParts.Api.Hosting;
 
 public static class SparePartsApiComposition
 {
     public const string NotificationsHubPath = "/hubs/notifications";
+    public const string AuthRateLimitPolicy = "auth-login";
 
     public static readonly IReadOnlyList<ServiceProfile> ExpectedServiceProfiles =
     [
@@ -188,6 +191,26 @@ public static class SparePartsApiComposition
                 else
                     p.WithOrigins("http://localhost:5000").AllowAnyMethod().AllowAnyHeader();
             }));
+
+        builder.Services.AddRateLimiter(opt =>
+        {
+            opt.OnRejected = async (ctx, _) =>
+            {
+                ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                await ctx.HttpContext.Response.WriteAsync("Too many requests. Please try again later.");
+            };
+
+            opt.AddPolicy(AuthRateLimitPolicy, httpCtx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpCtx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
+        });
     }
 
     public static void AddCapabilities(this IServiceCollection services, string serviceName, params ServiceCapability[] capabilities)
@@ -240,6 +263,8 @@ public static class SparePartsApiComposition
 
         if (distinctCapabilities.Contains(ServiceCapability.Inventory))
         {
+            services.TryAddScoped<IInventoryService, InventoryService>();
+
             services.AddScoped<ReorderAnalysisService>();
             services.AddScoped<PartSubstitutesService>();
             services.AddScoped<PartExpiryService>();
@@ -297,6 +322,7 @@ public static class SparePartsApiComposition
             services.AddScoped<CommunicationsService>();
             services.AddScoped<WhatsAppCampaignService>();
             services.AddScoped<ReportBuilderService>();
+            services.AddHostedService<ReportBuilderBackgroundRunHostedService>();
             services.AddScoped<OwnerCockpitService>();
             services.AddScoped<SmartSearchService>();
             services.AddScoped<GrowthIntelligenceService>();
@@ -340,45 +366,9 @@ public static class SparePartsApiComposition
 
     public static void UseSparePartsApiPipeline(this WebApplication app)
     {
-        var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
-        InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
-        AccountingMigration.EnsureApplied(sqlConnectionFactory);
-        WebAppUserRoleMigration.EnsureApplied(sqlConnectionFactory);
-        UserRoleIdMigration.EnsureApplied(sqlConnectionFactory);
-        MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
-        TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
-        PartAveragePriceMigration.EnsureApplied(sqlConnectionFactory);
-        PartUsedCarMigration.EnsureApplied(sqlConnectionFactory);
-        CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);
-        AppConstantsMigration.EnsureApplied(sqlConnectionFactory);
-        CarModelsMigration.EnsureApplied(sqlConnectionFactory);
-        LocationsMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarPartPricingMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarWholesaleSalesMigration.EnsureApplied(sqlConnectionFactory);
-        TransactionsMigration.EnsureApplied(sqlConnectionFactory);
-        AccountingCurrencyRateRepairMigration.EnsureApplied(sqlConnectionFactory);
-        BarcodeScanningMigration.EnsureApplied(sqlConnectionFactory);
-        PartRequestsMigration.EnsureApplied(sqlConnectionFactory);
-        PartUsedCarStockMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
-        CommunicationsMigration.EnsureApplied(sqlConnectionFactory);
-        WhatsAppCampaignsMigration.EnsureApplied(sqlConnectionFactory);
-        ReportBuilderLinksMigration.EnsureApplied(sqlConnectionFactory);
-        ReportBuilderAdvancedMigration.EnsureApplied(sqlConnectionFactory);
-        ReorderRulesMigration.EnsureApplied(sqlConnectionFactory);
-        PartSubstitutesMigration.EnsureApplied(sqlConnectionFactory);
-        PartExpiryMigration.EnsureApplied(sqlConnectionFactory);
-        CustomerLoyaltyMigration.EnsureApplied(sqlConnectionFactory);
-        CustomerPriceTierMigration.EnsureApplied(sqlConnectionFactory);
-        WarrantyClaimsMigration.EnsureApplied(sqlConnectionFactory);
-        SupplierPriceHistoryMigration.EnsureApplied(sqlConnectionFactory);
-        ShipmentsMigration.EnsureApplied(sqlConnectionFactory);
-        ActivityLogMigration.EnsureApplied(sqlConnectionFactory);
-
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseMiddleware<WebAppUserRestrictionMiddleware>();
         app.UseAuthorization();
@@ -412,6 +402,20 @@ public static class SparePartsApiComposition
             throw new InvalidOperationException("Missing required JWT secret: Jwt:Secret");
         }
 
+
+        if (IsPlaceholderJwtSecret(jwtSecret))
+        {
+            throw new InvalidOperationException(
+                "Jwt:Secret is still set to the placeholder value. " +
+                "Set a strong secret via dotnet user-secrets (development) or an environment variable (production).");
+        }
+
+        if (jwtSecret.Length < 32)
+        {
+            throw new InvalidOperationException(
+                "Jwt:Secret must be at least 32 characters to provide sufficient signing key entropy.");
+        }
+
         return new JwtSettings
         {
             Secret = jwtSecret,
@@ -419,6 +423,14 @@ public static class SparePartsApiComposition
             Audience = jwtSection["Audience"] ?? "SpareParts.Desktop",
             ExpiryHours = int.TryParse(jwtSection["ExpiryHours"], out var hours) ? hours : 12
         };
+    }
+
+    private static bool IsPlaceholderJwtSecret(string jwtSecret)
+    {
+        var upper = jwtSecret.ToUpperInvariant();
+        return upper.StartsWith("CHANGE_ME", StringComparison.Ordinal)
+            || upper.StartsWith("6533545BTWRTRWRT4H563", StringComparison.Ordinal)
+            || upper.Contains("USE_ENV_OR_USER_SECRETS", StringComparison.Ordinal);
     }
 
     private static OpenAiOptions ResolveOpenAiOptions(IConfiguration configuration)

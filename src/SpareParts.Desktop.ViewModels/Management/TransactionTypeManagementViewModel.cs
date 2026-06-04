@@ -7,10 +7,7 @@ namespace SpareParts.Desktop.Wpf.Management
 {
     public sealed class TransactionTypeManagementViewModel : ManagementFeatureViewModelBase
     {
-        private ManagementCoordinator? _coordinator;
-        private Func<Task>? _refreshAsync;
-        private Action<string, bool>? _setStatus;
-        private Func<string>? _getDefaultCounterCurrencyCode;
+        private readonly IManagementFeatureContext _ctx;
         private string _newTransactionTypeName = string.Empty;
         private string _newTransactionCurrencyCode = "USD";
         private decimal _newTransactionCounterRate = 1m;
@@ -21,35 +18,27 @@ namespace SpareParts.Desktop.Wpf.Management
         private TransactionTypeDto? _selectedTransactionType;
         private bool _canViewTransactionTypesTab;
 
+        public TransactionTypeManagementViewModel(IManagementFeatureContext context)
+        {
+            _ctx = context;
+            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
+            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
+            StartNewCommand = new RelayCommand(_ => StartNew());
+            RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
+            ImportFromExcelCommand = new RelayCommand(_ => _ctx.ImportTableCommand?.Execute("dbo.TransactionTypes"));
+        }
+
         public ObservableCollection<TransactionTypeDto> TransactionTypes { get; } = new();
-        public ICommand SaveCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand DeleteCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand StartNewCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand RefreshCommand { get; private set; } = new RelayCommand(_ => { });
-        public ICommand ImportFromExcelCommand { get; private set; } = new RelayCommand(_ => { });
+        public ICommand SaveCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand StartNewCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand ImportFromExcelCommand { get; }
 
         public bool CanViewTransactionTypesTab
         {
             get => _canViewTransactionTypesTab;
             set => SetProperty(ref _canViewTransactionTypesTab, value);
-        }
-
-        public void Configure(
-            ManagementCoordinator coordinator,
-            Func<Task> refreshAsync,
-            Action<string, bool> setStatus,
-            Func<string> getDefaultCounterCurrencyCode,
-            ICommand? importTableCommand = null)
-        {
-            _coordinator = coordinator;
-            _refreshAsync = refreshAsync;
-            _setStatus = setStatus;
-            _getDefaultCounterCurrencyCode = getDefaultCounterCurrencyCode;
-            SaveCommand = new RelayCommand(_ => _ = SaveAsync());
-            DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
-            StartNewCommand = new RelayCommand(_ => StartNew());
-            RefreshCommand = new RelayCommand(_ => _ = refreshAsync());
-            ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.TransactionTypes"));
         }
 
         public string NewTransactionTypeName
@@ -134,41 +123,23 @@ namespace SpareParts.Desktop.Wpf.Management
             SelectedTransactionType = null;
         }
 
-        public void StartNew() => ClearForm(_getDefaultCounterCurrencyCode?.Invoke() ?? "USD");
+        public void StartNew() => ClearForm(_ctx.GetDefaultCurrencyCode());
 
         private async Task SaveAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.SaveTransactionTypeAsync(this);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.SaveTransactionTypeAsync(this);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
 
         private async Task DeleteAsync()
         {
-            if (_coordinator == null || _refreshAsync == null || _setStatus == null)
-            {
-                return;
-            }
-
-            var result = await _coordinator.DeleteTransactionTypeAsync(SelectedTransactionType);
-            _setStatus(result.Message, result.Success);
-            if (!result.Success)
-            {
-                return;
-            }
-
-            await _refreshAsync();
+            var result = await _ctx.Coordinator.DeleteTransactionTypeAsync(SelectedTransactionType);
+            _ctx.SetStatus(result.Message, result.Success);
+            if (!result.Success) return;
+            await _ctx.RefreshAsync();
             StartNew();
         }
     }

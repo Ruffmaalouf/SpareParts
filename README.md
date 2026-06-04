@@ -248,6 +248,12 @@ dotnet restore SpareParts.sln
 
 ## Step 2: run API
 
+Supply a development JWT secret outside source control:
+
+```powershell
+$env:Jwt__Secret = "<use-a-random-secret-with-at-least-32-characters>"
+```
+
 ```bash
 dotnet run --project src/SpareParts.Api/SpareParts.Api.csproj
 ```

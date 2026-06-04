@@ -30,17 +30,17 @@ namespace SpareParts.Desktop.Wpf
         private string _displayCurrencyCode = "USD";
         private decimal _defaultCounterRate = 1m;
 
-        public CustomerManagementViewModel CustomersFeature { get; } = new();
-        public SupplierManagementViewModel SuppliersFeature { get; } = new();
-        public BrandManagementViewModel BrandsFeature { get; } = new();
-        public PartManagementViewModel PartsFeature { get; } = new();
-        public PartRequestsManagementViewModel PartRequestsFeature { get; } = new();
-        public CarModelManagementViewModel CarModelsFeature { get; } = new();
-        public LocationManagementViewModel LocationsFeature { get; } = new();
-        public WarehouseManagementViewModel WarehousesFeature { get; } = new();
+        public CustomerManagementViewModel CustomersFeature { get; }
+        public SupplierManagementViewModel SuppliersFeature { get; }
+        public BrandManagementViewModel BrandsFeature { get; }
+        public PartManagementViewModel PartsFeature { get; }
+        public PartRequestsManagementViewModel PartRequestsFeature { get; }
+        public CarModelManagementViewModel CarModelsFeature { get; }
+        public LocationManagementViewModel LocationsFeature { get; }
+        public WarehouseManagementViewModel WarehousesFeature { get; }
         public CurrencyRatesManagementViewModel CurrencyRatesFeature { get; }
         public UsedCarsManagementViewModel UsedCarsFeature { get; }
-        public TransactionTypeManagementViewModel TransactionTypesFeature { get; } = new();
+        public TransactionTypeManagementViewModel TransactionTypesFeature { get; }
         public AccountingViewModel AccountingVm { get; }
         public ExcelManagerViewModel ExcelManagerFeature { get; }
 
@@ -288,15 +288,22 @@ namespace SpareParts.Desktop.Wpf
                 new CurrencyRateProjectionService(),
                 LoadAllAsync,
                 ExcelManagerFeature.ImportTableCommand);
-            CustomersFeature.Configure(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
-            SuppliersFeature.Configure(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
-            BrandsFeature.Configure(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
-            PartsFeature.Configure(_coordinator, filePickerService, notificationService, LoadAllAsync, SetStatus, () => _baseCurrencyCode, ExcelManagerFeature.ImportTableCommand);
-            PartRequestsFeature.Configure(_coordinator, LoadAllAsync, SetStatus);
-            CarModelsFeature.Configure(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
-            LocationsFeature.Configure(_coordinator, LoadAllAsync, SetStatus, () => _counterCurrencyCode, ExcelManagerFeature.ImportTableCommand);
-            WarehousesFeature.Configure(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
-            TransactionTypesFeature.Configure(_coordinator, LoadAllAsync, SetStatus, () => _counterCurrencyCode, ExcelManagerFeature.ImportTableCommand);
+
+            var stdCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand);
+            var counterCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand, () => _counterCurrencyCode);
+            var baseCurrencyCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus, ExcelManagerFeature.ImportTableCommand, () => _baseCurrencyCode);
+            var noImportCtx = new ManagementFeatureContext(_coordinator, LoadAllAsync, SetStatus);
+
+            CustomersFeature = new CustomerManagementViewModel(stdCtx);
+            SuppliersFeature = new SupplierManagementViewModel(stdCtx);
+            BrandsFeature = new BrandManagementViewModel(stdCtx);
+            PartsFeature = new PartManagementViewModel(baseCurrencyCtx, filePickerService, notificationService);
+            PartRequestsFeature = new PartRequestsManagementViewModel(noImportCtx);
+            CarModelsFeature = new CarModelManagementViewModel(stdCtx);
+            LocationsFeature = new LocationManagementViewModel(counterCtx);
+            WarehousesFeature = new WarehouseManagementViewModel(stdCtx);
+            TransactionTypesFeature = new TransactionTypeManagementViewModel(counterCtx);
+
             UsedCarsFeature = new UsedCarsManagementViewModel(
                 _coordinator,
                 CurrencyRatesFeature,
@@ -332,7 +339,7 @@ namespace SpareParts.Desktop.Wpf
         {
             SuppliersFeature.SetPermissions(canViewSupplierTab, canEditSupplier, canModifySupplier, canDeleteSupplier);
         }
- 
+
 
         public async Task LoadAllAsync()
         {

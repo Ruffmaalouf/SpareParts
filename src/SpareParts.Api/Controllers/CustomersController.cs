@@ -29,7 +29,10 @@ namespace SpareParts.Api.Controllers
 
         [HttpPost]
         public ActionResult<int> Create([FromBody] CreateCustomerRequest req)
-            => Ok(_service.Create(req, CurrentUserId));
+        {
+            var id = _service.Create(req, CurrentUserId);
+            return CreatedAtAction(nameof(GetAll), new { id }, id);
+        }
 
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] CreateCustomerRequest req)

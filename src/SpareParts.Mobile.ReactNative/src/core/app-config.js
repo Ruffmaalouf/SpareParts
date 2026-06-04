@@ -29,7 +29,7 @@ const CommunicationTemplateKey = {
 const defaultApiBaseUrl =
   process.env.EXPO_PUBLIC_API_BASE_URL ||
   (Platform.OS === "android" ? "http://10.0.2.2:5000" : "http://localhost:5000");
-const defaultThemeKey = "default";
+const defaultThemeKey = "aurora";
 const defaultLanguageKey = "en";
 const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
 const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "";
@@ -39,6 +39,25 @@ const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "";
 const webAppRoleId = 4;
 
 const wpfThemes = [
+  {
+    key: "aurora",
+    name: "Aurora",
+    colors: {
+      bg: "#080c14",
+      surface: "#0e1420",
+      surface2: "#141c2e",
+      sidebar: "#060a12",
+      input: "#0e1420",
+      line: "#1a2840",
+      text: "#e8f0ff",
+      muted: "#7a8faf",
+      soft: "#4a5a78",
+      accent: "#00c9a7",
+      accentViolet: "#7c5cfc",
+      whatsapp: "#25d366",
+      danger: "#ff6b6b"
+    }
+  },
   {
     key: "default",
     name: "Default",

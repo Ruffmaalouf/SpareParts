@@ -20,9 +20,9 @@ namespace SpareParts.Desktop.Wpf
         public ObservableCollection<PosItemViewModel> Items { get; } = new();
 
         // Brand lists
-        public ObservableCollection<CarBrandUi> GermanBrands   { get; } = new();
+        public ObservableCollection<CarBrandUi> GermanBrands { get; } = new();
         public ObservableCollection<CarBrandUi> JapaneseBrands { get; } = new();
-        public ObservableCollection<CarBrandUi> KoreanBrands   { get; } = new();
+        public ObservableCollection<CarBrandUi> KoreanBrands { get; } = new();
 
         private CarBrandUi? _selectedBrand;
         public CarBrandUi? SelectedBrand
@@ -38,7 +38,7 @@ namespace SpareParts.Desktop.Wpf
             set { _selectedCar = value; OnPropertyChanged(nameof(SelectedCar)); }
         }
 
-        public ObservableCollection<CarModelUi>  AvailableCars  { get; } = new();
+        public ObservableCollection<CarModelUi> AvailableCars { get; } = new();
         public ObservableCollection<CarPartModel> AvailableParts { get; } = new();
 
         private AppScreen _activeScreen = AppScreen.HomePage;
@@ -85,12 +85,12 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
-        public decimal TotalAmount    => Items.Sum(i => i.LineTotal);
+        public decimal TotalAmount => Items.Sum(i => i.LineTotal);
         public decimal RemainingAmount => TotalAmount - PaidAmount;
 
         // ── New-line entry ────────────────────────────────────────────────────
-        public int     NewPartId    { get; set; }
-        public int     NewQuantity  { get; set; } = 1;
+        public int NewPartId { get; set; }
+        public int NewQuantity { get; set; } = 1;
         public decimal NewUnitPrice { get; set; }
 
         // ── Dependencies / Commands ──────────────────────────────────────────
@@ -98,12 +98,12 @@ namespace SpareParts.Desktop.Wpf
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
 
-        public ICommand SelectBrandCommand  { get; }
-        public ICommand SelectCarCommand    { get; }
-        public ICommand SelectPartCommand   { get; }
-        public ICommand AddItemCommand      { get; }
-        public ICommand SubmitSaleCommand   { get; }
-        public ICommand GoHomeCommand       { get; }
+        public ICommand SelectBrandCommand { get; }
+        public ICommand SelectCarCommand { get; }
+        public ICommand SelectPartCommand { get; }
+        public ICommand AddItemCommand { get; }
+        public ICommand SubmitSaleCommand { get; }
+        public ICommand GoHomeCommand { get; }
 
         public PosViewModel(
             ISalesApiClient salesApi,
@@ -115,11 +115,11 @@ namespace SpareParts.Desktop.Wpf
             _partsApi = partsApi;
 
             SelectBrandCommand = new RelayCommand(p => SelectBrandAsync(p).SafeFireAndForget(HandleBackgroundException));
-            SelectCarCommand   = new RelayCommand(p => SelectCarAsync(p).SafeFireAndForget(HandleBackgroundException));
-            SelectPartCommand  = new RelayCommand(SelectPart);
-            AddItemCommand     = new RelayCommand(_ => AddItem());
-            SubmitSaleCommand  = new RelayCommand(_ => SubmitSaleAsync().SafeFireAndForget(HandleBackgroundException));
-            GoHomeCommand      = new RelayCommand(_ => ActiveScreen = AppScreen.HomePage);
+            SelectCarCommand = new RelayCommand(p => SelectCarAsync(p).SafeFireAndForget(HandleBackgroundException));
+            SelectPartCommand = new RelayCommand(SelectPart);
+            AddItemCommand = new RelayCommand(_ => AddItem());
+            SubmitSaleCommand = new RelayCommand(_ => SubmitSaleAsync().SafeFireAndForget(HandleBackgroundException));
+            GoHomeCommand = new RelayCommand(_ => ActiveScreen = AppScreen.HomePage);
 
             SeedBrands();
         }
@@ -135,8 +135,8 @@ namespace SpareParts.Desktop.Wpf
 
             Items.Add(new PosItemViewModel
             {
-                PartId    = NewPartId,
-                Quantity  = NewQuantity,
+                PartId = NewPartId,
+                Quantity = NewQuantity,
                 UnitPrice = NewUnitPrice
             });
 
@@ -162,21 +162,21 @@ namespace SpareParts.Desktop.Wpf
                 // Use the sales API client (authorization token is read from shared token store)
                 var req = new CreateSaleRequest
                 {
-                    InvoiceDate   = InvoiceDate,
-                    CustomerId    = CustomerId,
-                    WarehouseId   = WarehouseId,
+                    InvoiceDate = InvoiceDate,
+                    CustomerId = CustomerId,
+                    WarehouseId = WarehouseId,
                     PaymentMethod = "Cash",
-                    PaidAmount    = PaidAmount,
-                    Notes         = SelectedBrand != null
+                    PaidAmount = PaidAmount,
+                    Notes = SelectedBrand != null
                                         ? $"Sale for brand {SelectedBrand.Name}"
                                         : "WPF POS Sale",
                     Items = Items.Select(i => new SaleItemDto
                     {
-                        PartId         = i.PartId,
-                        Quantity       = i.Quantity,
-                        UnitPrice      = i.UnitPrice,
+                        PartId = i.PartId,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
                         DiscountAmount = 0,
-                        TaxRate        = 0
+                        TaxRate = 0
                     }).ToList()
                 };
 
@@ -228,10 +228,10 @@ namespace SpareParts.Desktop.Wpf
             if (parameter is not CarPartModel part) return;
             Items.Add(new PosItemViewModel
             {
-                PartId      = part.PartId,
+                PartId = part.PartId,
                 Description = part.Description,
-                Quantity    = 1,
-                UnitPrice   = part.UnitPrice
+                Quantity = 1,
+                UnitPrice = part.UnitPrice
             });
             OnPropertyChanged(nameof(Items));
             OnPropertyChanged(nameof(TotalAmount));
@@ -282,24 +282,24 @@ namespace SpareParts.Desktop.Wpf
             void Add(ObservableCollection<CarBrandUi> col, string name, string country, string logo)
                 => col.Add(new CarBrandUi { Name = name, Country = country, LogoPath = logo });
 
-            Add(GermanBrands,   "BMW",           "Germany", "Assets/Logos/bmw.png");
-            Add(GermanBrands,   "Mercedes-Benz", "Germany", "Assets/Logos/mercedes.png");
-            Add(GermanBrands,   "Audi",          "Germany", "Assets/Logos/audi.png");
-            Add(GermanBrands,   "Volkswagen",    "Germany", "Assets/Logos/volkswagen.png");
-            Add(GermanBrands,   "Porsche",       "Germany", "Assets/Logos/porsche.png");
-            Add(GermanBrands,   "Opel",          "Germany", "Assets/Logos/opel.png");
+            Add(GermanBrands, "BMW", "Germany", "Assets/Logos/bmw.png");
+            Add(GermanBrands, "Mercedes-Benz", "Germany", "Assets/Logos/mercedes.png");
+            Add(GermanBrands, "Audi", "Germany", "Assets/Logos/audi.png");
+            Add(GermanBrands, "Volkswagen", "Germany", "Assets/Logos/volkswagen.png");
+            Add(GermanBrands, "Porsche", "Germany", "Assets/Logos/porsche.png");
+            Add(GermanBrands, "Opel", "Germany", "Assets/Logos/opel.png");
 
-            Add(JapaneseBrands, "Toyota",        "Japan",   "Assets/Logos/toyota.png");
-            Add(JapaneseBrands, "Honda",         "Japan",   "Assets/Logos/honda.png");
-            Add(JapaneseBrands, "Nissan",        "Japan",   "Assets/Logos/nissan.png");
-            Add(JapaneseBrands, "Mazda",         "Japan",   "Assets/Logos/mazda.png");
-            Add(JapaneseBrands, "Subaru",        "Japan",   "Assets/Logos/subaru.png");
-            Add(JapaneseBrands, "Mitsubishi",    "Japan",   "Assets/Logos/mitsubishi.png");
-            Add(JapaneseBrands, "Suzuki",        "Japan",   "Assets/Logos/suzuki.png");
-            Add(JapaneseBrands, "Lexus",         "Japan",   "Assets/Logos/lexus.png");
+            Add(JapaneseBrands, "Toyota", "Japan", "Assets/Logos/toyota.png");
+            Add(JapaneseBrands, "Honda", "Japan", "Assets/Logos/honda.png");
+            Add(JapaneseBrands, "Nissan", "Japan", "Assets/Logos/nissan.png");
+            Add(JapaneseBrands, "Mazda", "Japan", "Assets/Logos/mazda.png");
+            Add(JapaneseBrands, "Subaru", "Japan", "Assets/Logos/subaru.png");
+            Add(JapaneseBrands, "Mitsubishi", "Japan", "Assets/Logos/mitsubishi.png");
+            Add(JapaneseBrands, "Suzuki", "Japan", "Assets/Logos/suzuki.png");
+            Add(JapaneseBrands, "Lexus", "Japan", "Assets/Logos/lexus.png");
 
-            Add(KoreanBrands,   "Kia",           "Korea",   "Assets/Logos/kia.png");
-            Add(KoreanBrands,   "Hyundai",       "Korea",   "Assets/Logos/hyundai.png");
+            Add(KoreanBrands, "Kia", "Korea", "Assets/Logos/kia.png");
+            Add(KoreanBrands, "Hyundai", "Korea", "Assets/Logos/hyundai.png");
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
