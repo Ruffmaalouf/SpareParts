@@ -45,6 +45,11 @@ jobs:
           echo "connection_string=$CS" >> "$GITHUB_OUTPUT"
           echo "::add-mask::$CS"
 
+      - name: Register required resource providers
+        run: |
+          az provider register --namespace Microsoft.Sql --wait --output none
+          az provider register --namespace Microsoft.Web --wait --output none
+
       - name: Create resource group
         run: |
           az group create \
