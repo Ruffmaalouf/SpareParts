@@ -611,3 +611,21 @@ BEGIN
         ('expense',   'Expense',   'Expense accounts',              50, 1);
 END;
 GO
+
+-- Ensure 'income' key exists (migration uses 'income', schema seeds 'revenue')
+IF NOT EXISTS (SELECT 1 FROM dbo.AccountingAccountTypes WHERE TypeKey = 'income')
+    INSERT INTO dbo.AccountingAccountTypes (TypeKey, Label, Description, SortOrder, IsActive)
+    VALUES ('income', 'Income', 'Revenue and income accounts.', 40, 1);
+GO
+
+-- Pre-create FK so AccountingMigration cannot resize AccountTypeKey to NVARCHAR(40)
+-- (migration expects NVARCHAR(40) on both sides; schema creates NVARCHAR(50);
+--  adding the FK here causes the migration's ALTER COLUMN to fail silently,
+--  keeping both columns at NVARCHAR(50) and matching each other for the FK.)
+IF OBJECT_ID('dbo.Accounts', 'U') IS NOT NULL
+   AND OBJECT_ID('dbo.AccountingAccountTypes', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Accounts_AccountTypeKey')
+    ALTER TABLE dbo.Accounts WITH NOCHECK
+    ADD CONSTRAINT FK_Accounts_AccountTypeKey
+        FOREIGN KEY (AccountTypeKey) REFERENCES dbo.AccountingAccountTypes(TypeKey);
+GO
