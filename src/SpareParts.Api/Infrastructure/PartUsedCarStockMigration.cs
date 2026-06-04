@@ -101,7 +101,7 @@ BEGIN
         SELECT seed.PartId,
                @UsedCarPartWarehouseId,
                seed.QuantityToAdd,
-               N'Adjust',
+               3,
                N'UsedCar',
                seed.UsedCarId,
                seed.UnitCost,
