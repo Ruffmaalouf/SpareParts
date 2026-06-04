@@ -143,11 +143,33 @@ GO
 -- ── Roles ─────────────────────────────────────────────────────────────────────
 IF OBJECT_ID('dbo.Roles', 'U') IS NULL
 CREATE TABLE dbo.Roles (
-    Id          INT           NOT NULL IDENTITY(1,1) PRIMARY KEY,
-    Name        NVARCHAR(80)  NOT NULL,
-    IsActive    BIT           NOT NULL DEFAULT 1,
-    CreatedAt   DATETIME2     NULL
+    Id             INT           NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    Name           NVARCHAR(100) NOT NULL,
+    Description    NVARCHAR(255) NULL,
+    BadgeColor     NVARCHAR(20)  NULL,
+    BadgeTextColor NVARCHAR(20)  NULL,
+    IsSystem       BIT           NOT NULL DEFAULT 0,
+    IsActive       BIT           NOT NULL DEFAULT 1,
+    CreatedAt      DATETIME2     NOT NULL,
+    ModifiedAt     DATETIME2     NULL
 );
+GO
+
+-- Add missing columns if Roles was created with an older schema
+IF COL_LENGTH('dbo.Roles', 'Description') IS NULL
+    ALTER TABLE dbo.Roles ADD Description NVARCHAR(255) NULL;
+GO
+IF COL_LENGTH('dbo.Roles', 'BadgeColor') IS NULL
+    ALTER TABLE dbo.Roles ADD BadgeColor NVARCHAR(20) NULL;
+GO
+IF COL_LENGTH('dbo.Roles', 'BadgeTextColor') IS NULL
+    ALTER TABLE dbo.Roles ADD BadgeTextColor NVARCHAR(20) NULL;
+GO
+IF COL_LENGTH('dbo.Roles', 'IsSystem') IS NULL
+    ALTER TABLE dbo.Roles ADD IsSystem BIT NOT NULL CONSTRAINT DF_Roles_IsSystem DEFAULT 0;
+GO
+IF COL_LENGTH('dbo.Roles', 'ModifiedAt') IS NULL
+    ALTER TABLE dbo.Roles ADD ModifiedAt DATETIME2 NULL;
 GO
 
 -- ── Users ─────────────────────────────────────────────────────────────────────
@@ -532,13 +554,13 @@ GO
 -- ── Seed: Roles ───────────────────────────────────────────────────────────────
 SET IDENTITY_INSERT dbo.Roles ON;
 IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE Id = 1)
-    INSERT INTO dbo.Roles (Id, Name, IsActive, CreatedAt)
-    VALUES (1, 'Admin', 1, SYSUTCDATETIME());
+    INSERT INTO dbo.Roles (Id, Name, Description, BadgeColor, BadgeTextColor, IsSystem, IsActive, CreatedAt)
+    VALUES (1, 'Admin', 'Full system access', '#22FF5722', '#FF7043', 1, 1, SYSUTCDATETIME());
 SET IDENTITY_INSERT dbo.Roles OFF;
 GO
 
--- ── Seed: Default admin user (password: Admin@1234) ──────────────────────────
--- PasswordHash is BCrypt of "Admin@1234"
+-- ── Seed: Default admin user (password: Admin@123) ───────────────────────────
+-- PasswordHash is BCrypt of "Admin@123"
 IF NOT EXISTS (SELECT 1 FROM dbo.Users WHERE Username = 'admin')
     INSERT INTO dbo.Users (Username, FullName, Email, PasswordHash, RoleId, IsActive, CreatedAt)
     VALUES ('admin', 'Administrator', 'admin@spareparts.local',
