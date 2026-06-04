@@ -52,19 +52,34 @@ jobs:
             --location ${{ env.LOCATION }} \
             --output none
 
-      - name: Create App Service Plan (Free F1)
+      - name: Create App Service Plan (Free F1 - try multiple regions)
         run: |
           if ! az appservice plan show \
                --resource-group ${{ env.RESOURCE_GROUP }} \
                --name ${{ env.PLAN_NAME }} \
                --output none 2>/dev/null; then
-            az appservice plan create \
-              --resource-group ${{ env.RESOURCE_GROUP }} \
-              --name ${{ env.PLAN_NAME }} \
-              --location ${{ env.LOCATION }} \
-              --sku F1 \
-              --is-linux \
-              --output none
+            for REGION in westeurope northeurope eastus eastus2 westus2 centralus southeastasia; do
+              echo "Trying region: $REGION"
+              if az appservice plan create \
+                   --resource-group ${{ env.RESOURCE_GROUP }} \
+                   --name ${{ env.PLAN_NAME }} \
+                   --location $REGION \
+                   --sku B1 \
+                   --is-linux \
+                   --output none 2>/dev/null; then
+                echo "DEPLOY_REGION=$REGION" >> $GITHUB_ENV
+                echo "Plan created in $REGION"
+                break
+              fi
+              echo "Region $REGION failed, trying next..."
+            done
+            if ! az appservice plan show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --output none 2>/dev/null; then
+              echo "All regions failed — check subscription quota"
+              exit 1
+            fi
+          else
+            REGION=$(az appservice plan show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --query location -o tsv)
+            echo "DEPLOY_REGION=$REGION" >> $GITHUB_ENV
           fi
 
       - name: Create API Web App
@@ -103,7 +118,7 @@ jobs:
                --output none 2>/dev/null; then
             az sql server create \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --location ${{ env.LOCATION }} \
+              --location ${{ env.DEPLOY_REGION || env.LOCATION }} \
               --name ${{ env.SQL_SERVER_NAME }} \
               --admin-user ${{ env.SQL_ADMIN_USER }} \
               --admin-password "${{ steps.sql_pass.outputs.password }}" \
