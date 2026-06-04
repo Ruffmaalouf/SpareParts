@@ -131,6 +131,12 @@ jobs:
               --admin-user ${{ env.SQL_ADMIN_USER }} \
               --admin-password "${{ steps.sql_pass.outputs.password }}" \
               --output none
+          else
+            az sql server update \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.SQL_SERVER_NAME }} \
+              --admin-password "${{ steps.sql_pass.outputs.password }}" \
+              --output none
           fi
 
       - name: Allow Azure services to reach SQL
