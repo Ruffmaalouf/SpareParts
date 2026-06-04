@@ -9,7 +9,7 @@ on:
 
 jobs:
   validate:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       CI: "true"
     steps:
@@ -22,6 +22,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore
         run: dotnet restore SpareParts.sln
@@ -63,11 +70,20 @@ jobs:
 
           dotnet format SpareParts.sln --verify-no-changes --severity warn --include $files
 
-      - name: Test architecture suite
-        run: dotnet test tests/SpareParts.ArchitectureTests/SpareParts.ArchitectureTests.csproj --configuration Release
-
-      - name: Test management suite
-        run: dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj --configuration Release
+      - name: Test suites (parallel)
+        run: |
+          FAIL=0
+          dotnet test tests/SpareParts.ArchitectureTests/SpareParts.ArchitectureTests.csproj \
+            --configuration Release --no-build \
+            --logger "console;verbosity=minimal" &
+          PID_ARCH=$!
+          dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj \
+            --configuration Release --no-build \
+            --logger "console;verbosity=minimal" &
+          PID_MGMT=$!
+          wait $PID_ARCH || FAIL=1
+          wait $PID_MGMT || FAIL=1
+          exit $FAIL
 
   sql-server-integration:
     runs-on: ubuntu-latest
@@ -83,5 +99,38 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Cache SQL Server Docker image
+        id: cache-docker
+        uses: actions/cache@v4
+        with:
+          path: /tmp/sqlserver.tar
+          key: docker-mssql-server-2022-latest-v1
+
+      - name: Load cached SQL Server image
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        run: docker load -i /tmp/sqlserver.tar
+
+      - name: Pull and save SQL Server image
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: |
+          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker save mcr.microsoft.com/mssql/server:2022-latest -o /tmp/sqlserver.tar
+
+      - name: Restore & Build
+        run: |
+          dotnet restore tests/SpareParts.IntegrationTests/SpareParts.IntegrationTests.csproj
+          dotnet build tests/SpareParts.IntegrationTests/SpareParts.IntegrationTests.csproj \
+            --configuration Release --no-restore
+
       - name: Test SQL Server integration suite
-        run: dotnet test tests/SpareParts.IntegrationTests/SpareParts.IntegrationTests.csproj --configuration Release
+        run: |
+          dotnet test tests/SpareParts.IntegrationTests/SpareParts.IntegrationTests.csproj \
+            --configuration Release --no-build \
+            --logger "console;verbosity=minimal"
