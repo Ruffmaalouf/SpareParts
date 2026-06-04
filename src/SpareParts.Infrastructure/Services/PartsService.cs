@@ -634,7 +634,10 @@ END;
                   FROM dbo.StockMovements
                   WHERE PartId = @PartId
                     AND Quantity < 0
-                    AND (MovementType IN (N'Sale', N'2') OR TRY_CONVERT(INT, MovementType) = 2)
+                    AND (
+                        UPPER(LTRIM(RTRIM(CONVERT(NVARCHAR(50), MovementType)))) = N'SALE'
+                        OR TRY_CONVERT(INT, CONVERT(NVARCHAR(50), MovementType)) = 2
+                    )
               )
               THEN CAST(1 AS BIT)
               ELSE CAST(0 AS BIT)

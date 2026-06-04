@@ -3397,7 +3397,10 @@ BEGIN
               FROM dbo.StockMovements sm
               WHERE sm.PartId = p.Id
                 AND sm.Quantity < 0
-                AND (sm.MovementType IN (N'Sale', N'2') OR TRY_CONVERT(INT, sm.MovementType) = 2)
+                AND (
+                    UPPER(LTRIM(RTRIM(CONVERT(NVARCHAR(50), sm.MovementType)))) = N'SALE'
+                    OR TRY_CONVERT(INT, CONVERT(NVARCHAR(50), sm.MovementType)) = 2
+                )
           );
 
         UPDATE existingStock
