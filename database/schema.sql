@@ -456,7 +456,7 @@ BEGIN
 
     -- Re-add FK
     ALTER TABLE dbo.AccountingPostingSettings ADD CONSTRAINT FK_AccountingPostingSettings_Roles
-        FOREIGN KEY (RoleKey) REFERENCES dbo.AccountingPostingRoles(RoleKey);
+        FOREIGN KEY (SettingKey) REFERENCES dbo.AccountingPostingRoles(RoleKey);
 END;
 GO
 
