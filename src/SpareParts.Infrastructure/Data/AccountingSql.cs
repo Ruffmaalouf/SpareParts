@@ -13,7 +13,7 @@ namespace SpareParts.Infrastructure.Data
         THEN 'liability'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('EQUITY', '2')
         THEN 'equity'
-    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALESREVENUE', '3')
+    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALE', 'SALES', 'SALESREVENUE', '3')
         THEN 'income'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('EXPENSE', 'EXPENSES', 'COGS', 'COSTOFGOODSSOLD', 'COSTOFSALES', '4')
         THEN 'expense'
@@ -44,7 +44,7 @@ END";
         THEN 1
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) = 'EQUITY'
         THEN 2
-    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALESREVENUE')
+    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALE', 'SALES', 'SALESREVENUE')
         THEN 3
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), {columnExpression}))), ' ', ''), '_', ''), '-', '')) IN ('EXPENSE', 'EXPENSES', 'COGS', 'COSTOFGOODSSOLD', 'COSTOFSALES')
         THEN 4

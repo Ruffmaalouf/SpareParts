@@ -399,6 +399,23 @@ jobs:
           EXPO_PUBLIC_FACEBOOK_APP_ID=
           EOF
 
+      - name: Configure EAS staging API URL
+        working-directory: src/SpareParts.Mobile.ReactNative
+        env:
+          STAGING_API_BASE_URL: ${{ needs.provision.outputs.api_url }}
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const eas = JSON.parse(fs.readFileSync("eas.json", "utf8"));
+          eas.build = eas.build || {};
+          eas.build.staging = eas.build.staging || {};
+          eas.build.staging.env = {
+            ...(eas.build.staging.env || {}),
+            EXPO_PUBLIC_API_BASE_URL: process.env.STAGING_API_BASE_URL
+          };
+          fs.writeFileSync("eas.json", JSON.stringify(eas, null, 2) + "\n");
+          NODE
+
       - name: Verify no localhost
         working-directory: src/SpareParts.Mobile.ReactNative
         run: |
@@ -406,6 +423,15 @@ jobs:
             echo "ERROR: localhost in .env"
             exit 1
           fi
+          node - <<'NODE'
+          const eas = require("./eas.json");
+          const url = eas.build?.staging?.env?.EXPO_PUBLIC_API_BASE_URL || "";
+          if (!url || /localhost|127\.0\.0\.1|10\.0\.2\.2/.test(url)) {
+            console.error(`ERROR: invalid EAS staging API URL: ${url}`);
+            process.exit(1);
+          }
+          console.log(`OK: EAS staging API URL is ${url}`);
+          NODE
           echo "OK: no localhost"
 
       - name: Install EAS CLI

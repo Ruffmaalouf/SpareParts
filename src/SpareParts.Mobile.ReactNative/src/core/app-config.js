@@ -26,8 +26,9 @@ const CommunicationTemplateKey = {
   FreeText: 6
 };
 
+const configuredApiBaseUrl = String(process.env.EXPO_PUBLIC_API_BASE_URL || "").trim();
 const defaultApiBaseUrl =
-  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  configuredApiBaseUrl ||
   (Platform.OS === "android" ? "http://10.0.2.2:5000" : "http://localhost:5000");
 const defaultThemeKey = "aurora";
 const defaultLanguageKey = "en";
@@ -37,6 +38,16 @@ const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "";
 const googleWebClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || googleClientId;
 const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || "";
 const webAppRoleId = 4;
+
+function isLocalDevelopmentApiBaseUrl(value) {
+  const match = String(value || "").trim().match(/^[a-z][a-z0-9+.-]*:\/\/([^/:?#]+)/i);
+  const hostname = match ? match[1].toLowerCase() : "";
+  return ["localhost", "127.0.0.1", "10.0.2.2"].includes(hostname);
+}
+
+function shouldUsePackagedApiBaseUrl(storedApiBaseUrl) {
+  return Boolean(configuredApiBaseUrl) && isLocalDevelopmentApiBaseUrl(storedApiBaseUrl);
+}
 
 const wpfThemes = [
   {
@@ -233,6 +244,7 @@ module.exports = {
   CommunicationRecipientKind,
   CommunicationTemplateKey,
   appLanguages,
+  configuredApiBaseUrl,
   defaultApiBaseUrl,
   defaultLanguageKey,
   defaultThemeKey,
@@ -244,6 +256,7 @@ module.exports = {
   googleWebClientId,
   managementSections,
   navigationGroups,
+  shouldUsePackagedApiBaseUrl,
   storageKeys,
   languageMap,
   themeMap,

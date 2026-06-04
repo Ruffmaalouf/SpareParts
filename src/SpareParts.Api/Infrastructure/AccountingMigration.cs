@@ -65,15 +65,6 @@ BEGIN
     ALTER TABLE dbo.Accounts ADD AccountTypeKey NVARCHAR(40) NULL;
 END;
 
-IF COL_LENGTH('dbo.Accounts', 'AccountType') IS NOT NULL
-BEGIN
-    BEGIN TRY
-        ALTER TABLE dbo.Accounts ALTER COLUMN AccountType INT NULL;
-    END TRY
-    BEGIN CATCH
-    END CATCH
-END;
-
 UPDATE dbo.Accounts
 SET AccountTypeKey = CASE
     WHEN AccountTypeKey IS NOT NULL AND LTRIM(RTRIM(AccountTypeKey)) <> '' THEN LOWER(LTRIM(RTRIM(AccountTypeKey)))
@@ -86,7 +77,7 @@ SET AccountTypeKey = CASE
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('ASSET', 'ASSETS') THEN 'asset'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('LIABILITY', 'LIABILITIES') THEN 'liability'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) = 'EQUITY' THEN 'equity'
-    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALESREVENUE') THEN 'income'
+    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALE', 'SALES', 'SALESREVENUE') THEN 'income'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('EXPENSE', 'EXPENSES', 'COGS', 'COSTOFGOODSSOLD', 'COSTOFSALES') THEN 'expense'
     ELSE 'asset'
 END

@@ -1,4 +1,4 @@
-const { defaultApiBaseUrl } = require("./app-config");
+const { defaultApiBaseUrl, shouldUsePackagedApiBaseUrl } = require("./app-config");
 const { normalizeLanguageKey, normalizeThemeKey } = require("./formatters");
 
 class MobileSessionStore {
@@ -16,8 +16,17 @@ class MobileSessionStore {
       this.storage.getItem(this.keys.language)
     ]);
 
+    const shouldResetApiBaseUrl = shouldUsePackagedApiBaseUrl(apiBaseUrl);
+    const resolvedApiBaseUrl = shouldResetApiBaseUrl
+      ? defaultApiBaseUrl
+      : apiBaseUrl || defaultApiBaseUrl;
+
+    if (shouldResetApiBaseUrl) {
+      await this.storage.setItem(this.keys.apiBaseUrl, resolvedApiBaseUrl);
+    }
+
     return {
-      apiBaseUrl: apiBaseUrl || defaultApiBaseUrl,
+      apiBaseUrl: resolvedApiBaseUrl,
       token: token || "",
       user: user ? JSON.parse(user) : null,
       themeKey: normalizeThemeKey(theme),

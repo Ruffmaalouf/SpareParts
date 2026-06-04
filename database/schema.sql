@@ -817,15 +817,6 @@ BEGIN
     ALTER TABLE dbo.Accounts ADD AccountTypeKey NVARCHAR(40) NULL;
 END;
 
-IF COL_LENGTH('dbo.Accounts', 'AccountType') IS NOT NULL
-BEGIN
-    BEGIN TRY
-        ALTER TABLE dbo.Accounts ALTER COLUMN AccountType INT NULL;
-    END TRY
-    BEGIN CATCH
-    END CATCH
-END;
-
 UPDATE dbo.Accounts
 SET AccountTypeKey = CASE
     WHEN AccountTypeKey IS NOT NULL AND LTRIM(RTRIM(AccountTypeKey)) <> '' THEN LOWER(LTRIM(RTRIM(AccountTypeKey)))
@@ -838,7 +829,7 @@ SET AccountTypeKey = CASE
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('ASSET', 'ASSETS') THEN 'asset'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('LIABILITY', 'LIABILITIES') THEN 'liability'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) = 'EQUITY' THEN 'equity'
-    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALESREVENUE') THEN 'income'
+    WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('INCOME', 'REVENUE', 'REVENUES', 'SALE', 'SALES', 'SALESREVENUE') THEN 'income'
     WHEN UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(CONVERT(NVARCHAR(50), AccountType))), ' ', ''), '_', ''), '-', '')) IN ('EXPENSE', 'EXPENSES', 'COGS', 'COSTOFGOODSSOLD', 'COSTOFSALES') THEN 'expense'
     ELSE 'asset'
 END
@@ -2639,6 +2630,7 @@ IF COL_LENGTH('dbo.TransactionItems', 'DetailKey') IS NULL
 BEGIN
     ALTER TABLE dbo.TransactionItems ADD DetailKey NVARCHAR(80) NULL;
 END;
+GO
 
 IF NOT EXISTS
 (
@@ -3405,7 +3397,10 @@ BEGIN
               FROM dbo.StockMovements sm
               WHERE sm.PartId = p.Id
                 AND sm.Quantity < 0
-                AND (sm.MovementType IN (N'Sale', N'2') OR TRY_CONVERT(INT, sm.MovementType) = 2)
+                AND (
+                    UPPER(LTRIM(RTRIM(CONVERT(NVARCHAR(50), sm.MovementType)))) = N'SALE'
+                    OR TRY_CONVERT(INT, CONVERT(NVARCHAR(50), sm.MovementType)) = 2
+                )
           );
 
         UPDATE existingStock
@@ -3439,7 +3434,7 @@ BEGIN
         SELECT seed.PartId,
                @UsedCarPartWarehouseId,
                seed.QuantityToAdd,
-               N'Adjust',
+               3,
                N'UsedCar',
                seed.UsedCarId,
                seed.UnitCost,
