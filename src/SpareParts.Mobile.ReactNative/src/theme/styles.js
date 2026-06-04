@@ -1294,6 +1294,261 @@ function createStyles(palette) {
   disabledButton: {
     opacity: 0.55
   },
+  partsMetricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9
+  },
+  partsMetric: {
+    width: "48%",
+    minHeight: 68,
+    justifyContent: "space-between",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 10
+  },
+  partsMetricLabel: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  partsMetricValue: {
+    color: palette.text,
+    fontSize: 20,
+    fontWeight: "900"
+  },
+  partsFocusList: {
+    gap: 8
+  },
+  partsFocusRow: {
+    minHeight: 54,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 9
+  },
+  partsFocusRank: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    overflow: "hidden",
+    color: palette.accent,
+    backgroundColor: palette.input,
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontSize: 11,
+    fontWeight: "900"
+  },
+  partsFocusCopy: {
+    flex: 1,
+    minWidth: 0
+  },
+  partsFocusTitle: {
+    color: palette.text,
+    fontSize: 13,
+    fontWeight: "900"
+  },
+  partsFocusSubtitle: {
+    color: palette.muted,
+    fontSize: 11,
+    marginTop: 2
+  },
+  partsFocusAction: {
+    maxWidth: 96,
+    color: palette.accent,
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    textAlign: "right"
+  },
+  partsChipRail: {
+    gap: 8,
+    paddingRight: 12
+  },
+  partsChip: {
+    minHeight: 36,
+    justifyContent: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    paddingHorizontal: 12
+  },
+  partsChipActive: {
+    borderColor: palette.accent,
+    backgroundColor: palette.input
+  },
+  partsChipText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  partsChipTextActive: {
+    color: palette.text
+  },
+  partsPriceRow: {
+    flexDirection: "row",
+    gap: 10
+  },
+  partsPriceField: {
+    flex: 1,
+    minWidth: 0
+  },
+  partCard: {
+    flexDirection: "row",
+    gap: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10
+  },
+  partPhoto: {
+    width: 74,
+    minHeight: 106,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+    backgroundColor: palette.input,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7
+  },
+  partPhotoText: {
+    color: palette.accent,
+    fontSize: 22,
+    fontWeight: "900"
+  },
+  partPhotoBadge: {
+    color: palette.muted,
+    fontSize: 9,
+    fontWeight: "900"
+  },
+  partCardBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: 8
+  },
+  partCardTopline: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  partCardCopy: {
+    flex: 1,
+    minWidth: 0
+  },
+  partCode: {
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  partTitle: {
+    color: palette.text,
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: "900",
+    marginTop: 2
+  },
+  partPrice: {
+    maxWidth: 112,
+    color: palette.text,
+    fontSize: 13,
+    fontWeight: "900",
+    textAlign: "right"
+  },
+  partBadgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6
+  },
+  partsStatus: {
+    borderRadius: 6,
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: palette.text,
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  partsStatusAvailable: {
+    backgroundColor: "rgba(37,211,102,0.20)"
+  },
+  partsStatusReserved: {
+    backgroundColor: "rgba(245,158,11,0.20)"
+  },
+  partsStatusSold: {
+    backgroundColor: "rgba(255,107,95,0.18)"
+  },
+  partsPriority: {
+    borderRadius: 6,
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: palette.text,
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  partsPrioritySuccess: {
+    backgroundColor: "rgba(37,211,102,0.18)"
+  },
+  partsPriorityWarning: {
+    backgroundColor: "rgba(245,158,11,0.20)"
+  },
+  partsPriorityDanger: {
+    backgroundColor: "rgba(255,107,95,0.18)"
+  },
+  partsPriorityNeutral: {
+    backgroundColor: palette.input
+  },
+  partsDemandBadge: {
+    borderRadius: 6,
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: palette.text,
+    fontSize: 10,
+    fontWeight: "900",
+    backgroundColor: "rgba(214,169,79,0.18)"
+  },
+  partsCondition: {
+    borderRadius: 6,
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: "900",
+    backgroundColor: "rgba(255,255,255,0.07)"
+  },
+  partsDonorBadge: {
+    borderRadius: 6,
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    color: palette.accent,
+    fontSize: 10,
+    fontWeight: "900",
+    backgroundColor: "rgba(232,80,18,0.14)"
+  },
+  partMeta: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17
+  },
+  partActionRow: {
+    flexDirection: "row",
+    gap: 8
+  },
   metricGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -2901,6 +3156,117 @@ function createStyles(palette) {
     fontSize: 11,
     fontWeight: "900"
   },
+  usedCarCockpit: {
+    gap: 10
+  },
+  usedCarMetricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  usedCarMetricTile: {
+    flex: 1,
+    minWidth: 148,
+    minHeight: 92,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10,
+    gap: 5
+  },
+  usedCarMetricPositive: {
+    borderColor: palette.whatsapp
+  },
+  usedCarMetricWarning: {
+    borderColor: "#f59e0b"
+  },
+  usedCarMetricDanger: {
+    borderColor: palette.danger
+  },
+  usedCarMetricLabel: {
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  usedCarMetricValue: {
+    color: palette.text,
+    fontSize: 22,
+    fontWeight: "900"
+  },
+  usedCarMetricMeta: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "800",
+    lineHeight: 15
+  },
+  usedCarFilterRail: {
+    gap: 7,
+    paddingVertical: 1
+  },
+  usedCarFocusList: {
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: palette.line,
+    paddingTop: 10
+  },
+  usedCarFocusCard: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10,
+    gap: 5
+  },
+  usedCarFocusTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  usedCarActionPill: {
+    minHeight: 26,
+    maxWidth: "70%",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input,
+    color: palette.text,
+    paddingHorizontal: 8,
+    paddingTop: 5,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    overflow: "hidden"
+  },
+  usedCarActionPill_positive: {
+    borderColor: palette.whatsapp,
+    color: palette.whatsapp
+  },
+  usedCarActionPill_success: {
+    borderColor: palette.whatsapp,
+    color: palette.whatsapp
+  },
+  usedCarActionPill_warning: {
+    borderColor: "#f59e0b",
+    color: "#f59e0b"
+  },
+  usedCarActionPill_danger: {
+    borderColor: palette.danger,
+    color: palette.danger
+  },
+  usedCarFocusGap: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: "900",
+    textAlign: "right"
+  },
+  usedCarFocusTitle: {
+    color: palette.text,
+    fontSize: 14,
+    fontWeight: "900"
+  },
   usedCarThumbRail: {
     gap: 8,
     paddingVertical: 2
@@ -3270,6 +3636,49 @@ function createStyles(palette) {
     fontSize: 12,
     fontWeight: "900",
     textAlign: "right"
+  },
+  usedCarInventoryAction: {
+    color: palette.muted,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase"
+  },
+  usedCarInventoryAction_positive: {
+    color: palette.whatsapp
+  },
+  usedCarInventoryAction_success: {
+    color: palette.whatsapp
+  },
+  usedCarInventoryAction_warning: {
+    color: "#f59e0b"
+  },
+  usedCarInventoryAction_danger: {
+    color: palette.danger
+  },
+  usedCarRecoveryPanel: {
+    gap: 10
+  },
+  usedCarProgressTrack: {
+    height: 10,
+    overflow: "hidden",
+    borderRadius: 8,
+    backgroundColor: palette.input
+  },
+  usedCarProgressFill: {
+    height: "100%",
+    borderRadius: 8,
+    backgroundColor: palette.accent
+  },
+  usedCarPushParts: {
+    gap: 8
+  },
+  usedCarPushPart: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface2,
+    padding: 10,
+    gap: 3
   },
   usedCarPartsPanel: {
     gap: 9

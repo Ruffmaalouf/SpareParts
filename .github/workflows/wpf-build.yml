@@ -1,0 +1,98 @@
+name: WPF Desktop Build
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'src/SpareParts.Desktop.**'
+      - 'src/SpareParts.Domain/**'
+      - 'src/SpareParts.Infrastructure/**'
+      - 'src/SpareParts.Application/**'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - '.github/workflows/wpf-build.yml'
+  pull_request:
+    branches: [main, master]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-wpf:
+    name: Build WPF Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore solutions/SpareParts.Desktop.sln
+
+      - name: Build WPF (Release)
+        run: |
+          dotnet build solutions/SpareParts.Desktop.sln `
+            --configuration Release `
+            --no-restore `
+            -p:TreatWarningsAsErrors=false
+
+      - name: Publish WPF (self-contained)
+        run: |
+          dotnet publish src/SpareParts.Desktop.Wpf/SpareParts.Desktop.Wpf.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ./publish/wpf `
+            -p:PublishSingleFile=false `
+            -p:TreatWarningsAsErrors=false
+
+      - name: Zip WPF output
+        shell: pwsh
+        run: |
+          $version = "${{ github.sha }}".Substring(0, 8)
+          Compress-Archive -Path "./publish/wpf/*" -DestinationPath "./publish/SpareParts-Desktop-$version.zip" -Force
+          Write-Host "Created: SpareParts-Desktop-$version.zip"
+
+      - name: Run Management Tests (WPF deps — Windows only)
+        run: |
+          dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj `
+            --configuration Release `
+            --logger "github;collapse-with-annotations=true" `
+            --results-directory ./test-results/management
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-management
+          path: test-results/
+          retention-days: 7
+
+      - name: Upload WPF ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spareparts-desktop-${{ github.sha }}
+          path: publish/SpareParts-Desktop-*.zip
+          retention-days: 30
+
+      - name: Upload WPF folder artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spareparts-desktop-files-${{ github.sha }}
+          path: publish/wpf/
+          retention-days: 14

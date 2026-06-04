@@ -119,6 +119,231 @@ function statusLabel(car, t) {
   return badges.length ? badges : [t ? t("usedCars.inventory", "Inventory") : "Inventory"];
 }
 
+function baseCurrency(car) {
+  return read(car, "baseCurrencyCode") || "USD";
+}
+
+function percent(value, total) {
+  if (total <= 0) return 0;
+  return Math.max(0, Math.round((value / total) * 100));
+}
+
+function partUnitCost(part) {
+  return toNumber(read(part, "minimumSellPrice"))
+    || toNumber(read(part, "allocatedCost"))
+    || toNumber(read(part, "costPrice"))
+    || toNumber(read(part, "averagePrice"));
+}
+
+function partTargetPrice(part) {
+  return toNumber(read(part, "recommendedPrice"))
+    || toNumber(read(part, "salePrice"))
+    || toNumber(read(part, "estimatedMarketPrice"))
+    || toNumber(read(part, "averagePrice"));
+}
+
+function partAvailableQuantity(part) {
+  return Math.max(
+    toNumber(read(part, "availableQuantity")),
+    toNumber(read(part, "stockQuantity")),
+    0
+  );
+}
+
+function rankPart(part, isLinked) {
+  const salePrice = partTargetPrice(part);
+  const unitCost = partUnitCost(part);
+  const quantity = partAvailableQuantity(part);
+  const expectedSale = salePrice * quantity;
+  const expectedMargin = (salePrice - unitCost) * quantity;
+  return {
+    part,
+    isLinked,
+    quantity,
+    salePrice,
+    unitCost,
+    expectedSale,
+    expectedMargin,
+    score: expectedSale + Math.max(expectedMargin, 0) * 0.6 + (isLinked ? 10 : 0)
+  };
+}
+
+function buildPartRecommendations(linkedParts, unassignedParts) {
+  const linkedCandidates = linkedParts
+    .map((part) => rankPart(part, true))
+    .filter((item) => item.quantity > 0 && (item.salePrice > 0 || item.unitCost > 0));
+  const source = linkedCandidates.length > 0
+    ? linkedCandidates
+    : unassignedParts
+      .map((part) => rankPart(part, false))
+      .filter((item) => item.quantity > 0 && (item.salePrice > 0 || item.unitCost > 0));
+
+  return source
+    .sort((left, right) =>
+      right.score - left.score
+      || right.expectedMargin - left.expectedMargin
+      || String(read(left.part, "name")).localeCompare(String(read(right.part, "name"))))
+    .slice(0, 3);
+}
+
+function partValueInCarBase(item, car) {
+  const value = item.expectedSale || item.salePrice;
+  const partCurrency = String(read(item.part, "currency") || "").trim().toUpperCase();
+  const carBaseCurrency = String(baseCurrency(car)).trim().toUpperCase();
+  if (!partCurrency || partCurrency === carBaseCurrency) return value;
+
+  const counterCurrency = String(read(car, "counterCurrencyCode") || "").trim().toUpperCase();
+  const counterRateToBase = toNumber(read(car, "counterRateToBase"));
+  return partCurrency === counterCurrency && counterRateToBase > 0
+    ? value * counterRateToBase
+    : value;
+}
+
+function buildProfitProject(car) {
+  const bought = toNumber(read(car, "purchaseCostBase", "priceBase"));
+  const fullCost = toNumber(read(car, "fullCostBase", "grandTotalBase"));
+  const soldAmount = read(car, "isWholesaleSold")
+    ? toNumber(read(car, "salePriceBase"))
+    : toNumber(read(car, "partsSoldAmountBase"));
+  const remainingStockValue = toNumber(read(car, "remainingStockValueBase"));
+  const netProfitLossValue = read(car, "netProfitLossBase");
+  const netProfitLoss = netProfitLossValue === "" ? soldAmount - fullCost : toNumber(netProfitLossValue);
+
+  return {
+    bought,
+    fullCost,
+    partsRemovedCount: toNumber(read(car, "partsRemovedCount")),
+    partsRemovedValue: toNumber(read(car, "partsRemovedValueBase")),
+    soldQuantity: toNumber(read(car, "partsSoldQuantity")),
+    soldAmount,
+    remainingQuantity: toNumber(read(car, "remainingStockQuantity")),
+    remainingStockValue,
+    netProfitLoss,
+    breakEvenGap: Math.max(fullCost - soldAmount, 0),
+    recoveredPercent: percent(soldAmount, fullCost)
+  };
+}
+
+function buildDonorAction(car, project, linkedParts, t) {
+  if (read(car, "isWholesaleSold")) {
+    return {
+      key: "sold",
+      tone: "positive",
+      label: t("usedCars.actionSold", "Sold wholesale"),
+      detail: read(car, "wholesaleBuyerName")
+        ? t("usedCars.soldToBuyer", "Sold to {name}", { name: read(car, "wholesaleBuyerName") })
+        : t("usedCars.wholesaleProjectClosed", "Wholesale project closed")
+    };
+  }
+
+  if (!read(car, "isReceived")) {
+    return {
+      key: "receive",
+      tone: "warning",
+      label: t("usedCars.actionReceive", "Receive & cost"),
+      detail: t("usedCars.actionReceiveDetail", "Confirm arrival, customs, and landed cost.")
+    };
+  }
+
+  if (!read(car, "isShipped")) {
+    return {
+      key: "ship",
+      tone: "warning",
+      label: t("usedCars.actionShip", "Ship / clear"),
+      detail: t("usedCars.actionShipDetail", "Close shipping status before teardown.")
+    };
+  }
+
+  if (project.fullCost <= 0) {
+    return {
+      key: "cost",
+      tone: "danger",
+      label: t("usedCars.actionConfirmCosts", "Confirm costs"),
+      detail: t("usedCars.actionConfirmCostsDetail", "Add purchase and teardown costs before profit tracking.")
+    };
+  }
+
+  if (project.breakEvenGap <= 0) {
+    return {
+      key: "profit",
+      tone: "positive",
+      label: t("usedCars.actionProfit", "Profit unlocked"),
+      detail: t("usedCars.actionProfitDetail", "Keep selling remaining donor stock.")
+    };
+  }
+
+  if (linkedParts.length === 0 && project.partsRemovedCount === 0) {
+    return {
+      key: "link",
+      tone: "danger",
+      label: t("usedCars.actionLinkParts", "Link donor parts"),
+      detail: t("usedCars.actionLinkPartsDetail", "Assign harvested parts so recovery can be tracked.")
+    };
+  }
+
+  if (project.remainingStockValue >= project.breakEvenGap && project.remainingStockValue > 0) {
+    return {
+      key: "sell-stock",
+      tone: "success",
+      label: t("usedCars.actionSellStock", "Sell stocked parts"),
+      detail: t("usedCars.actionSellStockDetail", "Current stock value can close the break-even gap.")
+    };
+  }
+
+  if (project.partsRemovedCount > 0) {
+    return {
+      key: "quote",
+      tone: "warning",
+      label: t("usedCars.actionPushParts", "Push removed parts"),
+      detail: t("usedCars.actionPushPartsDetail", "Quote high-value removed parts first.")
+    };
+  }
+
+  return {
+    key: "harvest",
+    tone: "neutral",
+    label: t("usedCars.actionHarvest", "Harvest next parts"),
+    detail: t("usedCars.actionHarvestDetail", "Start with high-value parts and common requests.")
+  };
+}
+
+function buildDonorProject(car, linkedParts, unassignedParts, t) {
+  const project = buildProfitProject(car);
+  const recommendations = buildPartRecommendations(linkedParts, unassignedParts);
+  return {
+    car,
+    project,
+    linkedParts,
+    recommendations,
+    action: buildDonorAction(car, project, linkedParts, t),
+    recommendedValueBase: recommendations.reduce((sum, item) => sum + partValueInCarBase(item, car), 0)
+  };
+}
+
+function matchesDonorProject(entry, search) {
+  if (!search.trim()) return true;
+  const needle = search.trim().toLowerCase();
+  const car = entry.car;
+  return [
+    carTitle(car),
+    read(car, "barcode"),
+    read(car, "supplierName"),
+    read(car, "location"),
+    read(car, "wholesaleBuyerName"),
+    entry.action.label,
+    entry.action.detail
+  ].join(" ").toLowerCase().includes(needle);
+}
+
+function matchesDonorFilter(entry, filter) {
+  if (filter === "profit") return entry.project.breakEvenGap <= 0;
+  if (filter === "gap") return entry.project.breakEvenGap > 0;
+  if (filter === "needs-linking") return entry.linkedParts.length === 0 && entry.project.partsRemovedCount === 0;
+  if (filter === "action") return ["receive", "ship", "cost", "link", "harvest", "sell-stock", "quote"].includes(entry.action.key);
+  if (filter === "transit") return !read(entry.car, "isReceived") || !read(entry.car, "isShipped");
+  return true;
+}
+
 function matchesText(row, term, keys) {
   if (!term.trim()) return true;
   const needle = term.trim().toLowerCase();
@@ -245,6 +470,8 @@ function UsedCarsScreen({ api }) {
   const [supplierSearch, setSupplierSearch] = useState("");
   const [modelSearch, setModelSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
+  const [carSearch, setCarSearch] = useState("");
+  const [carFilter, setCarFilter] = useState("all");
   const [partSearch, setPartSearch] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -283,10 +510,55 @@ function UsedCarsScreen({ api }) {
     () => displayContextForCar(selectedCar),
     [displayContextForCar, selectedCar]
   );
-  const filteredCars = useMemo(
-    () => cars,
-    [cars]
-  );
+  const unassignedParts = useMemo(() =>
+    parts.filter((part) => !read(part, "usedCarId")),
+  [parts]);
+  const partsByUsedCarId = useMemo(() => {
+    const grouped = new Map();
+    parts.forEach((part) => {
+      const usedCarId = String(read(part, "usedCarId") || "");
+      if (!usedCarId) return;
+      const current = grouped.get(usedCarId) || [];
+      current.push(part);
+      grouped.set(usedCarId, current);
+    });
+    return grouped;
+  }, [parts]);
+  const donorProjects = useMemo(() => cars
+    .map((car) => buildDonorProject(
+      car,
+      partsByUsedCarId.get(String(itemId(car))) || [],
+      unassignedParts,
+      t
+    ))
+    .sort((left, right) => {
+      const leftSold = left.action.key === "sold" ? 1 : 0;
+      const rightSold = right.action.key === "sold" ? 1 : 0;
+      return leftSold - rightSold
+        || (right.project.breakEvenGap > 0 ? 1 : 0) - (left.project.breakEvenGap > 0 ? 1 : 0)
+        || right.project.breakEvenGap - left.project.breakEvenGap
+        || carTitle(left.car, t).localeCompare(carTitle(right.car, t));
+    }),
+  [cars, partsByUsedCarId, t, unassignedParts]);
+  const filteredDonorProjects = useMemo(() => donorProjects.filter((entry) =>
+    matchesDonorProject(entry, carSearch) && matchesDonorFilter(entry, carFilter)
+  ), [carFilter, carSearch, donorProjects]);
+  const selectedDonorProject = useMemo(() =>
+    donorProjects.find((entry) => String(itemId(entry.car)) === String(selectedId)) || null,
+  [donorProjects, selectedId]);
+  const donorMetrics = useMemo(() => donorProjects.reduce((summary, entry) => ({
+    readyForTeardown: summary.readyForTeardown + (read(entry.car, "isReceived") && read(entry.car, "isShipped") && !read(entry.car, "isWholesaleSold") ? 1 : 0),
+    profitUnlocked: summary.profitUnlocked + (entry.project.fullCost > 0 && entry.project.breakEvenGap <= 0 ? 1 : 0),
+    gapOpen: summary.gapOpen + (entry.project.breakEvenGap > 0 ? 1 : 0),
+    needsLinking: summary.needsLinking + (entry.linkedParts.length === 0 && entry.project.partsRemovedCount === 0 ? 1 : 0),
+    linkedParts: summary.linkedParts + entry.linkedParts.length
+  }), {
+    readyForTeardown: 0,
+    profitUnlocked: 0,
+    gapOpen: 0,
+    needsLinking: 0,
+    linkedParts: 0
+  }), [donorProjects]);
   const assignedParts = useMemo(() =>
     parts.filter((part) =>
       String(read(part, "usedCarId") || "") === String(selectedId)
@@ -772,6 +1044,18 @@ function UsedCarsScreen({ api }) {
     }
   }, [images.length, isGalleryOpen]);
 
+  const donorFilters = [
+    { key: "all", label: t("usedCars.filterAllDonors", "All") },
+    { key: "action", label: t("usedCars.filterAction", "Action") },
+    { key: "gap", label: t("usedCars.filterGapOpen", "Gap open") },
+    { key: "needs-linking", label: t("usedCars.filterNeedsLinking", "Needs linking") },
+    { key: "profit", label: t("usedCars.filterProfit", "Profit") },
+    { key: "transit", label: t("usedCars.filterTransit", "Transit") }
+  ];
+  const focusProjects = filteredDonorProjects
+    .filter((entry) => entry.action.key !== "sold")
+    .slice(0, 4);
+
   const galleryModal = el(Modal, {
     animationType: "fade",
     visible: isGalleryOpen,
@@ -900,6 +1184,75 @@ function UsedCarsScreen({ api }) {
     galleryModal,
     el(ScreenHeader, { title: t("usedCars.title", "Used Cars"), actionTitle: t("common.refresh", "Refresh"), onAction: () => { loadCars(selectedId); loadParts(); }, loading: isLoading || isPartsLoading }),
     el(StatusText, { value: status }),
+    el(Panel, { title: t("usedCars.donorCockpit", "Donor Car Cockpit") },
+      el(View, { style: styles.usedCarCockpit },
+        el(View, { style: styles.usedCarMetricGrid },
+          el(View, { style: styles.usedCarMetricTile },
+            el(Text, { style: styles.usedCarMetricLabel }, t("usedCars.donorProjects", "Donor projects")),
+            el(Text, { style: styles.usedCarMetricValue }, donorProjects.length.toLocaleString()),
+            el(Text, { style: styles.usedCarMetricMeta }, t("usedCars.readyForTeardown", "{count} ready for teardown", { count: donorMetrics.readyForTeardown }))
+          ),
+          el(View, { style: [styles.usedCarMetricTile, styles.usedCarMetricPositive] },
+            el(Text, { style: styles.usedCarMetricLabel }, t("usedCars.profitUnlocked", "Profit unlocked")),
+            el(Text, { style: styles.usedCarMetricValue }, donorMetrics.profitUnlocked.toLocaleString()),
+            el(Text, { style: styles.usedCarMetricMeta }, t("usedCars.keepSelling", "Keep selling"))
+          ),
+          el(View, { style: [styles.usedCarMetricTile, styles.usedCarMetricWarning] },
+            el(Text, { style: styles.usedCarMetricLabel }, t("usedCars.breakEvenRisk", "Break-even risk")),
+            el(Text, { style: styles.usedCarMetricValue }, donorMetrics.gapOpen.toLocaleString()),
+            el(Text, { style: styles.usedCarMetricMeta }, t("usedCars.gapOpenDetail", "Need quoting"))
+          ),
+          el(View, { style: [styles.usedCarMetricTile, donorMetrics.needsLinking > 0 && styles.usedCarMetricDanger] },
+            el(Text, { style: styles.usedCarMetricLabel }, t("usedCars.partsLinked", "Parts linked")),
+            el(Text, { style: styles.usedCarMetricValue }, donorMetrics.linkedParts.toLocaleString()),
+            el(Text, { style: styles.usedCarMetricMeta }, t("usedCars.needsLinkingCount", "{count} donors need linking", { count: donorMetrics.needsLinking }))
+          )
+        ),
+        el(TextInput, {
+          style: styles.input,
+          value: carSearch,
+          onChangeText: setCarSearch,
+          placeholder: t("usedCars.searchDonors", "Search donor, barcode, supplier, buyer, action..."),
+          placeholderTextColor: palette.soft
+        }),
+        el(ScrollView, {
+          horizontal: true,
+          showsHorizontalScrollIndicator: false,
+          contentContainerStyle: styles.usedCarFilterRail
+        },
+          donorFilters.map((item) => {
+            const active = item.key === carFilter;
+            return el(Pressable, {
+              key: item.key,
+              style: [styles.usedCarSelectChip, active && styles.usedCarSelectChipActive],
+              onPress: () => setCarFilter(item.key)
+            },
+              el(Text, { style: [styles.usedCarSelectChipText, active && styles.usedCarSelectChipTextActive] }, item.label)
+            );
+          })
+        ),
+        el(View, { style: styles.usedCarFocusList },
+          el(Text, { style: styles.usedCarPartSectionTitle }, t("usedCars.todayFocus", "Today Focus")),
+          focusProjects.map((entry) => {
+            const displayMoney = (value) => displayMoneyFromBase(value, displayContextForCar(entry.car));
+            return el(Pressable, {
+              key: itemId(entry.car),
+              style: styles.usedCarFocusCard,
+              onPress: () => setSelectedId(String(itemId(entry.car)))
+            },
+              el(View, { style: styles.usedCarFocusTop },
+                el(Text, { style: [styles.usedCarActionPill, styles[`usedCarActionPill_${entry.action.tone}`]] }, entry.action.label),
+                el(Text, { style: styles.usedCarFocusGap }, entry.project.fullCost <= 0 ? t("usedCars.addCosts", "Add costs") : entry.project.breakEvenGap > 0 ? displayMoney(entry.project.breakEvenGap) : t("usedCars.done", "Done"))
+              ),
+              el(Text, { style: styles.usedCarFocusTitle, numberOfLines: 1 }, carTitle(entry.car, t)),
+              el(Text, { style: styles.usedCarCardMeta, numberOfLines: 2 }, entry.action.detail),
+              el(Text, { style: styles.usedCarCardMeta }, t("usedCars.focusRecoveryLine", "{percent}% recovered · {count} linked", { percent: entry.project.recoveredPercent, count: entry.linkedParts.length }))
+            );
+          }),
+          focusProjects.length === 0 && el(EmptyState, { text: t("usedCars.noFocusDonors", "No donor cars match this focus.") })
+        )
+      )
+    ),
     el(View, { style: [styles.usedCarWorkspaceGrid, isWide && styles.usedCarWorkspaceGridWide] },
       el(View, { style: [styles.usedCarWorkspacePrimary, isWide && styles.usedCarWorkspacePrimaryWide] },
         el(Panel, { title: t("usedCars.gallery", "Gallery") },
@@ -968,14 +1321,15 @@ function UsedCarsScreen({ api }) {
             : el(EmptyState, { text: t("usedCars.selectForGallery", "Select a used car or save a new one to manage its gallery.") })
         ),
         el(Panel, { title: t("usedCars.inventory", "Inventory") },
-          filteredCars.length === 0 && !isLoading && el(EmptyState, { text: t("usedCars.noCars", "No used cars returned.") }),
+          filteredDonorProjects.length === 0 && !isLoading && el(EmptyState, { text: t("usedCars.noCars", "No used cars returned.") }),
           el(View, { style: styles.usedCarInventoryListFrame },
             el(ScrollView, {
               nestedScrollEnabled: true,
               showsVerticalScrollIndicator: true,
               contentContainerStyle: styles.usedCarInventoryList
             },
-              filteredCars.map((car, index) => {
+              filteredDonorProjects.map((entry, index) => {
+                const car = entry.car;
                 const active = String(itemId(car)) === String(selectedId);
                 return el(Pressable, {
                   key: itemId(car) || `car-${index}`,
@@ -987,7 +1341,10 @@ function UsedCarsScreen({ api }) {
                   ),
                   el(View, { style: styles.usedCarInventoryCopy },
                     el(Text, { style: [styles.usedCarCardTitle, active && styles.usedCarSelectChipTextActive], numberOfLines: 1 }, carTitle(car, t)),
-                    el(Text, { style: styles.usedCarCardMeta, numberOfLines: 1 }, `${read(car, "supplierName") || t("usedCars.noSupplier", "No supplier")} - ${read(car, "barcode") || t("usedCars.noBarcode", "No barcode")}`)
+                    el(Text, { style: styles.usedCarCardMeta, numberOfLines: 1 }, `${read(car, "supplierName") || t("usedCars.noSupplier", "No supplier")} - ${read(car, "barcode") || t("usedCars.noBarcode", "No barcode")}`),
+                    el(Text, { style: [styles.usedCarInventoryAction, styles[`usedCarInventoryAction_${entry.action.tone}`]], numberOfLines: 1 },
+                      `${entry.action.label} - ${entry.project.recoveredPercent}% - ${entry.linkedParts.length} linked`
+                    )
                   ),
                   el(Text, { style: styles.usedCarInventoryValue }, carPrice(car))
                 );
@@ -1003,7 +1360,31 @@ function UsedCarsScreen({ api }) {
             el(DetailTile, { label: t("usedCars.price", "Price"), value: carPrice(selectedCar) }),
             el(DetailTile, { label: t("usedCars.fullCost", "Full Cost"), value: displayMoneyFromBase(read(selectedCar, "fullCostBase"), selectedDisplayContext) }),
             el(DetailTile, { label: t("usedCars.sellThrough", "Sell-Through"), value: `${Math.round(toNumber(read(selectedCar, "expectedSellThroughRate")) * 100)}%` }),
-            el(DetailTile, { label: t("usedCars.netPl", "Net P/L"), value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) })
+            el(DetailTile, { label: t("usedCars.netPl", "Net P/L"), value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) }),
+            selectedDonorProject && el(DetailTile, { label: t("usedCars.nextAction", "Next Action"), value: selectedDonorProject.action.label }),
+            selectedDonorProject && el(DetailTile, { label: t("usedCars.breakEven", "Break Even"), value: selectedDonorProject.project.fullCost <= 0 ? t("usedCars.addCosts", "Add costs") : selectedDonorProject.project.breakEvenGap > 0 ? displayMoneyFromBase(selectedDonorProject.project.breakEvenGap, selectedDisplayContext) : t("usedCars.done", "Done") })
+          )
+        ),
+        selectedDonorProject && el(Panel, { title: t("usedCars.profitRecovery", "Profit Recovery") },
+          el(View, { style: styles.usedCarRecoveryPanel },
+            el(View, { style: styles.usedCarFocusTop },
+              el(Text, { style: [styles.usedCarActionPill, styles[`usedCarActionPill_${selectedDonorProject.action.tone}`]] }, selectedDonorProject.action.label),
+              el(Text, { style: styles.usedCarFocusGap }, `${selectedDonorProject.project.recoveredPercent}%`)
+            ),
+            el(View, { style: styles.usedCarProgressTrack },
+              el(View, { style: [styles.usedCarProgressFill, { width: `${Math.min(selectedDonorProject.project.recoveredPercent, 100)}%` }] })
+            ),
+            el(Text, { style: styles.usedCarHelpText }, selectedDonorProject.action.detail),
+            selectedDonorProject.recommendations.length > 0
+              ? el(View, { style: styles.usedCarPushParts },
+                selectedDonorProject.recommendations.map((item) =>
+                  el(View, { key: itemId(item.part), style: styles.usedCarPushPart },
+                    el(Text, { style: styles.usedCarPartTitle, numberOfLines: 1 }, read(item.part, "internalCode") || read(item.part, "name") || `#${itemId(item.part)}`),
+                    el(Text, { style: styles.usedCarPartMeta }, money(item.expectedSale || item.salePrice, read(item.part, "currency") || baseCurrency(selectedCar)))
+                  )
+                )
+              )
+              : el(EmptyState, { text: t("usedCars.linkPartsToForecast", "Link parts to forecast profit.") })
           )
         )
       ),

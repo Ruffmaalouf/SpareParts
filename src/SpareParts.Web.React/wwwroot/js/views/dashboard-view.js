@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useState } from "../core/react-runtime.js";
-import { displayCurrencyContext, displayMoneyFromCounter } from "../core/formatters.js";
+import { asRows, displayCurrencyContext, displayMoneyFromCounter } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 
 function metricLevel(value) {
@@ -25,6 +25,28 @@ function units(value) {
 
 function plural(count, singular, pluralValue = `${singular}s`) {
   return count === 1 ? singular : pluralValue;
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function isActivePartRequest(request) {
+  const status = normalizeText(request?.status);
+  return status === "open" || status === "contacted" || status === "reserved";
+}
+
+function marginWatchPart(part) {
+  const salePrice = Number(part?.salePrice || 0);
+  const costPrice = Number(part?.costPrice || 0);
+  const marketPrice = Number(part?.estimatedMarketPrice || part?.averagePrice || 0);
+  if (salePrice <= 0) return true;
+  if (costPrice > 0 && (salePrice - costPrice) / salePrice < 0.22) return true;
+  return marketPrice > 0 && salePrice < marketPrice * 0.9;
 }
 
 function isRedSignal(row) {
@@ -157,6 +179,8 @@ export function DashboardView({ api, onView }) {
   const [recentMessages, setRecentMessages] = useState([]);
   const [appConstants, setAppConstants] = useState([]);
   const [currencyRates, setCurrencyRates] = useState([]);
+  const [parts, setParts] = useState([]);
+  const [partRequests, setPartRequests] = useState([]);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -170,16 +194,27 @@ export function DashboardView({ api, onView }) {
     setIsLoading(true);
     setStatus("Loading dashboard...");
     try {
-      const [dashboardData, messages, nextAppConstants, nextCurrencies] = await Promise.all([
+      const [
+        dashboardData,
+        messages,
+        nextAppConstants,
+        nextCurrencies,
+        nextParts,
+        nextPartRequests
+      ] = await Promise.all([
         api.get("/api/owner-cockpit"),
         api.get("/api/communications/recent?take=6"),
         api.get("/api/appconstants"),
-        api.get("/api/currencies")
+        api.get("/api/currencies"),
+        api.list("/api/parts").catch(() => []),
+        api.get("/api/partrequests?status=Active").catch(() => [])
       ]);
       setDashboard(dashboardData);
       setRecentMessages(messages);
       setAppConstants(Array.isArray(nextAppConstants) ? nextAppConstants : []);
       setCurrencyRates(Array.isArray(nextCurrencies) ? nextCurrencies : []);
+      setParts(asRows(nextParts));
+      setPartRequests(asRows(nextPartRequests));
       setStatus("Dashboard loaded.");
     } catch (error) {
       setStatus(error.message || "Dashboard failed.");
@@ -247,6 +282,38 @@ export function DashboardView({ api, onView }) {
     { key: "accounting", badge: "Money", title: "Money owed", subtitle: "Review ledgers and statements." },
     { key: "report-builder", badge: "Reports", title: "Build report", subtitle: "Open saved reports and schema tools." }
   ];
+  const activePartRequests = partRequests.filter(isActivePartRequest);
+  const partById = new Map(parts.map((part) => [String(part.id), part]));
+  const quoteReadyRequests = activePartRequests.filter((request) => {
+    const part = partById.get(String(request.partId));
+    return request.isReadyToContact || Number(part?.availableQuantity || request.availableQuantity || 0) > 0;
+  });
+  const sourceGapRequests = activePartRequests.filter((request) => {
+    const part = partById.get(String(request.partId));
+    return !part || Number(part.availableQuantity || request.availableQuantity || 0) <= 0;
+  });
+  const inventorySnapshot = {
+    total: parts.length,
+    available: parts.filter((part) => Number(part.availableQuantity || 0) > 0).length,
+    reserved: parts.filter((part) => Number(part.reservedQuantity || 0) > 0).length,
+    lowStock: parts.filter((part) => Number(part.availableQuantity || 0) <= Number(part.minStock || 0)).length,
+    donorParts: parts.filter((part) => part.usedCarId).length,
+    newRequests: activePartRequests.length,
+    quoteReady: quoteReadyRequests.length,
+    sourceGaps: sourceGapRequests.length,
+    marginWatch: parts.filter(marginWatchPart).length
+  };
+  const inventorySnapshotCards = [
+    { key: "total", label: "Total parts", value: inventorySnapshot.total, view: "inventory" },
+    { key: "available", label: "Available now", value: inventorySnapshot.available, view: "inventory" },
+    { key: "reserved", label: "Reserved", value: inventorySnapshot.reserved, view: "part-requests" },
+    { key: "lowStock", label: "Low stock", value: inventorySnapshot.lowStock, view: "reorder" },
+    { key: "donorParts", label: "Donor parts", value: inventorySnapshot.donorParts, view: "used-cars" },
+    { key: "newRequests", label: "Active requests", value: inventorySnapshot.newRequests, view: "part-requests" },
+    { key: "quoteReady", label: "Quote ready", value: inventorySnapshot.quoteReady, view: "inventory" },
+    { key: "sourceGaps", label: "Source gaps", value: inventorySnapshot.sourceGaps, view: "part-requests" },
+    { key: "marginWatch", label: "Margin watch", value: inventorySnapshot.marginWatch, view: "inventory" }
+  ];
 
   return h("section", { className: "screen dashboard-screen" },
     h(PageHeader, {
@@ -256,6 +323,29 @@ export function DashboardView({ api, onView }) {
       action: h("button", { className: "secondary-button", onClick: load, disabled: isLoading }, "Refresh")
     }),
     h(StatusLine, { status }),
+    h("section", { className: "shop-floor-snapshot" },
+      h("div", { className: "panel-heading-row" },
+        h("div", null,
+          h("h3", null, "Shop Floor Snapshot"),
+          h("span", null, "Parts, reservations, low-stock pressure, donor inventory, and new customer demand")
+        ),
+        h("button", { className: "secondary-button", type: "button", onClick: () => navigate("inventory") }, "Open inventory")
+      ),
+      h("div", { className: "shop-floor-grid" },
+        inventorySnapshotCards.map((card) =>
+          h("button", {
+            className: `shop-floor-card snapshot-${card.key}`,
+            key: card.key,
+            type: "button",
+            onClick: () => navigate(card.view)
+          },
+            h("span", null, card.label),
+            h("strong", null, Number(card.value || 0).toLocaleString()),
+            h("em", null, "Open")
+          )
+        )
+      )
+    ),
     h("section", { className: "admin-action-strip", "aria-label": "Admin shortcuts" },
       quickActions.map((action) =>
         h("button", {

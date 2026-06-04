@@ -469,14 +469,112 @@
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
-                                    <TextBlock Text="All Parts" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                                    <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
-                                            Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="Smart Parts Inventory" FontSize="13" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding InventoryBoardSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                    </StackPanel>
+                                    <WrapPanel DockPanel.Dock="Right">
+                                        <Button Content="Duplicate Draft"
+                                                Command="{Binding DuplicatePartDraftCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Margin="0 0 8 0"
+                                                Padding="14 6"/>
+                                        <Button Content="↻ Refresh" Command="{Binding DataContext.LoadAllCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                                Style="{StaticResource SecondaryButtonStyle}" Padding="14 6"/>
+                                    </WrapPanel>
                                 </DockPanel>
-                                <DataGrid Grid.Row="1" ItemsSource="{Binding Parts}"
+                                <UniformGrid Grid.Row="1" Columns="8" Margin="0 0 0 14">
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Total" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding TotalPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Available" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding AvailablePartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Reserved" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding ReservedPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Sold / Out" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding SoldPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Low Stock" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding LowStockPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Donor Parts" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding DonorPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                        <StackPanel>
+                                            <TextBlock Text="Demand" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding DemandMatchPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10">
+                                        <StackPanel>
+                                            <TextBlock Text="Action" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding ActionNeededPartCount}" FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+                                <Grid Grid.Row="2" Margin="0 0 0 14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="180"/>
+                                        <ColumnDefinition Width="2*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding PartFilterText, UpdateSourceTrigger=PropertyChanged}"
+                                             Margin="0 0 10 0"
+                                             ToolTip="Search code, barcode, name, OEM, condition, donor car id, or notes"/>
+                                    <ComboBox Grid.Column="1"
+                                              ItemsSource="{Binding PartAvailabilityFilters}"
+                                              SelectedItem="{Binding PartAvailabilityFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Style="{StaticResource ManagementComboBoxStyle}"
+                                              Margin="0 0 10 0"/>
+                                     <StackPanel Grid.Column="2">
+                                         <TextBlock Text="{Binding SelectedPartStockSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                         <TextBlock Text="{Binding SelectedPartPriceSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 3 0 0"/>
+                                         <TextBlock Text="{Binding SelectedPartDonorSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 3 0 0"/>
+                                         <TextBlock Text="{Binding SelectedPartDemandSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 3 0 0"/>
+                                         <TextBlock Text="{Binding SelectedPartActionSummary}" FontSize="11" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 3 0 0"/>
+                                     </StackPanel>
+                                 </Grid>
+                                <Border Grid.Row="3"
+                                        Background="{DynamicResource CardHighlightBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="12"
+                                        Margin="0 0 0 14">
+                                    <StackPanel>
+                                        <TextBlock Text="Today Focus" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                        <TextBlock Text="{Binding TodayFocusSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 4 0 0"/>
+                                    </StackPanel>
+                                </Border>
+                                <DataGrid Grid.Row="4" ItemsSource="{Binding FilteredParts}"
                                           SelectedItem="{Binding SelectedPart, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
                                           IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
@@ -488,7 +586,11 @@
                                         <DataGridTextColumn Header="Barcode"  Binding="{Binding Barcode, Mode=OneWay}"                          Width="120"/>
                                         <DataGridTextColumn Header="Name"     Binding="{Binding Name, Mode=OneWay}"                             Width="*"/>
                                         <DataGridTextColumn Header="Condition" Binding="{Binding Condition, Mode=OneWay}"                        Width="90"/>
+                                        <DataGridTextColumn Header="Avail"    Binding="{Binding AvailableQuantity, Mode=OneWay}"                 Width="70"/>
+                                        <DataGridTextColumn Header="Reserved" Binding="{Binding ReservedQuantity, Mode=OneWay}"                  Width="85"/>
+                                        <DataGridTextColumn Header="On Hand"  Binding="{Binding StockQuantity, Mode=OneWay}"                     Width="80"/>
                                         <DataGridTextColumn Header="OEM"      Binding="{Binding OEMNumber, Mode=OneWay}"                        Width="100"/>
+                                        <DataGridTextColumn Header="Donor"    Binding="{Binding UsedCarId, Mode=OneWay}"                         Width="70"/>
                                         <DataGridTextColumn Header="Cur"      Binding="{Binding Currency, Mode=OneWay}"                         Width="55"/>
                                         <DataGridTextColumn Header="Cost"     Binding="{Binding CostPrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
                                         <DataGridTextColumn Header="Sale"     Binding="{Binding SalePrice, Mode=OneWay, StringFormat={}{0:N0}}" Width="80"/>
@@ -598,6 +700,7 @@
                         <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="4" Padding="20">
                             <Grid>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
@@ -1328,7 +1431,99 @@
                                             Style="{StaticResource SecondaryButtonStyle}" DockPanel.Dock="Right" Padding="14 6"/>
                                 </DockPanel>
 
-                                <Grid Grid.Row="1" Margin="0 0 0 14">
+                                <Border Grid.Row="1" Background="{DynamicResource CardHighlightBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0 0 0 14">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <DockPanel Grid.Row="0" Margin="0 0 0 10">
+                                            <StackPanel DockPanel.Dock="Left">
+                                                <TextBlock Text="Donor Command Center" FontSize="14" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding SelectedUsedCarOperationalSummary}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Margin="0 3 0 0"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding FilteredUsedCarsCount, StringFormat={}{0:N0} shown}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       DockPanel.Dock="Right"
+                                                       VerticalAlignment="Center"/>
+                                        </DockPanel>
+
+                                        <Grid Grid.Row="1" Margin="0 0 0 10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*"/>
+                                                <ColumnDefinition Width="220"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0"
+                                                     Text="{Binding UsedCarFilterText, UpdateSourceTrigger=PropertyChanged}"
+                                                     Margin="0 0 10 0"/>
+                                            <ComboBox Grid.Column="1"
+                                                      ItemsSource="{Binding UsedCarStatusFilters}"
+                                                      SelectedItem="{Binding UsedCarStatusFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      Style="{StaticResource ManagementComboBoxStyle}"/>
+                                        </Grid>
+
+                                        <Grid Grid.Row="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*"/>
+                                                <ColumnDefinition Width="3*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <UniformGrid Grid.Column="0" Columns="2" Margin="0 0 12 0">
+                                                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 8">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Ready" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                        <TextBlock Text="{Binding UsedCarsReadyForTeardownCount, StringFormat={}{0:N0}}" FontSize="18" FontWeight="Bold"/>
+                                                        <TextBlock Text="received and shipped" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 0 8">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Profit" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                        <TextBlock Text="{Binding UsedCarsProfitUnlockedCount, StringFormat={}{0:N0}}" FontSize="18" FontWeight="Bold"/>
+                                                        <TextBlock Text="break-even reached" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0 0 8 0">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Gap Open" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                        <TextBlock Text="{Binding UsedCarsBreakEvenRiskCount, StringFormat={}{0:N0}}" FontSize="18" FontWeight="Bold"/>
+                                                        <TextBlock Text="{Binding UsedCarsBreakEvenGapDisplayLabel}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Needs Links" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                        <TextBlock Text="{Binding UsedCarsNeedsPartLinksCount, StringFormat={}{0:N0}}" FontSize="18" FontWeight="Bold"/>
+                                                        <TextBlock Text="no removed parts" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </UniformGrid>
+
+                                            <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
+                                                <StackPanel>
+                                                    <TextBlock Text="Selected Next Action" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                    <TextBlock Text="{Binding SelectedUsedCarActionSummary}"
+                                                               FontSize="15"
+                                                               FontWeight="Bold"
+                                                               TextWrapping="Wrap"
+                                                               Margin="0 5 0 8"/>
+                                                    <TextBlock Text="{Binding UsedCarsBreakEvenGapDisplayAmount, StringFormat={}Total open gap: {0:N2}}"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <Grid Grid.Row="2" Margin="0 0 0 14">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
@@ -1441,7 +1636,7 @@
                                     </UniformGrid>
                                 </Grid>
 
-                                <DataGrid Grid.Row="2" ItemsSource="{Binding UsedCars}" SelectedItem="{Binding SelectedUsedCar, Mode=TwoWay}"
+                                <DataGrid Grid.Row="3" ItemsSource="{Binding FilteredUsedCars}" SelectedItem="{Binding SelectedUsedCar, Mode=TwoWay}"
                                           AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
                                           IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column"
                                           BorderThickness="0" GridLinesVisibility="All" ScrollViewer.VerticalScrollBarVisibility="Auto">

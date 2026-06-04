@@ -23,6 +23,8 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     private readonly Action<string, bool> _setStatus;
     private readonly UsedCarValuationService _valuationService;
     private UsedCarEntry? _selectedUsedCar;
+    private string _usedCarFilterText = string.Empty;
+    private string _usedCarStatusFilter = "All donors";
     private string _newUsedCarBarcode = string.Empty;
     private string _newUsedCarName = string.Empty;
     private int _newUsedCarModelYear;
@@ -75,6 +77,17 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     }
 
     public ObservableCollection<UsedCarEntry> UsedCars { get; } = new();
+    public ObservableCollection<UsedCarEntry> FilteredUsedCars { get; } = new();
+    public ObservableCollection<string> UsedCarStatusFilters { get; } = new()
+    {
+        "All donors",
+        "Action needed",
+        "Gap open",
+        "Needs part links",
+        "Profit unlocked",
+        "In transit",
+        "Wholesale sold"
+    };
     public ObservableCollection<UsedCarModelOption> UsedCarModelOptions { get; } = new();
     public ObservableCollection<string> CurrencyCodes { get; } = new();
     public ObservableCollection<SupplierDto> Suppliers { get; } = new();
@@ -109,6 +122,52 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     public decimal UsedCarsNetProfitLossBaseAmount => decimal.Round(UsedCars.Sum(entry => entry.NetProfitLossBase), 2, MidpointRounding.AwayFromZero);
     public decimal UsedCarsTotalDisplayAmount => decimal.Round(UsedCars.Sum(entry => entry.GrandTotalDisplay), 2, MidpointRounding.AwayFromZero);
     public decimal UsedCarsNetProfitLossDisplayAmount => decimal.Round(UsedCars.Sum(entry => entry.NetProfitLossDisplay), 2, MidpointRounding.AwayFromZero);
+    public int FilteredUsedCarsCount => FilteredUsedCars.Count;
+    public int UsedCarsReadyForTeardownCount => UsedCars.Count(entry => entry.IsReceived && entry.IsShipped && !entry.IsWholesaleSold);
+    public int UsedCarsProfitUnlockedCount => UsedCars.Count(entry => entry.FullCostBase > 0m && entry.ProfitMapBreakEvenGapBase <= 0m);
+    public int UsedCarsBreakEvenRiskCount => UsedCars.Count(entry => entry.ProfitMapBreakEvenGapBase > 0m);
+    public int UsedCarsNeedsPartLinksCount => UsedCars.Count(entry => entry.PartsRemovedCount <= 0 && !entry.IsWholesaleSold);
+    public decimal UsedCarsBreakEvenGapDisplayAmount => decimal.Round(UsedCars.Sum(entry => entry.ProfitMapBreakEvenGapDisplay), 2, MidpointRounding.AwayFromZero);
+    public string UsedCarsBreakEvenGapDisplayLabel => $"Break-Even Gap ({_currencyRatesFeature.DisplayCurrencyCode})";
+    public string SelectedUsedCarActionSummary => SelectedUsedCar is null
+        ? "Select a donor car to see the next action."
+        : BuildUsedCarActionSummary(SelectedUsedCar);
+    public string SelectedUsedCarOperationalSummary => SelectedUsedCar is null
+        ? "No donor selected."
+        : BuildUsedCarOperationalSummary(SelectedUsedCar);
+
+    public string UsedCarFilterText
+    {
+        get => _usedCarFilterText;
+        set
+        {
+            if (_usedCarFilterText == value)
+            {
+                return;
+            }
+
+            _usedCarFilterText = value ?? string.Empty;
+            OnPropertyChanged(nameof(UsedCarFilterText));
+            RefreshUsedCarFilters();
+        }
+    }
+
+    public string UsedCarStatusFilter
+    {
+        get => _usedCarStatusFilter;
+        set
+        {
+            var nextValue = string.IsNullOrWhiteSpace(value) ? "All donors" : value;
+            if (string.Equals(_usedCarStatusFilter, nextValue, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _usedCarStatusFilter = nextValue;
+            OnPropertyChanged(nameof(UsedCarStatusFilter));
+            RefreshUsedCarFilters();
+        }
+    }
 
     public UsedCarEntry? SelectedUsedCar
     {
@@ -122,6 +181,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
 
             _selectedUsedCar = value;
             OnPropertyChanged(nameof(SelectedUsedCar));
+            RaiseDonorCommandProps();
 
             if (value == null)
             {
@@ -521,6 +581,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             SelectedUsedCar = UsedCars.FirstOrDefault(entry => entry.Id == selectedUsedCarId.Value);
         }
 
+        RefreshUsedCarFilters();
         RaiseSummaryProps();
     }
 
@@ -756,6 +817,114 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
         NewUsedCarGrandTotalCounter = valuation.GrandTotalCounter;
     }
 
+    private void RefreshUsedCarFilters()
+    {
+        var selectedId = SelectedUsedCar?.Id;
+        var rows = UsedCars
+            .Where(MatchesUsedCarSearch)
+            .Where(MatchesUsedCarStatus)
+            .OrderBy(entry => entry.IsWholesaleSold)
+            .ThenByDescending(entry => entry.ProfitMapBreakEvenGapBase > 0m)
+            .ThenByDescending(entry => entry.ProfitMapBreakEvenGapBase)
+            .ThenBy(entry => entry.Car, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        Replace(FilteredUsedCars, rows);
+
+        if (selectedId.HasValue && FilteredUsedCars.All(entry => entry.Id != selectedId.Value))
+        {
+            SelectedUsedCar = FilteredUsedCars.FirstOrDefault();
+        }
+        else if (!selectedId.HasValue && SelectedUsedCar == null && FilteredUsedCars.Count > 0)
+        {
+            SelectedUsedCar = FilteredUsedCars[0];
+        }
+
+        RaiseDonorCommandProps();
+    }
+
+    private bool MatchesUsedCarSearch(UsedCarEntry entry)
+    {
+        if (string.IsNullOrWhiteSpace(UsedCarFilterText))
+        {
+            return true;
+        }
+
+        var haystack = string.Join(" ", new[]
+        {
+            entry.Barcode,
+            entry.SupplierName,
+            entry.Car,
+            entry.ModelYear.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            entry.Location,
+            entry.SaleStatusText,
+            BuildUsedCarActionSummary(entry)
+        });
+
+        return haystack.Contains(UsedCarFilterText.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool MatchesUsedCarStatus(UsedCarEntry entry)
+    {
+        return UsedCarStatusFilter switch
+        {
+            "Action needed" => !entry.IsWholesaleSold && (!entry.IsReceived
+                || !entry.IsShipped
+                || entry.FullCostBase <= 0m
+                || entry.ProfitMapBreakEvenGapBase > 0m
+                || entry.PartsRemovedCount <= 0),
+            "Gap open" => entry.ProfitMapBreakEvenGapBase > 0m,
+            "Needs part links" => !entry.IsWholesaleSold && entry.PartsRemovedCount <= 0,
+            "Profit unlocked" => entry.FullCostBase > 0m && entry.ProfitMapBreakEvenGapBase <= 0m,
+            "In transit" => !entry.IsReceived || !entry.IsShipped,
+            "Wholesale sold" => entry.IsWholesaleSold,
+            _ => true
+        };
+    }
+
+    private static string BuildUsedCarActionSummary(UsedCarEntry entry)
+    {
+        if (entry.IsWholesaleSold)
+        {
+            return "Sold wholesale - review payment and margin.";
+        }
+
+        if (!entry.IsReceived)
+        {
+            return "Receive and cost - confirm arrival, customs, and landed cost.";
+        }
+
+        if (!entry.IsShipped)
+        {
+            return "Ship / clear - close shipping status before teardown.";
+        }
+
+        if (entry.FullCostBase <= 0m)
+        {
+            return "Confirm costs - add purchase and teardown costs before profit tracking.";
+        }
+
+        if (entry.ProfitMapBreakEvenGapBase <= 0m)
+        {
+            return "Profit unlocked - keep selling remaining donor stock.";
+        }
+
+        if (entry.PartsRemovedCount <= 0)
+        {
+            return "Link donor parts - assign harvested stock to this car.";
+        }
+
+        if (entry.RemainingStockValueBase >= entry.ProfitMapBreakEvenGapBase && entry.RemainingStockValueBase > 0m)
+        {
+            return "Sell stocked parts - current stock value can close break-even.";
+        }
+
+        return "Push removed parts - quote high-value donor parts first.";
+    }
+
+    private static string BuildUsedCarOperationalSummary(UsedCarEntry entry)
+        => $"{entry.ProfitMapRecoveredPercentText} | {entry.PartsRemovedCount:N0} removed | {entry.RemainingStockQuantity:N0} in stock | {entry.ProfitMapBreakEvenStatus}";
+
     private string? NormalizeCurrencyCode(string? currencyCode)
         => _currencyRatesFeature.NormalizeCurrencyCode(currencyCode);
 
@@ -777,6 +946,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             }
         }
 
+        RefreshUsedCarFilters();
         RaiseSummaryProps();
     }
 
@@ -786,8 +956,15 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             or nameof(UsedCarEntry.GrandTotalCounter)
             or nameof(UsedCarEntry.GrandTotalDisplay)
             or nameof(UsedCarEntry.NetProfitLossBase)
-            or nameof(UsedCarEntry.NetProfitLossDisplay))
+            or nameof(UsedCarEntry.NetProfitLossDisplay)
+            or nameof(UsedCarEntry.IsReceived)
+            or nameof(UsedCarEntry.IsShipped)
+            or nameof(UsedCarEntry.IsWholesaleSold)
+            or nameof(UsedCarEntry.PartsRemovedCount)
+            or nameof(UsedCarEntry.RemainingStockValueBase)
+            or nameof(UsedCarEntry.PartsSoldAmountBase))
         {
+            RefreshUsedCarFilters();
             RaiseSummaryProps();
         }
     }
@@ -899,7 +1076,8 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             nameof(UsedCarsTotalBaseLabel),
             nameof(UsedCarsTotalCounterLabel),
             nameof(UsedCarsTotalDisplayLabel),
-            nameof(UsedCarsNetProfitLossDisplayLabel));
+            nameof(UsedCarsNetProfitLossDisplayLabel),
+            nameof(UsedCarsBreakEvenGapDisplayLabel));
     }
 
     private void RaiseSummaryProps()
@@ -909,7 +1087,26 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             nameof(UsedCarsTotalCounterAmount),
             nameof(UsedCarsNetProfitLossBaseAmount),
             nameof(UsedCarsTotalDisplayAmount),
-            nameof(UsedCarsNetProfitLossDisplayAmount));
+            nameof(UsedCarsNetProfitLossDisplayAmount),
+            nameof(UsedCarsBreakEvenGapDisplayAmount),
+            nameof(UsedCarsReadyForTeardownCount),
+            nameof(UsedCarsProfitUnlockedCount),
+            nameof(UsedCarsBreakEvenRiskCount),
+            nameof(UsedCarsNeedsPartLinksCount),
+            nameof(FilteredUsedCarsCount));
+    }
+
+    private void RaiseDonorCommandProps()
+    {
+        RaiseAll(
+            nameof(FilteredUsedCarsCount),
+            nameof(UsedCarsReadyForTeardownCount),
+            nameof(UsedCarsProfitUnlockedCount),
+            nameof(UsedCarsBreakEvenRiskCount),
+            nameof(UsedCarsNeedsPartLinksCount),
+            nameof(UsedCarsBreakEvenGapDisplayAmount),
+            nameof(SelectedUsedCarActionSummary),
+            nameof(SelectedUsedCarOperationalSummary));
     }
 
     private void ApplyDisplayCurrencyToUsedCars()
@@ -928,6 +1125,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             usedCar.DisplayRateToBase = displayRateToBase;
         }
 
+        RefreshUsedCarFilters();
         RaiseLabelProps();
         RaiseSummaryProps();
     }

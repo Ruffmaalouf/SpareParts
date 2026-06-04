@@ -5889,6 +5889,250 @@ tbody tr:hover {
   font-weight: 900;
 }
 
+.donor-cockpit,
+.donor-passport {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.donor-cockpit-heading,
+.donor-passport-heading,
+.donor-toolbar,
+.donor-action-card,
+.donor-push-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.donor-cockpit-heading h2,
+.donor-cockpit-heading p,
+.donor-passport-heading h3,
+.donor-action-card strong {
+  margin: 0;
+}
+
+.donor-cockpit-heading p,
+.donor-passport-heading span,
+.donor-action-card small,
+.donor-action-card em,
+.donor-next-action span,
+.donor-next-action small,
+.donor-push-strip span,
+.donor-push-strip small,
+.donor-row-action {
+  color: var(--muted);
+}
+
+.donor-cockpit-heading > strong {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--input);
+  padding: 7px 10px;
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.donor-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.donor-metric,
+.donor-next-action {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--input);
+  padding: 12px;
+}
+
+.donor-metric span,
+.donor-next-action span {
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.donor-metric strong,
+.donor-next-action strong {
+  overflow-wrap: anywhere;
+  font-size: 21px;
+}
+
+.donor-metric small,
+.donor-next-action small {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.donor-metric.positive,
+.donor-next-action.positive,
+.donor-next-action.success,
+.donor-action-pill.positive,
+.donor-action-pill.success {
+  border-color: color-mix(in srgb, var(--accent-2) 62%, var(--line));
+  background: color-mix(in srgb, var(--accent-2) 13%, var(--input));
+  color: var(--accent-2);
+}
+
+.donor-metric.warning,
+.donor-next-action.warning,
+.donor-action-pill.warning {
+  border-color: color-mix(in srgb, #ffb74d 62%, var(--line));
+  background: color-mix(in srgb, #ffb74d 13%, var(--input));
+  color: #ffb74d;
+}
+
+.donor-metric.danger,
+.donor-next-action.danger,
+.donor-action-pill.danger {
+  border-color: color-mix(in srgb, var(--danger) 62%, var(--line));
+  background: color-mix(in srgb, var(--danger) 12%, var(--input));
+  color: var(--danger);
+}
+
+.donor-toolbar {
+  align-items: stretch;
+}
+
+.donor-toolbar input {
+  flex: 1 1 280px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--text);
+  padding: 11px 12px;
+}
+
+.donor-filter-strip {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.donor-action-queue {
+  display: grid;
+  gap: 9px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.donor-action-card {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.donor-action-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--line));
+  background: var(--input);
+}
+
+.donor-action-card strong {
+  min-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.donor-action-card small {
+  flex: 1 1 auto;
+  min-width: 160px;
+}
+
+.donor-action-card em {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.donor-action-pill {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--input);
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.donor-passport {
+  margin-bottom: 0;
+}
+
+.donor-passport-body {
+  display: grid;
+  gap: 12px;
+}
+
+.donor-push-strip {
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--input);
+  padding: 10px 12px;
+}
+
+.donor-push-strip span {
+  flex: 0 0 120px;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.donor-push-strip strong {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.donor-row-action {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.donor-row-action.positive,
+.donor-row-action.success,
+.whatsapp-button {
+  color: var(--accent-2);
+}
+
+.donor-row-action.warning {
+  color: #ffb74d;
+}
+
+.donor-row-action.danger {
+  color: var(--danger);
+}
+
 .repair-prep-screen {
   min-width: 0;
 }
@@ -7171,6 +7415,7 @@ html[dir="rtl"] .report-hero-meta {
   .part-list-columns,
   .profit-flow-grid,
   .profit-metric-grid,
+  .donor-metric-grid,
   .part-recommendation-row,
   .checkout-grid.two,
   .wholesale-money-grid,
@@ -7181,7 +7426,11 @@ html[dir="rtl"] .report-hero-meta {
 
   .profit-map-heading,
   .profit-section-heading,
-  .break-even-race-heading {
+  .break-even-race-heading,
+  .donor-cockpit-heading,
+  .donor-passport-heading,
+  .donor-toolbar,
+  .donor-action-card {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -10559,6 +10808,555 @@ html[dir="rtl"] .report-hero-meta {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.55;
+}
+
+.inventory-summary-grid,
+.shop-floor-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.inventory-summary-grid button,
+.shop-floor-card {
+  display: grid;
+  gap: 8px;
+  min-height: 92px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 14px;
+  text-align: left;
+}
+
+.inventory-summary-grid button:hover,
+.shop-floor-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.inventory-summary-grid span,
+.shop-floor-card span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.inventory-summary-grid strong,
+.shop-floor-card strong {
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.shop-floor-snapshot {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.shop-floor-card em {
+  color: var(--accent);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.inventory-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  align-items: start;
+  gap: 16px;
+}
+
+.inventory-main {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+}
+
+.inventory-search-panel,
+.quote-draft-panel,
+.ai-placeholder-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.inventory-search-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.inventory-search-topline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.inventory-search-topline input,
+.inventory-filter-grid input,
+.inventory-filter-grid select {
+  width: 100%;
+}
+
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--input);
+  padding: 4px;
+}
+
+.segmented-control button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.segmented-control button.active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-2));
+  color: var(--text);
+}
+
+.inventory-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.inventory-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px;
+}
+
+.part-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 210px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 12px;
+}
+
+.part-card-photo {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-height: 180px;
+  border: 1px dashed color-mix(in srgb, var(--line) 90%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, 0)),
+    var(--input);
+  color: var(--accent);
+}
+
+.part-card-photo span {
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.part-card-photo b {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.part-card-body {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.part-card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.part-card-heading h3 {
+  margin: 3px 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.part-card-heading strong {
+  flex: 0 0 auto;
+  color: var(--text);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.part-code {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.badge-row,
+.part-card-actions,
+.quote-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inventory-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+  color: var(--muted);
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.inventory-badge.status-available {
+  background: color-mix(in srgb, var(--accent-2) 16%, transparent);
+  color: color-mix(in srgb, var(--accent-2) 82%, white);
+}
+
+.inventory-badge.status-reserved,
+.inventory-badge.demand {
+  background: color-mix(in srgb, var(--amber) 16%, transparent);
+  color: color-mix(in srgb, var(--amber) 80%, white);
+}
+
+.inventory-badge.status-sold,
+.inventory-badge.status-damaged {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: color-mix(in srgb, var(--danger) 82%, white);
+}
+
+.inventory-badge.donor {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: color-mix(in srgb, var(--accent) 82%, white);
+}
+
+.part-card-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.part-card-details div {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--input) 70%, transparent);
+  padding: 9px;
+}
+
+.part-card-details dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.part-card-details dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.part-card-actions button,
+.quote-line button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.quote-draft-panel {
+  position: sticky;
+  top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.quote-draft-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+
+.quote-draft-heading span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.quote-draft-heading h3 {
+  margin: 4px 0 0;
+}
+
+.quote-line-list {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.quote-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  padding: 10px;
+}
+
+.quote-line strong,
+.quote-line span {
+  display: block;
+}
+
+.quote-line span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.quote-total-box {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--input);
+  padding: 12px;
+}
+
+.quote-total-box span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.quote-total-box strong {
+  color: var(--text);
+}
+
+.ai-placeholder-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.ai-placeholder-panel span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.inventory-demand-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.inventory-demand-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.inventory-demand-grid button,
+.procurement-radar-row {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.inventory-demand-grid button {
+  display: grid;
+  gap: 6px;
+  min-height: 92px;
+  padding: 13px;
+  text-align: left;
+}
+
+.inventory-demand-grid span,
+.inventory-demand-grid em,
+.procurement-radar-row em,
+.procurement-radar-row i {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.inventory-demand-grid strong {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.procurement-radar-list {
+  display: grid;
+  gap: 8px;
+}
+
+.procurement-radar-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  text-align: left;
+}
+
+.procurement-radar-row > b {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.procurement-radar-row span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.procurement-radar-row strong,
+.procurement-radar-row em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procurement-radar-row i,
+.inventory-badge.action-success {
+  color: color-mix(in srgb, var(--accent-2) 82%, white);
+}
+
+.inventory-badge.action-warning,
+.procurement-radar-row.tone-warning i {
+  color: color-mix(in srgb, var(--amber) 80%, white);
+}
+
+.inventory-badge.action-danger,
+.procurement-radar-row.tone-danger i {
+  color: color-mix(in srgb, var(--danger) 80%, white);
+}
+
+.inventory-badge.action-neutral {
+  color: var(--muted);
+}
+
+.inventory-badge.action-success {
+  background: color-mix(in srgb, var(--accent-2) 16%, transparent);
+}
+
+.inventory-badge.action-warning {
+  background: color-mix(in srgb, var(--amber) 16%, transparent);
+}
+
+.inventory-badge.action-danger {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+}
+
+.inventory-badge.action-neutral {
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+}
+
+@media (max-width: 1180px) {
+  .inventory-summary-grid,
+  .shop-floor-grid,
+  .inventory-demand-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .inventory-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-draft-panel {
+    position: static;
+  }
+
+  .inventory-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .inventory-summary-grid,
+  .shop-floor-grid,
+  .inventory-demand-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .inventory-search-topline,
+  .inventory-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .part-card {
+    grid-template-columns: 1fr;
+  }
+
+  .part-card-photo {
+    min-height: 128px;
+  }
+
+  .part-card-heading,
+  .ai-placeholder-panel {
+    flex-direction: column;
+  }
+
+  .procurement-radar-row {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .procurement-radar-row i {
+    grid-column: 2;
+  }
 }
 
 .passport-admin-preview-panel {

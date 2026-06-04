@@ -352,7 +352,7 @@ namespace SpareParts.Desktop.Wpf
                     Replace(Brands, loadResult.Brands);
                     Replace(CarBrands, loadResult.CarBrands);
                     Replace(Categories, loadResult.Categories);
-                    Replace(Parts, loadResult.Parts);
+            PartsFeature.LoadParts(loadResult.Parts, loadResult.PartRequests);
                     PartRequestsFeature.LoadReferenceData(loadResult.Customers, loadResult.Parts);
                     PartRequestsFeature.Load(loadResult.PartRequests);
                     Replace(CarModels, loadResult.CarModels);
