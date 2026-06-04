@@ -149,27 +149,37 @@ jobs:
             --end-ip-address 0.0.0.0 \
             --output none
 
-      - name: Create SQL Database (free serverless)
+      - name: Drop and recreate SQL Database (clean slate)
         run: |
-          if ! az sql db show \
+          # Drop the existing DB so schema.sql always runs against an empty database.
+          # This avoids column-mismatch errors from partial previous deployments.
+          if az sql db show \
                --resource-group ${{ env.RESOURCE_GROUP }} \
                --server ${{ env.SQL_SERVER_NAME }} \
                --name ${{ env.SQL_DB_NAME }} \
                --output none 2>/dev/null; then
-            az sql db create \
+            echo "Dropping existing database..."
+            az sql db delete \
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --server ${{ env.SQL_SERVER_NAME }} \
               --name ${{ env.SQL_DB_NAME }} \
-              --edition GeneralPurpose \
-              --family Gen5 \
-              --capacity 2 \
-              --compute-model Serverless \
-              --max-size 32GB \
-              --use-free-limit \
-              --free-limit-exhaustion-behavior AutoPause \
-              --backup-storage-redundancy Local \
+              --yes \
               --output none
           fi
+          echo "Creating fresh database..."
+          az sql db create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --server ${{ env.SQL_SERVER_NAME }} \
+            --name ${{ env.SQL_DB_NAME }} \
+            --edition GeneralPurpose \
+            --family Gen5 \
+            --capacity 2 \
+            --compute-model Serverless \
+            --max-size 32GB \
+            --use-free-limit \
+            --free-limit-exhaustion-behavior AutoPause \
+            --backup-storage-redundancy Local \
+            --output none
 
       - name: Run database schema
         run: |
