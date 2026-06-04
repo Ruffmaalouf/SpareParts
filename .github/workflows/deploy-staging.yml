@@ -2,6 +2,13 @@ name: deploy-staging
 
 on:
   workflow_dispatch:
+    inputs:
+      reset_db:
+        description: 'Drop and recreate the staging database (wipes all data)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
 
 env:
   RESOURCE_GROUP: spareparts-rg
@@ -149,37 +156,46 @@ jobs:
             --end-ip-address 0.0.0.0 \
             --output none
 
-      - name: Drop and recreate SQL Database (clean slate)
+      - name: Create SQL Database (or reset if requested)
         run: |
-          # Drop the existing DB so schema.sql always runs against an empty database.
-          # This avoids column-mismatch errors from partial previous deployments.
+          DB_EXISTS=false
           if az sql db show \
                --resource-group ${{ env.RESOURCE_GROUP }} \
                --server ${{ env.SQL_SERVER_NAME }} \
                --name ${{ env.SQL_DB_NAME }} \
                --output none 2>/dev/null; then
-            echo "Dropping existing database..."
+            DB_EXISTS=true
+          fi
+
+          if [ "$DB_EXISTS" = "true" ] && [ "${{ inputs.reset_db }}" = "true" ]; then
+            echo "reset_db=true: dropping existing database..."
             az sql db delete \
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --server ${{ env.SQL_SERVER_NAME }} \
               --name ${{ env.SQL_DB_NAME }} \
               --yes \
               --output none
+            DB_EXISTS=false
           fi
-          echo "Creating fresh database..."
-          az sql db create \
-            --resource-group ${{ env.RESOURCE_GROUP }} \
-            --server ${{ env.SQL_SERVER_NAME }} \
-            --name ${{ env.SQL_DB_NAME }} \
-            --edition GeneralPurpose \
-            --family Gen5 \
-            --capacity 2 \
-            --compute-model Serverless \
-            --max-size 32GB \
-            --use-free-limit \
-            --free-limit-exhaustion-behavior AutoPause \
-            --backup-storage-redundancy Local \
-            --output none
+
+          if [ "$DB_EXISTS" = "false" ]; then
+            echo "Creating database..."
+            az sql db create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.SQL_SERVER_NAME }} \
+              --name ${{ env.SQL_DB_NAME }} \
+              --edition GeneralPurpose \
+              --family Gen5 \
+              --capacity 2 \
+              --compute-model Serverless \
+              --max-size 32GB \
+              --use-free-limit \
+              --free-limit-exhaustion-behavior AutoPause \
+              --backup-storage-redundancy Local \
+              --output none
+          else
+            echo "Database already exists, keeping data."
+          fi
 
       - name: Run database schema
         run: |
