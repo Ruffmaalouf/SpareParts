@@ -127,7 +127,7 @@ CREATE TABLE dbo.Location (
     LocationID                 INT           NOT NULL IDENTITY(1,1) PRIMARY KEY,
     Name                       NVARCHAR(120) NOT NULL,
     ShippingFees               DECIMAL(19,4) NOT NULL DEFAULT 0,
-    ShippingFeesCurrencyCode   NVARCHAR(10)  NOT NULL DEFAULT 'USD',
+    ShippingFeesCurrencyCode   NVARCHAR(10)  NOT NULL CONSTRAINT DF_Location_ShippingFeesCurrencyCode DEFAULT 'USD',
     CreatedAt                  DATETIME2     NOT NULL,
     CreatedByUserId            INT           NULL,
     ModifiedAt                 DATETIME2     NULL,
@@ -1970,7 +1970,24 @@ WHERE ShippingFeesCurrencyCode IS NULL
 
 IF COL_LENGTH('dbo.Location', 'ShippingFeesCurrencyCode') IS NOT NULL
 BEGIN
+    -- Drop any DEFAULT constraint on this column before altering it (name may be auto-generated)
+    DECLARE @dfName NVARCHAR(256);
+    SELECT @dfName = dc.name
+    FROM   sys.default_constraints dc
+    JOIN   sys.columns c ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id
+    WHERE  OBJECT_NAME(dc.parent_object_id) = 'Location' AND c.name = 'ShippingFeesCurrencyCode';
+    IF @dfName IS NOT NULL
+        EXEC('ALTER TABLE dbo.Location DROP CONSTRAINT [' + @dfName + ']');
+
     ALTER TABLE dbo.Location ALTER COLUMN ShippingFeesCurrencyCode CHAR(3) NOT NULL;
+
+    -- Re-add a named DEFAULT
+    IF NOT EXISTS (
+        SELECT 1 FROM sys.default_constraints dc
+        JOIN sys.columns c ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id
+        WHERE OBJECT_NAME(dc.parent_object_id) = 'Location' AND c.name = 'ShippingFeesCurrencyCode'
+    )
+        ALTER TABLE dbo.Location ADD CONSTRAINT DF_Location_ShippingFeesCurrencyCode DEFAULT 'USD' FOR ShippingFeesCurrencyCode;
 END;
 
 IF COL_LENGTH('dbo.Location', 'CreatedAt') IS NULL
