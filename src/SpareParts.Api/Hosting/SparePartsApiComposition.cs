@@ -366,43 +366,6 @@ public static class SparePartsApiComposition
 
     public static void UseSparePartsApiPipeline(this WebApplication app)
     {
-        var sqlConnectionFactory = app.Services.GetRequiredService<ISqlConnectionFactory>();
-        InvoiceNumberingMigration.EnsureApplied(sqlConnectionFactory);
-        AccountingMigration.EnsureApplied(sqlConnectionFactory);
-        WebAppUserRoleMigration.EnsureApplied(sqlConnectionFactory);
-        UserRoleIdMigration.EnsureApplied(sqlConnectionFactory);
-        MenuAccessMigration.EnsureApplied(sqlConnectionFactory);
-        TransactionTypesMigration.EnsureApplied(sqlConnectionFactory);
-        PartAveragePriceMigration.EnsureApplied(sqlConnectionFactory);
-        PartUsedCarMigration.EnsureApplied(sqlConnectionFactory);
-        CurrencyRatesMigration.EnsureApplied(sqlConnectionFactory);
-        AppConstantsMigration.EnsureApplied(sqlConnectionFactory);
-        CarModelsMigration.EnsureApplied(sqlConnectionFactory);
-        LocationsMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarsMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarPartPricingMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarPurchasesMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarWholesaleSalesMigration.EnsureApplied(sqlConnectionFactory);
-        TransactionsMigration.EnsureApplied(sqlConnectionFactory);
-        AccountingCurrencyRateRepairMigration.EnsureApplied(sqlConnectionFactory);
-        BarcodeScanningMigration.EnsureApplied(sqlConnectionFactory);
-        PartRequestsMigration.EnsureApplied(sqlConnectionFactory);
-        PartUsedCarStockMigration.EnsureApplied(sqlConnectionFactory);
-        UsedCarImagesMigration.EnsureApplied(sqlConnectionFactory);
-        CommunicationsMigration.EnsureApplied(sqlConnectionFactory);
-        WhatsAppCampaignsMigration.EnsureApplied(sqlConnectionFactory);
-        ReportBuilderLinksMigration.EnsureApplied(sqlConnectionFactory);
-        ReportBuilderAdvancedMigration.EnsureApplied(sqlConnectionFactory);
-        ReorderRulesMigration.EnsureApplied(sqlConnectionFactory);
-        PartSubstitutesMigration.EnsureApplied(sqlConnectionFactory);
-        PartExpiryMigration.EnsureApplied(sqlConnectionFactory);
-        CustomerLoyaltyMigration.EnsureApplied(sqlConnectionFactory);
-        CustomerPriceTierMigration.EnsureApplied(sqlConnectionFactory);
-        WarrantyClaimsMigration.EnsureApplied(sqlConnectionFactory);
-        SupplierPriceHistoryMigration.EnsureApplied(sqlConnectionFactory);
-        ShipmentsMigration.EnsureApplied(sqlConnectionFactory);
-        ActivityLogMigration.EnsureApplied(sqlConnectionFactory);
-
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
         app.UseRateLimiter();
@@ -463,9 +426,12 @@ public static class SparePartsApiComposition
     }
 
     private static bool IsPlaceholderJwtSecret(string jwtSecret)
-        => jwtSecret.StartsWith("CHANG55E_ME", StringComparison.OrdinalIgnoreCase)
-            || jwtSecret.StartsWith("6533545btwrtrwrt4h563", StringComparison.OrdinalIgnoreCase)
-            || jwtSecret.Contains("USE_ENV_OR_USER_SECR55ETS", StringComparison.OrdinalIgnoreCase);
+    {
+        var upper = jwtSecret.ToUpperInvariant();
+        return upper.StartsWith("CHANGE_ME", StringComparison.Ordinal)
+            || upper.StartsWith("6533545BTWRTRWRT4H563", StringComparison.Ordinal)
+            || upper.Contains("USE_ENV_OR_USER_SECRETS", StringComparison.Ordinal);
+    }
 
     private static OpenAiOptions ResolveOpenAiOptions(IConfiguration configuration)
     {

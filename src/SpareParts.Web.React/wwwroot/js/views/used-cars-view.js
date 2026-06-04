@@ -217,6 +217,294 @@ function buildProfitProject(car) {
   };
 }
 
+function buildDonorAction(car, project, linkedParts, t) {
+  if (read(car, "isWholesaleSold")) {
+    return {
+      key: "sold",
+      tone: "positive",
+      label: t("usedCars.actionSold", "Sold wholesale"),
+      detail: read(car, "wholesaleBuyerName")
+        ? t("usedCars.soldToBuyer", "Sold to {name}", { name: read(car, "wholesaleBuyerName") })
+        : t("usedCars.wholesaleProjectClosed", "Wholesale project closed")
+    };
+  }
+
+  if (!read(car, "isReceived")) {
+    return {
+      key: "receive",
+      tone: "warning",
+      label: t("usedCars.actionReceive", "Receive & cost"),
+      detail: t("usedCars.actionReceiveDetail", "Confirm arrival, customs, and landed cost.")
+    };
+  }
+
+  if (!read(car, "isShipped")) {
+    return {
+      key: "ship",
+      tone: "warning",
+      label: t("usedCars.actionShip", "Ship / clear"),
+      detail: t("usedCars.actionShipDetail", "Close shipping status before teardown.")
+    };
+  }
+
+  if (project.fullCost <= 0) {
+    return {
+      key: "cost",
+      tone: "danger",
+      label: t("usedCars.actionConfirmCosts", "Confirm costs"),
+      detail: t("usedCars.actionConfirmCostsDetail", "Add purchase and teardown costs before profit tracking.")
+    };
+  }
+
+  if (project.breakEvenGap <= 0) {
+    return {
+      key: "profit",
+      tone: "positive",
+      label: t("usedCars.actionProfit", "Profit unlocked"),
+      detail: t("usedCars.actionProfitDetail", "Keep selling remaining donor stock.")
+    };
+  }
+
+  if (linkedParts.length === 0 && project.partsRemovedCount === 0) {
+    return {
+      key: "link",
+      tone: "danger",
+      label: t("usedCars.actionLinkParts", "Link donor parts"),
+      detail: t("usedCars.actionLinkPartsDetail", "Assign harvested parts so recovery can be tracked.")
+    };
+  }
+
+  if (project.remainingStockValue >= project.breakEvenGap && project.remainingStockValue > 0) {
+    return {
+      key: "sell-stock",
+      tone: "success",
+      label: t("usedCars.actionSellStock", "Sell stocked parts"),
+      detail: t("usedCars.actionSellStockDetail", "Current stock value can close the break-even gap.")
+    };
+  }
+
+  if (project.partsRemovedCount > 0) {
+    return {
+      key: "quote",
+      tone: "warning",
+      label: t("usedCars.actionPushParts", "Push removed parts"),
+      detail: t("usedCars.actionPushPartsDetail", "Quote high-value removed parts first.")
+    };
+  }
+
+  return {
+    key: "harvest",
+    tone: "neutral",
+    label: t("usedCars.actionHarvest", "Harvest next parts"),
+    detail: t("usedCars.actionHarvestDetail", "Start with high-value parts and common requests.")
+  };
+}
+
+function buildDonorProject(car, linkedParts, unassignedParts, t) {
+  const project = buildProfitProject(car);
+  const recommendations = buildPartRecommendations(linkedParts, unassignedParts);
+  return {
+    car,
+    project,
+    linkedParts,
+    recommendations,
+    pushParts: buildPushParts(car, recommendations, project.breakEvenGap),
+    estimatedDays: estimatedDaysToProfit(car, project, recommendations),
+    action: buildDonorAction(car, project, linkedParts, t)
+  };
+}
+
+function donorSearchHaystack(entry) {
+  const { car, action } = entry;
+  return [
+    `${read(car, "modelYear") || ""} ${read(car, "car") || ""}`,
+    read(car, "barcode"),
+    read(car, "supplierName"),
+    read(car, "location"),
+    read(car, "wholesaleBuyerName"),
+    read(car, "wholesaleSaleNumber"),
+    action.label,
+    action.detail
+  ].join(" ").toLowerCase();
+}
+
+function matchesDonorFilter(entry, filter) {
+  const { car, project, linkedParts, action } = entry;
+  if (filter === "profit") return project.breakEvenGap <= 0;
+  if (filter === "gap") return project.breakEvenGap > 0;
+  if (filter === "needs-linking") return linkedParts.length === 0 && project.partsRemovedCount === 0;
+  if (filter === "action") return ["receive", "ship", "cost", "link", "harvest", "sell-stock", "quote"].includes(action.key);
+  if (filter === "wholesale") return Boolean(read(car, "isWholesaleSold"));
+  if (filter === "transit") return !read(car, "isReceived") || !read(car, "isShipped");
+  return true;
+}
+
+function DonorMetric({ label, value, detail, tone }) {
+  return h("div", { className: `donor-metric ${tone || ""}` },
+    h("span", null, label),
+    h("strong", null, value),
+    detail && h("small", null, detail)
+  );
+}
+
+function DonorCockpit({
+  entries,
+  filteredEntries,
+  metrics,
+  search,
+  onSearch,
+  filter,
+  onFilter,
+  onSelect,
+  t,
+  displayContextForCar
+}) {
+  const filters = [
+    { key: "all", label: t("usedCars.filterAllDonors", "All") },
+    { key: "action", label: t("usedCars.filterAction", "Action") },
+    { key: "gap", label: t("usedCars.filterGapOpen", "Gap open") },
+    { key: "needs-linking", label: t("usedCars.filterNeedsLinking", "Needs linking") },
+    { key: "profit", label: t("usedCars.filterProfit", "Profit") },
+    { key: "transit", label: t("usedCars.filterTransit", "Transit") },
+    { key: "wholesale", label: t("usedCars.filterWholesale", "Wholesale") }
+  ];
+  const focusEntries = filteredEntries
+    .filter((entry) => entry.action.key !== "sold")
+    .slice(0, 5);
+
+  return h("article", { className: "panel donor-cockpit" },
+    h("div", { className: "donor-cockpit-heading" },
+      h("div", null,
+        h("h2", null, t("usedCars.donorCockpit", "Donor Car Cockpit")),
+        h("p", null, t("usedCars.donorCockpitSubtitle", "Search half-cuts, spot break-even risk, and pick the next staff action from one place."))
+      ),
+      h("strong", null, t("usedCars.filteredDonors", "{shown} / {total} shown", { shown: filteredEntries.length, total: entries.length }))
+    ),
+    h("div", { className: "donor-metric-grid" },
+      h(DonorMetric, {
+        label: t("usedCars.donorProjects", "Donor projects"),
+        value: entries.length.toLocaleString(),
+        detail: t("usedCars.readyForTeardown", "{count} ready for teardown", { count: metrics.readyForTeardown.toLocaleString() })
+      }),
+      h(DonorMetric, {
+        label: t("usedCars.profitUnlocked", "Profit unlocked"),
+        value: metrics.profitUnlocked.toLocaleString(),
+        detail: t("usedCars.keepSelling", "Keep selling remaining stock"),
+        tone: "positive"
+      }),
+      h(DonorMetric, {
+        label: t("usedCars.breakEvenRisk", "Break-even risk"),
+        value: metrics.gapOpen.toLocaleString(),
+        detail: t("usedCars.gapOpenDetail", "Need targeted quoting"),
+        tone: "warning"
+      }),
+      h(DonorMetric, {
+        label: t("usedCars.partsLinked", "Parts linked"),
+        value: metrics.linkedParts.toLocaleString(),
+        detail: t("usedCars.needsLinkingCount", "{count} donors need linking", { count: metrics.needsLinking.toLocaleString() }),
+        tone: metrics.needsLinking > 0 ? "danger" : "positive"
+      })
+    ),
+    h("div", { className: "donor-toolbar" },
+      h("input", {
+        value: search,
+        onChange: (event) => onSearch(event.target.value),
+        placeholder: t("usedCars.searchDonors", "Search donor, barcode, supplier, buyer, action...")
+      }),
+      h("div", { className: "donor-filter-strip" },
+        filters.map((item) => h("button", {
+          key: item.key,
+          className: item.key === filter ? "chip active" : "chip",
+          type: "button",
+          onClick: () => onFilter(item.key)
+        }, item.label))
+      )
+    ),
+    h("div", { className: "donor-action-queue" },
+      h("div", { className: "profit-section-heading" },
+        h("h4", null, t("usedCars.todayFocus", "Today Focus")),
+        h("span", null, t("usedCars.todayFocusHint", "Sorted by recovery risk and next action"))
+      ),
+      focusEntries.length > 0
+        ? focusEntries.map((entry) => {
+          const { car, project, action, linkedParts } = entry;
+          const displayMoney = (value) => displayMoneyFromBase(value, displayContextForCar(car));
+          return h("button", {
+            key: itemId(car),
+            className: "donor-action-card",
+            type: "button",
+            onClick: () => onSelect(itemId(car))
+          },
+            h("span", { className: `donor-action-pill ${action.tone}` }, action.label),
+            h("strong", null, carTitle(car, t)),
+            h("small", null, action.detail),
+            h("em", null, `${displayMoney(project.breakEvenGap)} ${t("usedCars.gap", "gap")} / ${linkedParts.length.toLocaleString()} ${t("usedCars.linked", "linked")}`)
+          );
+        })
+        : h("p", { className: "empty-state" }, t("usedCars.noFocusDonors", "No donor cars match this focus."))
+    )
+  );
+}
+
+function buildDonorPassportText(entry, displayMoney, t) {
+  const { car, project, linkedParts, action } = entry;
+  return [
+    carTitle(car, t),
+    `${t("usedCars.nextAction", "Next Action")}: ${action.label}`,
+    `${t("usedCars.supplier", "Supplier")}: ${read(car, "supplierName") || "-"}`,
+    `${t("usedCars.location", "Location")}: ${read(car, "location") || "-"}`,
+    `${t("usedCars.barcode", "Barcode")}: ${read(car, "barcode") || "-"}`,
+    `${t("usedCars.fullCost", "Full Cost")}: ${displayMoney(project.fullCost)}`,
+    `${t("usedCars.recovered", "Recovered")}: ${project.recoveredPercent}%`,
+    `${t("usedCars.breakEven", "Break Even")}: ${project.breakEvenGap > 0 ? displayMoney(project.breakEvenGap) : t("usedCars.done", "Done")}`,
+    `${t("usedCars.linkedParts", "Linked Parts")}: ${linkedParts.length.toLocaleString()}`,
+    `${t("usedCars.remainingStock", "Remaining Stock")}: ${displayMoney(project.remainingStockValue)}`
+  ].join("\n");
+}
+
+function DonorPassport({ entry, displayContext, t, onCopy, onWhatsapp }) {
+  if (!entry) return null;
+
+  const { car, project, action, linkedParts, pushParts } = entry;
+  const displayMoney = (value) => displayMoneyFromBase(value, displayContext);
+
+  return h("article", { className: "panel donor-passport" },
+    h("div", { className: "donor-passport-heading" },
+      h("div", null,
+        h("h3", null, t("usedCars.donorPassport", "Donor Passport")),
+        h("span", null, carTitle(car, t))
+      ),
+      h("div", { className: "row-actions" },
+        h("button", { className: "secondary-button", type: "button", onClick: onCopy }, t("usedCars.copyPassport", "Copy Passport")),
+        h("button", { className: "secondary-button whatsapp-button", type: "button", onClick: onWhatsapp }, "WhatsApp")
+      )
+    ),
+    h("div", { className: "donor-passport-body" },
+      h("div", { className: `donor-next-action ${action.tone}` },
+        h("span", null, t("usedCars.nextAction", "Next Action")),
+        h("strong", null, action.label),
+        h("small", null, action.detail)
+      ),
+      h("div", { className: "detail-grid" },
+        h(DetailTile, { label: t("usedCars.fullCost", "Full Cost"), value: displayMoney(project.fullCost) }),
+        h(DetailTile, { label: t("usedCars.breakEven", "Break Even"), value: project.breakEvenGap > 0 ? displayMoney(project.breakEvenGap) : t("usedCars.done", "Done") }),
+        h(DetailTile, { label: t("usedCars.recovered", "Recovered"), value: `${project.recoveredPercent}%` }),
+        h(DetailTile, { label: t("usedCars.linkedParts", "Linked Parts"), value: linkedParts.length.toLocaleString() }),
+        h(DetailTile, { label: t("usedCars.remainingStock", "Remaining Stock"), value: displayMoney(project.remainingStockValue) }),
+        h(DetailTile, { label: t("usedCars.saleStatus", "Sale Status"), value: read(car, "isWholesaleSold") ? t("usedCars.soldWholesale", "Sold wholesale") : t("usedCars.available", "Available") })
+      ),
+      h("div", { className: "donor-push-strip" },
+        h("span", null, t("usedCars.nextPushParts", "Next push parts")),
+        pushParts.length > 0
+          ? pushParts.map((item) => h("strong", { key: itemId(item.part) },
+            `${read(item.part, "internalCode") || read(item.part, "name") || `#${itemId(item.part)}`} · ${money(item.expectedSale || item.salePrice, read(item.part, "currency") || baseCurrency(car))}`
+          ))
+          : h("small", null, t("usedCars.linkPartsToForecast", "Link parts to forecast profit"))
+      )
+    )
+  );
+}
+
 function InputField({ label, value, onChange, type = "text", placeholder }) {
   return h("label", null,
     h("span", null, label),
@@ -298,7 +586,7 @@ function BreakEvenRacer({ entry, index, isActive, onSelect, t, displayContext })
   const { car, estimatedDays, project, pushParts } = entry;
   const displayMoney = (value) => displayMoneyFromBase(value, displayContext);
   const recoveredPercent = Math.min(project.recoveredPercent, 100);
-  const isProfitable = project.breakEvenGap <= 0;
+  const isProfitable = project.fullCost > 0 && project.breakEvenGap <= 0;
 
   return h("button", {
     className: `break-even-racer ${isActive ? "active" : ""}`,
@@ -377,7 +665,7 @@ function ProfitProjectMap({ car, recommendations, onAssignPart, t, displayContex
 
   const project = buildProfitProject(car);
   const displayMoney = (value) => displayMoneyFromBase(value, displayContext);
-  const resultTone = project.netProfitLoss >= 0 ? "positive" : "negative";
+  const resultTone = project.fullCost > 0 && project.netProfitLoss >= 0 ? "positive" : "negative";
   const soldWidth = Math.min(project.soldPercent, 100);
   const flowSteps = [
     {
@@ -617,6 +905,8 @@ export function UsedCarsView({ api, t }) {
   const [selectedId, setSelectedId] = useState("");
   const [selectedImageId, setSelectedImageId] = useState("");
   const [form, setForm] = useState({ ...emptyForm, modelYear: String(new Date().getFullYear()) });
+  const [carSearch, setCarSearch] = useState("");
+  const [carFilter, setCarFilter] = useState("all");
   const [partSearch, setPartSearch] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -650,6 +940,48 @@ export function UsedCarsView({ api, t }) {
     });
     return grouped;
   }, [parts]);
+  const donorProjects = useMemo(() => cars
+    .map((car) => buildDonorProject(
+      car,
+      partsByUsedCarId.get(String(itemId(car))) || [],
+      unassignedParts,
+      t
+    ))
+    .sort((left, right) => {
+      const leftActionRank = left.action.key === "sold" ? 1 : 0;
+      const rightActionRank = right.action.key === "sold" ? 1 : 0;
+      return leftActionRank - rightActionRank
+        || (right.project.breakEvenGap > 0 ? 1 : 0) - (left.project.breakEvenGap > 0 ? 1 : 0)
+        || right.project.breakEvenGap - left.project.breakEvenGap
+        || carTitle(left.car, t).localeCompare(carTitle(right.car, t));
+    }),
+  [cars, partsByUsedCarId, t, unassignedParts]);
+  const filteredDonorProjects = useMemo(() => {
+    const query = carSearch.trim().toLowerCase();
+    return donorProjects.filter((entry) =>
+      matchesDonorFilter(entry, carFilter)
+        && (!query || donorSearchHaystack(entry).includes(query))
+    );
+  }, [carFilter, carSearch, donorProjects]);
+  const selectedDonorProject = useMemo(() =>
+    donorProjects.find((entry) => String(itemId(entry.car)) === String(selectedId)) || null,
+  [donorProjects, selectedId]);
+  const donorMetrics = useMemo(() => donorProjects.reduce((summary, entry) => {
+    const isReadyForTeardown = read(entry.car, "isReceived") && read(entry.car, "isShipped") && !read(entry.car, "isWholesaleSold");
+    return {
+      readyForTeardown: summary.readyForTeardown + (isReadyForTeardown ? 1 : 0),
+      profitUnlocked: summary.profitUnlocked + (entry.project.fullCost > 0 && entry.project.breakEvenGap <= 0 ? 1 : 0),
+      gapOpen: summary.gapOpen + (entry.project.breakEvenGap > 0 ? 1 : 0),
+      needsLinking: summary.needsLinking + (entry.linkedParts.length === 0 && entry.project.partsRemovedCount === 0 ? 1 : 0),
+      linkedParts: summary.linkedParts + entry.linkedParts.length
+    };
+  }, {
+    readyForTeardown: 0,
+    profitUnlocked: 0,
+    gapOpen: 0,
+    needsLinking: 0,
+    linkedParts: 0
+  }), [donorProjects]);
   const assignedParts = useMemo(() =>
     selectedCarParts.filter((part) =>
       [read(part, "internalCode"), read(part, "name"), read(part, "oemNumber")].join(" ").toLowerCase().includes(partSearch.toLowerCase())),
@@ -661,29 +993,16 @@ export function UsedCarsView({ api, t }) {
   const nextPartRecommendations = useMemo(() =>
     selectedCar ? buildPartRecommendations(selectedCarParts, unassignedParts) : [],
   [selectedCar, selectedCarParts, unassignedParts]);
-  const breakEvenEntries = useMemo(() => cars
-    .map((car) => {
-      const project = buildProfitProject(car);
-      const recommendations = buildPartRecommendations(
-        partsByUsedCarId.get(String(itemId(car))) || [],
-        unassignedParts
-      );
-      return {
-        car,
-        project,
-        estimatedDays: estimatedDaysToProfit(car, project, recommendations),
-        pushParts: buildPushParts(car, recommendations, project.breakEvenGap)
-      };
-    })
+  const breakEvenEntries = useMemo(() => donorProjects.slice()
     .sort((left, right) => {
-      const leftProfitable = left.project.breakEvenGap <= 0 ? 1 : 0;
-      const rightProfitable = right.project.breakEvenGap <= 0 ? 1 : 0;
+      const leftProfitable = left.project.fullCost > 0 && left.project.breakEvenGap <= 0 ? 1 : 0;
+      const rightProfitable = right.project.fullCost > 0 && right.project.breakEvenGap <= 0 ? 1 : 0;
       return leftProfitable - rightProfitable
         || right.project.recoveredPercent - left.project.recoveredPercent
         || left.project.breakEvenGap - right.project.breakEvenGap
         || carTitle(left.car, t).localeCompare(carTitle(right.car, t));
     }),
-  [cars, partsByUsedCarId, t, unassignedParts]);
+  [donorProjects, t]);
   const displayContextForCar = useCallback((car) => displayCurrencyContext({
     constants: appConstants,
     rates: currencyRates,
@@ -694,6 +1013,14 @@ export function UsedCarsView({ api, t }) {
     () => displayContextForCar(selectedCar),
     [displayContextForCar, selectedCar]
   );
+  const selectedPassportText = useMemo(() => {
+    if (!selectedDonorProject) return "";
+    return buildDonorPassportText(
+      selectedDonorProject,
+      (value) => displayMoneyFromBase(value, selectedDisplayContext),
+      t
+    );
+  }, [selectedDisplayContext, selectedDonorProject, t]);
 
   const setFormValue = useCallback((key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -945,6 +1272,23 @@ export function UsedCarsView({ api, t }) {
     }
   }, [api, loadCars, loadParts, selectedId, t]);
 
+  const copyDonorPassport = useCallback(async () => {
+    if (!selectedPassportText) return;
+
+    try {
+      await navigator.clipboard.writeText(selectedPassportText);
+      setStatus(t("usedCars.passportCopied", "Donor passport copied."));
+    } catch (error) {
+      setStatus(error.message || t("usedCars.passportCopyError", "Could not copy donor passport."));
+    }
+  }, [selectedPassportText, t]);
+
+  const openDonorWhatsapp = useCallback(() => {
+    if (!selectedPassportText) return;
+    window.open(`https://wa.me/?text=${encodeURIComponent(selectedPassportText)}`, "_blank", "noopener,noreferrer");
+    setStatus(t("usedCars.whatsappDraftReady", "WhatsApp donor summary opened."));
+  }, [selectedPassportText, t]);
+
   const selectedImageIndex = Math.max(0, images.findIndex((image) => String(itemId(image)) === String(itemId(selectedImage))));
   const selectedModel = carModels.find((model) => String(read(model, "id")) === String(form.carModelId));
 
@@ -967,6 +1311,18 @@ export function UsedCarsView({ api, t }) {
       }, isLoading ? t("common.loading", "Loading") : t("common.refresh", "Refresh"))
     }),
     h(StatusLine, { status }),
+    h(DonorCockpit, {
+      entries: donorProjects,
+      filteredEntries: filteredDonorProjects,
+      metrics: donorMetrics,
+      search: carSearch,
+      onSearch: setCarSearch,
+      filter: carFilter,
+      onFilter: setCarFilter,
+      onSelect: (id) => setSelectedId(String(id)),
+      displayContextForCar,
+      t
+    }),
     h(BreakEvenRace, {
       entries: breakEvenEntries,
       selectedId,
@@ -1026,7 +1382,8 @@ export function UsedCarsView({ api, t }) {
         h("article", { className: "panel" },
           h("h3", null, t("usedCars.inventory", "Inventory")),
           h("div", { className: "used-car-list-frame" },
-            cars.map((car, index) => {
+            filteredDonorProjects.map((entry, index) => {
+              const { car, project, action, linkedParts } = entry;
               const active = String(itemId(car)) === String(selectedId);
               return h("button", {
                 key: itemId(car) || index,
@@ -1037,14 +1394,22 @@ export function UsedCarsView({ api, t }) {
                 h("span", { className: "avatar" }, initials(carTitle(car, t))),
                 h("div", null,
                   h("strong", null, carTitle(car, t)),
-                  h("small", null, `${read(car, "supplierName") || t("usedCars.supplier", "Supplier")} / ${read(car, "barcode") || "-"}`)
+                  h("small", null, `${read(car, "supplierName") || t("usedCars.supplier", "Supplier")} / ${read(car, "barcode") || "-"}`),
+                  h("small", { className: `donor-row-action ${action.tone}` }, `${action.label} / ${project.recoveredPercent}% / ${linkedParts.length} linked`)
                 ),
                 h("b", null, carPrice(car))
               );
             }),
-            cars.length === 0 && h("p", { className: "empty-state" }, t("usedCars.noCars", "No used cars returned."))
+            filteredDonorProjects.length === 0 && h("p", { className: "empty-state" }, t("usedCars.noCars", "No used cars returned."))
           )
         ),
+        selectedDonorProject && h(DonorPassport, {
+          entry: selectedDonorProject,
+          displayContext: selectedDisplayContext,
+          t,
+          onCopy: copyDonorPassport,
+          onWhatsapp: openDonorWhatsapp
+        }),
         selectedCar && h("article", { className: "panel" },
           h("h3", null, t("usedCars.vehicleDetails", "Vehicle Details")),
           h("div", { className: "detail-grid" },
@@ -1054,7 +1419,8 @@ export function UsedCarsView({ api, t }) {
             h(DetailTile, { label: t("usedCars.price", "Price"), value: carPrice(selectedCar) }),
             h(DetailTile, { label: "Full Cost", value: displayMoneyFromBase(read(selectedCar, "fullCostBase"), selectedDisplayContext) }),
             h(DetailTile, { label: "Sell-Through", value: `${Math.round(toNumber(read(selectedCar, "expectedSellThroughRate")) * 100)}%` }),
-            h(DetailTile, { label: "Net P/L", value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) })
+            h(DetailTile, { label: "Net P/L", value: displayMoneyFromBase(read(selectedCar, "netProfitLossBase"), selectedDisplayContext) }),
+            selectedDonorProject && h(DetailTile, { label: t("usedCars.nextAction", "Next Action"), value: selectedDonorProject.action.label })
           )
         ),
         selectedCar && h(ProfitProjectMap, {

@@ -1,0 +1,113 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '*.sln'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main, master]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # ── Build all backend API projects ────────────────────────────────────
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore solutions/SpareParts.Backend.sln
+
+      - name: Build
+        run: |
+          dotnet build solutions/SpareParts.Backend.sln \
+            --configuration Release \
+            --no-restore \
+            -p:TreatWarningsAsErrors=false
+
+      # Architecture tests run on Linux — no WPF deps
+      - name: Run Architecture Tests
+        run: |
+          dotnet test tests/SpareParts.ArchitectureTests/SpareParts.ArchitectureTests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "github;collapse-with-annotations=true" \
+            --results-directory ./test-results/architecture
+
+      # Integration tests need SQL Server via Docker — skipped in free CI
+      # Run locally or in a paid environment with: dotnet test tests/SpareParts.IntegrationTests/...
+      # - name: Run Integration Tests (requires Docker + SQL Server)
+      #   run: dotnet test tests/SpareParts.IntegrationTests/...
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-backend
+          path: test-results/
+          retention-days: 7
+
+  # ── Publish main API artifact ──────────────────────────────────────────
+  publish-api:
+    name: Publish API Artifact
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore src/SpareParts.Api/SpareParts.Api.csproj
+
+      - name: Publish main API
+        run: |
+          dotnet publish src/SpareParts.Api/SpareParts.Api.csproj \
+            --configuration Release \
+            --no-restore \
+            --output ./publish/api
+
+      - name: Upload API artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spareparts-api-${{ github.sha }}
+          path: publish/api/
+          retention-days: 30

@@ -17,7 +17,10 @@
       "package": "com.maalouf.spareparts",
       "adaptiveIcon": {
         "backgroundColor": "#101114"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       [
@@ -33,6 +36,7 @@
       "eas": {
         "projectId": "7a2fd859-585e-426b-a22d-a8083045e702"
       }
-    }
+    },
+    "owner": "ruffmaalouf"
   }
 }
