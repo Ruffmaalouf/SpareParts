@@ -103,6 +103,13 @@ namespace SpareParts.Desktop.Wpf.Management
             Replace(CurrencyRates, currencyRates);
         }
 
+        public void LoadParts(
+            IEnumerable<PartDto> parts,
+            IEnumerable<PartRequestDto> _)
+        {
+            Replace(Parts, parts);
+        }
+
         public string NewPartCode
         {
             get => _newPartCode;
