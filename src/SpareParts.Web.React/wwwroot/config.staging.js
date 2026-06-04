@@ -1,5 +1,5 @@
 window.SparePartsWebConfig = {
-  defaultApiBaseUrl: "https://REPLACE_WITH_API_URL",
+  defaultApiBaseUrl: "https://spareparts-api-ralph.azurewebsites.net",
   googleClientId: "",
   facebookAppId: ""
 };

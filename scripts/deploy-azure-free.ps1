@@ -10,6 +10,12 @@ param(
     [string]$SqlAdminPassword = "",
     [string]$LocalConnectionString = "Server=localhost;Database=SparePartsDb;Trusted_Connection=True;TrustServerCertificate=True;",
     [string]$PublicWebBaseUrl = "",
+    [string]$GoogleClientId = "",
+    [string]$GoogleAndroidClientId = "",
+    [string]$GoogleIosClientId = "",
+    [string]$GoogleWebClientId = "",
+    [string]$FacebookAppId = "",
+    [string]$FacebookAppSecret = "",
     [switch]$SkipDatabaseImport,
     [switch]$SkipWebDeploy
 )
@@ -147,6 +153,7 @@ $publicWebUrl = if ([string]::IsNullOrWhiteSpace($PublicWebBaseUrl)) {
 } else {
     $PublicWebBaseUrl.TrimEnd("/")
 }
+$webGoogleClientId = if ([string]::IsNullOrWhiteSpace($GoogleWebClientId)) { $GoogleClientId } else { $GoogleWebClientId }
 $sqlHost = "$SqlServerName.database.windows.net"
 $azureConnectionString = "Server=tcp:$sqlHost,1433;Initial Catalog=$DatabaseName;Persist Security Info=False;User ID=$SqlAdminUser;Password=$SqlAdminPassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 $jwtSecret = [Convert]::ToBase64String([Guid]::NewGuid().ToByteArray()) + [Convert]::ToBase64String([Guid]::NewGuid().ToByteArray())
@@ -240,6 +247,25 @@ Invoke-Az -Arguments @(
     "--output", "none"
 )
 
+$externalAuthAppSettings = @()
+if (-not [string]::IsNullOrWhiteSpace($webGoogleClientId)) {
+    $externalAuthAppSettings += "ExternalAuth__GoogleClientId=$webGoogleClientId"
+}
+if (-not [string]::IsNullOrWhiteSpace($FacebookAppId)) {
+    $externalAuthAppSettings += "ExternalAuth__FacebookAppId=$FacebookAppId"
+}
+if (-not [string]::IsNullOrWhiteSpace($FacebookAppSecret)) {
+    $externalAuthAppSettings += "ExternalAuth__FacebookAppSecret=$FacebookAppSecret"
+}
+if ($externalAuthAppSettings.Count -gt 0) {
+    Invoke-Az -Arguments (@(
+        "webapp", "config", "appsettings", "set",
+        "--resource-group", $ResourceGroup,
+        "--name", $AppName,
+        "--settings"
+    ) + $externalAuthAppSettings + @("--output", "none"))
+}
+
 Write-Host "Publishing API..."
 if (Test-Path $publishDir) { Remove-Item -LiteralPath $publishDir -Recurse -Force }
 Invoke-Native -FilePath "dotnet" -Arguments @("publish", $apiProject, "-c", "Release", "-o", $publishDir)
@@ -274,8 +300,8 @@ for ($i = 0; $i -lt 24; $i++) {
             $webConfig = @"
 window.SparePartsWebConfig = {
   defaultApiBaseUrl: "$apiUrl",
-  googleClientId: "",
-  facebookAppId: ""
+  googleClientId: "$webGoogleClientId",
+  facebookAppId: "$FacebookAppId"
 };
 "@
             Set-Content -Path (Join-Path $artifacts "web-config.azure.js") -Value $webConfig -Encoding UTF8
@@ -305,8 +331,8 @@ window.SparePartsWebConfig = {
                 $webConfigContent = @"
 window.SparePartsWebConfig = {
   defaultApiBaseUrl: "$apiUrl",
-  googleClientId: "",
-  facebookAppId: ""
+  googleClientId: "$webGoogleClientId",
+  facebookAppId: "$FacebookAppId"
 };
 "@
                 Set-Content -Path $webConfigPath -Value $webConfigContent -Encoding UTF8
@@ -336,11 +362,11 @@ window.SparePartsWebConfig = {
             $mobileEnvPath = Join-Path $root "src\SpareParts.Mobile.ReactNative\.env"
             $mobileEnvContent = @"
 EXPO_PUBLIC_API_BASE_URL=$apiUrl
-EXPO_PUBLIC_GOOGLE_CLIENT_ID=
-EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
-EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
-EXPO_PUBLIC_FACEBOOK_APP_ID=
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=$GoogleClientId
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=$GoogleAndroidClientId
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=$GoogleIosClientId
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=$GoogleWebClientId
+EXPO_PUBLIC_FACEBOOK_APP_ID=$FacebookAppId
 "@
             Set-Content -Path $mobileEnvPath -Value $mobileEnvContent -Encoding UTF8
 

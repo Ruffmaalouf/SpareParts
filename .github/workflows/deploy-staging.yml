@@ -228,22 +228,37 @@ jobs:
           echo "Schema applied."
 
       - name: Configure API app settings
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID || secrets.GOOGLE_CLIENT_ID }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
+          FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
         run: |
           JWT_SECRET=$(openssl rand -base64 48)
           echo "::add-mask::$JWT_SECRET"
+          SETTINGS=(
+            "ASPNETCORE_ENVIRONMENT=Staging"
+            "ConnectionStrings__DefaultConnection=${{ steps.urls.outputs.connection_string }}"
+            "Jwt__Secret=$JWT_SECRET"
+            "Jwt__Issuer=SpareParts.Api"
+            "Jwt__Audience=SpareParts.Desktop"
+            "Cors__AllowedOrigins__0=https://${{ env.WEB_APP_NAME }}.azurewebsites.net"
+            "Cors__AllowedOrigins__1=http://localhost:5078"
+            "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
+            "WEBSITE_CONTAINER_START_TIME_LIMIT=600"
+          )
+          if [ -n "$GOOGLE_CLIENT_ID" ]; then
+            SETTINGS+=("ExternalAuth__GoogleClientId=$GOOGLE_CLIENT_ID")
+          fi
+          if [ -n "$FACEBOOK_APP_ID" ]; then
+            SETTINGS+=("ExternalAuth__FacebookAppId=$FACEBOOK_APP_ID")
+          fi
+          if [ -n "$FACEBOOK_APP_SECRET" ]; then
+            SETTINGS+=("ExternalAuth__FacebookAppSecret=$FACEBOOK_APP_SECRET")
+          fi
           az webapp config appsettings set \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.API_APP_NAME }} \
-            --settings \
-              "ASPNETCORE_ENVIRONMENT=Staging" \
-              "ConnectionStrings__DefaultConnection=${{ steps.urls.outputs.connection_string }}" \
-              "Jwt__Secret=$JWT_SECRET" \
-              "Jwt__Issuer=SpareParts.Api" \
-              "Jwt__Audience=SpareParts.Desktop" \
-              "Cors__AllowedOrigins__0=https://${{ env.WEB_APP_NAME }}.azurewebsites.net" \
-              "Cors__AllowedOrigins__1=http://localhost:5078" \
-              "SCM_DO_BUILD_DURING_DEPLOYMENT=false" \
-              "WEBSITE_CONTAINER_START_TIME_LIMIT=600" \
+            --settings "${SETTINGS[@]}" \
             --output none
           az webapp log config \
             --resource-group ${{ env.RESOURCE_GROUP }} \
@@ -346,12 +361,15 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Patch config.js with API URL
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID || secrets.GOOGLE_CLIENT_ID }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
         run: |
           cat > src/SpareParts.Web.React/wwwroot/config.js <<EOF
           window.SparePartsWebConfig = {
             defaultApiBaseUrl: "${{ needs.provision.outputs.api_url }}",
-            googleClientId: "",
-            facebookAppId: ""
+            googleClientId: "$GOOGLE_CLIENT_ID",
+            facebookAppId: "$FACEBOOK_APP_ID"
           };
           EOF
 
@@ -389,20 +407,31 @@ jobs:
 
       - name: Write .env
         working-directory: src/SpareParts.Mobile.ReactNative
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID }}
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
         run: |
           cat > .env <<EOF
           EXPO_PUBLIC_API_BASE_URL=${{ needs.provision.outputs.api_url }}
-          EXPO_PUBLIC_GOOGLE_CLIENT_ID=
-          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
-          EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
-          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
-          EXPO_PUBLIC_FACEBOOK_APP_ID=
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+          EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=$GOOGLE_ANDROID_CLIENT_ID
+          EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID
+          EXPO_PUBLIC_FACEBOOK_APP_ID=$FACEBOOK_APP_ID
           EOF
 
       - name: Configure EAS staging API URL
         working-directory: src/SpareParts.Mobile.ReactNative
         env:
           STAGING_API_BASE_URL: ${{ needs.provision.outputs.api_url }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID }}
+          GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
         run: |
           node - <<'NODE'
           const fs = require("fs");
@@ -411,7 +440,12 @@ jobs:
           eas.build.staging = eas.build.staging || {};
           eas.build.staging.env = {
             ...(eas.build.staging.env || {}),
-            EXPO_PUBLIC_API_BASE_URL: process.env.STAGING_API_BASE_URL
+            EXPO_PUBLIC_API_BASE_URL: process.env.STAGING_API_BASE_URL,
+            EXPO_PUBLIC_GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
+            EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID || "",
+            EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID || "",
+            EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID || "",
+            EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID || ""
           };
           fs.writeFileSync("eas.json", JSON.stringify(eas, null, 2) + "\n");
           NODE

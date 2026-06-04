@@ -8,17 +8,38 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$ApiUrl,
 
-    [string]$WebUrl = ""
+    [string]$WebUrl = "",
+
+    [string]$GoogleClientId = "",
+    [string]$GoogleAndroidClientId = "",
+    [string]$GoogleIosClientId = "",
+    [string]$GoogleWebClientId = "",
+    [string]$FacebookAppId = ""
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
+
+function Set-JsonProperty {
+    param(
+        [Parameter(Mandatory)]$Object,
+        [Parameter(Mandatory)][string]$Name,
+        [AllowEmptyString()][string]$Value
+    )
+
+    if ($Object.PSObject.Properties.Name -contains $Name) {
+        $Object.$Name = $Value
+    } else {
+        $Object | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+    }
+}
 
 $ApiUrl = $ApiUrl.TrimEnd("/")
 if ([string]::IsNullOrWhiteSpace($WebUrl)) {
     $WebUrl = $ApiUrl -replace "spareparts-api-", "spareparts-web-"
 }
 $WebUrl = $WebUrl.TrimEnd("/")
+$webGoogleClientId = if ([string]::IsNullOrWhiteSpace($GoogleWebClientId)) { $GoogleClientId } else { $GoogleWebClientId }
 
 Write-Host "Patching staging configs..."
 Write-Host "  API URL: $ApiUrl"
@@ -38,6 +59,10 @@ $apiStaging = @"
     "AllowedOrigins": [
       "$WebUrl"
     ]
+  },
+  "ExternalAuth": {
+    "GoogleClientId": "$webGoogleClientId",
+    "FacebookAppId": "$FacebookAppId"
   }
 }
 "@
@@ -49,8 +74,8 @@ $webStagingConfigPath = Join-Path $root "src\SpareParts.Web.React\wwwroot\config
 $webStagingConfig = @"
 window.SparePartsWebConfig = {
   defaultApiBaseUrl: "$ApiUrl",
-  googleClientId: "",
-  facebookAppId: ""
+  googleClientId: "$webGoogleClientId",
+  facebookAppId: "$FacebookAppId"
 };
 "@
 Set-Content -Path $webStagingConfigPath -Value $webStagingConfig -Encoding UTF8
@@ -60,11 +85,11 @@ Write-Host "[OK] $webStagingConfigPath"
 $mobileEnvPath = Join-Path $root "src\SpareParts.Mobile.ReactNative\.env"
 $mobileEnv = @"
 EXPO_PUBLIC_API_BASE_URL=$ApiUrl
-EXPO_PUBLIC_GOOGLE_CLIENT_ID=
-EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
-EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
-EXPO_PUBLIC_FACEBOOK_APP_ID=
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=$GoogleClientId
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=$GoogleAndroidClientId
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=$GoogleIosClientId
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=$GoogleWebClientId
+EXPO_PUBLIC_FACEBOOK_APP_ID=$FacebookAppId
 "@
 Set-Content -Path $mobileEnvPath -Value $mobileEnv -Encoding UTF8
 Write-Host "[OK] $mobileEnvPath"
@@ -72,7 +97,15 @@ Write-Host "[OK] $mobileEnvPath"
 # ── 4. eas.json staging profile env ──────────────────────────────────────────
 $easJsonPath = Join-Path $root "src\SpareParts.Mobile.ReactNative\eas.json"
 $easJson = Get-Content $easJsonPath -Raw | ConvertFrom-Json
-$easJson.build.staging.env.'EXPO_PUBLIC_API_BASE_URL' = $ApiUrl
+if ($null -eq $easJson.build.staging.env) {
+    $easJson.build.staging | Add-Member -NotePropertyName env -NotePropertyValue ([pscustomobject]@{})
+}
+Set-JsonProperty $easJson.build.staging.env "EXPO_PUBLIC_API_BASE_URL" $ApiUrl
+Set-JsonProperty $easJson.build.staging.env "EXPO_PUBLIC_GOOGLE_CLIENT_ID" $GoogleClientId
+Set-JsonProperty $easJson.build.staging.env "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID" $GoogleAndroidClientId
+Set-JsonProperty $easJson.build.staging.env "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID" $GoogleIosClientId
+Set-JsonProperty $easJson.build.staging.env "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID" $GoogleWebClientId
+Set-JsonProperty $easJson.build.staging.env "EXPO_PUBLIC_FACEBOOK_APP_ID" $FacebookAppId
 $easJson | ConvertTo-Json -Depth 10 | Set-Content -Path $easJsonPath -Encoding UTF8
 Write-Host "[OK] $easJsonPath (staging profile)"
 
