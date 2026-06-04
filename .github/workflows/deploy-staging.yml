@@ -2,20 +2,178 @@ name: deploy-staging
 
 on:
   workflow_dispatch:
-    inputs:
-      api_url:
-        description: "Azure App Service URL for the API (e.g. https://spareparts-api-XXXXX.azurewebsites.net)"
-        required: true
-      web_url:
-        description: "Azure App Service URL for the Web app (e.g. https://spareparts-web-XXXXX.azurewebsites.net)"
-        required: true
+
+env:
+  RESOURCE_GROUP: spareparts-rg
+  LOCATION: eastus
+  PLAN_NAME: spareparts-plan
+  API_APP_NAME: spareparts-api-ralph
+  WEB_APP_NAME: spareparts-web-ralph
+  SQL_SERVER_NAME: spareparts-sql-ralph
+  SQL_DB_NAME: SparePartsDb
+  SQL_ADMIN_USER: spadmin
 
 jobs:
-  build-and-deploy-api:
+  provision:
+    name: Provision Azure Resources
+    runs-on: ubuntu-latest
+    outputs:
+      api_url: ${{ steps.urls.outputs.api_url }}
+      web_url: ${{ steps.urls.outputs.web_url }}
+      sql_password: ${{ steps.sql_pass.outputs.password }}
+      connection_string: ${{ steps.urls.outputs.connection_string }}
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+
+      - name: Generate SQL password
+        id: sql_pass
+        run: |
+          PASS="SpareParts!$(shuf -i 100000-999999 -n 1)Rg$(openssl rand -hex 7)"
+          echo "password=$PASS" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$PASS"
+
+      - name: Set URL outputs
+        id: urls
+        run: |
+          echo "api_url=https://${{ env.API_APP_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
+          echo "web_url=https://${{ env.WEB_APP_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
+          PASS="${{ steps.sql_pass.outputs.password }}"
+          CS="Server=tcp:${{ env.SQL_SERVER_NAME }}.database.windows.net,1433;Initial Catalog=${{ env.SQL_DB_NAME }};Persist Security Info=False;User ID=${{ env.SQL_ADMIN_USER }};Password=${PASS};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          echo "connection_string=$CS" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$CS"
+
+      - name: Create resource group
+        run: |
+          az group create \
+            --name ${{ env.RESOURCE_GROUP }} \
+            --location ${{ env.LOCATION }} \
+            --output none
+
+      - name: Create App Service Plan (Free F1)
+        run: |
+          if ! az appservice plan show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.PLAN_NAME }} \
+               --output none 2>/dev/null; then
+            az appservice plan create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.PLAN_NAME }} \
+              --location ${{ env.LOCATION }} \
+              --sku F1 \
+              --is-linux \
+              --output none
+          fi
+
+      - name: Create API Web App
+        run: |
+          if ! az webapp show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.API_APP_NAME }} \
+               --output none 2>/dev/null; then
+            az webapp create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --plan ${{ env.PLAN_NAME }} \
+              --name ${{ env.API_APP_NAME }} \
+              --runtime "DOTNETCORE:8.0" \
+              --output none
+          fi
+
+      - name: Create Web App
+        run: |
+          if ! az webapp show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.WEB_APP_NAME }} \
+               --output none 2>/dev/null; then
+            az webapp create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --plan ${{ env.PLAN_NAME }} \
+              --name ${{ env.WEB_APP_NAME }} \
+              --runtime "DOTNETCORE:8.0" \
+              --output none
+          fi
+
+      - name: Create SQL Server
+        run: |
+          if ! az sql server show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --name ${{ env.SQL_SERVER_NAME }} \
+               --output none 2>/dev/null; then
+            az sql server create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --location ${{ env.LOCATION }} \
+              --name ${{ env.SQL_SERVER_NAME }} \
+              --admin-user ${{ env.SQL_ADMIN_USER }} \
+              --admin-password "${{ steps.sql_pass.outputs.password }}" \
+              --output none
+          fi
+
+      - name: Allow Azure services to reach SQL
+        run: |
+          az sql server firewall-rule create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --server ${{ env.SQL_SERVER_NAME }} \
+            --name AllowAzureServices \
+            --start-ip-address 0.0.0.0 \
+            --end-ip-address 0.0.0.0 \
+            --output none
+
+      - name: Create SQL Database (free serverless)
+        run: |
+          if ! az sql db show \
+               --resource-group ${{ env.RESOURCE_GROUP }} \
+               --server ${{ env.SQL_SERVER_NAME }} \
+               --name ${{ env.SQL_DB_NAME }} \
+               --output none 2>/dev/null; then
+            az sql db create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.SQL_SERVER_NAME }} \
+              --name ${{ env.SQL_DB_NAME }} \
+              --edition GeneralPurpose \
+              --family Gen5 \
+              --capacity 2 \
+              --compute-model Serverless \
+              --max-size 32GB \
+              --use-free-limit \
+              --free-limit-exhaustion-behavior AutoPause \
+              --backup-storage-redundancy Local \
+              --output none
+          fi
+
+      - name: Configure API app settings
+        run: |
+          JWT_SECRET=$(openssl rand -base64 48)
+          echo "::add-mask::$JWT_SECRET"
+          az webapp config appsettings set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.API_APP_NAME }} \
+            --settings \
+              "ASPNETCORE_ENVIRONMENT=Staging" \
+              "ConnectionStrings__DefaultConnection=${{ steps.urls.outputs.connection_string }}" \
+              "Jwt__Secret=$JWT_SECRET" \
+              "Jwt__Issuer=SpareParts.Api" \
+              "Jwt__Audience=SpareParts.Desktop" \
+              "Cors__AllowedOrigins__0=https://${{ env.WEB_APP_NAME }}.azurewebsites.net" \
+              "Cors__AllowedOrigins__1=http://localhost:5078" \
+              "SCM_DO_BUILD_DURING_DEPLOYMENT=false" \
+            --output none
+
+      - name: Configure Web app settings
+        run: |
+          az webapp config appsettings set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.WEB_APP_NAME }} \
+            --settings \
+              "ASPNETCORE_ENVIRONMENT=Staging" \
+              "SCM_DO_BUILD_DURING_DEPLOYMENT=false" \
+            --output none
+
+  deploy-api:
     name: Build & Deploy API
-    runs-on: windows-latest
-    env:
-      CI: "true"
+    runs-on: ubuntu-latest
+    needs: provision
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,48 +182,39 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
-      - name: Restore
-        run: dotnet restore src/SpareParts.Api/SpareParts.Api.csproj
 
       - name: Publish API
-        run: dotnet publish src/SpareParts.Api/SpareParts.Api.csproj -c Release -o artifacts/api-publish --no-restore
+        run: dotnet publish src/SpareParts.Api/SpareParts.Api.csproj -c Release -o artifacts/api
 
-      - name: Upload API artifact
-        uses: actions/upload-artifact@v4
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          name: api-publish
-          path: artifacts/api-publish/
-          retention-days: 7
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
-      - name: Deploy API to Azure App Service
-        if: ${{ secrets.AZURE_API_PUBLISH_PROFILE != '' }}
+      - name: Deploy API
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ vars.AZURE_API_APP_NAME }}
-          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
-          package: artifacts/api-publish/
+          app-name: ${{ env.API_APP_NAME }}
+          package: artifacts/api
 
-      - name: Configure API environment variables
-        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
-        uses: azure/CLI@v2
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az webapp config appsettings set \
-              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
-              --name ${{ vars.AZURE_API_APP_NAME }} \
-              --settings \
-                "ASPNETCORE_ENVIRONMENT=Staging" \
-                "Cors__AllowedOrigins__0=${{ github.event.inputs.web_url }}" \
-                --output none
+      - name: Wait for API health check
+        run: |
+          echo "Waiting for API to warm up..."
+          for i in $(seq 1 24); do
+            sleep 10
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ needs.provision.outputs.api_url }}/api/health" || echo "000")
+            echo "Attempt $i — HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "API is healthy!"
+              exit 0
+            fi
+          done
+          echo "WARNING: API did not respond with 200 in time — check App Service logs"
 
-  build-and-deploy-web:
+  deploy-web:
     name: Build & Deploy Web
-    runs-on: windows-latest
-    needs: build-and-deploy-api
-    env:
-      CI: "true"
+    runs-on: ubuntu-latest
+    needs: [provision, deploy-api]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,44 +224,34 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Patch config.js with staging API URL
-        shell: pwsh
+      - name: Patch config.js with API URL
         run: |
-          $configPath = "src/SpareParts.Web.React/wwwroot/config.js"
-          $content = @"
+          cat > src/SpareParts.Web.React/wwwroot/config.js <<EOF
           window.SparePartsWebConfig = {
-            defaultApiBaseUrl: "${{ github.event.inputs.api_url }}",
+            defaultApiBaseUrl: "${{ needs.provision.outputs.api_url }}",
             googleClientId: "",
             facebookAppId: ""
           };
-          "@
-          Set-Content -Path $configPath -Value $content -Encoding UTF8
-          Write-Host "Patched $configPath with API URL: ${{ github.event.inputs.api_url }}"
-
-      - name: Restore
-        run: dotnet restore src/SpareParts.Web.React/SpareParts.Web.React.csproj
+          EOF
 
       - name: Publish Web
-        run: dotnet publish src/SpareParts.Web.React/SpareParts.Web.React.csproj -c Release -o artifacts/web-publish --no-restore
+        run: dotnet publish src/SpareParts.Web.React/SpareParts.Web.React.csproj -c Release -o artifacts/web
 
-      - name: Upload Web artifact
-        uses: actions/upload-artifact@v4
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          name: web-publish
-          path: artifacts/web-publish/
-          retention-days: 7
+          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
-      - name: Deploy Web to Azure App Service
-        if: ${{ secrets.AZURE_WEB_PUBLISH_PROFILE != '' }}
+      - name: Deploy Web
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ vars.AZURE_WEB_APP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEB_PUBLISH_PROFILE }}
-          package: artifacts/web-publish/
+          app-name: ${{ env.WEB_APP_NAME }}
+          package: artifacts/web
 
-  build-android-apk:
-    name: Build Android APK (EAS)
+  build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
+    needs: provision
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -126,33 +265,49 @@ jobs:
         working-directory: src/SpareParts.Mobile.ReactNative
         run: npm ci
 
-      - name: Write staging .env
+      - name: Write .env
         working-directory: src/SpareParts.Mobile.ReactNative
         run: |
           cat > .env <<EOF
-          EXPO_PUBLIC_API_BASE_URL=${{ github.event.inputs.api_url }}
+          EXPO_PUBLIC_API_BASE_URL=${{ needs.provision.outputs.api_url }}
           EXPO_PUBLIC_GOOGLE_CLIENT_ID=
           EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=
           EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=
           EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
           EXPO_PUBLIC_FACEBOOK_APP_ID=
           EOF
-          echo "Written .env with API URL: ${{ github.event.inputs.api_url }}"
 
-      - name: Verify no localhost in .env
+      - name: Verify no localhost
         working-directory: src/SpareParts.Mobile.ReactNative
         run: |
           if grep -q "localhost\|127\.0\.0\.1\|10\.0\.2\.2" .env; then
-            echo "ERROR: localhost found in .env — mobile app would not work on a real device"
+            echo "ERROR: localhost in .env"
             exit 1
           fi
-          echo "OK: no localhost in .env"
+          echo "OK: no localhost"
 
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Build Android Preview APK via EAS
+      - name: Build Android APK via EAS
         working-directory: src/SpareParts.Mobile.ReactNative
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --platform android --profile preview --non-interactive
+        run: eas build --platform android --profile staging --non-interactive
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [provision, deploy-api, deploy-web]
+    if: always()
+    steps:
+      - name: Print URLs
+        run: |
+          echo "============================================"
+          echo "STAGING DEPLOYMENT COMPLETE"
+          echo "============================================"
+          echo "API:     ${{ needs.provision.outputs.api_url }}"
+          echo "Web:     ${{ needs.provision.outputs.web_url }}"
+          echo "Health:  ${{ needs.provision.outputs.api_url }}/api/health"
+          echo "Swagger: ${{ needs.provision.outputs.api_url }}/swagger"
+          echo "============================================"
