@@ -47,6 +47,7 @@ namespace SpareParts.Api.Controllers
 
         [HttpGet("hashpassword")]
         [Authorize(Policy = AuthorizationPolicies.Admin)]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public ActionResult HashPassword([FromQuery] string plain)
         {
             if (!_hostEnvironment.IsDevelopment())

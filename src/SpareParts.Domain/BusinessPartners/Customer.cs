@@ -10,6 +10,7 @@ namespace SpareParts.Domain.BusinessPartners
         public string? Address { get; set; }
         public string? TaxNumber { get; set; }
         public decimal OpeningBalance { get; set; }
+        public decimal CreditLimit { get; set; }
         public int? AccountId { get; set; }
     }
 }

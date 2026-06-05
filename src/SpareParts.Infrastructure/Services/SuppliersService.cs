@@ -1,3 +1,4 @@
+using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Infrastructure.Data;
@@ -90,6 +91,32 @@ public sealed class SuppliersService
     {
         using var session = new DbSession(_factory);
         return new SuppliersRepository(session).GetAccountId(supplierId);
+    }
+
+    public IEnumerable<SupplierAgingDto> GetAging()
+    {
+        using var conn = _factory.CreateConnection();
+        return conn.Query<SupplierAgingDto>(
+            """
+SELECT
+    s.Id                                          AS SupplierId,
+    s.Name                                        AS SupplierName,
+    s.Phone,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) < 1    THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Current,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Days1To30,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Days31To60,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Days61To90,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) > 90             THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Over90Days,
+    SUM(ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0))                             AS TotalBalance
+FROM dbo.Suppliers s
+INNER JOIN dbo.Transactions t ON t.SupplierId = s.Id
+INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+WHERE tt.TypeKey = N'Purchase'
+  AND (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) > 0
+GROUP BY s.Id, s.Name, s.Phone
+HAVING SUM(ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) > 0
+ORDER BY SUM(ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) DESC;
+""");
     }
 
     private static int EnsureSupplierAccount(AccountingRepositories accounting, int supplierId, string supplierName, int? existingAccountId, int userId)

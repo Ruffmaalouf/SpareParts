@@ -100,24 +100,42 @@ public sealed class CustomersService
         using var conn = _factory.CreateConnection();
         return conn.Query<CustomerAgingDto>(
             """
+WITH SaleBalances AS (
+    SELECT
+        t.CustomerId,
+        t.TransactionDate,
+        ISNULL(t.TotalAmount, 0) - ISNULL(t.PaidAmount, 0) AS Balance
+    FROM dbo.Transactions t
+    INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+    WHERE tt.TypeKey = N'Sale'
+),
+CreditNotes AS (
+    SELECT
+        t.CustomerId,
+        SUM(ISNULL(t.TotalAmount, 0)) AS TotalCredits
+    FROM dbo.Transactions t
+    INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+    WHERE tt.TypeKey IN (N'CreditNote', N'Refund')
+    GROUP BY t.CustomerId
+)
 SELECT
     c.Id                                          AS CustomerId,
     c.Name                                        AS CustomerName,
     c.Phone,
-    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) < 1    THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Current,
-    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Days1To30,
-    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Days31To60,
-    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Days61To90,
-    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) > 90             THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Over90Days,
-    SUM(t.TotalAmount - t.PaidAmount)             AS TotalBalance
+    ISNULL(SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) < 1    THEN sb.Balance ELSE 0 END), 0)
+        - ISNULL(MAX(cn.TotalCredits), 0)         AS Current,
+    SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN sb.Balance ELSE 0 END) AS Days1To30,
+    SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN sb.Balance ELSE 0 END) AS Days31To60,
+    SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN sb.Balance ELSE 0 END) AS Days61To90,
+    SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) > 90             THEN sb.Balance ELSE 0 END) AS Over90Days,
+    SUM(sb.Balance) - ISNULL(MAX(cn.TotalCredits), 0) AS TotalBalance
 FROM dbo.Customers c
-INNER JOIN dbo.Transactions t ON t.CustomerId = c.Id
-INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
-WHERE tt.TypeKey = N'Sale'
-  AND (t.TotalAmount - t.PaidAmount) > 0
+INNER JOIN SaleBalances sb ON sb.CustomerId = c.Id
+LEFT JOIN CreditNotes cn ON cn.CustomerId = c.Id
+WHERE sb.Balance > 0
 GROUP BY c.Id, c.Name, c.Phone
-HAVING SUM(t.TotalAmount - t.PaidAmount) > 0
-ORDER BY SUM(t.TotalAmount - t.PaidAmount) DESC;
+HAVING SUM(sb.Balance) - ISNULL(MAX(cn.TotalCredits), 0) > 0
+ORDER BY SUM(sb.Balance) - ISNULL(MAX(cn.TotalCredits), 0) DESC;
 """);
     }
 

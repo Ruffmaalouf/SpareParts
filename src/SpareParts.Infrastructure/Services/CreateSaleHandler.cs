@@ -1,3 +1,4 @@
+using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
@@ -56,6 +57,7 @@ namespace SpareParts.Infrastructure.Services
             EnsureStockAvailability(inventoryRepository, request, parts);
 
             var totals = _totalsCalculator.CalculateSales(request.Items);
+            EnforceCreditLimit(session, request.CustomerId, totals.TotalAmount);
             var invoiceNumber = GenerateUniqueSalesNumber(salesRepository);
 
             var invoice = new SalesInvoice
@@ -96,6 +98,48 @@ namespace SpareParts.Infrastructure.Services
                 TotalAmount = totals.TotalAmount,
                 PaymentStatus = invoice.PaymentStatus
             };
+        }
+
+        private static void EnforceCreditLimit(DbSession session, int? customerId, decimal newInvoiceTotal)
+        {
+            if (customerId is not > 0)
+            {
+                return;
+            }
+
+            var row = session.Connection.QueryFirstOrDefault<CustomerCreditRow>(
+                """
+SELECT
+    ISNULL(c.CreditLimit, 0) AS CreditLimit,
+    ISNULL((
+        SELECT SUM(ISNULL(t.TotalAmount, 0) - ISNULL(t.PaidAmount, 0))
+        FROM dbo.Transactions t
+        INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = N'Sale'
+        WHERE t.CustomerId = c.Id
+          AND (ISNULL(t.TotalAmount, 0) - ISNULL(t.PaidAmount, 0)) > 0
+    ), 0) AS OutstandingBalance
+FROM dbo.Customers c
+WHERE c.Id = @CustomerId
+""",
+                new { CustomerId = customerId.Value },
+                transaction: session.Transaction);
+
+            if (row is null || row.CreditLimit <= 0)
+            {
+                return;
+            }
+
+            if (row.OutstandingBalance + newInvoiceTotal > row.CreditLimit)
+            {
+                throw new ValidationException(
+                    $"Credit limit of {row.CreditLimit:N2} exceeded. Current balance: {row.OutstandingBalance:N2}.");
+            }
+        }
+
+        private sealed class CustomerCreditRow
+        {
+            public decimal CreditLimit { get; init; }
+            public decimal OutstandingBalance { get; init; }
         }
 
         private static void ValidateRequest(CreateSaleRequest request)
