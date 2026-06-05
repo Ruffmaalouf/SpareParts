@@ -69,6 +69,7 @@ export function QuotesView({ api }) {
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingConvert, setPendingConvert] = useState(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -203,7 +204,14 @@ export function QuotesView({ api }) {
   }, [api, load]);
 
   const convertToInvoice = useCallback(async (quote) => {
-    if (!window.confirm(`Convert ${quote.quoteNumber} to a sales invoice?`)) return;
+    const items = quote.items || selectedQuote?.items || [];
+    const noCatalogCount = items.filter((item) => !item.partId || Number(item.partId) <= 0).length;
+    if (noCatalogCount > 0 && pendingConvert !== quote.id) {
+      setPendingConvert(quote.id);
+      setStatus(`Warning: ${noCatalogCount} line(s) have no catalog part and will be skipped. Click Convert again to proceed.`);
+      return;
+    }
+    setPendingConvert(null);
     setIsSaving(true);
     setStatus("Converting to invoice...");
     try {
@@ -215,7 +223,66 @@ export function QuotesView({ api }) {
     } finally {
       setIsSaving(false);
     }
-  }, [api, load]);
+  }, [api, load, pendingConvert, selectedQuote]);
+
+  const sendQuoteWhatsApp = useCallback(async (quote) => {
+    if (!quote.customerPhone) {
+      setStatus("No customer phone on this quote.");
+      return;
+    }
+    const total = (quote.items || []).reduce((sum, item) => sum + Number(item.lineTotal || 0), 0) || Number(quote.totalAmount || 0);
+    const expiryDate = quote.expiryDate ? new Date(quote.expiryDate).toLocaleDateString() : "N/A";
+    const messageText = `Quote ${quote.quoteNumber} for ${money(total, "USD")}, valid until ${expiryDate}. Reply to confirm.`;
+    setIsSaving(true);
+    setStatus("Sending WhatsApp message...");
+    try {
+      await api.post("/api/communications/send", { recipientPhone: quote.customerPhone, body: messageText });
+      setStatus("WhatsApp message sent.");
+    } catch (error) {
+      setStatus(error.message || "Could not send WhatsApp message.");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [api]);
+
+  const printQuote = useCallback((quote) => {
+    setStatus("Opening print dialog...");
+    const items = quote.items || [];
+    const total = Number(quote.totalAmount || 0);
+    const expiryDate = quote.expiryDate ? new Date(quote.expiryDate).toLocaleDateString() : "N/A";
+    const quoteDate = quote.quoteDate ? new Date(quote.quoteDate).toLocaleDateString() : "N/A";
+    const rowsHtml = items.map((item) =>
+      `<tr><td>${item.description || ""}</td><td style="text-align:center">${item.quantity}</td><td style="text-align:right">${money(item.unitPrice, "USD")}</td><td style="text-align:right">${money(item.lineTotal || item.quantity * item.unitPrice, "USD")}</td></tr>`
+    ).join("");
+    const win = window.open("", "_blank");
+    win.document.write(`<!DOCTYPE html><html><head><title>Quote ${quote.quoteNumber}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 2rem; color: #111; }
+  h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+  .meta { color: #555; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+  th { background: #f0f0f0; text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid #ccc; }
+  td { padding: 0.4rem 0.75rem; border-bottom: 1px solid #e0e0e0; }
+  .total-row { font-weight: bold; font-size: 1.05rem; }
+  @media print { body { margin: 1cm; } }
+</style></head><body>
+<h1>Quote ${quote.quoteNumber}</h1>
+<div class="meta">
+  Customer: <strong>${quote.customerName || "N/A"}</strong> &nbsp;|&nbsp;
+  Phone: ${quote.customerPhone || "N/A"} &nbsp;|&nbsp;
+  Date: ${quoteDate} &nbsp;|&nbsp;
+  Expires: ${expiryDate}
+</div>
+<table>
+  <thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+  <tbody>${rowsHtml}</tbody>
+  <tfoot><tr class="total-row"><td colspan="3" style="text-align:right">Total</td><td style="text-align:right">${money(total, "USD")}</td></tr></tfoot>
+</table>
+${quote.notes ? `<p><strong>Notes:</strong> ${quote.notes}</p>` : ""}
+<script>window.onload = function() { window.print(); }<\/script>
+</body></html>`);
+    win.document.close();
+  }, []);
 
   const deleteQuote = useCallback(async (quote) => {
     if (!window.confirm(`Delete quote ${quote.quoteNumber}?`)) return;
@@ -393,7 +460,14 @@ export function QuotesView({ api }) {
             selectedQuote.status === "Sent" && h("button", { type: "button", onClick: () => updateQuoteStatus(selectedQuote, "Accepted"), disabled: isSaving }, "Mark Accepted"),
             selectedQuote.status === "Sent" && h("button", { type: "button", onClick: () => updateQuoteStatus(selectedQuote, "Declined"), disabled: isSaving }, "Mark Declined"),
             (selectedQuote.status === "Draft" || selectedQuote.status === "Accepted") &&
-              h("button", { className: "primary-button", type: "button", onClick: () => convertToInvoice(selectedQuote), disabled: isSaving || !selectedQuote.warehouseId }, "Convert to Invoice"),
+              h("button", {
+                className: pendingConvert === selectedQuote.id ? "danger-button" : "primary-button",
+                type: "button",
+                onClick: () => convertToInvoice(selectedQuote),
+                disabled: isSaving || !selectedQuote.warehouseId
+              }, pendingConvert === selectedQuote.id ? "Confirm Convert" : "Convert to Invoice"),
+            h("button", { type: "button", onClick: () => sendQuoteWhatsApp(selectedQuote), disabled: isSaving }, "Send via WhatsApp"),
+            h("button", { type: "button", onClick: () => printQuote(selectedQuote) }, "Print Quote"),
             h("button", { className: "danger-button", type: "button", onClick: () => deleteQuote(selectedQuote), disabled: isSaving }, "Delete")
           )
         ),

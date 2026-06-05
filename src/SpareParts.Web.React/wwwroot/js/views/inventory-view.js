@@ -563,6 +563,26 @@ export function InventoryView({ api, onView }) {
     });
   }, []);
 
+  const printLabel = useCallback((part) => {
+    const win = window.open("", "_blank");
+    win.document.write(`<!DOCTYPE html><html><head><title>Label ${part.internalCode || part.name}</title>
+<style>
+  @page { size: 80mm 40mm; margin: 2mm; }
+  body { font-family: Arial, sans-serif; margin: 2mm; width: 76mm; height: 36mm; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+  .barcode { font-family: "Libre Barcode 39", "Courier New", monospace; font-size: 2rem; letter-spacing: 3px; line-height: 1; word-break: break-all; }
+  .name { font-size: 0.65rem; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .price { font-size: 0.8rem; font-weight: bold; text-align: right; }
+  @media print { body { margin: 0; } }
+</style></head><body>
+<div class="barcode">${part.internalCode || part.id}</div>
+<div class="name">${part.name || ""}</div>
+<div class="price">${money(part.salePrice, part.currency)}</div>
+<script>window.onload = function() { window.print(); }<\/script>
+</body></html>`);
+    win.document.close();
+    setStatus(`Label printed for ${part.name || part.internalCode}.`);
+  }, []);
+
   const clearQuote = useCallback(() => {
     setQuoteItems({});
     setQuoteDiscount("");
@@ -781,7 +801,8 @@ export function InventoryView({ api, onView }) {
                   h("button", { type: "button", onClick: () => selectPartPassport(part, onView) }, "Passport"),
                   h("button", { type: "button", onClick: () => addToQuote(part) }, "Quote"),
                   h("button", { type: "button", onClick: () => openWhatsappShare(part) }, "Share"),
-                  h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send")
+                  h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send"),
+                  h("button", { type: "button", onClick: () => printLabel(part) }, "Print Label")
                 ) }
               ],
               rows: displayedParts,
