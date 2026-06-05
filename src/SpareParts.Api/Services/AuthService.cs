@@ -8,6 +8,7 @@ using Dapper;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Hosting;
 using SpareParts.Api.Infrastructure;
+using SpareParts.Api.Middleware;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Services;
@@ -47,8 +48,11 @@ public sealed class AuthService
                      u.FullName,
                      u.PasswordHash,
                      u.RoleId,
-                     u.IsActive
+                     u.IsActive,
+                     u.TenantId,
+                     COALESCE(t.Code, N'') AS TenantCode
               FROM Users u
+              LEFT JOIN Tenants t ON t.Id = u.TenantId
               WHERE u.Username = @Username",
             new { request.Username });
 
@@ -93,8 +97,11 @@ public sealed class AuthService
                      u.Email,
                      u.PasswordHash,
                      u.RoleId,
-                     u.IsActive
+                     u.IsActive,
+                     u.TenantId,
+                     COALESCE(t.Code, N'') AS TenantCode
               FROM Users u
+              LEFT JOIN Tenants t ON t.Id = u.TenantId
               WHERE u.Username = @Username",
             new { Username = username });
 
@@ -165,6 +172,8 @@ public sealed class AuthService
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var fullName = string.IsNullOrWhiteSpace(user.FullName) ? user.Username : user.FullName;
+        var tenantId = user.TenantId ?? 0;
+        var tenantCode = user.TenantCode ?? string.Empty;
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -173,6 +182,8 @@ public sealed class AuthService
             new Claim(ClaimTypes.Name, fullName),
             new Claim(AuthorizationPolicies.RoleIdClaimType, user.RoleId?.ToString() ?? string.Empty),
             new Claim("username", user.Username),
+            new Claim(TenantResolutionMiddleware.TenantIdClaimType, tenantId.ToString()),
+            new Claim(TenantResolutionMiddleware.TenantCodeClaimType, tenantCode),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
@@ -189,7 +200,9 @@ public sealed class AuthService
             FullName = fullName,
             RoleId = user.RoleId,
             UserId = user.Id,
-            ExpiresAt = expiry
+            ExpiresAt = expiry,
+            TenantId = tenantId,
+            TenantCode = tenantCode
         };
     }
 

@@ -16,17 +16,19 @@ public sealed class PartsService
     private readonly ISqlConnectionFactory _factory;
     private readonly PartNotesAiService _partNotesAiService;
     private readonly IInventoryService _inventoryService;
+    private readonly ITenantContext _tenantContext;
 
-    public PartsService(ISqlConnectionFactory factory, PartNotesAiService partNotesAiService, IInventoryService inventoryService)
+    public PartsService(ISqlConnectionFactory factory, PartNotesAiService partNotesAiService, IInventoryService inventoryService, ITenantContext tenantContext)
     {
         _factory = factory;
         _partNotesAiService = partNotesAiService;
         _inventoryService = inventoryService;
+        _tenantContext = tenantContext;
     }
 
     public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize, int? usedCarId = null)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var offset = Math.Max(0, (page - 1) * pageSize);
 
         using var multi = session.Connection.QueryMultiple(
@@ -62,6 +64,7 @@ WITH FilteredParts AS
     FROM dbo.Parts p
     WHERE p.IsActive = 1
       AND (@UsedCarId IS NULL OR p.UsedCarId = @UsedCarId)
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ),
 PagedParts AS
 (
@@ -115,13 +118,15 @@ ORDER BY p.Name, p.Id;
 SELECT COUNT(1)
 FROM dbo.Parts p
 WHERE p.IsActive = 1
-  AND (@UsedCarId IS NULL OR p.UsedCarId = @UsedCarId);
+  AND (@UsedCarId IS NULL OR p.UsedCarId = @UsedCarId)
+  AND (@TenantId = 0 OR p.TenantId = @TenantId);
 """,
             new
             {
                 UsedCarId = usedCarId,
                 Offset = offset,
-                PageSize = pageSize
+                PageSize = pageSize,
+                TenantId = _tenantContext.TenantId
             },
             session.Transaction);
 

@@ -7,13 +7,15 @@ namespace SpareParts.Infrastructure.Data
     {
         public IDbConnection Connection { get; }
         public IDbTransaction Transaction { get; }
+        public int TenantId { get; }
 
         private bool _committed;
 
-        public DbSession(ISqlConnectionFactory factory)
+        public DbSession(ISqlConnectionFactory factory, int tenantId = 0)
         {
             Connection = factory.CreateConnection();
             Transaction = Connection.BeginTransaction();
+            TenantId = tenantId;
         }
 
         public void Commit()

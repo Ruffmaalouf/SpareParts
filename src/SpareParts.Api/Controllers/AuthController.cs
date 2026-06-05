@@ -42,7 +42,9 @@ namespace SpareParts.Api.Controllers
         {
             UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
             FullName = User.FindFirst(ClaimTypes.Name)?.Value,
-            RoleId = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value
+            RoleId = User.FindFirst(AuthorizationPolicies.RoleIdClaimType)?.Value,
+            TenantId = User.FindFirst(SpareParts.Api.Middleware.TenantResolutionMiddleware.TenantIdClaimType)?.Value,
+            TenantCode = User.FindFirst(SpareParts.Api.Middleware.TenantResolutionMiddleware.TenantCodeClaimType)?.Value
         });
 
         [HttpGet("hashpassword")]

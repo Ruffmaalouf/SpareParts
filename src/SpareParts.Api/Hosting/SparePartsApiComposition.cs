@@ -15,6 +15,7 @@ using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Services;
+using ITenantContext = SpareParts.Infrastructure.Interfaces.ITenantContext;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -48,6 +49,8 @@ public static class SparePartsApiComposition
 
     public static readonly IReadOnlyList<string> MigrationNames =
     [
+        nameof(TenantsMigration),
+        nameof(TenantIdMigration),
         nameof(InvoiceNumberingMigration),
         nameof(AccountingMigration),
         nameof(WebAppUserRoleMigration),
@@ -91,7 +94,7 @@ public static class SparePartsApiComposition
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
-        [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController)],
+        [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController)],
         [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController)],
         [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController)],
         [ServiceCapability.Health] = [nameof(HealthController)]
@@ -219,6 +222,11 @@ public static class SparePartsApiComposition
         var distinctCapabilities = capabilities.Distinct().ToArray();
 
         services.AddSingleton(new ServiceProfile(serviceName, distinctCapabilities));
+
+        // Tenant context is always registered — scoped per HTTP request, populated by TenantResolutionMiddleware.
+        services.AddScoped<TenantContext>();
+        services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+        services.AddScoped<TenantsService>();
 
         if (distinctCapabilities.Contains(ServiceCapability.Sales))
         {
@@ -373,6 +381,7 @@ public static class SparePartsApiComposition
         app.UseRateLimiter();
         app.UseAuthentication();
         app.UseMiddleware<WebAppUserRestrictionMiddleware>();
+        app.UseMiddleware<TenantResolutionMiddleware>();
         app.UseAuthorization();
         app.MapHub<NotificationsHub>(NotificationsHubPath);
         app.MapControllers();

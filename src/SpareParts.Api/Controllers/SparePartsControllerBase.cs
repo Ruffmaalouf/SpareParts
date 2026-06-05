@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Api.Infrastructure;
+using SpareParts.Api.Middleware;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Api.Controllers;
 
@@ -23,6 +25,23 @@ public abstract class SparePartsControllerBase : ControllerBase
     protected int CurrentRoleId
         => AuthorizationPolicies.GetRoleId(User)
            ?? throw new UnauthorizedAccessException("Role ID claim is missing.");
+
+    protected int CurrentTenantId
+    {
+        get
+        {
+            var claim = User.FindFirst(TenantResolutionMiddleware.TenantIdClaimType);
+            if (claim == null || !int.TryParse(claim.Value, out var tenantId))
+            {
+                return 0;
+            }
+
+            return tenantId;
+        }
+    }
+
+    protected bool CurrentUserIsSuperAdmin
+        => AuthorizationPolicies.HasAnyRoleId(User, AuthorizationPolicies.SuperAdminRoleId);
 
     protected static (int Page, int PageSize) NormalizePagination(int page, int pageSize, int maxPageSize = 500)
         => (Math.Max(1, page), Math.Clamp(pageSize, 1, maxPageSize));

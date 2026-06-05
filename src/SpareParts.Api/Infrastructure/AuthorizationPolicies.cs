@@ -10,11 +10,13 @@ public static class AuthorizationPolicies
     public const string Admin = "role-id:admin";
     public const string AdminOrManager = "role-id:admin-or-manager";
     public const string WebAppUser = "role-id:web-app-user";
+    public const string SuperAdmin = "role-id:super-admin";
 
     public const int AdminRoleId = (int)UserRole.Admin;
     public const int ManagerRoleId = (int)UserRole.Manager;
     public const int CashierRoleId = (int)UserRole.Cashier;
     public const int WebAppUserRoleId = WebAppUserRoleMigration.RoleId;
+    public const int SuperAdminRoleId = (int)UserRole.SuperAdmin;
 
     public static void AddRoleIdPolicies(AuthorizationOptions options)
     {
@@ -26,6 +28,9 @@ public static class AuthorizationPolicies
 
         options.AddPolicy(WebAppUser, policy =>
             policy.RequireAssertion(context => HasAnyRoleId(context.User, WebAppUserRoleId)));
+
+        options.AddPolicy(SuperAdmin, policy =>
+            policy.RequireAssertion(context => HasAnyRoleId(context.User, SuperAdminRoleId)));
     }
 
     public static bool HasAnyRoleId(ClaimsPrincipal user, params int[] roleIds)

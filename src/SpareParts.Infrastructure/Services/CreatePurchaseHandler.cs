@@ -20,6 +20,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
         private readonly AccountingSettingsProvider _accountingSettingsProvider;
         private readonly SupplierAccountResolver _supplierAccountResolver;
+        private readonly ITenantContext _tenantContext;
 
         public CreatePurchaseHandler(
             ISqlConnectionFactory factory,
@@ -29,7 +30,8 @@ namespace SpareParts.Infrastructure.Services
             IAccountingStrategy<PurchaseInvoice> accountingStrategy,
             IInvoiceTotalsCalculator totalsCalculator,
             AccountingSettingsProvider accountingSettingsProvider,
-            SupplierAccountResolver supplierAccountResolver)
+            SupplierAccountResolver supplierAccountResolver,
+            ITenantContext tenantContext)
         {
             _factory = factory;
             _inventoryService = inventoryService;
@@ -39,11 +41,12 @@ namespace SpareParts.Infrastructure.Services
             _totalsCalculator = totalsCalculator;
             _accountingSettingsProvider = accountingSettingsProvider;
             _supplierAccountResolver = supplierAccountResolver;
+            _tenantContext = tenantContext;
         }
 
         public CreatePurchaseResponse Handle(CreatePurchaseRequest request, int userId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
 
             var purchasesRepository = repositories.Purchases.Invoices;
