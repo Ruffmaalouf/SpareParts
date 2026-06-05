@@ -5,7 +5,7 @@ using SpareParts.Infrastructure.Interfaces.Repositories;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public class InventoryService : IInventoryService
+    public sealed class InventoryService : IInventoryService
     {
         public int GetAvailableStock(IInventoryRepository inventoryRepository, int partId, int warehouseId)
         {

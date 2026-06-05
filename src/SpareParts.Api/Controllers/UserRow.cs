@@ -1,6 +1,6 @@
-namespace SpareParts.Api.Controllers
+namespace SpareParts.Api.Services
 {
-    internal class UserRow
+    internal sealed class UserRow
     {
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;

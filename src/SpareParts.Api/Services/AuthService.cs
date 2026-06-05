@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Dapper;
 using Microsoft.IdentityModel.Tokens;
-using SpareParts.Api.Controllers;
+using SpareParts.Api.Hosting;
 using SpareParts.Api.Infrastructure;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;

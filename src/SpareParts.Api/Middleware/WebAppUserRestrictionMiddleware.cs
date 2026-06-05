@@ -1,3 +1,4 @@
+using SpareParts.Api.Errors;
 using SpareParts.Api.Infrastructure;
 
 namespace SpareParts.Api.Middleware;
@@ -45,9 +46,11 @@ public sealed class WebAppUserRestrictionMiddleware
 
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(new
+        await context.Response.WriteAsJsonAsync(new ApiErrorEnvelope
         {
-            message = "Web app users can only browse available parts, manage their cart, and checkout."
+            Code = "forbidden",
+            Message = "Web app users can only browse available parts, manage their cart, and checkout.",
+            TraceId = context.TraceIdentifier
         });
     }
 }

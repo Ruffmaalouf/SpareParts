@@ -10,7 +10,7 @@ using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
-    public class SalesService
+    public sealed class SalesService
     {
         private const string SalePaymentReferenceType = "SalePayment";
 

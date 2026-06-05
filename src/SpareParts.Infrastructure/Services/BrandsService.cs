@@ -17,15 +17,14 @@ public sealed class BrandsService
     {
         using var session = new DbSession(_factory);
         var repository = new BrandsRepository(session);
-        var projected = repository.GetAll().Select(b => new BrandDto
+        var (brands, totalCount) = repository.GetPaged(page, pageSize);
+        var items = brands.Select(b => new BrandDto
         {
             Id = b.Id,
             Name = b.Name,
             IsActive = b.IsActive
-        }).ToList();
-
-        var paged = projected.Skip((page - 1) * pageSize).Take(pageSize);
-        return (paged, projected.Count);
+        });
+        return (items, totalCount);
     }
 
     public int Create(CreateBrandRequest request, int userId)

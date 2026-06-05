@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SpareParts.Domain.Auth
 {
-    public class CreateUserRequest
+    public sealed class CreateUserRequest
     {
         [Required, MaxLength(100)]
         public string Username { get; set; } = string.Empty;

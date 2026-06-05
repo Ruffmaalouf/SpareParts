@@ -48,6 +48,52 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.Query<SupplierDto>(sql, transaction: _session.Transaction);
         }
 
+        public (IEnumerable<SupplierDto> Items, int TotalCount) GetPaged(int page, int pageSize)
+        {
+            var hasAccountId = AccountingSchemaInspector.HasColumn(_session, "dbo.Suppliers", "AccountId");
+            var sql = hasAccountId
+                ? @"SELECT COUNT(1) FROM Suppliers;
+
+                    SELECT s.Id,
+                           s.Name,
+                           s.Phone,
+                           s.Email,
+                           s.Address,
+                           s.TaxNumber,
+                           s.OpeningBalance,
+                           s.AccountId,
+                           a.Code AS AccountCode,
+                           a.Name AS AccountName
+                    FROM Suppliers s
+                    LEFT JOIN Accounts a ON a.Id = s.AccountId
+                    ORDER BY s.Name
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;"
+                : @"SELECT COUNT(1) FROM Suppliers;
+
+                    SELECT s.Id,
+                           s.Name,
+                           s.Phone,
+                           s.Email,
+                           s.Address,
+                           s.TaxNumber,
+                           s.OpeningBalance,
+                           CAST(NULL AS INT) AS AccountId,
+                           CAST(NULL AS NVARCHAR(20)) AS AccountCode,
+                           CAST(NULL AS NVARCHAR(160)) AS AccountName
+                    FROM Suppliers s
+                    ORDER BY s.Name
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            using var multi = _session.Connection.QueryMultiple(
+                sql,
+                new { Offset = (page - 1) * pageSize, PageSize = pageSize },
+                _session.Transaction);
+
+            var totalCount = multi.ReadFirst<int>();
+            var items = multi.Read<SupplierDto>().ToList();
+            return (items, totalCount);
+        }
+
         public int Insert(Supplier supplier)
         {
             var hasAccountId = AccountingSchemaInspector.HasColumn(_session, "dbo.Suppliers", "AccountId");

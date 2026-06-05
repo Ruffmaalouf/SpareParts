@@ -6,7 +6,7 @@ using SpareParts.Infrastructure.Services;
 namespace SpareParts.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/transactiontypes")]
     [Authorize]
     public class TransactionTypesController : ControllerBase
     {

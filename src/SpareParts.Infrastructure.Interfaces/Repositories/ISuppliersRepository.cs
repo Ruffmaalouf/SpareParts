@@ -5,6 +5,7 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
     public interface ISuppliersRepository
     {
         IEnumerable<SupplierDto> GetAll();
+        (IEnumerable<SupplierDto> Items, int TotalCount) GetPaged(int page, int pageSize);
         int Insert(Supplier supplier);
         Supplier? GetById(int id);
         bool Update(int id, CreateSupplierRequest request, int userId);

@@ -48,6 +48,56 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.Query<CustomerDto>(sql, transaction: _session.Transaction);
         }
 
+        public (IEnumerable<CustomerDto> Items, int TotalCount) GetPaged(string? search, int page, int pageSize)
+        {
+            var hasAccountId = AccountingSchemaInspector.HasColumn(_session, "dbo.Customers", "AccountId");
+            var searchParam = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%";
+
+            var sql = hasAccountId
+                ? @"SELECT COUNT(1) FROM Customers WHERE (@Search IS NULL OR Name LIKE @Search);
+
+                    SELECT c.Id,
+                           c.Name,
+                           c.Phone,
+                           c.Email,
+                           c.Address,
+                           c.TaxNumber,
+                           c.OpeningBalance,
+                           c.AccountId,
+                           a.Code AS AccountCode,
+                           a.Name AS AccountName
+                    FROM Customers c
+                    LEFT JOIN Accounts a ON a.Id = c.AccountId
+                    WHERE (@Search IS NULL OR c.Name LIKE @Search)
+                    ORDER BY c.Name
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;"
+                : @"SELECT COUNT(1) FROM Customers WHERE (@Search IS NULL OR Name LIKE @Search);
+
+                    SELECT c.Id,
+                           c.Name,
+                           c.Phone,
+                           c.Email,
+                           c.Address,
+                           c.TaxNumber,
+                           c.OpeningBalance,
+                           CAST(NULL AS INT) AS AccountId,
+                           CAST(NULL AS NVARCHAR(20)) AS AccountCode,
+                           CAST(NULL AS NVARCHAR(160)) AS AccountName
+                    FROM Customers c
+                    WHERE (@Search IS NULL OR c.Name LIKE @Search)
+                    ORDER BY c.Name
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            using var multi = _session.Connection.QueryMultiple(
+                sql,
+                new { Search = searchParam, Offset = (page - 1) * pageSize, PageSize = pageSize },
+                _session.Transaction);
+
+            var totalCount = multi.ReadFirst<int>();
+            var items = multi.Read<CustomerDto>().ToList();
+            return (items, totalCount);
+        }
+
         public int Insert(Customer customer)
         {
             var hasAccountId = AccountingSchemaInspector.HasColumn(_session, "dbo.Customers", "AccountId");

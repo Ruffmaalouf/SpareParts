@@ -1,7 +1,8 @@
-using System.Net;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Services;
 
@@ -9,6 +10,12 @@ namespace SpareParts.Api.Errors
 {
     public sealed class ApiExceptionMiddleware
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
         private readonly RequestDelegate _next;
         private readonly ILogger<ApiExceptionMiddleware> _logger;
 
@@ -105,7 +112,6 @@ namespace SpareParts.Api.Errors
 
         private static async Task WriteError(HttpContext context, Exception ex, HttpStatusCode statusCode, string code)
         {
-
             context.Response.StatusCode = (int)statusCode;
             context.Response.ContentType = "application/json";
             var publicMessage = code == "internal_error"
@@ -119,7 +125,7 @@ namespace SpareParts.Api.Errors
                 TraceId = context.TraceIdentifier
             };
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(envelope));
+            await context.Response.WriteAsync(JsonSerializer.Serialize(envelope, SerializerOptions));
         }
     }
 }
