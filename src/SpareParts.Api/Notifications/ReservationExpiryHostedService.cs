@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpareParts.Infrastructure.Data;
 
-namespace SpareParts.Infrastructure.Services;
+namespace SpareParts.Api.Notifications;
 
 public sealed class ReservationExpiryHostedService : BackgroundService
 {

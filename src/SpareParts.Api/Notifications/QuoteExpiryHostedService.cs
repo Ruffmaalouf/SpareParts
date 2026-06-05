@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SpareParts.Infrastructure.Data;
 
-namespace SpareParts.Infrastructure.Services;
+namespace SpareParts.Api.Notifications;
 
 public sealed class QuoteExpiryHostedService : BackgroundService
 {
