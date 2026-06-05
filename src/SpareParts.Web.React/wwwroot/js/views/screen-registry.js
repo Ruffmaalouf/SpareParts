@@ -2,7 +2,9 @@ import { featureModules } from "../core/config.js";
 import { ScreenRegistry } from "../core/screen-registry.js";
 import { ActivityLogView } from "./activity-log-view.js";
 import { ContactsView } from "./contacts-view.js";
+import { CustomerAgingView } from "./customer-aging-view.js";
 import { DashboardView } from "./dashboard-view.js";
+import { QuotesView } from "./quotes-view.js";
 import { DeadStockView } from "./dead-stock-view.js";
 import { ExpiryAlertsView } from "./expiry-alerts-view.js";
 import { GrowthLabView } from "./growth-lab-view.js";
@@ -59,5 +61,7 @@ export const screenRegistry = new ScreenRegistry([
   { key: "loyalty", label: "Loyalty", component: LoyaltyView },
   { key: "warranty", label: "Warranty & Returns", component: WarrantyView },
   { key: "shipments", label: "Shipments", component: ShipmentsView },
-  { key: "activity-log", label: "Activity Log", component: ActivityLogView }
+  { key: "activity-log", label: "Activity Log", component: ActivityLogView },
+  { key: "quotes", label: "Quotes / Estimates", component: QuotesView },
+  { key: "customer-aging", label: "Customer Aging", component: CustomerAgingView }
 ]);
