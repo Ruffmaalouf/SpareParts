@@ -20,6 +20,13 @@ function partLabel(part) {
   return [part.internalCode, part.name].filter(Boolean).join(" - ") || `Part #${part.id}`;
 }
 
+function profitClass(value) {
+  const n = Number(value || 0);
+  if (n > 0) return "success-text";
+  if (n < 0) return "danger-text";
+  return "";
+}
+
 export function InvoicesView({ api }) {
   const [search, setSearch] = useState("");
   const [invoices, setInvoices] = useState([]);
@@ -29,6 +36,7 @@ export function InvoicesView({ api }) {
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [invoiceDate, setInvoiceDate] = useState(todayInputValue());
   const [customerId, setCustomerId] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
@@ -78,6 +86,15 @@ export function InvoicesView({ api }) {
   }, [api]);
 
   useEffect(() => { loadLookups(); }, [loadLookups]);
+
+  const loadInvoiceDetail = useCallback(async (invoiceId) => {
+    try {
+      const detail = await api.get(`/api/sales/${invoiceId}`);
+      setSelectedInvoice(detail);
+    } catch (error) {
+      setStatus(error.message || "Could not load invoice detail.");
+    }
+  }, [api]);
 
   const sendInvoice = useCallback(async (invoiceId, templateKey) => {
     setStatus("Preparing WhatsApp message...");
@@ -288,6 +305,46 @@ export function InvoicesView({ api }) {
           )
       )
     ),
+    selectedInvoice && h("section", { className: "admin-panel", style: { marginBottom: "1rem" } },
+      h("div", { className: "admin-panel-header" },
+        h("h3", null, `Invoice ${selectedInvoice.invoiceNumber}`),
+        h("button", { type: "button", onClick: () => setSelectedInvoice(null) }, "Close")
+      ),
+      h("div", { className: "invoice-draft-lines" },
+        (selectedInvoice.items || []).length === 0
+          ? h("p", { className: "empty-state" }, "No line items.")
+          : (selectedInvoice.items || []).map((item, idx) => {
+            const revenue = item.quantity * item.unitPrice;
+            const cost = item.quantity * (item.costPrice || 0);
+            const profit = revenue - cost;
+            const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : null;
+            return h("div", { className: "invoice-draft-line", key: idx },
+              h("div", null,
+                h("strong", null, item.description),
+                h("span", null, `${item.quantity} × ${money(item.unitPrice, selectedInvoice.counterCurrencyCode || "USD")}`)
+              ),
+              h("div", { className: "row-actions" },
+                h("span", null, money(revenue, selectedInvoice.counterCurrencyCode || "USD")),
+                item.costPrice > 0 && h("span", { className: profitClass(profit) },
+                  `Profit: ${money(profit, selectedInvoice.counterCurrencyCode || "USD")}${margin != null ? ` (${margin}%)` : ""}`
+                )
+              )
+            );
+          }),
+        (selectedInvoice.items || []).some((i) => i.costPrice > 0) && (() => {
+          const totalRevenue = (selectedInvoice.items || []).reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+          const totalCost = (selectedInvoice.items || []).reduce((s, i) => s + i.quantity * (i.costPrice || 0), 0);
+          const totalProfit = totalRevenue - totalCost;
+          const totalMargin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : null;
+          return h("div", { className: "invoice-draft-total" },
+            h("span", null, `Revenue: ${money(totalRevenue, selectedInvoice.counterCurrencyCode || "USD")}`),
+            h("span", { className: profitClass(totalProfit) },
+              `Profit: ${money(totalProfit, selectedInvoice.counterCurrencyCode || "USD")}${totalMargin != null ? ` · Margin: ${totalMargin}%` : ""}`
+            )
+          );
+        })()
+      )
+    ),
     h("section", { className: "table-panel" },
       h(DataTable, {
         columns: [
@@ -300,6 +357,7 @@ export function InvoicesView({ api }) {
             key: "actions",
             label: "Actions",
             render: (invoice) => h("div", { className: "row-actions" },
+              h("button", { onClick: () => loadInvoiceDetail(invoice.invoiceId) }, "View Profit"),
               h("button", { onClick: () => sendInvoice(invoice.invoiceId, "SalesInvoice") }, "Send Invoice"),
               h("button", { onClick: () => sendInvoice(invoice.invoiceId, "PaymentReminder") }, "Reminder")
             )

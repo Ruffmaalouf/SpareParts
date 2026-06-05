@@ -1,3 +1,4 @@
+using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Infrastructure.Data;
@@ -92,6 +93,32 @@ public sealed class CustomersService
     {
         using var session = new DbSession(_factory);
         return new CustomersRepository(session).GetAccountId(customerId);
+    }
+
+    public IEnumerable<CustomerAgingDto> GetAging()
+    {
+        using var conn = _factory.CreateConnection();
+        return conn.Query<CustomerAgingDto>(
+            """
+SELECT
+    c.Id                                          AS CustomerId,
+    c.Name                                        AS CustomerName,
+    c.Phone,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) < 1    THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Current,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Days1To30,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Days31To60,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Days61To90,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) > 90             THEN (t.TotalAmount - t.PaidAmount) ELSE 0 END) AS Over90Days,
+    SUM(t.TotalAmount - t.PaidAmount)             AS TotalBalance
+FROM dbo.Customers c
+INNER JOIN dbo.Transactions t ON t.CustomerId = c.Id
+INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+WHERE tt.TypeKey = N'Sale'
+  AND (t.TotalAmount - t.PaidAmount) > 0
+GROUP BY c.Id, c.Name, c.Phone
+HAVING SUM(t.TotalAmount - t.PaidAmount) > 0
+ORDER BY SUM(t.TotalAmount - t.PaidAmount) DESC;
+""");
     }
 
     private static int EnsureCustomerAccount(AccountingRepositories accounting, int customerId, string customerName, int? existingAccountId, int userId)

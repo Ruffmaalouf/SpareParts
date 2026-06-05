@@ -50,5 +50,9 @@ namespace SpareParts.Api.Controllers
             _service.Delete(id);
             return NoContent();
         }
+
+        [HttpGet("aging")]
+        public ActionResult<IEnumerable<CustomerAgingDto>> GetAging()
+            => Ok(_service.GetAging());
     }
 }

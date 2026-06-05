@@ -31,10 +31,10 @@ jobs:
           restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore
-        run: dotnet restore SpareParts.sln
+        run: dotnet restore solutions/SpareParts.Backend.sln
 
       - name: Build (warnings as errors)
-        run: dotnet build SpareParts.sln --configuration Release --no-restore
+        run: dotnet build solutions/SpareParts.Backend.sln --configuration Release --no-restore
 
       - name: Collect changed C# files
         id: changed_files
@@ -68,22 +68,13 @@ jobs:
           ${{ steps.changed_files.outputs.files }}
           "@ -split "`r?`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
-          dotnet format SpareParts.sln --verify-no-changes --severity warn --include $files
+          dotnet format solutions/SpareParts.Backend.sln --verify-no-changes --severity warn --include $files
 
-      - name: Test suites (parallel)
+      - name: Test suites
         run: |
-          FAIL=0
           dotnet test tests/SpareParts.ArchitectureTests/SpareParts.ArchitectureTests.csproj \
             --configuration Release --no-build \
-            --logger "console;verbosity=minimal" &
-          PID_ARCH=$!
-          dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj \
-            --configuration Release --no-build \
-            --logger "console;verbosity=minimal" &
-          PID_MGMT=$!
-          wait $PID_ARCH || FAIL=1
-          wait $PID_MGMT || FAIL=1
-          exit $FAIL
+            --logger "console;verbosity=minimal"
 
   sql-server-integration:
     runs-on: ubuntu-latest

@@ -258,7 +258,8 @@ namespace SpareParts.Infrastructure.Data
                                              ti.PartId,
                                              ISNULL(p.Name, N'') AS Description,
                                              CAST(ti.Quantity AS INT) AS Quantity,
-                                             ti.UnitPrice
+                                             ti.UnitPrice,
+                                             ISNULL(p.CostPrice, 0) AS CostPrice
                                       FROM dbo.TransactionItems ti
                                       INNER JOIN dbo.Transactions t ON t.Id = ti.TransactionId
                                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId

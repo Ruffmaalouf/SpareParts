@@ -81,12 +81,13 @@ public static class SparePartsApiComposition
         nameof(WarrantyClaimsMigration),
         nameof(SupplierPriceHistoryMigration),
         nameof(ShipmentsMigration),
-        nameof(ActivityLogMigration)
+        nameof(ActivityLogMigration),
+        nameof(QuotesMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
@@ -236,6 +237,7 @@ public static class SparePartsApiComposition
 
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
             services.AddScoped<SalesService>();
+            services.AddScoped<QuotesService>();
             services.AddScoped<WebCatalogService>();
             services.TryAddScoped<PartRequestsService>();
             RegisterVisualPartSearchService(services);
