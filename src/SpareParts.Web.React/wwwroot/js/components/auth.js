@@ -125,14 +125,16 @@ export function ExternalLoginButtons({ disabled, onExternalLogin, t }) {
           if (response?.credential) {
             onExternalLogin("google", { idToken: response.credential });
           }
-        }
+        },
+        locale: "en"
       });
       window.google.accounts.id.renderButton(googleButtonRef.current, {
         type: "standard",
         theme: "filled_black",
         size: "large",
         width: 320,
-        text: "continue_with"
+        text: "continue_with",
+        locale: "en"
       });
     }, 250);
 

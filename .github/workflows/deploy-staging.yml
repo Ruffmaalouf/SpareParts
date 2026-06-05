@@ -438,15 +438,16 @@ jobs:
           const eas = JSON.parse(fs.readFileSync("eas.json", "utf8"));
           eas.build = eas.build || {};
           eas.build.staging = eas.build.staging || {};
-          eas.build.staging.env = {
-            ...(eas.build.staging.env || {}),
-            EXPO_PUBLIC_API_BASE_URL: process.env.STAGING_API_BASE_URL,
-            EXPO_PUBLIC_GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
-            EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID || "",
-            EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID || "",
-            EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID || "",
-            EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID || ""
+          const env = { ...(eas.build.staging.env || {}), EXPO_PUBLIC_API_BASE_URL: process.env.STAGING_API_BASE_URL };
+          const optional = {
+            EXPO_PUBLIC_GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+            EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID,
+            EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID,
+            EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID,
+            EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID,
           };
+          for (const [k, v] of Object.entries(optional)) { if (v) env[k] = v; }
+          eas.build.staging.env = env;
           fs.writeFileSync("eas.json", JSON.stringify(eas, null, 2) + "\n");
           NODE
 
