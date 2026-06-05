@@ -19,10 +19,7 @@ public sealed class SuppliersService
     {
         using var session = new DbSession(_factory);
         var repository = new SuppliersRepository(session);
-        var projected = repository.GetAll().ToList();
-
-        var paged = projected.Skip((page - 1) * pageSize).Take(pageSize);
-        return (paged, projected.Count);
+        return repository.GetPaged(page, pageSize);
     }
 
     public int Create(CreateSupplierRequest request, int userId)

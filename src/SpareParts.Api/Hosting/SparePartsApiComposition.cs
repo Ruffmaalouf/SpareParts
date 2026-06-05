@@ -462,7 +462,7 @@ public static class SparePartsApiComposition
         {
             ApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey.Trim(),
             BaseUrl = baseUrl,
-            Model = string.IsNullOrWhiteSpace(section["Model"]) ? "gpt-5-mini" : section["Model"]!.Trim(),
+            Model = string.IsNullOrWhiteSpace(section["Model"]) ? "gpt-4o-mini" : section["Model"]!.Trim(),
             TimeoutSeconds = timeoutSeconds
         };
     }

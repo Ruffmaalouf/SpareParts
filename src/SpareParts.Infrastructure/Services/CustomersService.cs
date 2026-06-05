@@ -19,16 +19,7 @@ public sealed class CustomersService
     {
         using var session = new DbSession(_factory);
         var repository = new CustomersRepository(session);
-        var all = repository.GetAll();
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            all = all.Where(c => c.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var projected = all.ToList();
-
-        var paged = projected.Skip((page - 1) * pageSize).Take(pageSize);
-        return (paged, projected.Count);
+        return repository.GetPaged(search, page, pageSize);
     }
 
     public int Create(CreateCustomerRequest request, int userId)

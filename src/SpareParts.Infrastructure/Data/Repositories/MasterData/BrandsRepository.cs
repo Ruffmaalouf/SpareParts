@@ -21,6 +21,26 @@ namespace SpareParts.Infrastructure.Data
             return _session.Connection.Query<Brand>(sql, transaction: _session.Transaction);
         }
 
+        public (IEnumerable<Brand> Items, int TotalCount) GetPaged(int page, int pageSize)
+        {
+            const string sql = @"
+SELECT COUNT(1) FROM Brands;
+
+SELECT *
+FROM Brands
+ORDER BY Name
+OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            using var multi = _session.Connection.QueryMultiple(
+                sql,
+                new { Offset = (page - 1) * pageSize, PageSize = pageSize },
+                _session.Transaction);
+
+            var totalCount = multi.ReadFirst<int>();
+            var items = multi.Read<Brand>().ToList();
+            return (items, totalCount);
+        }
+
         public int Insert(Brand brand)
         {
             const string sql = @"INSERT INTO Brands (Name, IsActive, CreatedAt, CreatedByUserId)

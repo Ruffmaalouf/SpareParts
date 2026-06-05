@@ -6,7 +6,7 @@ using SpareParts.Infrastructure.Services;
 namespace SpareParts.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/appconstants")]
     [Authorize]
     public class AppConstantsController : ControllerBase
     {

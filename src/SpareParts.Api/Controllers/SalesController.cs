@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/sales")]
     [Authorize]
     public class SalesController : SparePartsControllerBase
     {
@@ -33,23 +33,15 @@ namespace SpareParts.Api.Controllers
 
         [HttpGet("{invoiceId:int}")]
         public ActionResult<SalesInvoiceDetailsDto> GetById(int invoiceId)
-        {
-            var invoice = _salesService.GetInvoiceById(invoiceId);
-            if (invoice == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(invoice);
-        }
+            => Ok(_salesService.GetInvoiceById(invoiceId)
+                ?? throw new NotFoundException($"Sale invoice {invoiceId} not found."));
 
         [HttpPut("{invoiceId:int}")]
         public IActionResult UpdateSale(int invoiceId, [FromBody] UpdateSaleRequest request)
         {
-            var updated = _salesService.UpdateInvoice(invoiceId, request, CurrentUserId);
-            if (!updated)
+            if (!_salesService.UpdateInvoice(invoiceId, request, CurrentUserId))
             {
-                return NotFound();
+                throw new NotFoundException($"Sale invoice {invoiceId} not found.");
             }
 
             return NoContent();

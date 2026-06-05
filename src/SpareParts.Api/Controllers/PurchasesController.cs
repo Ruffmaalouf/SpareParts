@@ -6,7 +6,7 @@ using SpareParts.Infrastructure.Services;
 namespace SpareParts.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/purchases")]
     [Authorize]
     public class PurchasesController : SparePartsControllerBase
     {
@@ -33,23 +33,15 @@ namespace SpareParts.Api.Controllers
 
         [HttpGet("{purchaseId:int}")]
         public ActionResult<PurchaseInvoiceDetailsDto> GetById(int purchaseId)
-        {
-            var purchase = _purchaseService.GetPurchaseById(purchaseId);
-            if (purchase == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(purchase);
-        }
+            => Ok(_purchaseService.GetPurchaseById(purchaseId)
+                ?? throw new NotFoundException($"Purchase invoice {purchaseId} not found."));
 
         [HttpPut("{purchaseId:int}")]
         public IActionResult UpdatePurchase(int purchaseId, [FromBody] UpdatePurchaseRequest request)
         {
-            var updated = _purchaseService.UpdatePurchase(purchaseId, request, CurrentUserId);
-            if (!updated)
+            if (!_purchaseService.UpdatePurchase(purchaseId, request, CurrentUserId))
             {
-                return NotFound();
+                throw new NotFoundException($"Purchase invoice {purchaseId} not found.");
             }
 
             return NoContent();

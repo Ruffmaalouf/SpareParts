@@ -5,6 +5,7 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
     public interface ICustomersRepository
     {
         IEnumerable<CustomerDto> GetAll();
+        (IEnumerable<CustomerDto> Items, int TotalCount) GetPaged(string? search, int page, int pageSize);
         int Insert(Customer customer);
         Customer? GetById(int id);
         bool Update(int id, CreateCustomerRequest request, int userId);

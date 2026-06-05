@@ -711,10 +711,10 @@ END;
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     private static string NormalizePricingStatus(string? value)
-        => string.IsNullOrWhiteSpace(value) ? "Manual" : value.Trim();
+        => string.IsNullOrWhiteSpace(value) ? PartPricingStatus.Manual : value.Trim();
 
     private static string NormalizeCurrency(string? currencyCode)
-        => string.IsNullOrWhiteSpace(currencyCode) ? "USD" : currencyCode.Trim().ToUpperInvariant();
+        => string.IsNullOrWhiteSpace(currencyCode) ? PartDefaults.Currency : currencyCode.Trim().ToUpperInvariant();
 
     private static string FormatMoney(decimal amount, string? currencyCode)
         => $"{amount:N2} {NormalizeCurrency(currencyCode)}";
@@ -736,7 +736,7 @@ END;
         public string InternalCode { get; set; } = string.Empty;
         public string PartName { get; set; } = string.Empty;
         public string? OemNumber { get; set; }
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = PartDefaults.Currency;
         public decimal SalePrice { get; set; }
         public decimal UnitCost { get; set; }
         public decimal OnHand { get; set; }
