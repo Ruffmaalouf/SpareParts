@@ -229,13 +229,16 @@ const featureModules = [
   { key: "loyalty", label: "Loyalty", title: "Customer Loyalty", endpoint: "/api/loyalty/customers/top", capabilities: ["Top loyalty customers by points", "Points balance overview", "Redemption tracking"] },
   { key: "warranty", label: "Warranty & Returns", title: "Warranty Claims", endpoint: "/api/warranty", capabilities: ["Active warranty claims", "Resolved claims history", "Create and track returns"] },
   { key: "shipments", label: "Shipments", title: "Shipments", endpoint: "/api/shipments", capabilities: ["Pending shipments list", "Shipment status tracking", "Event history per shipment"] },
-  { key: "activity-log", label: "Activity Log", title: "Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] }
+  { key: "activity-log", label: "Activity Log", title: "Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] },
+  { key: "quotes", label: "Quotes", title: "Quotes & Estimates", endpoint: "/api/quotes", capabilities: ["Draft and sent quotes", "Quote-to-sale conversion", "Expiry tracking"] },
+  { key: "customer-aging", label: "Customer Aging", title: "Customer Aging", endpoint: "/api/customers/aging", capabilities: ["Outstanding balances by customer", "0/30/60/90+ day aging buckets", "Overdue receivables overview"] },
+  { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] }
 ];
 
 const navigationGroups = [
   { title: "Core", keys: ["dashboard", "invoices", "parts", "part-passport", "compatibility", "contacts", "management", "settings"] },
   { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
-  { title: "Finance", keys: ["accounting", "manual-journal", "report-builder"] },
+  { title: "Finance", keys: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
   { title: "Tools", keys: ["whatsapp", "business-assistant", "ar", "activity-log"] }
 ];
 
