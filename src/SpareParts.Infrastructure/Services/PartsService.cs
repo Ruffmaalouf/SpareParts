@@ -1,4 +1,5 @@
 using Dapper;
+using SpareParts.Domain.Cars;
 using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Transactions;
@@ -385,6 +386,86 @@ ORDER BY
         }
 
         session.Commit();
+    }
+
+    public PartListingPackageDto BuildListingPackage(int partId)
+    {
+        using var session = new DbSession(_factory);
+        var row = session.Connection.QuerySingleOrDefault<PartListingQueryRow>(
+            """
+            SELECT
+                p.Id,
+                p.Name,
+                p.OEMNumber,
+                p.Condition,
+                p.SalePrice,
+                ISNULL(NULLIF(p.Currency, N''), N'USD') AS Currency,
+                p.UsedCarId,
+                uc.Car AS UsedCarName
+            FROM dbo.Parts p
+            LEFT JOIN dbo.UsedCars uc ON uc.Id = p.UsedCarId
+            WHERE p.Id = @PartId AND p.IsActive = 1;
+            """,
+            new { PartId = partId },
+            session.Transaction);
+
+        if (row is null)
+        {
+            throw new NotFoundException($"Part {partId} not found.");
+        }
+
+        var photoCount = row.UsedCarId is int usedCarId
+            ? session.Connection.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM dbo.usedcar_images WHERE UsedCarId = @UsedCarId",
+                new { UsedCarId = usedCarId },
+                session.Transaction)
+            : 0;
+
+        session.Commit();
+
+        var priceText = $"{row.Currency} {row.SalePrice:N0}";
+        var conditionText = row.Condition.ToString();
+        var title = $"{row.Name} ({row.OEMNumber}) - {conditionText} - {priceText}";
+        var sourceLine = string.IsNullOrWhiteSpace(row.UsedCarName)
+            ? string.Empty
+            : $"Removed from a {row.UsedCarName}.\n";
+        var hashtag = row.Name.Replace(" ", string.Empty);
+        var description =
+            $"{row.Name}\n" +
+            $"OEM Number: {row.OEMNumber}\n" +
+            $"Condition: {conditionText}\n" +
+            $"Price: {priceText}\n" +
+            sourceLine +
+            $"\nGenuine auto part in {conditionText.ToLowerInvariant()} condition, ready to ship or pick up. " +
+            "Contact us for more details, fitment confirmation, or a closer look.\n\n" +
+            $"#AutoParts #{hashtag} #SpareParts #ForSale";
+
+        return new PartListingPackageDto
+        {
+            PartId = row.Id,
+            Title = title,
+            Description = description,
+            PriceText = priceText,
+            PhotoCount = photoCount,
+            MarketplaceLinks =
+            [
+                new MarketplaceLinkDto { Name = "Facebook Marketplace", Url = "https://www.facebook.com/marketplace/create/item" },
+                new MarketplaceLinkDto { Name = "OLX", Url = "https://www.olx.com/" },
+                new MarketplaceLinkDto { Name = "Dubizzle", Url = "https://www.dubizzle.com/" }
+            ]
+        };
+    }
+
+    private sealed class PartListingQueryRow
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string OEMNumber { get; set; } = string.Empty;
+        public PartCondition Condition { get; set; }
+        public decimal SalePrice { get; set; }
+        public string Currency { get; set; } = string.Empty;
+        public int? UsedCarId { get; set; }
+        public string? UsedCarName { get; set; }
     }
 
     public void UpdateUsedCar(int id, int? usedCarId, int userId)

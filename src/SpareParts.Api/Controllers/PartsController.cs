@@ -52,6 +52,10 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IReadOnlyList<PartStockDto>> GetStock(int id)
             => Ok(_service.GetStockByWarehouse(id));
 
+        [HttpGet("{id:int}/listing-package")]
+        public ActionResult<PartListingPackageDto> GetListingPackage(int id)
+            => Ok(_service.BuildListingPackage(id));
+
         [HttpPost]
         public async Task<ActionResult<int>> Create(
             [FromBody] CreatePartRequest req,

@@ -1,4 +1,5 @@
 using SpareParts.Desktop.Abstractions.Dialogs;
+using SpareParts.Desktop.Abstractions.Parts;
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Pricing;
 using SpareParts.Domain.Inventory;
@@ -13,6 +14,7 @@ namespace SpareParts.Desktop.Wpf.Management
         private readonly IManagementFeatureContext _ctx;
         private readonly IFilePickerService _filePickerService;
         private readonly IUserNotificationService _notificationService;
+        private readonly IPartWorkspaceService _partWorkspaceService;
         private string _newPartCode = string.Empty;
         private string _newPartBarcode = string.Empty;
         private string _newPartName = string.Empty;
@@ -34,17 +36,20 @@ namespace SpareParts.Desktop.Wpf.Management
         public PartManagementViewModel(
             IManagementFeatureContext context,
             IFilePickerService filePickerService,
-            IUserNotificationService notificationService)
+            IUserNotificationService notificationService,
+            IPartWorkspaceService partWorkspaceService)
         {
             _ctx = context;
             _filePickerService = filePickerService;
             _notificationService = notificationService;
+            _partWorkspaceService = partWorkspaceService;
             SaveCommand = new RelayCommand(_ => _ = SaveAsync());
             DeleteCommand = new RelayCommand(_ => _ = DeleteAsync());
             StartNewCommand = new RelayCommand(_ => StartNew());
             RefreshCommand = new RelayCommand(_ => _ = _ctx.RefreshAsync());
             ImportFromExcelCommand = new RelayCommand(_ => _ = ImportFromExcelAsync());
             GeneratePartNotesCommand = new RelayCommand(_ => _ = GeneratePartNotesAsync());
+            GenerateListingCommand = new RelayCommand(_ => OpenPartListingPackage());
         }
 
         public ObservableCollection<PartDto> Parts { get; } = new();
@@ -57,6 +62,7 @@ namespace SpareParts.Desktop.Wpf.Management
         public ICommand RefreshCommand { get; }
         public ICommand ImportFromExcelCommand { get; }
         public ICommand GeneratePartNotesCommand { get; }
+        public ICommand GenerateListingCommand { get; }
 
         public bool IsGeneratingPartNotes
         {
@@ -293,6 +299,21 @@ namespace SpareParts.Desktop.Wpf.Management
             if (!result.Success) return;
             await _ctx.RefreshAsync();
             StartNew();
+        }
+
+        private void OpenPartListingPackage()
+        {
+            if (SelectedPart is not { Id: > 0 } part)
+            {
+                _notificationService.Show("Select a part row first, then generate its listing package.", "Listing Package", NotificationKind.Warning);
+                return;
+            }
+
+            _partWorkspaceService.OpenListingPackage(new PartWorkspaceRequest
+            {
+                PartId = part.Id,
+                PartName = part.Name
+            });
         }
 
         private async Task GeneratePartNotesAsync()

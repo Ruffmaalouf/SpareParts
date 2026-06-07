@@ -1,5 +1,5 @@
 const React = require("react");
-const { Linking, Pressable, ScrollView, Text, View } = require("react-native");
+const { Linking, Modal, Pressable, ScrollView, Share, Text, View } = require("react-native");
 const { asRows, money } = require("../core/formatters");
 const { CommunicationPayloadFactory } = require("../core/communication-payload-factory");
 const { Field, ListRow, Panel, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
@@ -135,7 +135,7 @@ function Metric({ label, value }) {
   );
 }
 
-function PartCard({ part, matchCount, priority, onSend, onShare }) {
+function PartCard({ part, matchCount, priority, onSend, onShare, onListing, isGeneratingListing }) {
   const { styles } = useTheme();
   const status = stockStatus(part);
   const statusStyle = status === "Available"
@@ -174,7 +174,8 @@ function PartCard({ part, matchCount, priority, onSend, onShare }) {
       el(Text, { style: styles.partMeta, numberOfLines: 1 }, `${part.oemNumber || "No OEM"} | ${stockSubtitle(part)}`),
       el(View, { style: styles.partActionRow },
         el(SecondaryButton, { title: "Send", onPress: () => onSend(part) }),
-        el(SecondaryButton, { title: "WhatsApp", onPress: () => onShare(part) })
+        el(SecondaryButton, { title: "WhatsApp", onPress: () => onShare(part) }),
+        el(SecondaryButton, { title: isGeneratingListing ? "Generating..." : "Listing", disabled: isGeneratingListing, onPress: () => onListing(part) })
       )
     )
   );
@@ -193,6 +194,9 @@ function PartsScreen({ api }) {
   const [recipientPhone, setRecipientPhone] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [listingPackage, setListingPackage] = useState(null);
+  const [isListingOpen, setIsListingOpen] = useState(false);
+  const [generatingListingId, setGeneratingListingId] = useState(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -299,6 +303,37 @@ function PartsScreen({ api }) {
     }
   }, [api, recipientName, recipientPhone, t]);
 
+  const generateListing = useCallback(async (part) => {
+    setGeneratingListingId(part.id);
+    setStatus("");
+    try {
+      const pkg = await api.get(`/api/parts/${part.id}/listing-package`);
+      setListingPackage(pkg);
+      setIsListingOpen(true);
+    } catch (error) {
+      setStatus(error.message || t("parts.listingError", "Could not generate the listing package."));
+    } finally {
+      setGeneratingListingId(null);
+    }
+  }, [api, t]);
+
+  const closeListing = useCallback(() => {
+    setIsListingOpen(false);
+  }, []);
+
+  const shareListing = useCallback(async () => {
+    if (!listingPackage) return;
+    try {
+      await Share.share({ message: `${listingPackage.title}\n\n${listingPackage.description}` });
+    } catch {
+      setStatus(t("parts.listingShareError", "Could not open the share sheet."));
+    }
+  }, [listingPackage, t]);
+
+  const openMarketplace = useCallback((url) => {
+    Linking.openURL(url).catch(() => setStatus(t("parts.listingLinkError", "Could not open that marketplace.")));
+  }, [t]);
+
   const shareAvailability = useCallback((part) => {
     const phone = normalizePhone(recipientPhone);
     const href = `https://wa.me/${phone}?text=${encodeURIComponent(buildPartMessage(part, 1))}`;
@@ -306,7 +341,45 @@ function PartsScreen({ api }) {
     setStatus(phone ? t("parts.whatsappOpened", "WhatsApp share opened.") : t("parts.whatsappNoPhone", "WhatsApp share opened without a recipient number."));
   }, [recipientPhone, t]);
 
+  const listingModal = el(Modal, {
+    animationType: "slide",
+    transparent: true,
+    visible: isListingOpen,
+    onRequestClose: closeListing
+  },
+    el(View, { style: styles.usedCarListingOverlay },
+      el(View, { style: styles.usedCarListingCard },
+        el(View, { style: styles.usedCarListingHeader },
+          el(Text, { style: styles.usedCarHeroTitle }, t("parts.listingPackage", "Listing Package")),
+          el(Pressable, { onPress: closeListing }, el(Text, { style: styles.secondaryButtonText }, t("common.close", "Close")))
+        ),
+        listingPackage && el(ScrollView, { style: styles.usedCarListingScroll },
+          el(Text, { style: styles.usedCarHeroSubtitle }, listingPackage.title),
+          el(Text, { style: styles.usedCarCardMeta }, listingPackage.description),
+          el(Text, { style: styles.usedCarCardMeta },
+            t("parts.listingPhotoCount", "{count} photo(s) ready in the donor car's gallery to attach to the listing.", { count: listingPackage.photoCount })
+          ),
+          el(View, { style: styles.inlineButtons },
+            el(Pressable, { style: styles.secondaryButton, onPress: shareListing },
+              el(Text, { style: styles.secondaryButtonText }, t("parts.shareListing", "Share"))
+            ),
+            (listingPackage.marketplaceLinks || []).map((link) =>
+              el(Pressable, {
+                key: link.name,
+                style: styles.secondaryButton,
+                onPress: () => openMarketplace(link.url)
+              },
+                el(Text, { style: styles.secondaryButtonText }, link.name)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+
   return el(ScreenScroll, null,
+    listingModal,
     el(ScreenHeader, { title: t("parts.title", "Parts"), actionTitle: t("common.refresh", "Refresh"), onAction: load, loading: isLoading }),
     el(View, { style: styles.partsMetricGrid },
       el(Metric, { label: "Total", value: metrics.total }),
@@ -366,7 +439,9 @@ function PartsScreen({ api }) {
             matchCount: (demandByPart.get(String(part.id)) || []).length,
             priority: priorityByPart.get(String(part.id)) || priorityProfile(part, 0),
             onSend: sendAvailability,
-            onShare: shareAvailability
+            onShare: shareAvailability,
+            onListing: generateListing,
+            isGeneratingListing: generatingListingId === part.id
           })),
           visibleParts.length > displayedParts.length && el(ListRow, {
             title: `Showing ${displayedParts.length} of ${visibleParts.length}`,

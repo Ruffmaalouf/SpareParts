@@ -1,4 +1,5 @@
 using SpareParts.Desktop.Abstractions.Dialogs;
+using SpareParts.Desktop.Abstractions.Parts;
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Management;
 using System.Threading.Tasks;
@@ -29,4 +30,9 @@ internal sealed class NullFilePickerService : IFilePickerService
 internal sealed class NullUserNotificationService : IUserNotificationService
 {
     public void Show(string message, string title, NotificationKind kind = NotificationKind.Info) { }
+}
+
+internal sealed class NullPartWorkspaceService : IPartWorkspaceService
+{
+    public void OpenListingPackage(PartWorkspaceRequest request) { }
 }

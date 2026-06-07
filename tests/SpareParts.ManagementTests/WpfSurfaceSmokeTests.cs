@@ -42,6 +42,8 @@ public sealed class WpfSurfaceSmokeTests
         yield return ["src/SpareParts.Desktop.Wpf/Windows/ManagementWindow.xaml", "management window"];
         yield return ["src/SpareParts.Desktop.Wpf/Windows/UsedCars/UsedCarGalleryWindow.xaml", "used car gallery window"];
         yield return ["src/SpareParts.Desktop.Wpf/Windows/UsedCars/UsedCarPartsWindow.xaml", "used car parts window"];
+        yield return ["src/SpareParts.Desktop.Wpf/Windows/UsedCars/UsedCarListingWindow.xaml", "used car listing window"];
+        yield return ["src/SpareParts.Desktop.Wpf/Windows/Inventory/PartListingWindow.xaml", "part listing window"];
         yield return ["src/SpareParts.Desktop.Wpf/Controls/Dashboard/OwnerCockpitDashboardControl.xaml", "owner cockpit dashboard"];
         yield return ["src/SpareParts.Desktop.Wpf/Controls/Inventory/PartCompatibilityControl.xaml", "part compatibility"];
         yield return ["src/SpareParts.Desktop.Wpf/Controls/Inventory/DeadStockResurrectionControl.xaml", "dead stock recovery"];

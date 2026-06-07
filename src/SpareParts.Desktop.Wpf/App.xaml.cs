@@ -1,9 +1,11 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using SpareParts.Desktop.Abstractions.Dialogs;
+using SpareParts.Desktop.Abstractions.Parts;
 using SpareParts.Desktop.Abstractions.UsedCars;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf.Services.Dialogs;
+using SpareParts.Desktop.Wpf.Services.Inventory;
 using SpareParts.Desktop.Wpf.Services.UsedCars;
 using SpareParts.Desktop.Wpf.ViewModels;
 
@@ -36,6 +38,7 @@ namespace SpareParts.Desktop.Wpf
             services.AddTransient<IFilePickerService, FilePickerService>();
             services.AddTransient<IUserNotificationService, UserNotificationService>();
             services.AddTransient<IUsedCarWorkspaceService, UsedCarWorkspaceService>();
+            services.AddTransient<IPartWorkspaceService, PartWorkspaceService>();
 
             services.AddTransient<IAuthApiClient, AuthApiClient>();
             services.AddTransient<IAccountingApiClient, AccountingApiClient>();
