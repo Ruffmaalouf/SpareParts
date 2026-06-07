@@ -27,11 +27,16 @@ namespace SpareParts.Infrastructure.Data
             const string sql = """
 SELECT p.*
 FROM dbo.Parts p
-INNER JOIN @Ids ids ON ids.Id = p.Id;
+INNER JOIN @Ids ids ON ids.Id = p.Id
+WHERE (@TenantId = 0 OR p.TenantId = @TenantId);
 """;
             return _session.Connection.Query<Part>(
                     sql,
-                    new { Ids = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList") },
+                    new
+                    {
+                        Ids = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList"),
+                        TenantId = _session.TenantId
+                    },
                     _session.Transaction)
                 .ToDictionary(p => p.Id, p => p);
         }
@@ -42,8 +47,12 @@ INNER JOIN @Ids ids ON ids.Id = p.Id;
                                  FROM Parts
                                  WHERE IsActive = 1
                                    AND (@UsedCarId IS NULL OR UsedCarId = @UsedCarId)
+                                   AND (@TenantId = 0 OR TenantId = @TenantId)
                                  ORDER BY Name";
-            return _session.Connection.Query<Part>(sql, new { UsedCarId = usedCarId }, _session.Transaction);
+            return _session.Connection.Query<Part>(
+                sql,
+                new { UsedCarId = usedCarId, TenantId = _session.TenantId },
+                _session.Transaction);
         }
 
         public int Insert(Part part)
@@ -52,14 +61,17 @@ INNER JOIN @Ids ids ON ids.Id = p.Id;
                 (InternalCode, Barcode, Name, OEMNumber, Condition, CategoryId, BrandId,
                  CostPrice, SalePrice, AveragePrice, EstimatedMarketPrice, CostAllocationPercent, AllocatedCost,
                  MinimumSellPrice, FastSalePrice, WholesalePrice, RecommendedPrice, PricingStatus, PricingCalculatedAt,
-                 Currency, MinStock, Notes, UsedCarId, IsActive, CreatedAt, CreatedByUserId)
+                 Currency, MinStock, Notes, UsedCarId, TenantId, IsActive, CreatedAt, CreatedByUserId)
                 VALUES
                 (@InternalCode, @Barcode, @Name, @OEMNumber, @Condition, @CategoryId, @BrandId,
                  @CostPrice, @SalePrice, @AveragePrice, @EstimatedMarketPrice, @CostAllocationPercent, @AllocatedCost,
                  @MinimumSellPrice, @FastSalePrice, @WholesalePrice, @RecommendedPrice, @PricingStatus, @PricingCalculatedAt,
-                 @Currency, @MinStock, @Notes, @UsedCarId, @IsActive, @CreatedAt, @CreatedByUserId);
+                 @Currency, @MinStock, @Notes, @UsedCarId, @TenantId, @IsActive, @CreatedAt, @CreatedByUserId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            return _session.Connection.ExecuteScalar<int>(sql, part, _session.Transaction);
+
+            var parameters = new DynamicParameters(part);
+            parameters.Add("TenantId", _session.TenantId > 0 ? (int?)_session.TenantId : null);
+            return _session.Connection.ExecuteScalar<int>(sql, parameters, _session.Transaction);
         }
 
         public bool Update(int id, CreatePartRequest request, int userId)
@@ -74,7 +86,7 @@ INNER JOIN @Ids ids ON ids.Id = p.Id;
                                      PricingStatus = @PricingStatus, PricingCalculatedAt = @PricingCalculatedAt,
                                      Currency = @Currency, MinStock = @MinStock,
                                      Notes = @Notes, UsedCarId = @UsedCarId, ModifiedAt = @Now, ModifiedByUserId = @UserId
-                                 WHERE Id = @Id";
+                                 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)";
             var updated = _session.Connection.Execute(sql, new
             {
                 Id = id,
@@ -102,7 +114,8 @@ INNER JOIN @Ids ids ON ids.Id = p.Id;
                 request.Notes,
                 request.UsedCarId,
                 Now = DateTime.UtcNow,
-                UserId = userId
+                UserId = userId,
+                TenantId = _session.TenantId
             }, _session.Transaction);
 
             return updated > 0;
@@ -114,13 +127,14 @@ INNER JOIN @Ids ids ON ids.Id = p.Id;
                                  SET UsedCarId = @UsedCarId,
                                      ModifiedAt = @Now,
                                      ModifiedByUserId = @UserId
-                                 WHERE Id = @Id";
+                                 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)";
             var updated = _session.Connection.Execute(sql, new
             {
                 Id = id,
                 UsedCarId = usedCarId,
                 Now = DateTime.UtcNow,
-                UserId = userId
+                UserId = userId,
+                TenantId = _session.TenantId
             }, _session.Transaction);
 
             return updated > 0;
@@ -128,8 +142,8 @@ INNER JOIN @Ids ids ON ids.Id = p.Id;
 
         public bool Delete(int id)
         {
-            const string sql = "DELETE FROM Parts WHERE Id = @Id";
-            var deleted = _session.Connection.Execute(sql, new { Id = id }, _session.Transaction);
+            const string sql = "DELETE FROM Parts WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)";
+            var deleted = _session.Connection.Execute(sql, new { Id = id, TenantId = _session.TenantId }, _session.Transaction);
             return deleted > 0;
         }
 

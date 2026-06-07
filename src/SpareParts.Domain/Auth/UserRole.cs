@@ -4,6 +4,7 @@ namespace SpareParts.Domain.Auth
     {
         Admin = 1,
         Manager = 2,
-        Cashier = 3
+        Cashier = 3,
+        SuperAdmin = 5
     }
 }

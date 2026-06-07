@@ -143,6 +143,7 @@ public class CreateSaleSqlServerIntegrationTests : IAsyncLifetime
             strategy,
             new InvoiceTotalsCalculator(),
             settingsProvider,
-            customerAccountResolver);
+            customerAccountResolver,
+            TenantContext.Legacy);
     }
 }

@@ -2,34 +2,41 @@ using BCrypt.Net;
 using Dapper;
 using SpareParts.Domain.Auth;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class UsersService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public UsersService(ISqlConnectionFactory factory)
+    public UsersService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<UserDto> GetAll()
     {
         using var conn = _factory.CreateConnection();
         return conn.Query<UserDto>(
-            @"SELECT u.Id,
-                     u.Username,
-                     u.FullName,
-                     u.Email,
-                     u.RoleId,
-                     COALESCE(r.Name, 'User') AS Role,
-                     u.IsActive,
-                     u.LastLoginAt,
-                     u.CreatedAt
-              FROM Users u
-              LEFT JOIN Roles r ON r.Id = u.RoleId
-              ORDER BY u.FullName");
+            """
+            SELECT u.Id,
+                   u.Username,
+                   u.FullName,
+                   u.Email,
+                   u.RoleId,
+                   COALESCE(r.Name, 'User') AS Role,
+                   u.IsActive,
+                   u.LastLoginAt,
+                   u.CreatedAt
+            FROM Users u
+            LEFT JOIN Roles r ON r.Id = u.RoleId
+            WHERE (@TenantId = 0 OR u.TenantId = @TenantId)
+            ORDER BY u.FullName
+            """,
+            new { TenantId = _tenantContext.TenantId });
     }
 
     public int Create(CreateUserRequest request)
@@ -44,9 +51,11 @@ public sealed class UsersService
         using var conn = _factory.CreateConnection();
         var roleId = ResolveRoleId(conn, request.RoleId);
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Users (Username, FullName, Email, PasswordHash, RoleId, IsActive, CreatedAt)
-              VALUES (@Username, @FullName, @Email, @Hash, @RoleId, 1, @Now);
-              SELECT CAST(SCOPE_IDENTITY() AS INT);",
+            """
+            INSERT INTO Users (Username, FullName, Email, PasswordHash, RoleId, TenantId, IsActive, CreatedAt)
+            VALUES (@Username, @FullName, @Email, @Hash, @RoleId, @TenantId, 1, @Now);
+            SELECT CAST(SCOPE_IDENTITY() AS INT);
+            """,
             new
             {
                 request.Username,
@@ -54,6 +63,7 @@ public sealed class UsersService
                 request.Email,
                 Hash = hash,
                 RoleId = roleId,
+                TenantId = _tenantContext.TenantId > 0 ? (int?)_tenantContext.TenantId : null,
                 Now = DateTime.UtcNow
             });
     }
@@ -67,10 +77,12 @@ public sealed class UsersService
         {
             var hash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword.Trim(), workFactor: 12);
             var affectedRows = conn.Execute(
-                @"UPDATE Users SET FullName = @FullName, Email = @Email, RoleId = @RoleId,
-                                   IsActive = @IsActive, PasswordHash = @Hash,
-                                   ModifiedAt = @Now
-                  WHERE Id = @Id",
+                """
+                UPDATE Users SET FullName = @FullName, Email = @Email, RoleId = @RoleId,
+                                 IsActive = @IsActive, PasswordHash = @Hash,
+                                 ModifiedAt = @Now
+                WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)
+                """,
                 new
                 {
                     request.FullName,
@@ -79,7 +91,8 @@ public sealed class UsersService
                     request.IsActive,
                     Hash = hash,
                     Now = DateTime.UtcNow,
-                    Id = id
+                    Id = id,
+                    TenantId = _tenantContext.TenantId
                 });
 
             if (affectedRows == 0)
@@ -91,10 +104,12 @@ public sealed class UsersService
         }
 
         var updatedRows = conn.Execute(
-            @"UPDATE Users SET FullName = @FullName, Email = @Email, RoleId = @RoleId,
-                               IsActive = @IsActive, ModifiedAt = @Now
-              WHERE Id = @Id",
-            new { request.FullName, request.Email, RoleId = roleId, request.IsActive, Now = DateTime.UtcNow, Id = id });
+            """
+            UPDATE Users SET FullName = @FullName, Email = @Email, RoleId = @RoleId,
+                             IsActive = @IsActive, ModifiedAt = @Now
+            WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)
+            """,
+            new { request.FullName, request.Email, RoleId = roleId, request.IsActive, Now = DateTime.UtcNow, Id = id, TenantId = _tenantContext.TenantId });
 
         if (updatedRows == 0)
         {
@@ -106,8 +121,8 @@ public sealed class UsersService
     {
         using var conn = _factory.CreateConnection();
         var affectedRows = conn.Execute(
-            "UPDATE Users SET IsActive = 0, ModifiedAt = @Now WHERE Id = @Id",
-            new { Now = DateTime.UtcNow, Id = id });
+            "UPDATE Users SET IsActive = 0, ModifiedAt = @Now WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)",
+            new { Now = DateTime.UtcNow, Id = id, TenantId = _tenantContext.TenantId });
 
         if (affectedRows == 0)
         {

@@ -7,5 +7,7 @@ namespace SpareParts.Domain.Auth
         public int? RoleId { get; set; }
         public int UserId { get; set; }
         public DateTime ExpiresAt { get; set; }
+        public int TenantId { get; set; }
+        public string TenantCode { get; set; } = string.Empty;
     }
 }

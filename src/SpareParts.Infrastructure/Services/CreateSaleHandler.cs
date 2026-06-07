@@ -20,6 +20,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
+        private readonly ITenantContext _tenantContext;
 
         public CreateSaleHandler(
             ISqlConnectionFactory factory,
@@ -29,7 +30,8 @@ namespace SpareParts.Infrastructure.Services
             IAccountingStrategy<SalesInvoice> accountingStrategy,
             IInvoiceTotalsCalculator totalsCalculator,
             AccountingSettingsProvider settingsProvider,
-            CustomerAccountResolver customerAccountResolver)
+            CustomerAccountResolver customerAccountResolver,
+            ITenantContext tenantContext)
         {
             _factory = factory;
             _inventoryService = inventoryService;
@@ -39,11 +41,12 @@ namespace SpareParts.Infrastructure.Services
             _totalsCalculator = totalsCalculator;
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
+            _tenantContext = tenantContext;
         }
 
         public CreateSaleResponse Handle(CreateSaleRequest request, int userId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
 
             var salesRepository = repositories.Sales.Invoices;

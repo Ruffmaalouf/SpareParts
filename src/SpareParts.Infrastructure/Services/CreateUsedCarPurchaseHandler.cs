@@ -12,22 +12,25 @@ namespace SpareParts.Infrastructure.Services
         private readonly ISqlConnectionFactory _factory;
         private readonly IInvoiceNumberGenerator _invoiceNumberGenerator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
+        private readonly ITenantContext _tenantContext;
 
         public CreateUsedCarPurchaseHandler(
             ISqlConnectionFactory factory,
             IInvoiceNumberGenerator invoiceNumberGenerator,
-            IPaymentStatusPolicy paymentStatusPolicy)
+            IPaymentStatusPolicy paymentStatusPolicy,
+            ITenantContext tenantContext)
         {
             _factory = factory;
             _invoiceNumberGenerator = invoiceNumberGenerator;
             _paymentStatusPolicy = paymentStatusPolicy;
+            _tenantContext = tenantContext;
         }
 
         public CreateUsedCarPurchaseResponse Handle(CreateUsedCarPurchaseRequest request, int userId)
         {
             ValidateRequest(request);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
             var usedCarPurchasesRepository = repositories.Purchases.UsedCarPurchases;
             EnsureSupplierExists(session, request.SupplierId);

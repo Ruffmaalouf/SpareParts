@@ -1,30 +1,35 @@
 using Dapper;
 using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class WarehousesService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public WarehousesService(ISqlConnectionFactory factory)
+    public WarehousesService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<WarehouseDto> GetAll()
     {
         using var conn = _factory.CreateConnection();
-        return conn.Query<WarehouseDto>("SELECT Id, Name, Barcode, Address, IsMain FROM Warehouses ORDER BY IsMain DESC, Name");
+        return conn.Query<WarehouseDto>(
+            "SELECT Id, Name, Barcode, Address, IsMain FROM Warehouses WHERE (@TenantId = 0 OR TenantId = @TenantId) ORDER BY IsMain DESC, Name",
+            new { TenantId = _tenantContext.TenantId });
     }
 
     public int Create(CreateWarehouseRequest request)
     {
         using var conn = _factory.CreateConnection();
         var id = conn.ExecuteScalar<int>(
-            @"INSERT INTO Warehouses (Name, Barcode, Address, IsMain, CreatedAt)
-              VALUES (@Name, @Barcode, @Address, @IsMain, @Now);
+            @"INSERT INTO Warehouses (Name, Barcode, Address, IsMain, TenantId, CreatedAt)
+              VALUES (@Name, @Barcode, @Address, @IsMain, @TenantId, @Now);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
@@ -32,6 +37,7 @@ public sealed class WarehousesService
                 Barcode = NormalizeOptional(request.Barcode),
                 request.Address,
                 request.IsMain,
+                TenantId = _tenantContext.TenantId > 0 ? (int?)_tenantContext.TenantId : null,
                 Now = DateTime.UtcNow
             });
 
@@ -54,14 +60,15 @@ public sealed class WarehousesService
                   Barcode = @Barcode,
                   Address = @Address,
                   IsMain = @IsMain
-              WHERE Id = @Id;",
+              WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new
             {
                 Id = id,
                 request.Name,
                 Barcode = NormalizeOptional(request.Barcode),
                 request.Address,
-                request.IsMain
+                request.IsMain,
+                TenantId = _tenantContext.TenantId
             });
 
         if (affected == 0)
@@ -73,7 +80,9 @@ public sealed class WarehousesService
     public void Delete(int id)
     {
         using var conn = _factory.CreateConnection();
-        var affected = conn.Execute("DELETE FROM Warehouses WHERE Id = @Id;", new { Id = id });
+        var affected = conn.Execute(
+            "DELETE FROM Warehouses WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = id, TenantId = _tenantContext.TenantId });
         if (affected == 0)
         {
             throw new NotFoundException("Warehouse not found.");

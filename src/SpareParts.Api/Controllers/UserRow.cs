@@ -9,5 +9,7 @@ namespace SpareParts.Api.Services
         public string PasswordHash { get; set; } = string.Empty;
         public int? RoleId { get; set; }
         public bool IsActive { get; set; }
+        public int? TenantId { get; set; }
+        public string? TenantCode { get; set; }
     }
 }
