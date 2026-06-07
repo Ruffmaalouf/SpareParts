@@ -31,6 +31,9 @@ internal sealed class StubPartsApiClient : IPartsApiClient
     public Task<List<PartStockDto>> GetPartStockAsync(int partId)
         => Task.FromResult(new List<PartStockDto>());
 
+    public Task<PartListingPackageDto> GetListingPackageAsync(int partId)
+        => Task.FromResult(new PartListingPackageDto { PartId = partId });
+
     public Task TransferPartAsync(int partId, TransferPartRequest request)
         => Task.CompletedTask;
 

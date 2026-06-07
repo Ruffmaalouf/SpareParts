@@ -15,6 +15,7 @@ namespace SpareParts.Desktop.Wpf.Interfaces
     {
         Task<List<PartDto>> GetPartsAsync();
         Task<DeadStockReportDto> GetDeadStockAsync(int minDormantDays = 90, int take = 25);
+        Task<PartListingPackageDto> GetListingPackageAsync(int partId);
         Task<List<ScanLookupResultDto>> ResolveScanAsync(string code);
         Task<VisualPartSearchResponseDto> SearchPartsByImageAsync(string imagePath, string? hint = null, int limit = 10);
         Task<List<PartStockDto>> GetPartStockAsync(int partId);

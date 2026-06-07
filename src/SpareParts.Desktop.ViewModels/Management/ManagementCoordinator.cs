@@ -30,7 +30,7 @@ namespace SpareParts.Desktop.Wpf.Management
         }
 
         public Task<PartListingPackageDto> GetPartListingPackageAsync(int partId)
-            => _crudApi.GetAsync<PartListingPackageDto>($"api/parts/{partId}/listing-package");
+            => _partsApi.GetListingPackageAsync(partId);
 
         public async Task<ManagementLoadResult> LoadAllAsync(RolesViewModel rolesVm)
         {
