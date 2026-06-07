@@ -36,6 +36,12 @@ public sealed class UsedCarWorkspaceService : IUsedCarWorkspaceService
         ShowDialog(window);
     }
 
+    public void OpenListingPackage(UsedCarWorkspaceRequest request)
+    {
+        var window = new UsedCarListingWindow(_coordinator, request);
+        ShowDialog(window);
+    }
+
     public void OpenParts(UsedCarWorkspaceRequest request)
     {
         var window = new UsedCarPartsWindow(

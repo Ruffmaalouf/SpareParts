@@ -659,6 +659,45 @@ public sealed class UsedCarsService
         session.Commit();
     }
 
+    public UsedCarListingPackageDto BuildListingPackage(int id)
+    {
+        var car = GetAll().FirstOrDefault(c => c.Id == id)
+            ?? throw new NotFoundException($"Used car {id} not found.");
+
+        using var conn = _factory.CreateConnection();
+        var photoCount = conn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM dbo.usedcar_images WHERE UsedCarId = @UsedCarId",
+            new { UsedCarId = id });
+
+        var priceText = $"{car.PriceCurrency} {car.Price:N0}";
+        var title = $"{car.Car} {car.ModelYear} - {priceText}";
+        var location = string.IsNullOrWhiteSpace(car.Location) ? "available now" : $"located in {car.Location}";
+        var hashtag = car.Car.Replace(" ", string.Empty);
+
+        var description =
+            $"{car.Car} {car.ModelYear}\n" +
+            $"Price: {priceText}\n" +
+            (string.IsNullOrWhiteSpace(car.Location) ? "" : $"Location: {car.Location}\n") +
+            $"\nWell-maintained {car.Car} ({car.ModelYear}), {location}. " +
+            "Contact us for more details, an inspection, or a test drive.\n\n" +
+            $"#UsedCars #{hashtag} #{car.ModelYear} #ForSale";
+
+        return new UsedCarListingPackageDto
+        {
+            UsedCarId = car.Id,
+            Title = title,
+            Description = description,
+            PriceText = priceText,
+            PhotoCount = photoCount,
+            MarketplaceLinks =
+            [
+                new MarketplaceLinkDto { Name = "Facebook Marketplace", Url = "https://www.facebook.com/marketplace/create/vehicle" },
+                new MarketplaceLinkDto { Name = "OLX", Url = "https://www.olx.com/" },
+                new MarketplaceLinkDto { Name = "Dubizzle", Url = "https://www.dubizzle.com/" }
+            ]
+        };
+    }
+
     private static UsedCarWholesaleSaleDto MapWholesaleSale(UsedCarWholesaleSaleRecord record)
     {
         return new UsedCarWholesaleSaleDto

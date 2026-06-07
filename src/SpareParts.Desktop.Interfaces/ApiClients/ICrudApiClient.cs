@@ -13,6 +13,7 @@ namespace SpareParts.Desktop.Wpf.Interfaces
     public interface ICrudApiClient
     {
         Task<List<T>> GetAllAsync<T>(string url);
+        Task<T> GetAsync<T>(string url) where T : notnull;
         Task PostAsync(string url, object payload);
         Task<TResponse> PostAsync<TResponse>(string url, object payload)
             where TResponse : notnull;

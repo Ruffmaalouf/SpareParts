@@ -5,10 +5,12 @@ const {
   Animated,
   FlatList,
   Image,
+  Linking,
   Modal,
   PanResponder,
   Pressable,
   ScrollView,
+  Share,
   Switch,
   Text,
   TextInput,
@@ -481,6 +483,9 @@ function UsedCarsScreen({ api }) {
   const [isPartsLoading, setIsPartsLoading] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [listingPackage, setListingPackage] = useState(null);
+  const [isListingOpen, setIsListingOpen] = useState(false);
+  const [isGeneratingListing, setIsGeneratingListing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
 
   const selectedCar = useMemo(
@@ -1019,6 +1024,38 @@ function UsedCarsScreen({ api }) {
     setIsGalleryOpen(false);
   }, [resetZoom]);
 
+  const generateListing = useCallback(async () => {
+    if (!selectedCar) return;
+    setIsGeneratingListing(true);
+    setStatus("");
+    try {
+      const pkg = await api.get(`/api/usedcars/${itemId(selectedCar)}/listing-package`);
+      setListingPackage(pkg);
+      setIsListingOpen(true);
+    } catch (error) {
+      setStatus(error.message || t("usedCars.listingError", "Could not generate the listing package."));
+    } finally {
+      setIsGeneratingListing(false);
+    }
+  }, [api, selectedCar, t]);
+
+  const closeListing = useCallback(() => {
+    setIsListingOpen(false);
+  }, []);
+
+  const shareListing = useCallback(async () => {
+    if (!listingPackage) return;
+    try {
+      await Share.share({ message: `${listingPackage.title}\n\n${listingPackage.description}` });
+    } catch {
+      setStatus(t("usedCars.listingShareError", "Could not open the share sheet."));
+    }
+  }, [listingPackage, t]);
+
+  const openMarketplace = useCallback((url) => {
+    Linking.openURL(url).catch(() => setStatus(t("usedCars.listingLinkError", "Could not open that marketplace.")));
+  }, [t]);
+
   const syncGalleryIndex = useCallback((index) => {
     if (images.length === 0) return;
     const nextIndex = Math.min(Math.max(index, 0), images.length - 1);
@@ -1180,8 +1217,46 @@ function UsedCarsScreen({ api }) {
     )
   );
 
+  const listingModal = el(Modal, {
+    animationType: "slide",
+    transparent: true,
+    visible: isListingOpen,
+    onRequestClose: closeListing
+  },
+    el(View, { style: styles.usedCarListingOverlay },
+      el(View, { style: [styles.usedCarListingCard, { paddingBottom: insets.bottom + 16 }] },
+        el(View, { style: styles.usedCarListingHeader },
+          el(Text, { style: styles.usedCarHeroTitle }, t("usedCars.listingPackage", "Listing Package")),
+          el(Pressable, { onPress: closeListing }, el(Text, { style: styles.secondaryButtonText }, t("common.close", "Close")))
+        ),
+        listingPackage && el(ScrollView, { style: styles.usedCarListingScroll },
+          el(Text, { style: styles.usedCarHeroSubtitle }, listingPackage.title),
+          el(Text, { style: styles.usedCarCardMeta }, listingPackage.description),
+          el(Text, { style: styles.usedCarCardMeta },
+            t("usedCars.listingPhotoCount", "{count} photo(s) ready in the gallery to attach to the listing.", { count: listingPackage.photoCount })
+          ),
+          el(View, { style: styles.inlineButtons },
+            el(Pressable, { style: styles.secondaryButton, onPress: shareListing },
+              el(Text, { style: styles.secondaryButtonText }, t("usedCars.shareListing", "Share"))
+            ),
+            (listingPackage.marketplaceLinks || []).map((link) =>
+              el(Pressable, {
+                key: link.name,
+                style: styles.secondaryButton,
+                onPress: () => openMarketplace(link.url)
+              },
+                el(Text, { style: styles.secondaryButtonText }, link.name)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+
   return el(ScreenScroll, null,
     galleryModal,
+    listingModal,
     el(ScreenHeader, { title: t("usedCars.title", "Used Cars"), actionTitle: t("common.refresh", "Refresh"), onAction: () => { loadCars(selectedId); loadParts(); }, loading: isLoading || isPartsLoading }),
     el(StatusText, { value: status }),
     el(Panel, { title: t("usedCars.donorCockpit", "Donor Car Cockpit") },
@@ -1291,8 +1366,13 @@ function UsedCarsScreen({ api }) {
                   ),
                   el(Pressable, { style: [styles.secondaryButton, styles.usedCarDangerSoft], onPress: confirmDeleteImage, disabled: isUploading || !selectedImage },
                     el(Text, { style: styles.secondaryButtonText }, t("usedCars.deletePhoto", "Delete Photo"))
+                  ),
+                  el(Pressable, { style: styles.secondaryButton, onPress: generateListing, disabled: isGeneratingListing },
+                    isGeneratingListing
+                      ? el(ActivityIndicator, { color: palette.text, size: "small" })
+                      : el(Text, { style: styles.secondaryButtonText }, t("usedCars.generateListing", "Generate Listing"))
                   )
-                )
+)
               ),
               images.length > 1 && el(ScrollView, {
                 horizontal: true,

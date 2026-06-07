@@ -891,6 +891,56 @@ function GalleryModal({
   );
 }
 
+function ListingPackageModal({ pkg, onClose, t }) {
+  const [status, setStatus] = useState("");
+
+  const copyText = useCallback(async (label, value) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus(t("usedCars.listingCopied", "{label} copied to clipboard.", { label }));
+    } catch {
+      setStatus(t("usedCars.listingCopyError", "Could not copy to clipboard."));
+    }
+  }, [t]);
+
+  if (!pkg) return null;
+
+  return h("div", { className: "gallery-modal listing-package-modal", role: "dialog", "aria-modal": "true" },
+    h("div", { className: "gallery-topbar" },
+      h("div", null,
+        h("strong", null, t("usedCars.listingPackage", "Listing Package")),
+        h("span", null, pkg.title)
+      ),
+      h("button", { className: "ghost-button", type: "button", onClick: onClose }, t("common.close", "Close"))
+    ),
+    h("div", { className: "panel listing-package-body" },
+      h("label", null, t("usedCars.listingTitle", "Title")),
+      h("textarea", { readOnly: true, rows: 2, value: pkg.title }),
+      h("button", { className: "secondary-button", type: "button", onClick: () => copyText(t("usedCars.listingTitle", "Title"), pkg.title) }, t("common.copy", "Copy")),
+
+      h("label", null, t("usedCars.listingDescription", "Description")),
+      h("textarea", { readOnly: true, rows: 8, value: pkg.description }),
+      h("button", { className: "secondary-button", type: "button", onClick: () => copyText(t("usedCars.listingDescription", "Description"), pkg.description) }, t("common.copy", "Copy")),
+
+      h("p", null, t("usedCars.listingPhotoCount", "{count} photo(s) ready in the gallery — download or drag them into the marketplace listing after pasting the text above.", { count: pkg.photoCount })),
+
+      h("h4", null, t("usedCars.listingMarketplaces", "Open a marketplace to post")),
+      h("div", { className: "row-actions" },
+        (pkg.marketplaceLinks || []).map((link) =>
+          h("a", {
+            key: link.name,
+            className: "secondary-button",
+            href: link.url,
+            target: "_blank",
+            rel: "noopener noreferrer"
+          }, link.name)
+        )
+      ),
+      status && h("p", { className: "status-text" }, status)
+    )
+  );
+}
+
 export function UsedCarsView({ api, t }) {
   const fileInputRef = useRef(null);
   const [cars, setCars] = useState([]);
@@ -914,6 +964,8 @@ export function UsedCarsView({ api, t }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [listingPackage, setListingPackage] = useState(null);
+  const [isGeneratingListing, setIsGeneratingListing] = useState(false);
 
   const selectedCar = useMemo(
     () => cars.find((car) => String(itemId(car)) === String(selectedId)) || null,
@@ -1217,6 +1269,20 @@ export function UsedCarsView({ api, t }) {
     }
   }, [api, fillFormFromCar, loadCars, loadParts, selectedCar, t]);
 
+  const generateListing = useCallback(async () => {
+    if (!selectedCar) return;
+    setIsGeneratingListing(true);
+    setStatus("");
+    try {
+      const pkg = await api.get(`/api/usedcars/${itemId(selectedCar)}/listing-package`);
+      setListingPackage(pkg);
+    } catch (error) {
+      setStatus(error.message || t("usedCars.listingError", "Could not generate the listing package."));
+    } finally {
+      setIsGeneratingListing(false);
+    }
+  }, [api, selectedCar, t]);
+
   const uploadImages = useCallback(async (files) => {
     if (!selectedCar) {
       setStatus(t("usedCars.saveBeforePhotos", "Save or select a used car before adding photos."));
@@ -1301,6 +1367,11 @@ export function UsedCarsView({ api, t }) {
       onIndex: setGalleryIndex,
       t
     }),
+    listingPackage && h(ListingPackageModal, {
+      pkg: listingPackage,
+      onClose: () => setListingPackage(null),
+      t
+    }),
     h(PageHeader, {
       title: t("usedCars.title", "Used Cars"),
       action: h("button", {
@@ -1337,6 +1408,7 @@ export function UsedCarsView({ api, t }) {
             h("h3", null, t("usedCars.gallery", "Gallery")),
             h("div", { className: "row-actions" },
               h("button", { className: "secondary-button", type: "button", onClick: () => fileInputRef.current?.click(), disabled: isUploading }, t("usedCars.addPhotos", "Add Photos")),
+              h("button", { className: "secondary-button", type: "button", onClick: generateListing, disabled: !selectedCar || isGeneratingListing }, isGeneratingListing ? t("usedCars.generatingListing", "Generating...") : t("usedCars.generateListing", "Generate Listing")),
               h("button", { className: "secondary-button", type: "button", onClick: () => { setGalleryIndex(selectedImageIndex); setIsGalleryOpen(true); }, disabled: images.length === 0 }, t("usedCars.fullscreen", "Fullscreen")),
               h("button", { className: "secondary-button danger-button", type: "button", onClick: deleteImage, disabled: !selectedImage || isUploading }, t("usedCars.deletePhoto", "Delete Photo"))
             )
