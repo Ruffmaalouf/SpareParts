@@ -21,6 +21,9 @@ namespace SpareParts.Desktop.Wpf
         public Task<DeadStockReportDto> GetDeadStockAsync(int minDormantDays = 90, int take = 25)
             => RetrieveOneAsync<DeadStockReportDto>($"api/parts/dead-stock?minDormantDays={minDormantDays}&take={take}", "Dead stock report was empty.");
 
+        public Task<PartListingPackageDto> GetListingPackageAsync(int partId)
+            => RetrieveOneAsync<PartListingPackageDto>($"api/parts/{partId}/listing-package", "Listing package was empty.");
+
         public Task<List<ScanLookupResultDto>> ResolveScanAsync(string code)
             => RetrieveAsync<ScanLookupResultDto>($"api/scans/resolve?code={Uri.EscapeDataString(code ?? string.Empty)}");
 

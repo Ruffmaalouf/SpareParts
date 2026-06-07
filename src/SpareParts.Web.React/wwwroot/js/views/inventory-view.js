@@ -315,6 +315,56 @@ function buildQuoteMessage({ customerName, quoteRows, discount, validUntil, note
   return lines.filter((line) => line !== "").join("\n");
 }
 
+function PartListingModal({ pkg, onClose }) {
+  const [status, setStatus] = useState("");
+
+  const copyText = useCallback(async (label, value) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus(`${label} copied to clipboard.`);
+    } catch {
+      setStatus("Could not copy to clipboard.");
+    }
+  }, []);
+
+  if (!pkg) return null;
+
+  return h("div", { className: "gallery-modal listing-package-modal", role: "dialog", "aria-modal": "true" },
+    h("div", { className: "gallery-topbar" },
+      h("div", null,
+        h("strong", null, "Listing Package"),
+        h("span", null, pkg.title)
+      ),
+      h("button", { className: "ghost-button", type: "button", onClick: onClose }, "Close")
+    ),
+    h("div", { className: "panel listing-package-body" },
+      h("label", null, "Title"),
+      h("textarea", { readOnly: true, rows: 2, value: pkg.title }),
+      h("button", { className: "secondary-button", type: "button", onClick: () => copyText("Title", pkg.title) }, "Copy"),
+
+      h("label", null, "Description"),
+      h("textarea", { readOnly: true, rows: 8, value: pkg.description }),
+      h("button", { className: "secondary-button", type: "button", onClick: () => copyText("Description", pkg.description) }, "Copy"),
+
+      h("p", null, `${pkg.photoCount} photo(s) ready in the donor car's gallery — download or drag them into the marketplace listing after pasting the text above.`),
+
+      h("h4", null, "Open a marketplace to post"),
+      h("div", { className: "row-actions" },
+        (pkg.marketplaceLinks || []).map((link) =>
+          h("a", {
+            key: link.name,
+            className: "secondary-button",
+            href: link.url,
+            target: "_blank",
+            rel: "noopener noreferrer"
+          }, link.name)
+        )
+      ),
+      status && h("p", { className: "status-text" }, status)
+    )
+  );
+}
+
 export function InventoryView({ api, onView }) {
   const [parts, setParts] = useState([]);
   const [partRequests, setPartRequests] = useState([]);
@@ -334,6 +384,8 @@ export function InventoryView({ api, onView }) {
   const [quoteValidUntil, setQuoteValidUntil] = useState(defaultQuoteValidUntil);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [listingPackage, setListingPackage] = useState(null);
+  const [generatingListingId, setGeneratingListingId] = useState(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -530,6 +582,19 @@ export function InventoryView({ api, onView }) {
     }
   }, [donorById]);
 
+  const generateListing = useCallback(async (part) => {
+    setGeneratingListingId(part.id);
+    setStatus("");
+    try {
+      const pkg = await api.get(`/api/parts/${part.id}/listing-package`);
+      setListingPackage(pkg);
+    } catch (error) {
+      setStatus(error.message || "Could not generate the listing package.");
+    } finally {
+      setGeneratingListingId(null);
+    }
+  }, [api]);
+
   const addToQuote = useCallback((part) => {
     setQuoteItems((current) => ({
       ...current,
@@ -582,6 +647,10 @@ export function InventoryView({ api, onView }) {
   }, [quoteRows.length, quoteWhatsAppLink]);
 
   return h("section", { className: "screen" },
+    listingPackage && h(PartListingModal, {
+      pkg: listingPackage,
+      onClose: () => setListingPackage(null)
+    }),
     h(PageHeader, {
       title: "Smart Parts Inventory",
       subtitle: "Search stock, donor links, reservations, and quote-ready parts in one workspace.",
@@ -727,7 +796,8 @@ export function InventoryView({ api, onView }) {
                     h("button", { type: "button", onClick: () => addToQuote(part) }, "Quote"),
                     h("button", { type: "button", onClick: () => openWhatsappShare(part) }, "WhatsApp"),
                     h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send"),
-                    h("button", { type: "button", onClick: () => copyPartDetails(part) }, "Copy")
+                    h("button", { type: "button", onClick: () => copyPartDetails(part) }, "Copy"),
+                    h("button", { type: "button", disabled: generatingListingId === part.id, onClick: () => generateListing(part) }, generatingListingId === part.id ? "Generating..." : "Listing")
                   )
                 )
               );
@@ -781,7 +851,8 @@ export function InventoryView({ api, onView }) {
                   h("button", { type: "button", onClick: () => selectPartPassport(part, onView) }, "Passport"),
                   h("button", { type: "button", onClick: () => addToQuote(part) }, "Quote"),
                   h("button", { type: "button", onClick: () => openWhatsappShare(part) }, "Share"),
-                  h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send")
+                  h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send"),
+                  h("button", { type: "button", disabled: generatingListingId === part.id, onClick: () => generateListing(part) }, generatingListingId === part.id ? "Generating..." : "Listing")
                 ) }
               ],
               rows: displayedParts,

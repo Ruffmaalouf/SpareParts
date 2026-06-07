@@ -106,7 +106,7 @@ public sealed class ManagementCoordinatorCrudTests
         };
 
         var sut = CreateSut(crud, partsApi);
-        var feature = new PartManagementViewModel(NullManagementFeatureContext.Instance, new NullFilePickerService(), new NullUserNotificationService())
+        var feature = new PartManagementViewModel(NullManagementFeatureContext.Instance, new NullFilePickerService(), new NullUserNotificationService(), new NullPartWorkspaceService())
         {
             NewPartCode = "BP-100",
             NewPartName = "Brake Pad",
@@ -164,7 +164,7 @@ public sealed class ManagementCoordinatorCrudTests
 
         yield return SaveCase(
             "part-create",
-            sut => sut.SavePartAsync(new PartManagementViewModel(NullManagementFeatureContext.Instance, new NullFilePickerService(), new NullUserNotificationService())
+            sut => sut.SavePartAsync(new PartManagementViewModel(NullManagementFeatureContext.Instance, new NullFilePickerService(), new NullUserNotificationService(), new NullPartWorkspaceService())
             {
                 NewPartCode = "P-001",
                 NewPartName = "Brake Pad",

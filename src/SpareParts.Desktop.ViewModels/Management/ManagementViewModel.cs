@@ -1,5 +1,6 @@
 using SpareParts.Desktop.Abstractions.Dialogs;
 using SpareParts.Application.Management.Currencies;
+using SpareParts.Desktop.Abstractions.Parts;
 using SpareParts.Desktop.Abstractions.UsedCars;
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Interfaces;
@@ -266,6 +267,7 @@ namespace SpareParts.Desktop.Wpf
             IFilePickerService filePickerService,
             IUserNotificationService notificationService,
             IUsedCarWorkspaceService usedCarWorkspaceService,
+            IPartWorkspaceService partWorkspaceService,
             bool canViewSupplierTab = false,
             bool canEditSupplier = false,
             bool canModifySupplier = false,
@@ -297,7 +299,7 @@ namespace SpareParts.Desktop.Wpf
             CustomersFeature = new CustomerManagementViewModel(stdCtx);
             SuppliersFeature = new SupplierManagementViewModel(stdCtx);
             BrandsFeature = new BrandManagementViewModel(stdCtx);
-            PartsFeature = new PartManagementViewModel(baseCurrencyCtx, filePickerService, notificationService);
+            PartsFeature = new PartManagementViewModel(baseCurrencyCtx, filePickerService, notificationService, partWorkspaceService);
             PartRequestsFeature = new PartRequestsManagementViewModel(noImportCtx);
             CarModelsFeature = new CarModelManagementViewModel(stdCtx);
             LocationsFeature = new LocationManagementViewModel(counterCtx);

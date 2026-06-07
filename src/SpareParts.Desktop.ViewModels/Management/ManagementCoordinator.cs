@@ -29,6 +29,9 @@ namespace SpareParts.Desktop.Wpf.Management
             _excelImportCoordinator = new ExcelImportCoordinator(crudApi);
         }
 
+        public Task<PartListingPackageDto> GetPartListingPackageAsync(int partId)
+            => _partsApi.GetListingPackageAsync(partId);
+
         public async Task<ManagementLoadResult> LoadAllAsync(RolesViewModel rolesVm)
         {
             var customers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
