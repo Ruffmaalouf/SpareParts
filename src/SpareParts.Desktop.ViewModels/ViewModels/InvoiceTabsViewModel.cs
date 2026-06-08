@@ -648,7 +648,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
-            Themes.Add(new ThemeOption { Key = AppTheme.Default, Name = "Aurora", SubTitle = "Deep Navy · Electric Teal", AccentHex = "#00C9A7" });
+            Themes.Add(new ThemeOption { Key = AppTheme.Default, Name = "Classic Dark", SubTitle = "Petrol Head · Racing Red", AccentHex = "#D40000" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower, Name = "M Power", SubTitle = "BMW · Midnight Blue", AccentHex = "#1C69D4" });
             Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow, Name = "Neon Glow", SubTitle = "Cyberpunk · Electric Cyan", AccentHex = "#00E5FF" });
             Themes.Add(new ThemeOption { Key = AppTheme.AMG, Name = "AMG", SubTitle = "Mercedes · Titanium Grey", AccentHex = "#C0C0C0" });

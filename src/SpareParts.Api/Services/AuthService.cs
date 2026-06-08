@@ -50,7 +50,7 @@ public sealed class AuthService
                      u.RoleId,
                      u.IsActive,
                      u.TenantId,
-                     COALESCE(t.Code, N'') AS TenantCode
+                     COALESCE(t.Code, '') AS TenantCode
               FROM Users u
               LEFT JOIN Tenants t ON t.Id = u.TenantId
               WHERE u.Username = @Username",
@@ -99,7 +99,7 @@ public sealed class AuthService
                      u.RoleId,
                      u.IsActive,
                      u.TenantId,
-                     COALESCE(t.Code, N'') AS TenantCode
+                     COALESCE(t.Code, '') AS TenantCode
               FROM Users u
               LEFT JOIN Tenants t ON t.Id = u.TenantId
               WHERE u.Username = @Username",

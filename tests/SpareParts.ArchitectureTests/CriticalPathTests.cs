@@ -357,7 +357,8 @@ public class CriticalPathTests
             accountingStrategy: null!,
             totalsCalculator: null!,
             settingsProvider: null!,
-            customerAccountResolver: null!);
+            customerAccountResolver: null!,
+            tenantContext: TenantContext.Legacy);
 
         var salesRepository = new AlwaysDuplicateSalesRepository();
 
@@ -379,7 +380,8 @@ public class CriticalPathTests
             accountingStrategy: null!,
             totalsCalculator: null!,
             accountingSettingsProvider: null!,
-            supplierAccountResolver: null!);
+            supplierAccountResolver: null!,
+            tenantContext: TenantContext.Legacy);
 
         var purchasesRepository = new AlwaysDuplicatePurchasesRepository();
 

@@ -32,7 +32,7 @@ const iconPaths = {
 const navGroups = [
   { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "settings"] },
   { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
-  { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder"] },
+  { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
   { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar", "activity-log"] }
 ];
 

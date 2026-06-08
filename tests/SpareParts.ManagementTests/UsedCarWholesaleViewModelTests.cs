@@ -87,6 +87,9 @@ public sealed class UsedCarWholesaleViewModelTests
             return Task.FromResult(new List<T>());
         }
 
+        public Task<T> GetAsync<T>(string url) where T : notnull
+            => Task.FromResult(default(T)!);
+
         public Task PostAsync(string url, object payload) => Task.CompletedTask;
 
         public Task<TResponse> PostAsync<TResponse>(string url, object payload)

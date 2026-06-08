@@ -88,8 +88,8 @@ public class TenantIsolationTests
         Assert.Throws<NotFoundException>(() => service.Deactivate(2));
 
         // Verify user 2 is still active.
-        using var conn = factory.CreateConnection();
-        var isActive = conn.ExecuteScalar<int>("SELECT IsActive FROM Users WHERE Id = 2");
+        using var verificationConnection = factory.CreateConnection();
+        var isActive = verificationConnection.ExecuteScalar<int>("SELECT IsActive FROM Users WHERE Id = 2");
         Assert.Equal(1, isActive);
     }
 

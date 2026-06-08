@@ -17,7 +17,7 @@ public class ApiCompositionTests
     public static TheoryData<ServiceCapability[], string[]> CapabilityControllerCases =>
         new()
         {
-            { [ServiceCapability.Sales, ServiceCapability.Health], [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(HealthController)] },
+            { [ServiceCapability.Sales, ServiceCapability.Health], [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(HealthController)] },
             { [ServiceCapability.Purchases, ServiceCapability.Health], [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController), nameof(HealthController)] },
             { [ServiceCapability.Inventory, ServiceCapability.Health], [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(HealthController)] },
             { [ServiceCapability.Identity, ServiceCapability.Health], [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController), nameof(HealthController)] },

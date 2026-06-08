@@ -12,12 +12,12 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Themes/AuroraTheme.xaml"/>
+                <ResourceDictionary Source="/Themes/DefaultTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-            <!-- Login field style — Aurora themed rounded inputs -->
+            <!-- Login field style — dark themed rounded inputs -->
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
@@ -122,7 +122,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ══ LEFT — Aurora Branding Panel ══ -->
+            <!-- ══ LEFT — Branding Panel ══ -->
             <Border Grid.Column="0" CornerRadius="20 0 0 20" ClipToBounds="True">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -169,7 +169,7 @@
 
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="44">
 
-                        <!-- Aurora logo ring -->
+                        <!-- Logo ring -->
                         <Grid HorizontalAlignment="Center" Margin="0 0 0 32">
                             <Ellipse Width="108" Height="108">
                                 <Ellipse.Stroke>
@@ -290,7 +290,7 @@
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Text="v4.0  ·  Aurora Design System"
+                        <TextBlock Text="v4.0  ·  Classic Dark Design System"
                                    FontSize="10" Foreground="#FF2E3D58"
                                    HorizontalAlignment="Center"
                                    Margin="0 22 0 0" FontFamily="Segoe UI"/>
