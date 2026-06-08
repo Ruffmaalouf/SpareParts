@@ -23,9 +23,9 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
     private DateTime _reservationExpiresAt = DefaultReservationExpiresAt();
     private string _reservationExpirationAction = PartReservationExpirationAction.AutoRelease;
 
-    public ObservableCollection<PartRequestDto> Requests { get; } = new();
-    public ObservableCollection<CustomerDto> Customers { get; } = new();
-    public ObservableCollection<PartDto> Parts { get; } = new();
+    public ObservableCollection<PartRequestDto> Requests { get; } = new BulkObservableCollection<PartRequestDto>();
+    public ObservableCollection<CustomerDto> Customers { get; } = new BulkObservableCollection<CustomerDto>();
+    public ObservableCollection<PartDto> Parts { get; } = new BulkObservableCollection<PartDto>();
     public IReadOnlyList<string> ReservationExpirationActions { get; } =
     [
         PartReservationExpirationAction.AutoRelease,
@@ -292,11 +292,5 @@ public sealed class PartRequestsManagementViewModel : ManagementFeatureViewModel
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
-    {
-        target.Clear();
-        foreach (var item in source)
-        {
-            target.Add(item);
-        }
-    }
+        => target.ReplaceWith(source);
 }

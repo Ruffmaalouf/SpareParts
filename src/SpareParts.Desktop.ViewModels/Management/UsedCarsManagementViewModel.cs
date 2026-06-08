@@ -77,8 +77,8 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
         ImportFromExcelCommand = new RelayCommand(_ => importTableCommand?.Execute("dbo.UsedCars"));
     }
 
-    public ObservableCollection<UsedCarEntry> UsedCars { get; } = new();
-    public ObservableCollection<UsedCarEntry> FilteredUsedCars { get; } = new();
+    public ObservableCollection<UsedCarEntry> UsedCars { get; } = new BulkObservableCollection<UsedCarEntry>();
+    public ObservableCollection<UsedCarEntry> FilteredUsedCars { get; } = new BulkObservableCollection<UsedCarEntry>();
     public ObservableCollection<string> UsedCarStatusFilters { get; } = new()
     {
         "All donors",
@@ -89,11 +89,11 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
         "In transit",
         "Wholesale sold"
     };
-    public ObservableCollection<UsedCarModelOption> UsedCarModelOptions { get; } = new();
-    public ObservableCollection<string> CurrencyCodes { get; } = new();
-    public ObservableCollection<SupplierDto> Suppliers { get; } = new();
-    public ObservableCollection<LocationDto> Locations { get; } = new();
-    public ObservableCollection<CarModelDto> CarModels { get; } = new();
+    public ObservableCollection<UsedCarModelOption> UsedCarModelOptions { get; } = new BulkObservableCollection<UsedCarModelOption>();
+    public ObservableCollection<string> CurrencyCodes { get; } = new BulkObservableCollection<string>();
+    public ObservableCollection<SupplierDto> Suppliers { get; } = new BulkObservableCollection<SupplierDto>();
+    public ObservableCollection<LocationDto> Locations { get; } = new BulkObservableCollection<LocationDto>();
+    public ObservableCollection<CarModelDto> CarModels { get; } = new BulkObservableCollection<CarModelDto>();
 
     public ICommand StartNewCommand { get; }
     public ICommand OpenGalleryCommand { get; }
@@ -1152,13 +1152,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
-    {
-        target.Clear();
-        foreach (var item in source)
-        {
-            target.Add(item);
-        }
-    }
+        => target.ReplaceWith(source);
 
     private void OnPropertyChanged(string propertyName)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

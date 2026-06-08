@@ -37,39 +37,57 @@ namespace SpareParts.Desktop.Wpf.Management
 
         public async Task<ManagementLoadResult> LoadAllAsync(RolesViewModel rolesVm)
         {
-            var customers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
-            var suppliers = await _crudApi.GetAllAsync<SupplierDto>("api/suppliers");
-            var brands = await _crudApi.GetAllAsync<BrandDto>("api/brands");
-            var carBrands = await _carCatalogApi.GetCarBrandsAsync();
-            var categories = await _crudApi.GetAllAsync<CategoryDto>("api/categories");
-            var parts = await _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");
-            var partRequests = await _crudApi.GetAllAsync<PartRequestDto>("api/partrequests");
-            var carModels = await _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
-            var locations = await _crudApi.GetAllAsync<LocationDto>("api/locations");
-            var usedCars = await _crudApi.GetAllAsync<UsedCarDto>("api/usedcars");
-            var warehouses = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
-            var currencyRates = await _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
-            var transactionTypes = await _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
-            var appConstants = await _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
-            await _excelImportCoordinator.LoadTargetsAsync();
-            await rolesVm.LoadAsync();
+            var customersTask = _crudApi.GetAllAsync<CustomerDto>("api/customers");
+            var suppliersTask = _crudApi.GetAllAsync<SupplierDto>("api/suppliers");
+            var brandsTask = _crudApi.GetAllAsync<BrandDto>("api/brands");
+            var carBrandsTask = _carCatalogApi.GetCarBrandsAsync();
+            var categoriesTask = _crudApi.GetAllAsync<CategoryDto>("api/categories");
+            var partsTask = _crudApi.GetAllAsync<PartDto>("api/parts?page=1&pageSize=5000");
+            var partRequestsTask = _crudApi.GetAllAsync<PartRequestDto>("api/partrequests");
+            var carModelsTask = _crudApi.GetAllAsync<CarModelDto>("api/carmodels");
+            var locationsTask = _crudApi.GetAllAsync<LocationDto>("api/locations");
+            var usedCarsTask = _crudApi.GetAllAsync<UsedCarDto>("api/usedcars");
+            var warehousesTask = _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
+            var currencyRatesTask = _crudApi.GetAllAsync<CurrencyRateDto>("api/currencies");
+            var transactionTypesTask = _crudApi.GetAllAsync<TransactionTypeDto>("api/transactiontypes");
+            var appConstantsTask = _crudApi.GetAllAsync<AppConstantDto>("api/appconstants");
+            var excelTargetsTask = _excelImportCoordinator.LoadTargetsAsync();
+            var rolesTask = rolesVm.LoadAsync();
+
+            await Task.WhenAll(
+                customersTask,
+                suppliersTask,
+                brandsTask,
+                carBrandsTask,
+                categoriesTask,
+                partsTask,
+                partRequestsTask,
+                carModelsTask,
+                locationsTask,
+                usedCarsTask,
+                warehousesTask,
+                currencyRatesTask,
+                transactionTypesTask,
+                appConstantsTask,
+                excelTargetsTask,
+                rolesTask).ConfigureAwait(false);
 
             return new ManagementLoadResult
             {
-                Customers = customers,
-                Suppliers = suppliers,
-                Brands = brands,
-                CarBrands = carBrands,
-                Categories = categories,
-                Parts = parts,
-                PartRequests = partRequests,
-                CarModels = carModels,
-                Locations = locations,
-                UsedCars = usedCars,
-                Warehouses = warehouses,
-                CurrencyRates = currencyRates,
-                TransactionTypes = transactionTypes,
-                AppConstants = appConstants
+                Customers = customersTask.Result,
+                Suppliers = suppliersTask.Result,
+                Brands = brandsTask.Result,
+                CarBrands = carBrandsTask.Result,
+                Categories = categoriesTask.Result,
+                Parts = partsTask.Result,
+                PartRequests = partRequestsTask.Result,
+                CarModels = carModelsTask.Result,
+                Locations = locationsTask.Result,
+                UsedCars = usedCarsTask.Result,
+                Warehouses = warehousesTask.Result,
+                CurrencyRates = currencyRatesTask.Result,
+                TransactionTypes = transactionTypesTask.Result,
+                AppConstants = appConstantsTask.Result
             };
         }
 

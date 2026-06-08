@@ -332,6 +332,11 @@
         <Setter Property="RowHeight"                Value="36"/>
         <Setter Property="FontSize"                 Value="13"/>
         <Setter Property="SelectionMode"            Value="Single"/>
+        <Setter Property="EnableRowVirtualization"  Value="True"/>
+        <Setter Property="EnableColumnVirtualization" Value="True"/>
+        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
     </Style>
 
     <Style TargetType="DataGridRow">

@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -345,6 +346,12 @@ namespace SpareParts.Desktop.Wpf
 
         public async Task LoadAllAsync()
         {
+            if (IsLoading)
+            {
+                SetStatus("Loading is already in progress…", true);
+                return;
+            }
+
             IsLoading = true;
             SetStatus("Loading…", true);
             try
@@ -352,7 +359,7 @@ namespace SpareParts.Desktop.Wpf
                 var loadResult = await _coordinator.LoadAllAsync(RolesVm);
                 await AccountingVm.LoadSetupAsync();
 
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     ApplyCurrencyDefaults(loadResult.AppConstants);
                     Replace(AppConstants, loadResult.AppConstants);
@@ -376,7 +383,7 @@ namespace SpareParts.Desktop.Wpf
                     Replace(TransactionTypes, loadResult.TransactionTypes);
                     ExcelManagerFeature.UpdateRuntimeData(loadResult.AppConstants.ToList());
                     RaiseAccountingDashboardProps();
-                });
+                }, DispatcherPriority.Background);
 
                 SetStatus(
                     AccountingVm.IsStatusSuccess ? "✓ Data loaded." : AccountingVm.Status,
@@ -511,13 +518,7 @@ namespace SpareParts.Desktop.Wpf
         }
 
         private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
-        {
-            target.Clear();
-            foreach (var item in source)
-            {
-                target.Add(item);
-            }
-        }
+            => target.ReplaceWith(source);
 
         private void ApplyCurrencyDefaults(IEnumerable<AppConstantDto> constants)
         {

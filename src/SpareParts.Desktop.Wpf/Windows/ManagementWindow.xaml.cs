@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Threading;
+using SpareParts.Desktop.Wpf.Helpers;
 
 namespace SpareParts.Desktop.Wpf
 {
@@ -13,7 +15,10 @@ namespace SpareParts.Desktop.Wpf
             DataContext = _vm;
 
             // Load data after the window is fully rendered
-            Loaded += async (_, _) => await _vm.LoadAllAsync();
+            Loaded += (_, _) =>
+                Dispatcher.BeginInvoke(
+                    new Action(() => _vm.LoadAllAsync().SafeFireAndForget()),
+                    DispatcherPriority.ContextIdle);
         }
     }
 }

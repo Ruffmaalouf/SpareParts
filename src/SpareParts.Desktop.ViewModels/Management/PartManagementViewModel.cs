@@ -52,10 +52,10 @@ namespace SpareParts.Desktop.Wpf.Management
             GenerateListingCommand = new RelayCommand(_ => OpenPartListingPackage());
         }
 
-        public ObservableCollection<PartDto> Parts { get; } = new();
-        public ObservableCollection<CategoryDto> Categories { get; } = new();
-        public ObservableCollection<BrandDto> BrandOptions { get; } = new();
-        public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new();
+        public ObservableCollection<PartDto> Parts { get; } = new BulkObservableCollection<PartDto>();
+        public ObservableCollection<CategoryDto> Categories { get; } = new BulkObservableCollection<CategoryDto>();
+        public ObservableCollection<BrandDto> BrandOptions { get; } = new BulkObservableCollection<BrandDto>();
+        public ObservableCollection<CurrencyRateDto> CurrencyRates { get; } = new BulkObservableCollection<CurrencyRateDto>();
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand StartNewCommand { get; }
@@ -376,13 +376,7 @@ namespace SpareParts.Desktop.Wpf.Management
         }
 
         private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
-        {
-            target.Clear();
-            foreach (var item in source)
-            {
-                target.Add(item);
-            }
-        }
+            => target.ReplaceWith(source);
 
         private void UpdatePricingCoach()
         {
