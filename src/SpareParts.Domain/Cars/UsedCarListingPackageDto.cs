@@ -1,3 +1,5 @@
+using SpareParts.Domain.Inventory;
+
 namespace SpareParts.Domain.Cars
 {
     public sealed class UsedCarListingPackageDto
@@ -10,9 +12,5 @@ namespace SpareParts.Domain.Cars
         public List<MarketplaceLinkDto> MarketplaceLinks { get; set; } = [];
     }
 
-    public sealed class MarketplaceLinkDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Url { get; set; } = string.Empty;
-    }
+   
 }
