@@ -47,6 +47,7 @@ export function InvoicesView({ api }) {
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
   const [draftItems, setDraftItems] = useState([]);
+  const [availableStock, setAvailableStock] = useState(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -119,12 +120,36 @@ export function InvoicesView({ api }) {
     [draftItems]
   );
 
-  const onPartChange = useCallback((event) => {
+  const profitTrend = useMemo(() => {
+    const byDate = new Map();
+    (Array.isArray(invoices) ? invoices : []).forEach((inv) => {
+      if (!inv.invoiceDate) return;
+      const dateKey = new Date(inv.invoiceDate).toLocaleDateString();
+      byDate.set(dateKey, (byDate.get(dateKey) || 0) + Number(inv.totalAmount || 0));
+    });
+    const sorted = Array.from(byDate.entries())
+      .sort((a, b) => new Date(b[0]) - new Date(a[0]))
+      .slice(0, 7)
+      .reverse();
+    const maxAmount = sorted.reduce((m, [, v]) => Math.max(m, v), 0);
+    return sorted.map(([date, amount]) => ({ date, amount, width: maxAmount > 0 ? Math.round((amount / maxAmount) * 100) : 0 }));
+  }, [invoices]);
+
+  const onPartChange = useCallback(async (event) => {
     const nextPartId = event.target.value;
     const nextPart = parts.find((part) => String(part.id) === nextPartId);
     setSelectedPartId(nextPartId);
     setUnitPrice(nextPart ? String(nextPart.salePrice || 0) : "");
-  }, [parts]);
+    setAvailableStock(null);
+    if (nextPartId) {
+      try {
+        const stockData = await api.get(`/api/parts/${nextPartId}/stock`);
+        setAvailableStock(typeof stockData === "number" ? stockData : Number(stockData?.availableQuantity ?? stockData?.available ?? stockData ?? 0));
+      } catch {
+        setAvailableStock(null);
+      }
+    }
+  }, [api, parts]);
 
   const addLine = useCallback(() => {
     if (!selectedPart) {
@@ -279,8 +304,20 @@ export function InvoicesView({ api }) {
           )
         ),
         h("label", null,
-          "Qty",
-          h("input", { inputMode: "numeric", value: quantity, onChange: (event) => setQuantity(event.target.value) })
+          availableStock !== null
+            ? h("span", null,
+                "Qty ",
+                h("small", { style: { color: toNumber(quantity) > availableStock ? "red" : "inherit" } },
+                  `(available: ${availableStock})`
+                )
+              )
+            : "Qty",
+          h("input", {
+            inputMode: "numeric",
+            value: quantity,
+            onChange: (event) => setQuantity(event.target.value),
+            style: availableStock !== null && toNumber(quantity) > availableStock ? { borderColor: "red" } : {}
+          })
         ),
         h("label", null,
           "Unit price",
@@ -343,6 +380,18 @@ export function InvoicesView({ api }) {
             )
           );
         })()
+      )
+    ),
+    profitTrend.length > 0 && h("section", { className: "panel", style: { marginBottom: "1rem", padding: "1rem" } },
+      h("h4", { style: { margin: "0 0 0.75rem" } }, "Recent Profit Trend (last 7 days)"),
+      profitTrend.map(({ date, amount, width }) =>
+        h("div", { key: date, style: { display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", fontSize: "0.85rem" } },
+          h("span", { style: { minWidth: "7rem", color: "#555" } }, date),
+          h("div", { style: { flex: 1, background: "#eee", borderRadius: "3px", height: "16px", position: "relative" } },
+            h("div", { style: { width: `${width}%`, height: "100%", background: "var(--accent-color, #4caf50)", borderRadius: "3px", transition: "width 0.3s" } })
+          ),
+          h("span", { style: { minWidth: "6rem", textAlign: "right", fontWeight: 600 } }, money(amount, "USD"))
+        )
       )
     ),
     h("section", { className: "table-panel" },

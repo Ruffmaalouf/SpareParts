@@ -3340,6 +3340,28 @@ function createStyles(palette) {
     width: "100%",
     height: "100%"
   },
+  usedCarListingOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)"
+  },
+  usedCarListingCard: {
+    maxHeight: "80%",
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 16,
+    paddingTop: 16
+  },
+  usedCarListingHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10
+  },
+  usedCarListingScroll: {
+    flexGrow: 0
+  },
   usedCarFullscreenRoot: {
     flex: 1,
     backgroundColor: "#050505"

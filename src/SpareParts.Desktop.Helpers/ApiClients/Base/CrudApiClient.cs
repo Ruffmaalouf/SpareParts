@@ -26,6 +26,15 @@ namespace SpareParts.Desktop.Wpf
             return response.Data ?? new List<T>();
         }
 
+        public async Task<T> GetAsync<T>(string url) where T : notnull
+        {
+            var client = CreateClientForResource(url);
+            var request = CreateRequest(url, Method.Get);
+            var response = await client.ExecuteAsync<T>(request);
+            ApiClientBase.EnsureSuccess(response, $"GET {url} failed.");
+            return response.Data ?? throw new InvalidOperationException($"GET {url} returned an empty response.");
+        }
+
         public async Task PostAsync(string url, object payload)
         {
             var client = CreateClientForResource(url);

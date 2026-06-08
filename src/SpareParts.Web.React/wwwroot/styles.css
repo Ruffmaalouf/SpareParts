@@ -7035,6 +7035,28 @@ tbody tr:hover {
   color: white;
 }
 
+.listing-package-modal {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.listing-package-body {
+  overflow-y: auto;
+  margin: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-primary, #1c1c1c);
+  background: var(--card-background, #fff);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.listing-package-body textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: inherit;
+}
+
 .gallery-topbar {
   display: flex;
   justify-content: space-between;

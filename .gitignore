@@ -94,5 +94,5 @@ src/SpareParts.Desktop.Wpf/UpdateLogos.sql
 # Dev JWT secrets — set via dotnet user-secrets or environment variable
 appsettings.Development.json
 
-# Claude Code agent worktree metadata (not part of the project)
-.claude/worktrees/
+# Claude Code session files
+.claude/

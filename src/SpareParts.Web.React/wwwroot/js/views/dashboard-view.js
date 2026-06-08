@@ -183,6 +183,7 @@ export function DashboardView({ api, onView }) {
   const [partRequests, setPartRequests] = useState([]);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [overdueTotal, setOverdueTotal] = useState(null);
 
   const navigate = useCallback((nextView) => {
     if (typeof onView === "function") {
@@ -224,6 +225,15 @@ export function DashboardView({ api, onView }) {
   }, [api]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    api.get("/api/customers/aging").then((data) => {
+      const rows = Array.isArray(data) ? data : [];
+      const total = rows.reduce((sum, row) =>
+        sum + Number(row.days1To30 || 0) + Number(row.days31To60 || 0) + Number(row.days61To90 || 0) + Number(row.over90Days || 0), 0);
+      setOverdueTotal(total);
+    }).catch(() => setOverdueTotal(null));
+  }, [api]);
 
   const displayContext = displayCurrencyContext({
     constants: appConstants,
@@ -274,6 +284,9 @@ export function DashboardView({ api, onView }) {
     { key: "customerDebt", label: "Customer Debt", value: dashboard?.customerDebt, view: "accounting", action: "Review receivables" },
     { key: "stock", label: "Stock Value", value: dashboard?.stockValue, view: "stock", action: "Open stock" }
   ];
+  const overdueCard = overdueTotal !== null
+    ? { key: "overdue", label: "Overdue Receivables", value: overdueTotal, view: "customer-aging", action: "View aging" }
+    : null;
   const quickActions = [
     { key: "invoices", badge: "POS", title: "New sale", subtitle: "Create or search invoices." },
     { key: "inventory", badge: "Catalog", title: "Find parts", subtitle: "Search codes, OEM, and stock." },
@@ -375,6 +388,18 @@ export function DashboardView({ api, onView }) {
           h("strong", null, formatDashboardMoney(metric.value)),
           h("em", null, metric.action)
         )
+      ),
+      overdueCard && h("button", {
+        className: "metric clickable-metric metric-overdue",
+        key: "overdue",
+        style: { "--metric-level": `${metricLevel(overdueCard.value)}%` },
+        type: "button",
+        onClick: () => navigate(overdueCard.view)
+      },
+        h("i", { className: "metric-visual", "aria-hidden": "true" }, h("span", null)),
+        h("span", null, overdueCard.label),
+        h("strong", { style: { color: overdueCard.value > 0 ? "red" : "inherit" } }, formatDashboardMoney(overdueCard.value)),
+        h("em", null, overdueCard.action)
       )
     ),
     dailyProfitLoss && h("section", { className: `panel profit-loss-panel ${netProfitLoss < 0 ? "is-loss" : "is-profit"}` },

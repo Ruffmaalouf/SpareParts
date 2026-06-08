@@ -32,6 +32,9 @@ namespace SpareParts.Desktop.Wpf.Management
         public Task<PartListingPackageDto> GetPartListingPackageAsync(int partId)
             => _partsApi.GetListingPackageAsync(partId);
 
+        public Task<UsedCarListingPackageDto> GetUsedCarListingPackageAsync(int usedCarId)
+            => _crudApi.GetAsync<UsedCarListingPackageDto>($"api/usedcars/{usedCarId}/listing-package");
+
         public async Task<ManagementLoadResult> LoadAllAsync(RolesViewModel rolesVm)
         {
             var customers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");

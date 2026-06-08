@@ -50,8 +50,23 @@ public sealed class PartNotesAiService
 
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        var rawContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        HttpResponseMessage response;
+        string rawContent;
+        try
+        {
+            response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            rawContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ExternalServiceException($"Unable to reach the AI provider: {ex.Message}");
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new ExternalServiceException("The AI provider request timed out.");
+        }
+
+        using var _ = response;
 
         if (!response.IsSuccessStatusCode)
         {

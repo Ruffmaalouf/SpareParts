@@ -3,6 +3,7 @@ import { ScreenRegistry } from "../core/screen-registry.js";
 import { ActivityLogView } from "./activity-log-view.js";
 import { ContactsView } from "./contacts-view.js";
 import { CustomerAgingView } from "./customer-aging-view.js";
+import { SupplierAgingView } from "./supplier-aging-view.js";
 import { DashboardView } from "./dashboard-view.js";
 import { QuotesView } from "./quotes-view.js";
 import { DeadStockView } from "./dead-stock-view.js";
@@ -63,5 +64,6 @@ export const screenRegistry = new ScreenRegistry([
   { key: "shipments", label: "Shipments", component: ShipmentsView },
   { key: "activity-log", label: "Activity Log", component: ActivityLogView },
   { key: "quotes", label: "Quotes / Estimates", component: QuotesView },
-  { key: "customer-aging", label: "Customer Aging", component: CustomerAgingView }
+  { key: "customer-aging", label: "Customer Aging", component: CustomerAgingView },
+  { key: "supplier-aging", label: "Supplier Aging", component: SupplierAgingView }
 ]);

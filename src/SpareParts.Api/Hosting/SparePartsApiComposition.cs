@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Controllers;
 using SpareParts.Api.Errors;
@@ -85,7 +86,8 @@ public static class SparePartsApiComposition
         nameof(SupplierPriceHistoryMigration),
         nameof(ShipmentsMigration),
         nameof(ActivityLogMigration),
-        nameof(QuotesMigration)
+        nameof(QuotesMigration),
+        nameof(CustomerCreditLimitMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
@@ -240,7 +242,8 @@ public static class SparePartsApiComposition
                 return new SaleAccountingStrategy(
                     sp.GetRequiredService<ISqlConnectionFactory>(),
                     sp.GetRequiredService<AccountingSettingsProvider>(),
-                    sp.GetRequiredService<CustomerAccountResolver>());
+                    sp.GetRequiredService<CustomerAccountResolver>(),
+                    sp.GetService<ILogger<SaleAccountingStrategy>>());
             });
 
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
@@ -251,6 +254,7 @@ public static class SparePartsApiComposition
             RegisterVisualPartSearchService(services);
             RegisterSharedInvoiceServices(services);
             services.AddScoped<CustomersService>();
+            services.AddHostedService<QuoteExpiryHostedService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Purchases))
@@ -261,7 +265,8 @@ public static class SparePartsApiComposition
             {
                 return new PurchaseAccountingStrategy(
                     sp.GetRequiredService<AccountingSettingsProvider>(),
-                    sp.GetRequiredService<SupplierAccountResolver>());
+                    sp.GetRequiredService<SupplierAccountResolver>(),
+                    sp.GetService<ILogger<PurchaseAccountingStrategy>>());
             });
 
             services.AddScoped<ICreatePurchaseHandler, CreatePurchaseHandler>();
@@ -290,6 +295,7 @@ public static class SparePartsApiComposition
             services.AddScoped<PartsService>();
             services.AddScoped<PartRequestsService>();
             services.AddHostedService<PartReservationClockHostedService>();
+            services.AddHostedService<ReservationExpiryHostedService>();
             services.AddScoped<WarehousesService>();
             services.AddScoped<TransactionTypesService>();
             services.AddScoped<ScanLookupService>();
@@ -376,6 +382,9 @@ public static class SparePartsApiComposition
 
     public static void UseSparePartsApiPipeline(this WebApplication app)
     {
+        var factory = app.Services.GetRequiredService<ISqlConnectionFactory>();
+        RunMigrations(factory);
+
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
         app.UseRateLimiter();
@@ -385,6 +394,46 @@ public static class SparePartsApiComposition
         app.UseAuthorization();
         app.MapHub<NotificationsHub>(NotificationsHubPath);
         app.MapControllers();
+    }
+
+    private static void RunMigrations(ISqlConnectionFactory factory)
+    {
+        InvoiceNumberingMigration.EnsureApplied(factory);
+        AccountingMigration.EnsureApplied(factory);
+        WebAppUserRoleMigration.EnsureApplied(factory);
+        UserRoleIdMigration.EnsureApplied(factory);
+        MenuAccessMigration.EnsureApplied(factory);
+        TransactionTypesMigration.EnsureApplied(factory);
+        PartAveragePriceMigration.EnsureApplied(factory);
+        PartUsedCarMigration.EnsureApplied(factory);
+        CurrencyRatesMigration.EnsureApplied(factory);
+        AppConstantsMigration.EnsureApplied(factory);
+        CarModelsMigration.EnsureApplied(factory);
+        LocationsMigration.EnsureApplied(factory);
+        UsedCarsMigration.EnsureApplied(factory);
+        UsedCarPartPricingMigration.EnsureApplied(factory);
+        UsedCarPurchasesMigration.EnsureApplied(factory);
+        UsedCarWholesaleSalesMigration.EnsureApplied(factory);
+        TransactionsMigration.EnsureApplied(factory);
+        BarcodeScanningMigration.EnsureApplied(factory);
+        PartRequestsMigration.EnsureApplied(factory);
+        PartUsedCarStockMigration.EnsureApplied(factory);
+        UsedCarImagesMigration.EnsureApplied(factory);
+        CommunicationsMigration.EnsureApplied(factory);
+        WhatsAppCampaignsMigration.EnsureApplied(factory);
+        ReportBuilderLinksMigration.EnsureApplied(factory);
+        ReportBuilderAdvancedMigration.EnsureApplied(factory);
+        ReorderRulesMigration.EnsureApplied(factory);
+        PartSubstitutesMigration.EnsureApplied(factory);
+        PartExpiryMigration.EnsureApplied(factory);
+        CustomerLoyaltyMigration.EnsureApplied(factory);
+        CustomerPriceTierMigration.EnsureApplied(factory);
+        WarrantyClaimsMigration.EnsureApplied(factory);
+        SupplierPriceHistoryMigration.EnsureApplied(factory);
+        ShipmentsMigration.EnsureApplied(factory);
+        ActivityLogMigration.EnsureApplied(factory);
+        QuotesMigration.EnsureApplied(factory);
+        CustomerCreditLimitMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)

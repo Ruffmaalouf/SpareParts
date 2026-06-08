@@ -47,5 +47,9 @@ namespace SpareParts.Api.Controllers
             _service.Delete(id);
             return NoContent();
         }
+
+        [HttpGet("aging")]
+        public ActionResult<IEnumerable<SupplierAgingDto>> GetAging()
+            => Ok(_service.GetAging());
     }
 }

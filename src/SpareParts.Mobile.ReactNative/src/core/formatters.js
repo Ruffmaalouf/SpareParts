@@ -128,7 +128,7 @@ function displayMoneyFromCounter(value, context) {
 }
 
 function rowTitle(row) {
-  return pickFirst(row, ["name", "requestedPartName", "fullName", "username", "invoiceNumber", "purchaseNumber", "referenceNumber", "internalCode", "code", "modelName", "brandName", "title"]) || `#${row?.id || row?.invoiceId || row?.purchaseId || ""}`.trim();
+  return pickFirst(row, ["name", "requestedPartName", "fullName", "username", "invoiceNumber", "purchaseNumber", "quoteNumber", "referenceNumber", "internalCode", "code", "modelName", "brandName", "title", "customerName", "supplierName"]) || `#${row?.id || row?.invoiceId || row?.purchaseId || ""}`.trim();
 }
 
 function rowSubtitle(row) {
@@ -147,7 +147,7 @@ function rowAmount(row) {
     return quantity === "" ? "" : `Qty ${quantity}`;
   }
 
-  const value = pickFirst(row, ["balance", "openingBalance", "totalAmount", "amount", "salePrice", "costPrice", "stockQuantity"]);
+  const value = pickFirst(row, ["balance", "totalBalance", "openingBalance", "totalAmount", "amount", "salePrice", "costPrice", "stockQuantity"]);
   if (value === "") return "";
   const currency = pickFirst(row, ["currencyCode", "currency"]) || "USD";
   return typeof value === "number" ? money(value, currency) : String(value);

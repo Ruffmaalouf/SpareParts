@@ -48,7 +48,10 @@ const screenRegistry = new ScreenRegistry([
   { key: "loyalty", label: "Loyalty", component: createModuleScreen(moduleByKey("loyalty")) },
   { key: "warranty", label: "Warranty & Returns", component: createModuleScreen(moduleByKey("warranty")) },
   { key: "shipments", label: "Shipments", component: createModuleScreen(moduleByKey("shipments")) },
-  { key: "activity-log", label: "Activity Log", component: createModuleScreen(moduleByKey("activity-log")) }
+  { key: "activity-log", label: "Activity Log", component: createModuleScreen(moduleByKey("activity-log")) },
+  { key: "quotes", label: "Quotes", component: createModuleScreen(moduleByKey("quotes")) },
+  { key: "customer-aging", label: "Customer Aging", component: createModuleScreen(moduleByKey("customer-aging")) },
+  { key: "supplier-aging", label: "Supplier Aging", component: createModuleScreen(moduleByKey("supplier-aging")) }
 ]);
 
 module.exports = { screenRegistry };

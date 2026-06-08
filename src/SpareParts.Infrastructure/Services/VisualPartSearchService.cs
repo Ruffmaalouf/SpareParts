@@ -152,8 +152,23 @@ public sealed class VisualPartSearchService
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
 
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
-            var rawContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            HttpResponseMessage response;
+            string rawContent;
+            try
+            {
+                response = await _httpClient.SendAsync(request, cancellationToken);
+                rawContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            }
+            catch (HttpRequestException)
+            {
+                return VisualRecognitionResult.Metadata("AI vision was unreachable; matching by your hint and image name.");
+            }
+            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                return VisualRecognitionResult.Metadata("AI vision request timed out; matching by your hint and image name.");
+            }
+
+            using var __ = response;
 
             if (!response.IsSuccessStatusCode)
             {

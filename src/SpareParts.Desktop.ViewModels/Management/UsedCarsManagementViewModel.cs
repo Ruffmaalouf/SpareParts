@@ -70,6 +70,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
         StartNewCommand = new RelayCommand(_ => StartNew());
         OpenGalleryCommand = new RelayCommand(_ => OpenUsedCarGallery());
         OpenPartsCommand = new RelayCommand(_ => OpenUsedCarParts());
+        GenerateListingCommand = new RelayCommand(_ => OpenUsedCarListingPackage());
         SaveCommand = new RelayCommand(_ => _ = SaveUsedCarAsync());
         DeleteCommand = new RelayCommand(_ => _ = RemoveSelectedUsedCarAsync());
         RefreshCommand = new RelayCommand(_ => _ = _refreshAsync());
@@ -97,6 +98,7 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
     public ICommand StartNewCommand { get; }
     public ICommand OpenGalleryCommand { get; }
     public ICommand OpenPartsCommand { get; }
+    public ICommand GenerateListingCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand RefreshCommand { get; }
@@ -687,6 +689,17 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
 
         _usedCarWorkspaceService.OpenParts(CreateWorkspaceRequest(usedCar));
         _ = _refreshAsync();
+    }
+
+    private void OpenUsedCarListingPackage()
+    {
+        if (SelectedUsedCar is not { Id: > 0 } usedCar)
+        {
+            _notificationService.Show("Select a used car row first, then generate its listing package.", "Listing Package", NotificationKind.Warning);
+            return;
+        }
+
+        _usedCarWorkspaceService.OpenListingPackage(CreateWorkspaceRequest(usedCar));
     }
 
     private static UsedCarWorkspaceRequest CreateWorkspaceRequest(UsedCarEntry usedCar)

@@ -31,6 +31,10 @@ namespace SpareParts.Api.Controllers
         public ActionResult<IEnumerable<UsedCarImageDto>> GetImages(int id)
             => Ok(_imagesService.GetAll(id));
 
+        [HttpGet("{id:int}/listing-package")]
+        public ActionResult<UsedCarListingPackageDto> GetListingPackage(int id)
+            => Ok(_service.BuildListingPackage(id));
+
         [HttpPost("{id:int}/wholesale-sales")]
         [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
         public ActionResult<CreateUsedCarWholesaleSaleResponse> CreateWholesaleSale(

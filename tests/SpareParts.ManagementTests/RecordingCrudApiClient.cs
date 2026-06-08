@@ -11,6 +11,9 @@ internal sealed class RecordingCrudApiClient : ICrudApiClient
     public Task<List<T>> GetAllAsync<T>(string url)
         => Task.FromResult(new List<T>());
 
+    public Task<T> GetAsync<T>(string url) where T : notnull
+        => Task.FromResult(Activator.CreateInstance<T>());
+
     public Task PostAsync(string url, object payload)
     {
         LastMethod = "POST";

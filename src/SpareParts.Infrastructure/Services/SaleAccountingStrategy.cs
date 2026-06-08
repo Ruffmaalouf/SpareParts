@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
@@ -9,15 +10,18 @@ namespace SpareParts.Infrastructure.Services
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
+        private readonly ILogger<SaleAccountingStrategy>? _logger;
 
         public SaleAccountingStrategy(
             ISqlConnectionFactory factory,
             AccountingSettingsProvider settingsProvider,
-            CustomerAccountResolver customerAccountResolver)
+            CustomerAccountResolver customerAccountResolver,
+            ILogger<SaleAccountingStrategy>? logger = null)
         {
             _factory = factory;
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
+            _logger = logger;
         }
 
         public List<JournalLine> BuildJournalLines(SalesInvoice invoice, int userId)
@@ -28,6 +32,14 @@ namespace SpareParts.Infrastructure.Services
             }
 
             var settings = _settingsProvider.GetSnapshot();
+            if (settings.SalesRevenueAccountId <= 0 || settings.CogsAccountId <= 0 || settings.InventoryAccountId <= 0)
+            {
+                _logger?.LogWarning(
+                    "Sale accounting auto-post is using unconfigured account IDs " +
+                    "(Revenue={Revenue}, COGS={Cogs}, Inventory={Inventory}). " +
+                    "Configure posting settings to ensure correct journal entries.",
+                    settings.SalesRevenueAccountId, settings.CogsAccountId, settings.InventoryAccountId);
+            }
             using var session = new DbSession(_factory);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var debitAccountId = _customerAccountResolver.ResolveAccountId(invoice.CustomerId) ?? settings.SalesCashAccountId;
