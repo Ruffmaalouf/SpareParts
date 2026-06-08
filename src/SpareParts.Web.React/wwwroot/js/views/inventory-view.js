@@ -872,7 +872,7 @@ export function InventoryView({ api, onView }) {
                   h("button", { type: "button", onClick: () => addToQuote(part) }, "Quote"),
                   h("button", { type: "button", onClick: () => openWhatsappShare(part) }, "Share"),
                   h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send"),
-                  h("button", { type: "button", disabled: generatingListingId === part.id, onClick: () => generateListing(part) }, generatingListingId === part.id ? "Generating..." : "Listing")
+                  h("button", { type: "button", disabled: generatingListingId === part.id, onClick: () => generateListing(part) }, generatingListingId === part.id ? "Generating..." : "Listing"),
                   h("button", { type: "button", onClick: () => printLabel(part) }, "Print Label")
                 ) }
               ],
