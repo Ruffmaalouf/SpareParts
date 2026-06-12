@@ -886,6 +886,13 @@
                                         <TextBlock Text="Report Builder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
+                                <Button Command="{Binding GoToBillingSubscriptionCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Billing &amp; Subscription" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Border>
 
@@ -3865,6 +3872,242 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
+            </Grid>
+
+            <!-- ── Billing & Subscription ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=BillingSubscription}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
+                    <StackPanel DockPanel.Dock="Left" MaxWidth="720">
+                        <TextBlock Text="Billing &amp; Subscription" FontSize="19" FontWeight="Bold"/>
+                        <TextBlock Text="Manage your plan, payment methods, payment history and invoices."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="⟵ Home" Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Width="120" Margin="0 0 10 0"/>
+                        <Button Content="↻ Refresh" Command="{Binding BillingSubscriptionVm.LoadCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}" Width="120"/>
+                    </StackPanel>
+                </DockPanel>
+                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                    <DockPanel>
+                        <TextBlock Text="Status" DockPanel.Dock="Left" FontWeight="SemiBold" Margin="0 0 12 0"/>
+                        <TextBlock Text="{Binding BillingSubscriptionVm.Status}" Foreground="{Binding BillingSubscriptionVm.StatusBrush}" TextWrapping="Wrap"/>
+                    </DockPanel>
+                </Border>
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+
+                        <!-- Current Plan -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20"
+                                Visibility="{Binding BillingSubscriptionVm.HasSubscription, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="Current Plan" FontSize="16" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding BillingSubscriptionVm.PackageName}" FontSize="22" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding BillingSubscriptionVm.BillingCycleLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0">
+                                            <Run Text="Current period:"/>
+                                            <Run Text="{Binding BillingSubscriptionVm.CurrentPeriodStart, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                            <Run Text="→"/>
+                                            <Run Text="{Binding BillingSubscriptionVm.CurrentPeriodEnd, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"
+                                                   Visibility="{Binding BillingSubscriptionVm.HasTrial, Converter={StaticResource BoolToVis}}">
+                                            <Run Text="Trial ends:"/>
+                                            <Run Text="{Binding BillingSubscriptionVm.TrialEndsAt, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                        </TextBlock>
+                                        <TextBlock Text="This subscription will be cancelled at the end of the current billing period."
+                                                   FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0 6 0 0" TextWrapping="Wrap"
+                                                   Visibility="{Binding BillingSubscriptionVm.CancelAtPeriodEnd, Converter={StaticResource BoolToVis}}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" MinWidth="160">
+                                        <Border Background="{Binding BillingSubscriptionVm.SubscriptionStatusBrush}" CornerRadius="10" Padding="10 4" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding BillingSubscriptionVm.SubscriptionStatusLabel}" FontSize="12" FontWeight="SemiBold" Foreground="#FF101010"/>
+                                        </Border>
+                                        <Button Content="Cancel at period end" Command="{Binding BillingSubscriptionVm.CancelAtPeriodEndCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" Margin="0 12 0 0" HorizontalAlignment="Stretch"
+                                                Visibility="{Binding BillingSubscriptionVm.ShowCancelAtPeriodEndButton, Converter={StaticResource BoolToVis}}"/>
+                                        <Button Content="Cancel now" Command="{Binding BillingSubscriptionVm.CancelImmediatelyCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" Margin="0 6 0 0" HorizontalAlignment="Stretch"
+                                                Visibility="{Binding BillingSubscriptionVm.CanCancel, Converter={StaticResource BoolToVis}}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Usage & Limits -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                            <StackPanel>
+                                <TextBlock Text="Usage &amp; Limits" FontSize="16" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <DataGrid ItemsSource="{Binding BillingSubscriptionVm.UsageRows}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                          IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Limit" Binding="{Binding Label, Mode=OneWay}" Width="*"/>
+                                        <DataGridTextColumn Header="Value" Binding="{Binding ValueLabel, Mode=OneWay}" Width="220"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Plan Features -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                            <StackPanel>
+                                <TextBlock Text="Plan Features" FontSize="16" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <DataGrid ItemsSource="{Binding BillingSubscriptionVm.FeatureRows}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                          IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Feature" Binding="{Binding Label, Mode=OneWay}" Width="*"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding ValueLabel, Mode=OneWay}" Width="220"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Manual payment instructions -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20"
+                                Visibility="{Binding BillingSubscriptionVm.HasCheckoutInstructions, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="Payment Instructions" FontSize="16" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <TextBlock Text="{Binding BillingSubscriptionVm.CheckoutInstructions}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding BillingSubscriptionVm.CheckoutPaymentLabel}" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 6 0 0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Available Plans -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                            <StackPanel>
+                                <DockPanel Margin="0 0 0 10">
+                                    <TextBlock Text="Available Plans" FontSize="16" FontWeight="SemiBold" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Monthly" Command="{Binding BillingSubscriptionVm.SelectMonthlyCommand}" Width="100" Margin="0 0 8 0">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding BillingSubscriptionVm.IsMonthlySelected}" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Content="Yearly" Command="{Binding BillingSubscriptionVm.SelectYearlyCommand}" Width="100">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding BillingSubscriptionVm.IsYearlySelected}" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+                                </DockPanel>
+                                <ItemsControl ItemsSource="{Binding BillingSubscriptionVm.Packages}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource CardHighlightBrush}" CornerRadius="12" Padding="14" Margin="0 0 14 14" Width="240">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"/>
+                                                        <Border Grid.Column="1" Background="{DynamicResource AccentBrush}" CornerRadius="10" Padding="8 2" VerticalAlignment="Top"
+                                                                Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="Current" FontSize="10" FontWeight="SemiBold" Foreground="#FF101010"/>
+                                                        </Border>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                                               TextWrapping="Wrap" Margin="0 6 0 10" Height="60"/>
+                                                    <TextBlock Text="{Binding PriceLabel}" FontSize="18" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                                    <Button Content="{Binding ActionLabel}"
+                                                            Command="{Binding DataContext.BillingSubscriptionVm.UpgradeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource PrimaryButtonStyle}"
+                                                            Visibility="{Binding ShowUpgradeButton, Converter={StaticResource BoolToVis}}"/>
+                                                    <Button Content="{Binding ActionLabel}"
+                                                            Command="{Binding DataContext.BillingSubscriptionVm.SwitchPlanCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource SecondaryButtonStyle}"
+                                                            Visibility="{Binding ShowDowngradeButton, Converter={StaticResource BoolToVis}}"/>
+                                                    <Button Content="{Binding ActionLabel}"
+                                                            Command="{Binding DataContext.BillingSubscriptionVm.ContactSalesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Style="{StaticResource SecondaryButtonStyle}"
+                                                            Visibility="{Binding ShowContactButton, Converter={StaticResource BoolToVis}}"/>
+                                                    <Button Content="Start 14-day trial"
+                                                            Command="{Binding DataContext.BillingSubscriptionVm.StartTrialCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource SecondaryButtonStyle}"
+                                                            Margin="0 6 0 0"
+                                                            Visibility="{Binding ShowTrialButton, Converter={StaticResource BoolToVis}}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Payment History -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                            <StackPanel>
+                                <TextBlock Text="Payment History" FontSize="16" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <DataGrid ItemsSource="{Binding BillingSubscriptionVm.Payments}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                          IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="140"/>
+                                        <DataGridTextColumn Header="Plan" Binding="{Binding PackageCode, Mode=OneWay}" Width="110"/>
+                                        <DataGridTextColumn Header="Cycle" Binding="{Binding BillingCycle, Mode=OneWay}" Width="90"/>
+                                        <DataGridTextColumn Header="Provider" Binding="{Binding ProviderCode, Mode=OneWay}" Width="100"/>
+                                        <DataGridTextColumn Header="Amount" Binding="{Binding Amount, Mode=OneWay, StringFormat={}{0:N2}}" Width="100"/>
+                                        <DataGridTextColumn Header="Currency" Binding="{Binding Currency, Mode=OneWay}" Width="80"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Invoices -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="Invoices" FontSize="16" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <DataGrid ItemsSource="{Binding BillingSubscriptionVm.Invoices}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                          IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Invoice #" Binding="{Binding InvoiceNumber, Mode=OneWay}" Width="160"/>
+                                        <DataGridTextColumn Header="Issued" Binding="{Binding IssuedAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}" Width="120"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" Width="100"/>
+                                        <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, Mode=OneWay, StringFormat={}{0:N2}}" Width="100"/>
+                                        <DataGridTextColumn Header="Currency" Binding="{Binding Currency, Mode=OneWay}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
 
             <!-- ══ MANAGEMENT OVERLAY — ZIndex 20, shown when IsManagementOpen=True ══ -->

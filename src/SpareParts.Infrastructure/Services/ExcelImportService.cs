@@ -1,6 +1,7 @@
 using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.ExcelImport;
+using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
 using SpareParts.Infrastructure.Data.Repositories.MasterData;
@@ -29,10 +30,14 @@ public sealed class ExcelImportService
         };
 
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
+    private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-    public ExcelImportService(ISqlConnectionFactory factory)
+    public ExcelImportService(ISqlConnectionFactory factory, ITenantContext tenantContext, ISubscriptionLimitService subscriptionLimitService)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
+        _subscriptionLimitService = subscriptionLimitService;
     }
 
     public IReadOnlyList<ExcelImportTableDto> GetTargets()
@@ -72,6 +77,8 @@ public sealed class ExcelImportService
         {
             throw new ValidationException($"System table '{request.TableKey}' is not approved for Excel import.");
         }
+
+        _subscriptionLimitService.EnsureFeatureEnabled(_tenantContext.TenantId, FeatureCode.BulkImport, "Bulk Import");
 
         using var session = new DbSession(_factory);
         var metadata = new ExcelImportMetadataRepository(session.Connection, session.Transaction);

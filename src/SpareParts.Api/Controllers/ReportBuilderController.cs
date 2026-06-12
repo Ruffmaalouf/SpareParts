@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpareParts.Api.Infrastructure;
+using SpareParts.Domain.Pricing;
 using SpareParts.Domain.Reports;
 using SpareParts.Infrastructure.Services;
 
@@ -12,10 +13,12 @@ namespace SpareParts.Api.Controllers;
 public sealed class ReportBuilderController : SparePartsControllerBase
 {
     private readonly ReportBuilderService _service;
+    private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-    public ReportBuilderController(ReportBuilderService service)
+    public ReportBuilderController(ReportBuilderService service, ISubscriptionLimitService subscriptionLimitService)
     {
         _service = service;
+        _subscriptionLimitService = subscriptionLimitService;
     }
 
     [HttpGet("tables")]
@@ -71,7 +74,10 @@ public sealed class ReportBuilderController : SparePartsControllerBase
 
     [HttpPost("background-runs")]
     public ActionResult<BackgroundReportRunSummaryDto> QueueBackgroundRun([FromBody] QueueBackgroundReportRunRequest request)
-        => Ok(_service.QueueBackgroundRun(request, CurrentUserId, CurrentRoleId));
+    {
+        _subscriptionLimitService.EnsureFeatureEnabled(CurrentTenantId, FeatureCode.ReportsAdvanced, "Advanced/Scheduled Reports");
+        return Ok(_service.QueueBackgroundRun(request, CurrentUserId, CurrentRoleId));
+    }
 
     [HttpGet("background-runs/{id:int}/result")]
     public ActionResult<ReportResultDto> GetBackgroundRunResult(int id)
@@ -92,5 +98,8 @@ public sealed class ReportBuilderController : SparePartsControllerBase
 
     [HttpPost("run")]
     public ActionResult<ReportResultDto> Run([FromBody] RunReportRequest request)
-        => Ok(_service.RunReport(request));
+    {
+        _subscriptionLimitService.EnsureFeatureEnabled(CurrentTenantId, FeatureCode.ReportsBasic, "Reports");
+        return Ok(_service.RunReport(request));
+    }
 }

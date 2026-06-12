@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Data;
 
 namespace SpareParts.Infrastructure.Services;
@@ -15,10 +16,12 @@ public sealed class PartRequestsService
     private const string ReleaseReasonManual = "Released by staff";
 
     private readonly ISqlConnectionFactory _factory;
+    private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-    public PartRequestsService(ISqlConnectionFactory factory)
+    public PartRequestsService(ISqlConnectionFactory factory, ISubscriptionLimitService subscriptionLimitService)
     {
         _factory = factory;
+        _subscriptionLimitService = subscriptionLimitService;
     }
 
     public IEnumerable<PartRequestDto> GetAll(string? status = null, string? search = null)
@@ -169,7 +172,7 @@ ORDER BY
         var part = request.PartId is int partId
             ? conn.QuerySingleOrDefault<PartLookup>(
                 """
-SELECT Id, InternalCode, Name, OEMNumber
+SELECT Id, InternalCode, Name, OEMNumber, TenantId
 FROM dbo.Parts
 WHERE Id = @PartId
   AND IsActive = 1;
@@ -207,6 +210,11 @@ WHERE Id = @CustomerId;
         if (string.IsNullOrWhiteSpace(requestedPartName))
         {
             throw new ValidationException("Requested part name is required.");
+        }
+
+        if (part?.TenantId is int sellerTenantId)
+        {
+            _subscriptionLimitService.EnsureAndIncrementMonthlyUsage(sellerTenantId, LimitCode.BuyerLeadsMonthly, "Monthly Buyer Leads");
         }
 
         return conn.ExecuteScalar<int>(
@@ -719,6 +727,7 @@ WHERE Id = @Id;
         public string InternalCode { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string? OEMNumber { get; set; }
+        public int? TenantId { get; set; }
     }
 
     private sealed class CustomerLookup

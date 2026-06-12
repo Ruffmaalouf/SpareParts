@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SpareParts.Api.Notifications;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Services;
 
 namespace SpareParts.Api.Controllers
@@ -15,15 +16,18 @@ namespace SpareParts.Api.Controllers
         private readonly PartsService _service;
         private readonly IHubContext<NotificationsHub> _notifications;
         private readonly ILogger<PartsController> _logger;
+        private readonly ISubscriptionLimitService _subscriptionLimitService;
 
         public PartsController(
             PartsService service,
             IHubContext<NotificationsHub> notifications,
-            ILogger<PartsController> logger)
+            ILogger<PartsController> logger,
+            ISubscriptionLimitService subscriptionLimitService)
         {
             _service = service;
             _notifications = notifications;
             _logger = logger;
+            _subscriptionLimitService = subscriptionLimitService;
         }
 
         [HttpGet]
@@ -116,6 +120,9 @@ namespace SpareParts.Api.Controllers
         public async Task<ActionResult<GeneratePartNotesResponse>> GenerateNotes(
             [FromBody] GeneratePartNotesRequest request,
             CancellationToken cancellationToken)
-            => Ok(await _service.GenerateNotesAsync(request, cancellationToken));
+        {
+            _subscriptionLimitService.EnsureFeatureEnabled(CurrentTenantId, FeatureCode.AiDescription, "AI Description & Price Suggestions");
+            return Ok(await _service.GenerateNotesAsync(request, cancellationToken));
+        }
     }
 }

@@ -6,6 +6,7 @@ import { applyWebTheme, money, normalizeBaseUrl } from "./core/formatters.js";
 import { BrowserLanguageStore, BrowserSessionStore, BrowserThemeStore } from "./core/stores.js";
 import { LanguageSegment, Sidebar, ThemeRail } from "./components/layout.js";
 import { NotificationCenter } from "./components/shared.js";
+import { LockedFeatureModal } from "./components/locked-feature-modal.js";
 import { SmartSearch } from "./components/smart-search.js";
 import { createPartNotificationClient } from "./services/notification-service.js";
 import { CustomerStorefrontView } from "./views/storefront-view.js";
@@ -17,8 +18,8 @@ const themeStore = new BrowserThemeStore(window.localStorage, storageKeys.theme)
 const languageStore = new BrowserLanguageStore(window.localStorage, storageKeys.language);
 const webAppRoleId = 4;
 
-function useApi(apiBaseUrl, token, onUnauthorized) {
-  return useMemo(() => new ApiClient(apiBaseUrl, token, onUnauthorized), [apiBaseUrl, onUnauthorized, token]);
+function useApi(apiBaseUrl, token, onUnauthorized, onPlanLocked) {
+  return useMemo(() => new ApiClient(apiBaseUrl, token, onUnauthorized, onPlanLocked), [apiBaseUrl, onUnauthorized, onPlanLocked, token]);
 }
 
 export function App() {
@@ -29,15 +30,31 @@ export function App() {
   const [themeKey, setThemeKey] = useState(() => themeStore.load());
   const [languageKey, setLanguageKey] = useState(() => languageStore.load());
   const [notifications, setNotifications] = useState([]);
+  const [planLock, setPlanLock] = useState(null);
   const recentPartNotifications = useRef(new Map());
   const clearSession = useCallback(() => {
     sessionStore.clear();
     setToken("");
     setUser(null);
   }, []);
-  const api = useApi(apiBaseUrl, token, clearSession);
+  const handlePlanLocked = useCallback((error) => {
+    setPlanLock({
+      errorCode: error.errorCode,
+      message: error.message,
+      currentPlan: error.currentPlan,
+      requiredPlans: error.requiredPlans,
+      upgradeUrl: error.upgradeUrl
+    });
+  }, []);
+  const api = useApi(apiBaseUrl, token, clearSession, handlePlanLocked);
   const t = useMemo(() => createTranslator(languageKey), [languageKey]);
   const isRtl = isRtlLanguage(languageKey);
+
+  const dismissPlanLock = useCallback(() => setPlanLock(null), []);
+  const goToBilling = useCallback(() => {
+    setPlanLock(null);
+    startTransition(() => setView("billing"));
+  }, []);
 
   const dismissNotification = useCallback((id) => {
     setNotifications((current) => current.filter((notification) => notification.id !== id));
@@ -189,6 +206,7 @@ export function App() {
         })
       )
     ),
-    h(NotificationCenter, { notifications, onDismiss: dismissNotification })
+    h(NotificationCenter, { notifications, onDismiss: dismissNotification }),
+    h(LockedFeatureModal, { lock: planLock, onClose: dismissPlanLock, onUpgrade: goToBilling, t })
   );
 }

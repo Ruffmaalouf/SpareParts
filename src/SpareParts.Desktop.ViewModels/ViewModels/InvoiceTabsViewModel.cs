@@ -58,6 +58,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public WarrantyClaimsViewModel WarrantyVm { get; }
         public ShipmentsViewModel ShipmentsVm { get; }
         public ActivityLogViewModel ActivityLogVm { get; }
+        public BillingSubscriptionViewModel BillingSubscriptionVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -410,6 +411,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WarrantyVm.IsLoading ||
             ShipmentsVm.IsLoading ||
             ActivityLogVm.IsLoading ||
+            BillingSubscriptionVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -463,6 +465,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToWarrantyCommand { get; }
         public ICommand GoToShipmentsCommand { get; }
         public ICommand GoToActivityLogCommand { get; }
+        public ICommand GoToBillingSubscriptionCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand { get; }
@@ -511,6 +514,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WarrantyVm = new WarrantyClaimsViewModel(crudApi);
             ShipmentsVm = new ShipmentsViewModel(crudApi);
             ActivityLogVm = new ActivityLogViewModel(crudApi);
+            BillingSubscriptionVm = new BillingSubscriptionViewModel(crudApi);
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -645,6 +649,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ActivityLogVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(ActivityLogViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            BillingSubscriptionVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(BillingSubscriptionViewModel.IsLoading))
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
@@ -947,6 +956,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 ActiveScreen = AppScreen.ActivityLog;
                 ActivityLogVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToBillingSubscriptionCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.BillingSubscription;
+                BillingSubscriptionVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());

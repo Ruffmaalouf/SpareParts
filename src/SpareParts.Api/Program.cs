@@ -11,7 +11,8 @@ builder.Services.AddCapabilities(builder.Environment.ApplicationName,
     ServiceCapability.Identity,
     ServiceCapability.Catalog,
     ServiceCapability.Reporting,
-    ServiceCapability.Health);
+    ServiceCapability.Health,
+    ServiceCapability.Billing);
 builder.Services.AddCapabilityControllers(
     ServiceCapability.Sales,
     ServiceCapability.Purchases,
@@ -20,7 +21,8 @@ builder.Services.AddCapabilityControllers(
     ServiceCapability.Identity,
     ServiceCapability.Catalog,
     ServiceCapability.Reporting,
-    ServiceCapability.Health);
+    ServiceCapability.Health,
+    ServiceCapability.Billing);
 
 var app = builder.Build();
 app.UseSparePartsApiPipeline();

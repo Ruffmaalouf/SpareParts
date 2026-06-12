@@ -1,6 +1,7 @@
 using BCrypt.Net;
 using Dapper;
 using SpareParts.Domain.Auth;
+using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Interfaces;
 
@@ -10,11 +11,13 @@ public sealed class UsersService
 {
     private readonly ISqlConnectionFactory _factory;
     private readonly ITenantContext _tenantContext;
+    private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-    public UsersService(ISqlConnectionFactory factory, ITenantContext tenantContext)
+    public UsersService(ISqlConnectionFactory factory, ITenantContext tenantContext, ISubscriptionLimitService subscriptionLimitService)
     {
         _factory = factory;
         _tenantContext = tenantContext;
+        _subscriptionLimitService = subscriptionLimitService;
     }
 
     public IEnumerable<UserDto> GetAll()
@@ -49,6 +52,12 @@ public sealed class UsersService
         var hash = BCrypt.Net.BCrypt.HashPassword(request.Password.Trim(), workFactor: 12);
 
         using var conn = _factory.CreateConnection();
+
+        var usersCount = conn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM Users WHERE (@TenantId = 0 OR TenantId = @TenantId)",
+            new { TenantId = _tenantContext.TenantId });
+        _subscriptionLimitService.EnsureWithinLimit(_tenantContext.TenantId, LimitCode.UsersCount, usersCount, "User Accounts");
+
         var roleId = ResolveRoleId(conn, request.RoleId);
         return conn.ExecuteScalar<int>(
             """

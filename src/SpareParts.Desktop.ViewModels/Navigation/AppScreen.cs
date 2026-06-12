@@ -29,6 +29,7 @@ namespace SpareParts.Desktop.Wpf
         Loyalty,
         Warranty,
         Shipments,
-        ActivityLog
+        ActivityLog,
+        BillingSubscription
     }
 }

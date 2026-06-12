@@ -72,6 +72,7 @@ namespace SpareParts.Api.Errors
                 ValidationException => (HttpStatusCode.BadRequest, "validation_error"),
                 NotFoundException => (HttpStatusCode.NotFound, "not_found"),
                 ConflictException => (HttpStatusCode.Conflict, "conflict"),
+                PlanLockException => (HttpStatusCode.Forbidden, "plan_lock"),
                 ExternalServiceException => (HttpStatusCode.BadGateway, "upstream_error"),
                 UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "unauthorized"),
                 _ => (HttpStatusCode.InternalServerError, "internal_error")
@@ -118,12 +119,23 @@ namespace SpareParts.Api.Errors
                 ? "An unexpected server error occurred."
                 : ex.Message;
 
-            var envelope = new ApiErrorEnvelope
-            {
-                Code = code,
-                Message = publicMessage,
-                TraceId = context.TraceIdentifier
-            };
+            var envelope = ex is PlanLockException planLock
+                ? new ApiErrorEnvelope
+                {
+                    Code = code,
+                    Message = publicMessage,
+                    TraceId = context.TraceIdentifier,
+                    ErrorCode = planLock.ErrorCode,
+                    CurrentPlan = planLock.CurrentPlan,
+                    RequiredPlans = planLock.RequiredPlans,
+                    UpgradeUrl = planLock.UpgradeUrl
+                }
+                : new ApiErrorEnvelope
+                {
+                    Code = code,
+                    Message = publicMessage,
+                    TraceId = context.TraceIdentifier
+                };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(envelope, SerializerOptions));
         }
