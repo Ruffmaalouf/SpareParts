@@ -22,7 +22,7 @@ public sealed class SetPackageActiveRequest
 
 public sealed class StartTrialRequest
 {
-    public string PackageCode { get; set; } = PackageCode.Pro;
+    public string PackageCode { get; set; } = global::SpareParts.Domain.Pricing.PackageCode.Pro;
     public int TrialDays { get; set; } = 14;
 }
 
