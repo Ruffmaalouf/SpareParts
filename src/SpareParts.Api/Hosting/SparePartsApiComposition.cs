@@ -417,6 +417,8 @@ public static class SparePartsApiComposition
 
     private static void RunMigrations(ISqlConnectionFactory factory)
     {
+        TenantsMigration.EnsureApplied(factory);
+        TenantIdMigration.EnsureApplied(factory);
         InvoiceNumberingMigration.EnsureApplied(factory);
         AccountingMigration.EnsureApplied(factory);
         WebAppUserRoleMigration.EnsureApplied(factory);
