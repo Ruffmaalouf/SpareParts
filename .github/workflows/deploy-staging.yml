@@ -11,6 +11,12 @@ on:
         default: 'false'
         type: choice
         options: ['false', 'true']
+      recreate_plan:
+        description: 'Delete the existing Linux App Service Plan + API/Web apps and recreate them as Windows F1 (free)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
 
 env:
   RESOURCE_GROUP: spareparts-rg
@@ -69,20 +75,41 @@ jobs:
             --location ${{ env.LOCATION }} \
             --output none
 
-      - name: Create App Service Plan (Free F1 - try multiple regions)
+      - name: Create App Service Plan (Free F1, Windows - try multiple regions)
         run: |
-          if ! az appservice plan show \
+          PLAN_EXISTS=false
+          if az appservice plan show \
                --resource-group ${{ env.RESOURCE_GROUP }} \
                --name ${{ env.PLAN_NAME }} \
                --output none 2>/dev/null; then
+            PLAN_EXISTS=true
+            IS_LINUX=$(az appservice plan show \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --name ${{ env.PLAN_NAME }} \
+              --query reserved -o tsv)
+            if [ "$IS_LINUX" = "true" ]; then
+              if [ "${{ inputs.recreate_plan }}" = "true" ]; then
+                echo "Existing plan '${{ env.PLAN_NAME }}' is Linux — deleting it and its apps to recreate as Windows F1..."
+                az webapp delete --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.API_APP_NAME }} --output none 2>/dev/null || true
+                az webapp delete --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.WEB_APP_NAME }} --output none 2>/dev/null || true
+                az appservice plan delete --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.PLAN_NAME }} --yes --output none
+                PLAN_EXISTS=false
+              else
+                echo "ERROR: App Service Plan '${{ env.PLAN_NAME }}' already exists as Linux (B1)."
+                echo "Run this workflow manually (workflow_dispatch) with recreate_plan=true to delete it and the API/Web apps, then recreate everything as Windows F1 (free)."
+                exit 1
+              fi
+            fi
+          fi
+
+          if [ "$PLAN_EXISTS" = "false" ]; then
             for REGION in westeurope northeurope eastus eastus2 westus2 centralus southeastasia; do
               echo "Trying region: $REGION"
               if az appservice plan create \
                    --resource-group ${{ env.RESOURCE_GROUP }} \
                    --name ${{ env.PLAN_NAME }} \
                    --location $REGION \
-                   --sku B1 \
-                   --is-linux \
+                   --sku F1 \
                    --output none 2>/dev/null; then
                 echo "DEPLOY_REGION=$REGION" >> $GITHUB_ENV
                 echo "Plan created in $REGION"
@@ -109,7 +136,7 @@ jobs:
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --plan ${{ env.PLAN_NAME }} \
               --name ${{ env.API_APP_NAME }} \
-              --runtime "DOTNETCORE:8.0" \
+              --runtime "dotnet:8" \
               --output none
           fi
 
@@ -123,7 +150,7 @@ jobs:
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --plan ${{ env.PLAN_NAME }} \
               --name ${{ env.WEB_APP_NAME }} \
-              --runtime "DOTNETCORE:8.0" \
+              --runtime "dotnet:8" \
               --output none
           fi
 
@@ -246,7 +273,6 @@ jobs:
             "Cors__AllowedOrigins__0=https://${{ env.WEB_APP_NAME }}.azurewebsites.net"
             "Cors__AllowedOrigins__1=http://localhost:5078"
             "SCM_DO_BUILD_DURING_DEPLOYMENT=false"
-            "WEBSITE_CONTAINER_START_TIME_LIMIT=600"
           )
           if [ -n "$GOOGLE_CLIENT_ID" ]; then
             SETTINGS+=("ExternalAuth__GoogleClientId=$GOOGLE_CLIENT_ID")
@@ -265,7 +291,8 @@ jobs:
           az webapp log config \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.API_APP_NAME }} \
-            --docker-container-logging filesystem \
+            --application-logging filesystem \
+            --web-server-logging filesystem \
             --output none
 
       - name: Configure Web app settings
@@ -329,10 +356,8 @@ jobs:
             unzip -q /tmp/app-logs.zip -d /tmp/app-logs/ || true
             echo "=== All log files found ==="
             find /tmp/app-logs -type f | sort
-            echo "=== Application stdout (default_docker.log) — last 300 lines ==="
-            find /tmp/app-logs -type f -name "*default_docker*" | \
-              xargs -I{} sh -c 'echo "--- {} ---" && tail -300 {}' 2>/dev/null || \
-            find /tmp/app-logs -type f -name "*.log" | sort -r | head -3 | \
+            echo "=== Application logs — last 300 lines of most recent files ==="
+            find /tmp/app-logs -type f \( -iname "*.log" -o -iname "*.txt" \) | sort -r | head -3 | \
               xargs -I{} sh -c 'echo "--- {} ---" && tail -300 {}' 2>/dev/null || true
             echo "=== Exception/Error lines (all logs) ==="
             find /tmp/app-logs -type f | \
