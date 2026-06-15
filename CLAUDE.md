@@ -32,6 +32,13 @@ These require a clear "yes" or "approve" response before proceeding:
 
 ---
 
+## Branching & Code Organization Rules
+
+- **Work directly on `main`** — do not create feature/task branches or pull requests. Commit and push changes directly to `main` for all tasks, unless the user explicitly asks for a different branch in that conversation. (The "ask before `git push`" approval rule above still applies.)
+- **One type per file, no nested classes** — every class, interface, enum, record, etc. must be defined in its own file (named after the type), never as a nested/inner type inside another class. If existing nested classes are encountered while working in a file, extract them to their own files as part of that change.
+
+---
+
 ## Technology Focus
 
 When reviewing, editing, or scanning this repository, prioritize:
