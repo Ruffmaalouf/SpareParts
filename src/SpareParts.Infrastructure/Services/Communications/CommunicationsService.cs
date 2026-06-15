@@ -14,15 +14,18 @@ namespace SpareParts.Infrastructure.Services
     {
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingService _accountingService;
+        private readonly CustomersService _customersService;
         private readonly ICommunicationDeliveryClient _deliveryClient;
 
         public CommunicationsService(
             ISqlConnectionFactory factory,
             AccountingService accountingService,
+            CustomersService customersService,
             ICommunicationDeliveryClient deliveryClient)
         {
             _factory = factory;
             _accountingService = accountingService;
+            _customersService = customersService;
             _deliveryClient = deliveryClient;
         }
 
@@ -140,6 +143,7 @@ namespace SpareParts.Infrastructure.Services
                 CommunicationTemplateKey.PartAvailability => PreparePartAvailability(request),
                 CommunicationTemplateKey.UsedCarImages => PrepareUsedCarImages(request),
                 CommunicationTemplateKey.FreeText => PrepareFreeText(request),
+                CommunicationTemplateKey.AccountBalanceReminder => PrepareAccountBalanceReminder(request),
                 _ => throw new ValidationException($"Unsupported communication template '{request.TemplateKey}'.")
             };
 
@@ -193,6 +197,39 @@ namespace SpareParts.Infrastructure.Services
 
             session.Commit();
             return CreatePrepared(request, recipient, "SalesInvoice", invoice.InvoiceId, body);
+        }
+
+        private CommunicationPreparedMessage PrepareAccountBalanceReminder(SendBusinessMessageRequest request)
+        {
+            var customerId = RequireId(request.RecipientId, "Customer");
+
+            using var session = new DbSession(_factory);
+            var recipient = ResolveCustomer(session, customerId);
+            session.Commit();
+
+            var aging = _customersService.GetAging().FirstOrDefault(row => row.CustomerId == customerId);
+            if (aging is null || aging.TotalBalance <= 0)
+            {
+                throw new ValidationException("Customer has no outstanding balance.");
+            }
+
+            var buckets = new List<string>();
+            if (aging.Current > 0) buckets.Add($"Current: {Money(aging.Current)}");
+            if (aging.Days1To30 > 0) buckets.Add($"1-30 days: {Money(aging.Days1To30)}");
+            if (aging.Days31To60 > 0) buckets.Add($"31-60 days: {Money(aging.Days31To60)}");
+            if (aging.Days61To90 > 0) buckets.Add($"61-90 days: {Money(aging.Days61To90)}");
+            if (aging.Over90Days > 0) buckets.Add($"90+ days: {Money(aging.Over90Days)}");
+
+            var body = string.Join(Environment.NewLine, new[]
+            {
+                $"Hello {recipient.Name},",
+                $"This is a friendly reminder that your account has an outstanding balance of {Money(aging.TotalBalance)}.",
+                buckets.Count > 0 ? "Breakdown: " + string.Join(", ", buckets) : string.Empty,
+                AppendNote(request.Note),
+                "Please settle it when convenient. Thank you."
+            }.Where(line => !string.IsNullOrWhiteSpace(line)));
+
+            return CreatePrepared(request, recipient, "Customer", recipient.Id, body);
         }
 
         private CommunicationPreparedMessage PreparePurchaseInvoice(SendBusinessMessageRequest request)

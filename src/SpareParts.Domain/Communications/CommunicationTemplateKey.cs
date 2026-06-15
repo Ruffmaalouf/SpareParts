@@ -8,6 +8,7 @@ namespace SpareParts.Domain.Communications
         Statement = 3,
         PartAvailability = 4,
         UsedCarImages = 5,
-        FreeText = 6
+        FreeText = 6,
+        AccountBalanceReminder = 7
     }
 }

@@ -8,7 +8,13 @@ const commonPartnerFields = [
 ];
 
 export const crudConfigs = {
-  customers: { basePath: "/api/customers", fields: commonPartnerFields },
+  customers: {
+    basePath: "/api/customers",
+    fields: [
+      ...commonPartnerFields,
+      { key: "creditLimit", label: "Credit Limit", type: "number", optional: true }
+    ]
+  },
   suppliers: { basePath: "/api/suppliers", fields: commonPartnerFields },
   brands: {
     basePath: "/api/brands",

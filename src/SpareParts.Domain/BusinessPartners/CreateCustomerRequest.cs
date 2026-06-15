@@ -21,5 +21,8 @@ namespace SpareParts.Domain.BusinessPartners
 
         [Range(0, double.MaxValue)]
         public decimal OpeningBalance { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal CreditLimit { get; set; }
     }
 }

@@ -17,6 +17,15 @@ export class CommunicationPayloadFactory {
     };
   }
 
+  static accountBalanceReminder(customerId) {
+    return {
+      channel: 0,
+      templateKey: 7,
+      recipientKind: 0,
+      recipientId: customerId
+    };
+  }
+
   static partAvailability({ recipientName, recipientPhone, part }) {
     return {
       channel: 0,
