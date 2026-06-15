@@ -48,6 +48,7 @@ export function InvoicesView({ api }) {
   const [unitPrice, setUnitPrice] = useState("");
   const [draftItems, setDraftItems] = useState([]);
   const [availableStock, setAvailableStock] = useState(null);
+  const [profitHistory, setProfitHistory] = useState([]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -87,6 +88,12 @@ export function InvoicesView({ api }) {
   }, [api]);
 
   useEffect(() => { loadLookups(); }, [loadLookups]);
+
+  useEffect(() => {
+    api.get("/api/sales/profit-history?months=12")
+      .then((rows) => setProfitHistory(Array.isArray(rows) ? rows : []))
+      .catch(() => setProfitHistory([]));
+  }, [api]);
 
   const loadInvoiceDetail = useCallback(async (invoiceId) => {
     try {
@@ -394,6 +401,32 @@ export function InvoicesView({ api }) {
         )
       )
     ),
+    profitHistory.length > 0 && (() => {
+      const maxProfit = profitHistory.reduce((m, p) => Math.max(m, Math.abs(p.profit || 0)), 0);
+      return h("section", { className: "panel", style: { marginBottom: "1rem", padding: "1rem" } },
+        h("h4", { style: { margin: "0 0 0.75rem" } }, "Profit History (last 12 months)"),
+        profitHistory.map(({ period, profit, marginPercent, revenue, invoiceCount }) => {
+          const width = maxProfit > 0 ? Math.round((Math.abs(profit) / maxProfit) * 100) : 0;
+          return h("div", { key: period, style: { display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", fontSize: "0.85rem" } },
+            h("span", { style: { minWidth: "5rem", color: "#555" } }, period),
+            h("div", { style: { flex: 1, background: "#eee", borderRadius: "3px", height: "16px", position: "relative" } },
+              h("div", {
+                style: {
+                  width: `${width}%`,
+                  height: "100%",
+                  background: profit >= 0 ? "var(--accent-color, #4caf50)" : "#e53935",
+                  borderRadius: "3px",
+                  transition: "width 0.3s"
+                }
+              })
+            ),
+            h("span", { className: profitClass(profit), style: { minWidth: "6rem", textAlign: "right", fontWeight: 600 } }, money(profit, "USD")),
+            h("span", { style: { minWidth: "4rem", textAlign: "right", color: "#777" } }, revenue > 0 ? `${marginPercent}%` : "—"),
+            h("span", { style: { minWidth: "5rem", textAlign: "right", color: "#999" } }, `${invoiceCount} sale${invoiceCount === 1 ? "" : "s"}`)
+          );
+        })
+      );
+    })(),
     h("section", { className: "table-panel" },
       h(DataTable, {
         columns: [

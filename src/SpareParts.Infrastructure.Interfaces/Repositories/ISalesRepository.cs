@@ -12,5 +12,6 @@ namespace SpareParts.Infrastructure.Interfaces.Repositories
         SalesInvoiceDetailsDto? GetInvoiceById(int invoiceId);
         bool UpdateInvoice(int invoiceId, SalesInvoice invoice, IList<SalesInvoiceItem> items, int userId);
         bool ApplyPayment(int invoiceId, decimal paidAmount, string paymentStatus, string? paymentMethod, int userId);
+        List<SalesProfitHistoryPointDto> GetProfitHistory(int months);
     }
 }

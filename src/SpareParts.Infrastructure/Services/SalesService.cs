@@ -60,6 +60,13 @@ namespace SpareParts.Infrastructure.Services
             return salesRepository.GetInvoiceById(invoiceId);
         }
 
+        public List<SalesProfitHistoryPointDto> GetProfitHistory(int months)
+        {
+            using var session = new DbSession(_factory);
+            var salesRepository = new SalesRepository(session);
+            return salesRepository.GetProfitHistory(months);
+        }
+
         public IssueSalePaymentResponse IssuePayment(int invoiceId, IssueSalePaymentRequest request, int userId)
         {
             if (request.Amount <= 0m)

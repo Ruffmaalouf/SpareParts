@@ -533,6 +533,7 @@ public class CriticalPathTests
         public SalesInvoiceDetailsDto? GetInvoiceById(int invoiceId) => throw new NotSupportedException();
         public bool UpdateInvoice(int invoiceId, SalesInvoice invoice, IList<SalesInvoiceItem> items, int userId) => throw new NotSupportedException();
         public bool ApplyPayment(int invoiceId, decimal paidAmount, string paymentStatus, string? paymentMethod, int userId) => throw new NotSupportedException();
+        public List<SalesProfitHistoryPointDto> GetProfitHistory(int months) => throw new NotSupportedException();
     }
 
     private sealed class AlwaysDuplicatePurchasesRepository : IPurchasesRepository
