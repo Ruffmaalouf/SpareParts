@@ -97,3 +97,7 @@ appsettings.Development.json
 
 # Claude Code session files
 .claude/
+src/SpareParts.Api/Hosting/SparePartsApiComposition_BACKUP_117.cs
+src/SpareParts.Api/Hosting/SparePartsApiComposition_BASE_117.cs
+src/SpareParts.Api/Hosting/SparePartsApiComposition_LOCAL_117.cs
+src/SpareParts.Api/Hosting/SparePartsApiComposition_REMOTE_117.cs
