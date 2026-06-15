@@ -27,6 +27,7 @@ namespace SpareParts.Infrastructure.Data
                             c.Address,
                             c.TaxNumber,
                             c.OpeningBalance,
+                            c.CreditLimit,
                             c.AccountId,
                             a.Code AS AccountCode,
                             a.Name AS AccountName
@@ -41,6 +42,7 @@ namespace SpareParts.Infrastructure.Data
                             c.Address,
                             c.TaxNumber,
                             c.OpeningBalance,
+                            c.CreditLimit,
                             CAST(NULL AS INT) AS AccountId,
                             CAST(NULL AS NVARCHAR(20)) AS AccountCode,
                             CAST(NULL AS NVARCHAR(160)) AS AccountName
@@ -68,6 +70,7 @@ namespace SpareParts.Infrastructure.Data
                            c.Address,
                            c.TaxNumber,
                            c.OpeningBalance,
+                           c.CreditLimit,
                            c.AccountId,
                            a.Code AS AccountCode,
                            a.Name AS AccountName
@@ -85,6 +88,7 @@ namespace SpareParts.Infrastructure.Data
                            c.Address,
                            c.TaxNumber,
                            c.OpeningBalance,
+                           c.CreditLimit,
                            CAST(NULL AS INT) AS AccountId,
                            CAST(NULL AS NVARCHAR(20)) AS AccountCode,
                            CAST(NULL AS NVARCHAR(160)) AS AccountName
@@ -108,14 +112,14 @@ namespace SpareParts.Infrastructure.Data
             var hasAccountId = AccountingSchemaInspector.HasColumn(_session, "dbo.Customers", "AccountId");
             var sql = hasAccountId
                 ? @"INSERT INTO Customers
-                    (Name, Phone, Email, Address, TaxNumber, OpeningBalance, AccountId, TenantId, CreatedAt, CreatedByUserId)
+                    (Name, Phone, Email, Address, TaxNumber, OpeningBalance, CreditLimit, AccountId, TenantId, CreatedAt, CreatedByUserId)
                     VALUES
-                    (@Name, @Phone, @Email, @Address, @TaxNumber, @OpeningBalance, @AccountId, @TenantId, @CreatedAt, @CreatedByUserId);
+                    (@Name, @Phone, @Email, @Address, @TaxNumber, @OpeningBalance, @CreditLimit, @AccountId, @TenantId, @CreatedAt, @CreatedByUserId);
                     SELECT CAST(SCOPE_IDENTITY() AS INT);"
                 : @"INSERT INTO Customers
-                    (Name, Phone, Email, Address, TaxNumber, OpeningBalance, TenantId, CreatedAt, CreatedByUserId)
+                    (Name, Phone, Email, Address, TaxNumber, OpeningBalance, CreditLimit, TenantId, CreatedAt, CreatedByUserId)
                     VALUES
-                    (@Name, @Phone, @Email, @Address, @TaxNumber, @OpeningBalance, @TenantId, @CreatedAt, @CreatedByUserId);
+                    (@Name, @Phone, @Email, @Address, @TaxNumber, @OpeningBalance, @CreditLimit, @TenantId, @CreatedAt, @CreatedByUserId);
                     SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
             var parameters = new DynamicParameters(customer);
@@ -134,6 +138,7 @@ namespace SpareParts.Infrastructure.Data
                             Address,
                             TaxNumber,
                             OpeningBalance,
+                            CreditLimit,
                             AccountId,
                             CreatedAt,
                             CreatedByUserId,
@@ -148,6 +153,7 @@ namespace SpareParts.Infrastructure.Data
                             Address,
                             TaxNumber,
                             OpeningBalance,
+                            CreditLimit,
                             CAST(NULL AS INT) AS AccountId,
                             CreatedAt,
                             CreatedByUserId,
@@ -166,7 +172,7 @@ namespace SpareParts.Infrastructure.Data
         {
             const string sql = @"UPDATE Customers
                                  SET Name = @Name, Phone = @Phone, Email = @Email, Address = @Address,
-                                     TaxNumber = @TaxNumber, OpeningBalance = @OpeningBalance,
+                                     TaxNumber = @TaxNumber, OpeningBalance = @OpeningBalance, CreditLimit = @CreditLimit,
                                      ModifiedAt = @Now, ModifiedByUserId = @UserId
                                  WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)";
             var updated = _session.Connection.Execute(sql, new
@@ -178,6 +184,7 @@ namespace SpareParts.Infrastructure.Data
                 request.Address,
                 request.TaxNumber,
                 request.OpeningBalance,
+                request.CreditLimit,
                 Now = DateTime.UtcNow,
                 UserId = userId,
                 TenantId = _session.TenantId

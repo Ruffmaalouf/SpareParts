@@ -1,6 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
 import { money } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
+import { CommunicationPayloadFactory } from "../services/communication-payload-factory.js";
 
 function agingClass(amount) {
   if (!amount || amount <= 0) return "";
@@ -17,6 +18,7 @@ export function CustomerAgingView({ api }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [reminderCustomerId, setReminderCustomerId] = useState(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -33,6 +35,19 @@ export function CustomerAgingView({ api }) {
   }, [api]);
 
   useEffect(() => { load(); }, [load]);
+
+  const sendReminder = useCallback(async (row) => {
+    setReminderCustomerId(row.customerId);
+    setStatus(`Sending payment reminder to ${row.customerName}...`);
+    try {
+      await api.post("/api/communications/send", CommunicationPayloadFactory.accountBalanceReminder(row.customerId));
+      setStatus(`Payment reminder sent to ${row.customerName}.`);
+    } catch (error) {
+      setStatus(error.message || `Could not send reminder to ${row.customerName}.`);
+    } finally {
+      setReminderCustomerId(null);
+    }
+  }, [api]);
 
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -127,6 +142,16 @@ export function CustomerAgingView({ api }) {
             key: "total",
             label: "Total",
             render: (row) => h("strong", null, money(row.totalBalance, "USD"))
+          },
+          {
+            key: "actions",
+            label: "Actions",
+            render: (row) => h("button", {
+              className: "secondary-button",
+              disabled: reminderCustomerId === row.customerId || !row.phone,
+              title: row.phone ? "" : "No phone number on file",
+              onClick: () => sendReminder(row)
+            }, reminderCustomerId === row.customerId ? "Sending..." : "Send Reminder")
           }
         ],
         rows: visibleRows,

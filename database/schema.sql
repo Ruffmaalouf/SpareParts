@@ -210,6 +210,7 @@ CREATE TABLE dbo.Customers (
     Address           NVARCHAR(500) NULL,
     TaxNumber         NVARCHAR(50)  NULL,
     OpeningBalance    DECIMAL(19,4) NOT NULL DEFAULT 0,
+    CreditLimit       DECIMAL(19,4) NOT NULL DEFAULT 0,
     AccountId         INT           NULL,
     CreatedAt         DATETIME2     NOT NULL,
     CreatedByUserId   INT           NULL,

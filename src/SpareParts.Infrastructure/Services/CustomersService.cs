@@ -39,6 +39,7 @@ public sealed class CustomersService
             Address = request.Address,
             TaxNumber = request.TaxNumber,
             OpeningBalance = request.OpeningBalance,
+            CreditLimit = request.CreditLimit,
             AccountId = null,
             CreatedAt = DateTime.UtcNow,
             CreatedByUserId = userId
