@@ -1,21 +1,31 @@
 import { normalizeBaseUrl } from "./formatters.js";
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, details = {}) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.errorCode = details.errorCode || null;
+    this.currentPlan = details.currentPlan || null;
+    this.requiredPlans = details.requiredPlans || [];
+    this.upgradeUrl = details.upgradeUrl || null;
   }
 }
 
 async function readError(response) {
   const text = await response.text();
-  if (!text) return `${response.status} ${response.statusText}`.trim();
+  if (!text) return { message: `${response.status} ${response.statusText}`.trim() };
   try {
     const json = JSON.parse(text);
-    return json.message || json.title || json.error || text;
+    return {
+      message: json.message || json.title || json.error || text,
+      errorCode: json.errorCode,
+      currentPlan: json.currentPlan,
+      requiredPlans: json.requiredPlans,
+      upgradeUrl: json.upgradeUrl
+    };
   } catch {
-    return text;
+    return { message: text };
   }
 }
 
@@ -34,10 +44,11 @@ function isPartsCollectionPath(path) {
 }
 
 export class ApiClient {
-  constructor(apiBaseUrl, token, onUnauthorized = null) {
+  constructor(apiBaseUrl, token, onUnauthorized = null, onPlanLocked = null) {
     this.apiBaseUrl = normalizeBaseUrl(apiBaseUrl);
     this.token = token || "";
     this.onUnauthorized = onUnauthorized;
+    this.onPlanLocked = onPlanLocked;
   }
 
   async requestResponse(path, options = {}) {
@@ -60,10 +71,16 @@ export class ApiClient {
         this.onUnauthorized();
       }
 
-      const message = response.status === 401
-        ? "Session expired. Sign in again."
-        : await readError(response);
-      throw new ApiError(message, response.status);
+      if (response.status === 401) {
+        throw new ApiError("Session expired. Sign in again.", response.status);
+      }
+
+      const details = await readError(response);
+      const error = new ApiError(details.message, response.status, details);
+      if (response.status === 403 && error.errorCode && this.onPlanLocked) {
+        this.onPlanLocked(error);
+      }
+      throw error;
     }
 
     return response;

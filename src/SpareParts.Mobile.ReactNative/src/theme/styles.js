@@ -5688,6 +5688,96 @@ function createStyles(palette) {
     fontWeight: "900",
     letterSpacing: -0.4,
     color: palette.text
+  },
+
+  /* Billing & subscription */
+  billingPlanCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    gap: 8
+  },
+  billingPlanCardActive: {
+    borderColor: palette.accent
+  },
+  billingPlanHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  billingPlanName: {
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  billingPlanDescription: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 17
+  },
+  billingPlanPrice: {
+    color: palette.accent,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  billingBadge: {
+    alignSelf: "flex-start",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    fontSize: 10,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    overflow: "hidden",
+    color: "#fff"
+  },
+  billingBadgeSuccess: { backgroundColor: "#16a34a" },
+  billingBadgeWarning: { backgroundColor: "#d97706" },
+  billingBadgeDanger: { backgroundColor: "#dc2626" },
+  billingBadgeAccent: { backgroundColor: palette.accent },
+  billingBadgeMuted: { backgroundColor: palette.soft },
+
+  /* Locked feature modal */
+  lockModalOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.55)",
+    padding: 20
+  },
+  lockModalCard: {
+    width: "100%",
+    maxWidth: 380,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 18,
+    gap: 10
+  },
+  lockModalTitle: {
+    color: palette.text,
+    fontSize: 17,
+    fontWeight: "900"
+  },
+  lockModalMessage: {
+    color: palette.text,
+    fontSize: 13,
+    lineHeight: 19
+  },
+  lockModalMeta: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  lockModalActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8
   }
 });
 }

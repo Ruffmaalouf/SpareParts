@@ -16,6 +16,7 @@ const { MobileSessionStore } = require("./core/session-store");
 const { normalizeBaseUrl, normalizeLanguageKey, normalizeThemeKey } = require("./core/formatters");
 const { AppSidebar } = require("./components/app-sidebar");
 const { BottomTabBar } = require("./components/bottom-tab-bar");
+const { LockedFeatureModal } = require("./components/locked-feature-modal");
 const { SmartSearch } = require("./components/smart-search");
 const { LoginScreen } = require("./screens/login-screen");
 const { CustomerStorefrontScreen } = require("./screens/customer-storefront-screen");
@@ -49,6 +50,7 @@ function AppContent() {
   const [languageKey, setLanguageKey] = useState(defaultLanguageKey);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
+  const [planLock, setPlanLock] = useState(null);
   const themeBundle = useMemo(() => {
     const nextPalette = createPalette(themeKey);
     const isRtl = isRtlLanguage(languageKey);
@@ -91,7 +93,16 @@ function AppContent() {
     setToken("");
     setUser(null);
   }, []);
-  const api = useMemo(() => new ApiClient(apiBaseUrl, token, clearSession), [apiBaseUrl, clearSession, token]);
+  const handlePlanLocked = useCallback((error) => {
+    setPlanLock({
+      errorCode: error.errorCode,
+      message: error.message,
+      currentPlan: error.currentPlan,
+      requiredPlans: error.requiredPlans,
+      upgradeUrl: error.upgradeUrl
+    });
+  }, []);
+  const api = useMemo(() => new ApiClient(apiBaseUrl, token, clearSession, handlePlanLocked), [apiBaseUrl, clearSession, handlePlanLocked, token]);
   const isCustomerMode = Boolean(user && isWebAppUser(user));
   const bottomTabs = useMemo(
     () => bottomTabKeys
@@ -146,6 +157,13 @@ function AppContent() {
       setIsSidebarOpen(false);
     }
   }, [isWideLayout]);
+
+  const dismissPlanLock = useCallback(() => setPlanLock(null), []);
+
+  const goToBilling = useCallback(() => {
+    setPlanLock(null);
+    selectScreen("billing");
+  }, [selectScreen]);
 
   const handleLogin = useCallback(async (nextApiBaseUrl, loginResponse) => {
     const normalizedUrl = normalizeBaseUrl(nextApiBaseUrl);
@@ -224,7 +242,8 @@ function AppContent() {
             onSelect: selectScreen
           })
         )
-      )
+      ),
+      el(LockedFeatureModal, { lock: planLock, onClose: dismissPlanLock, onUpgrade: goToBilling })
     );
   }
 

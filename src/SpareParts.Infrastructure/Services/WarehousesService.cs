@@ -1,5 +1,6 @@
 using Dapper;
 using SpareParts.Domain.MasterData;
+using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Interfaces;
 
@@ -9,11 +10,13 @@ public sealed class WarehousesService
 {
     private readonly ISqlConnectionFactory _factory;
     private readonly ITenantContext _tenantContext;
+    private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-    public WarehousesService(ISqlConnectionFactory factory, ITenantContext tenantContext)
+    public WarehousesService(ISqlConnectionFactory factory, ITenantContext tenantContext, ISubscriptionLimitService subscriptionLimitService)
     {
         _factory = factory;
         _tenantContext = tenantContext;
+        _subscriptionLimitService = subscriptionLimitService;
     }
 
     public IEnumerable<WarehouseDto> GetAll()
@@ -27,6 +30,12 @@ public sealed class WarehousesService
     public int Create(CreateWarehouseRequest request)
     {
         using var conn = _factory.CreateConnection();
+
+        var branchesCount = conn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM Warehouses WHERE (@TenantId = 0 OR TenantId = @TenantId)",
+            new { TenantId = _tenantContext.TenantId });
+        _subscriptionLimitService.EnsureWithinLimit(_tenantContext.TenantId, LimitCode.BranchesCount, branchesCount, "Warehouse/Branch Locations");
+
         var id = conn.ExecuteScalar<int>(
             @"INSERT INTO Warehouses (Name, Barcode, Address, IsMain, TenantId, CreatedAt)
               VALUES (@Name, @Barcode, @Address, @IsMain, @TenantId, @Now);

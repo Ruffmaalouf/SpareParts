@@ -16,6 +16,7 @@ using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Services;
+using SpareParts.Infrastructure.Services.Pricing;
 using ITenantContext = SpareParts.Infrastructure.Interfaces.ITenantContext;
 using System.Net.Http.Headers;
 using System.Text;
@@ -39,7 +40,8 @@ public static class SparePartsApiComposition
             ServiceCapability.Identity,
             ServiceCapability.Catalog,
             ServiceCapability.Reporting,
-            ServiceCapability.Health
+            ServiceCapability.Health,
+            ServiceCapability.Billing
         ]),
         new("SpareParts.Sales.Api", [ServiceCapability.Sales, ServiceCapability.Health]),
         new("SpareParts.Purchases.Api", [ServiceCapability.Purchases, ServiceCapability.Health]),
@@ -87,7 +89,8 @@ public static class SparePartsApiComposition
         nameof(ShipmentsMigration),
         nameof(ActivityLogMigration),
         nameof(QuotesMigration),
-        nameof(CustomerCreditLimitMigration)
+        nameof(CustomerCreditLimitMigration),
+        nameof(PricingPackagesMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
@@ -99,7 +102,8 @@ public static class SparePartsApiComposition
         [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController)],
         [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController)],
         [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController)],
-        [ServiceCapability.Health] = [nameof(HealthController)]
+        [ServiceCapability.Health] = [nameof(HealthController)],
+        [ServiceCapability.Billing] = [nameof(PricingController), nameof(SubscriptionController), nameof(PaymentsController), nameof(InvoicesController), nameof(AdminPricingController), nameof(AdminSubscriptionsController), nameof(AdminPaymentsController), nameof(AdminInvoicesController)]
     };
 
     static SparePartsApiComposition()
@@ -124,11 +128,13 @@ public static class SparePartsApiComposition
         var openAiOptions = ResolveOpenAiOptions(builder.Configuration);
         var communicationOptions = ResolveCommunicationOptions(builder.Configuration);
         var externalAuthSettings = builder.Configuration.GetSection("ExternalAuth").Get<ExternalAuthSettings>() ?? new ExternalAuthSettings();
+        var paymentSettings = builder.Configuration.GetSection("Payments").Get<PaymentSettings>() ?? new PaymentSettings();
 
         builder.Services.AddSingleton(accountingOptions);
         builder.Services.AddSingleton(openAiOptions);
         builder.Services.AddSingleton(communicationOptions);
         builder.Services.AddSingleton(externalAuthSettings);
+        builder.Services.AddSingleton(paymentSettings);
 
         builder.Services.AddSingleton<ISqlConnectionFactory>(_ => new SqlConnectionFactory(connString));
         builder.Services.AddSingleton<IExceptionLogWriter, SqlExceptionLogWriter>();
@@ -229,6 +235,19 @@ public static class SparePartsApiComposition
         services.AddScoped<TenantContext>();
         services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
         services.AddScoped<TenantsService>();
+
+        // Pricing/subscription/payment services are always registered — ISubscriptionLimitService is consulted
+        // by feature/limit checks across other capabilities (Inventory, Identity, Sales, ...).
+        services.AddScoped<IPricingPackageService, PricingPackageService>();
+        services.AddScoped<ISubscriptionLimitService, SubscriptionLimitService>();
+        services.AddScoped<ISubscriptionService, SubscriptionService>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IPaymentProviderFactory, PaymentProviderFactory>();
+        services.AddScoped<IPaymentProvider, ManualPaymentProvider>();
+        services.AddScoped<IPaymentProvider, TestPaymentProvider>();
+        services.AddHttpClient<IPaymentProvider, StripePaymentProvider>();
+        services.AddHostedService<SubscriptionMaintenanceHostedService>();
 
         if (distinctCapabilities.Contains(ServiceCapability.Sales))
         {
@@ -435,8 +454,12 @@ public static class SparePartsApiComposition
         ActivityLogMigration.EnsureApplied(factory);
         QuotesMigration.EnsureApplied(factory);
         CustomerCreditLimitMigration.EnsureApplied(factory);
+<<<<<<< HEAD
         TenantsMigration.EnsureApplied(factory);
         TenantIdMigration.EnsureApplied(factory);
+=======
+        PricingPackagesMigration.EnsureApplied(factory);
+>>>>>>> 8b0d14ea25edc438a596375278935252add7126c
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)

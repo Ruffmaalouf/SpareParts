@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Cars;
 using SpareParts.Domain.Common;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.Pricing;
 using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Interfaces;
@@ -18,13 +19,20 @@ public sealed class PartsService
     private readonly PartNotesAiService _partNotesAiService;
     private readonly IInventoryService _inventoryService;
     private readonly ITenantContext _tenantContext;
+    private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-    public PartsService(ISqlConnectionFactory factory, PartNotesAiService partNotesAiService, IInventoryService inventoryService, ITenantContext tenantContext)
+    public PartsService(
+        ISqlConnectionFactory factory,
+        PartNotesAiService partNotesAiService,
+        IInventoryService inventoryService,
+        ITenantContext tenantContext,
+        ISubscriptionLimitService subscriptionLimitService)
     {
         _factory = factory;
         _partNotesAiService = partNotesAiService;
         _inventoryService = inventoryService;
         _tenantContext = tenantContext;
+        _subscriptionLimitService = subscriptionLimitService;
     }
 
     public (IEnumerable<PartDto> Items, int TotalCount) GetAll(int page, int pageSize, int? usedCarId = null)
@@ -307,6 +315,12 @@ ORDER BY
     {
         using var session = new DbSession(_factory);
         ValidateUsedCar(session, request.UsedCarId);
+
+        var activePartsCount = session.Connection.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM dbo.Parts WHERE IsActive = 1 AND TenantId = @TenantId",
+            new { TenantId = _tenantContext.TenantId },
+            session.Transaction);
+        _subscriptionLimitService.EnsureWithinLimit(_tenantContext.TenantId, LimitCode.ActivePartsCount, activePartsCount, "Active Parts");
 
         var repository = new PartsRepository(session);
         var part = new Part

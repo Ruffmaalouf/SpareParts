@@ -10,6 +10,8 @@ const iconPaths = {
   "part-requests": "M5 5h14v10H8l-3 3V5Zm4 4h6m-6 3h4M17 17l2 2 4-5",
   contacts: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
   management: "M4 5h7v7H4V5Zm9 0h7v7h-7V5ZM4 14h7v5H4v-5Zm9 0h7v5h-7v-5Z",
+  billing: "M4 6h16v12H4V6Zm0 4h16M7 15h4M14 4v2M10 4v2",
+  "admin-billing": "M12 3 4 6v5c0 4.5 3.2 7.7 8 9 4.8-1.3 8-4.5 8-9V6l-8-3Zm0 4v9m-3-4 3 1 3-1",
   settings: "M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0-5 1.4 3 3.3.3-2.4 2.2.7 3.2-3-1.7-3 1.7.7-3.2-2.4-2.2 3.3-.3L12 3Z",
   "purchase-parts": "M5 6h14v12H5V6Zm3-3h8v3H8V3Zm1 7h6m-6 4h4",
   "used-car-purchases": "M4 15h2l2-5h8l2 5h2v4h-2a2 2 0 0 1-4 0h-4a2 2 0 0 1-4 0H4v-4Zm5-3-1 3h8l-1-3H9Z",
@@ -30,11 +32,15 @@ const iconPaths = {
 };
 
 const navGroups = [
-  { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "settings"] },
+  { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
   { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
   { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
-  { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar", "activity-log"] }
+  { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar", "activity-log"] },
+  { key: "platform", label: "Platform Admin", items: ["admin-billing"] }
 ];
+
+const SUPER_ADMIN_ROLE_ID = 5;
+const superAdminOnlyKeys = new Set(["admin-billing"]);
 
 function NavIcon({ name }) {
   return h("svg", {
@@ -60,9 +66,11 @@ export function BrandMark({ label = "Maalouf Auto Parts", size = "", variant = "
 }
 
 export function Sidebar({ screens, view, onView, onLogout, t, user }) {
-  const screenMap = new Map(screens.map((screen) => [screen.key, screen]));
+  const roleId = Number(user?.roleId ?? user?.RoleId);
+  const visibleScreens = screens.filter((screen) => !superAdminOnlyKeys.has(screen.key) || roleId === SUPER_ADMIN_ROLE_ID);
+  const screenMap = new Map(visibleScreens.map((screen) => [screen.key, screen]));
   const groupedKeys = new Set(navGroups.flatMap((group) => group.items));
-  const extraScreens = screens.filter((screen) => !groupedKeys.has(screen.key));
+  const extraScreens = visibleScreens.filter((screen) => !groupedKeys.has(screen.key));
   const groups = [
     ...navGroups.map((group) => ({
       ...group,
@@ -71,7 +79,6 @@ export function Sidebar({ screens, view, onView, onLogout, t, user }) {
     extraScreens.length ? { key: "extra", label: "Other", screens: extraScreens } : null
   ].filter((group) => group && group.screens.length > 0);
   const displayName = user?.fullName || user?.name || user?.username || "Administrator";
-  const roleId = user?.roleId ?? user?.RoleId;
 
   return h("aside", { className: "sidebar" },
     h("div", { className: "sidebar-brand" },

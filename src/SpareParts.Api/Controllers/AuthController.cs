@@ -6,6 +6,7 @@ using SpareParts.Api.Hosting;
 using SpareParts.Api.Infrastructure;
 using SpareParts.Api.Services;
 using SpareParts.Domain.Auth;
+using SpareParts.Domain.Pricing;
 
 namespace SpareParts.Api.Controllers
 {
@@ -13,20 +14,45 @@ namespace SpareParts.Api.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
+        private const string ClientPlatformHeader = "X-Client-Platform";
+        private const string MobileClientPlatform = "mobile";
+
         private readonly AuthService _service;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly ISubscriptionLimitService _subscriptionLimitService;
 
-        public AuthController(AuthService service, IHostEnvironment hostEnvironment)
+        public AuthController(AuthService service, IHostEnvironment hostEnvironment, ISubscriptionLimitService subscriptionLimitService)
         {
             _service = service;
             _hostEnvironment = hostEnvironment;
+            _subscriptionLimitService = subscriptionLimitService;
         }
 
         [HttpPost("login")]
         [AllowAnonymous]
         [EnableRateLimiting(SparePartsApiComposition.AuthRateLimitPolicy)]
         public ActionResult<LoginResponse> Login([FromBody] LoginRequest req)
-            => Ok(_service.Login(req));
+        {
+            var response = _service.Login(req);
+            EnsureMobileSellerAppAllowed(response);
+            return Ok(response);
+        }
+
+        private void EnsureMobileSellerAppAllowed(LoginResponse response)
+        {
+            var isMobileClient = string.Equals(Request.Headers[ClientPlatformHeader].ToString(), MobileClientPlatform, StringComparison.OrdinalIgnoreCase);
+            if (!isMobileClient)
+            {
+                return;
+            }
+
+            if (response.RoleId == AuthorizationPolicies.WebAppUserRoleId || response.RoleId == AuthorizationPolicies.SuperAdminRoleId)
+            {
+                return;
+            }
+
+            _subscriptionLimitService.EnsureFeatureEnabled(response.TenantId, FeatureCode.MobileSellerApp, "Mobile Seller App");
+        }
 
         [HttpPost("external-login")]
         [AllowAnonymous]

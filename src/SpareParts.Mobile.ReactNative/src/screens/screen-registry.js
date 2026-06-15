@@ -1,6 +1,7 @@
 const { featureModules } = require("../core/app-config");
 const { ScreenRegistry } = require("../core/screen-registry");
 const { AccountingScreen } = require("./accounting-screen");
+const { BillingScreen } = require("./billing-screen");
 const { ContactsScreen } = require("./contacts-screen");
 const { DashboardScreen } = require("./dashboard-screen");
 const { DeadStockScreen } = require("./dead-stock-screen");
@@ -26,6 +27,7 @@ const screenRegistry = new ScreenRegistry([
   { key: "compatibility", label: "Compatibility", component: PartCompatibilityScreen },
   { key: "contacts", label: "Contacts", component: ContactsScreen },
   { key: "management", label: "Management", component: ManagementScreen },
+  { key: "billing", label: "Billing & Subscription", component: BillingScreen },
   { key: "settings", label: "Settings", component: SettingsScreen },
   { key: "part-requests", label: "Part Requests", component: createModuleScreen(moduleByKey("part-requests")) },
   { key: "purchase-parts", label: "Part Purchases", component: createModuleScreen(moduleByKey("purchase-parts")) },

@@ -1,6 +1,8 @@
 import { featureModules } from "../core/config.js";
 import { ScreenRegistry } from "../core/screen-registry.js";
 import { ActivityLogView } from "./activity-log-view.js";
+import { AdminBillingView } from "./admin-billing-view.js";
+import { BillingView } from "./billing-view.js";
 import { ContactsView } from "./contacts-view.js";
 import { CustomerAgingView } from "./customer-aging-view.js";
 import { SupplierAgingView } from "./supplier-aging-view.js";
@@ -41,6 +43,7 @@ export const screenRegistry = new ScreenRegistry([
   { key: "part-requests", label: "Part Requests", component: PartRequestsView },
   { key: "contacts", label: "Contacts", component: ContactsView },
   { key: "management", label: "Management", component: ManagementWorkspaceView },
+  { key: "billing", label: "Billing & Subscription", component: BillingView },
   { key: "settings", label: "Settings", component: SettingsView },
   { key: "purchase-parts", label: "Part Purchases", component: createModuleView(moduleByKey("purchase-parts")) },
   { key: "used-car-purchases", label: "Used Car Purchases", component: createModuleView(moduleByKey("used-car-purchases")) },
@@ -65,5 +68,6 @@ export const screenRegistry = new ScreenRegistry([
   { key: "activity-log", label: "Activity Log", component: ActivityLogView },
   { key: "quotes", label: "Quotes / Estimates", component: QuotesView },
   { key: "customer-aging", label: "Customer Aging", component: CustomerAgingView },
-  { key: "supplier-aging", label: "Supplier Aging", component: SupplierAgingView }
+  { key: "supplier-aging", label: "Supplier Aging", component: SupplierAgingView },
+  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingView }
 ]);
