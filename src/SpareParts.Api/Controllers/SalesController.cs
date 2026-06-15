@@ -36,6 +36,10 @@ namespace SpareParts.Api.Controllers
             => Ok(_salesService.GetInvoiceById(invoiceId)
                 ?? throw new NotFoundException($"Sale invoice {invoiceId} not found."));
 
+        [HttpGet("profit-history")]
+        public ActionResult<List<SalesProfitHistoryPointDto>> GetProfitHistory([FromQuery] int months = 12)
+            => Ok(_salesService.GetProfitHistory(months));
+
         [HttpPut("{invoiceId:int}")]
         public IActionResult UpdateSale(int invoiceId, [FromBody] UpdateSaleRequest request)
         {

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using SpareParts.Domain.Auth;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Domain.Inventory;
+using SpareParts.Domain.Sales;
 
 namespace SpareParts.ArchitectureTests;
 
@@ -101,5 +102,53 @@ public class DomainValidationTests
     public void PartDefaults_Currency_IsUsd()
     {
         Assert.Equal("USD", PartDefaults.Currency);
+    }
+
+    [Fact]
+    public void SalesProfitHistoryBuilder_ReturnsOneBucketPerMonth_InChronologicalOrder()
+    {
+        var asOf = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc);
+
+        var points = SalesProfitHistoryBuilder.Build([], months: 3, asOf: asOf);
+
+        Assert.Equal(["2026-04", "2026-05", "2026-06"], points.Select(p => p.Period).ToArray());
+        Assert.All(points, p =>
+        {
+            Assert.Equal(0, p.InvoiceCount);
+            Assert.Equal(0m, p.Revenue);
+            Assert.Equal(0m, p.Profit);
+            Assert.Equal(0m, p.MarginPercent);
+        });
+    }
+
+    [Fact]
+    public void SalesProfitHistoryBuilder_AggregatesRevenueCostAndProfit_PerMonth()
+    {
+        var asOf = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc);
+        SalesProfitHistoryRawLine[] lines =
+        [
+            new(new DateTime(2026, 5, 10), TransactionId: 1, Quantity: 2, UnitPrice: 100m, CostPrice: 60m),
+            new(new DateTime(2026, 5, 20), TransactionId: 1, Quantity: 1, UnitPrice: 50m, CostPrice: 20m),
+            new(new DateTime(2026, 6, 1), TransactionId: 2, Quantity: 3, UnitPrice: 10m, CostPrice: 4m),
+            new(new DateTime(2025, 1, 1), TransactionId: 99, Quantity: 5, UnitPrice: 1000m, CostPrice: 1m)
+        ];
+
+        var points = SalesProfitHistoryBuilder.Build(lines, months: 2, asOf: asOf);
+
+        Assert.Equal(["2026-05", "2026-06"], points.Select(p => p.Period).ToArray());
+
+        var may = points[0];
+        Assert.Equal(1, may.InvoiceCount);
+        Assert.Equal(250m, may.Revenue);
+        Assert.Equal(140m, may.Cost);
+        Assert.Equal(110m, may.Profit);
+        Assert.Equal(44m, may.MarginPercent);
+
+        var june = points[1];
+        Assert.Equal(1, june.InvoiceCount);
+        Assert.Equal(30m, june.Revenue);
+        Assert.Equal(12m, june.Cost);
+        Assert.Equal(18m, june.Profit);
+        Assert.Equal(60m, june.MarginPercent);
     }
 }

@@ -295,6 +295,41 @@ namespace SpareParts.Infrastructure.Data
             return invoice;
         }
 
+        public List<SalesProfitHistoryPointDto> GetProfitHistory(int months)
+        {
+            if (months <= 0)
+            {
+                months = 1;
+            }
+
+            var now = DateTime.UtcNow;
+            var startDate = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-(months - 1));
+
+            const string sql = @"SELECT
+                                        t.Id AS TransactionId,
+                                        t.TransactionDate,
+                                        ti.Quantity,
+                                        ti.UnitPrice,
+                                        ISNULL(p.CostPrice, 0) AS CostPrice
+                                  FROM dbo.TransactionItems ti
+                                  INNER JOIN dbo.Transactions t ON t.Id = ti.TransactionId
+                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+                                  LEFT JOIN dbo.Parts p ON p.Id = ti.PartId
+                                  WHERE tt.TypeKey = @TypeKey
+                                    AND t.TransactionDate >= @StartDate;";
+
+            var lines = _session.Connection.Query<SalesProfitHistoryRawLine>(
+                sql,
+                new
+                {
+                    TypeKey = TransactionTypeKeys.Sale,
+                    StartDate = startDate
+                },
+                _session.Transaction);
+
+            return SalesProfitHistoryBuilder.Build(lines, months, now);
+        }
+
         public bool InvoiceNumberExists(string invoiceNumber)
         {
             const string sql = @"SELECT COUNT(1)
