@@ -53,8 +53,8 @@ public class TenantIsolationTests
         var tenant1Context = InMemorySqliteConnectionFactory.ForTenant(1, "t1");
         var tenant2Context = InMemorySqliteConnectionFactory.ForTenant(2, "t2");
 
-        var service1 = new UsersService(factory, tenant1Context);
-        var service2 = new UsersService(factory, tenant2Context);
+        var service1 = new UsersService(factory, tenant1Context, TestDoubles.UnlimitedSubscriptionLimitService.Instance);
+        var service2 = new UsersService(factory, tenant2Context, TestDoubles.UnlimitedSubscriptionLimitService.Instance);
 
         var users1 = service1.GetAll().ToList();
         var users2 = service2.GetAll().ToList();
@@ -82,7 +82,7 @@ public class TenantIsolationTests
         }
 
         var tenant1Context = InMemorySqliteConnectionFactory.ForTenant(1, "t1");
-        var service = new UsersService(factory, tenant1Context);
+        var service = new UsersService(factory, tenant1Context, TestDoubles.UnlimitedSubscriptionLimitService.Instance);
 
         // Tenant 1 tries to deactivate User 2 (belongs to Tenant 2) — should throw NotFoundException.
         Assert.Throws<NotFoundException>(() => service.Deactivate(2));

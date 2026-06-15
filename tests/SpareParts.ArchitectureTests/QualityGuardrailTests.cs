@@ -20,6 +20,7 @@ public class QualityGuardrailTests
         "accounting",
         "activity-log",
         "ar",
+        "billing",
         "business-assistant",
         "compatibility",
         "contacts",
@@ -82,14 +83,21 @@ public class QualityGuardrailTests
         ["Loyalty"] = "loyalty",
         ["Warranty"] = "warranty",
         ["Shipments"] = "shipments",
-        ["ActivityLog"] = "activity-log"
+        ["ActivityLog"] = "activity-log",
+        ["BillingSubscription"] = "billing"
     };
+
+    private static readonly string[] WebOnlyScreens =
+    [
+        "admin-billing"
+    ];
 
     [Fact]
     public void Feature_lists_should_not_drift_between_web_mobile_and_desktop()
     {
         var expected = CanonicalScreens.OrderBy(key => key, StringComparer.Ordinal).ToArray();
         var webScreens = ParseScreenRegistry("src/SpareParts.Web.React/wwwroot/js/views/screen-registry.js").Keys
+            .Except(WebOnlyScreens, StringComparer.Ordinal)
             .OrderBy(key => key, StringComparer.Ordinal)
             .ToArray();
         var mobileScreens = ParseScreenRegistry("src/SpareParts.Mobile.ReactNative/src/screens/screen-registry.js").Keys

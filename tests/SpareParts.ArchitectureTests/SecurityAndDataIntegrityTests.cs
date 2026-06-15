@@ -166,7 +166,10 @@ public class SecurityAndDataIntegrityTests
         using var factory = new InMemorySqliteConnectionFactory();
         factory.InitializeSchema();
 
-        var service = new UsersService(factory, InMemorySqliteConnectionFactory.NoTenant);
+        var service = new UsersService(
+            factory,
+            InMemorySqliteConnectionFactory.NoTenant,
+            TestDoubles.UnlimitedSubscriptionLimitService.Instance);
         var request = new UpdateUserRequest
         {
             FullName = "Missing User",
@@ -185,7 +188,10 @@ public class SecurityAndDataIntegrityTests
         using var factory = new InMemorySqliteConnectionFactory();
         factory.InitializeSchema();
 
-        var service = new UsersService(factory, InMemorySqliteConnectionFactory.NoTenant);
+        var service = new UsersService(
+            factory,
+            InMemorySqliteConnectionFactory.NoTenant,
+            TestDoubles.UnlimitedSubscriptionLimitService.Instance);
 
         var exception = Assert.Throws<NotFoundException>(() => service.Deactivate(999));
         Assert.Equal("User not found.", exception.Message);

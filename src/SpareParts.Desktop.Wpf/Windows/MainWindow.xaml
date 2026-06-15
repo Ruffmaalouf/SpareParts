@@ -886,7 +886,6 @@
                                         <TextBlock Text="Report Builder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
-<<<<<<< HEAD
                                 <Button Command="{Binding GoToQuotesCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
@@ -906,13 +905,13 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Supplier Aging" FontSize="12"/>
-=======
+                                    </StackPanel>
+                                </Button>
                                 <Button Command="{Binding GoToBillingSubscriptionCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Billing &amp; Subscription" FontSize="12"/>
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
                                     </StackPanel>
                                 </Button>
                             </StackPanel>

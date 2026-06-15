@@ -58,13 +58,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public WarrantyClaimsViewModel WarrantyVm { get; }
         public ShipmentsViewModel ShipmentsVm { get; }
         public ActivityLogViewModel ActivityLogVm { get; }
-<<<<<<< HEAD
         public QuotesViewModel QuotesVm { get; }
         public CustomerAgingViewModel CustomerAgingVm { get; }
         public SupplierAgingViewModel SupplierAgingVm { get; }
-=======
         public BillingSubscriptionViewModel BillingSubscriptionVm { get; }
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -417,13 +414,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WarrantyVm.IsLoading ||
             ShipmentsVm.IsLoading ||
             ActivityLogVm.IsLoading ||
-<<<<<<< HEAD
             QuotesVm.IsLoading ||
             CustomerAgingVm.IsLoading ||
             SupplierAgingVm.IsLoading ||
-=======
             BillingSubscriptionVm.IsLoading ||
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -477,13 +471,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToWarrantyCommand { get; }
         public ICommand GoToShipmentsCommand { get; }
         public ICommand GoToActivityLogCommand { get; }
-<<<<<<< HEAD
         public ICommand GoToQuotesCommand { get; }
         public ICommand GoToCustomerAgingCommand { get; }
         public ICommand GoToSupplierAgingCommand { get; }
-=======
         public ICommand GoToBillingSubscriptionCommand { get; }
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand { get; }
@@ -532,13 +523,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WarrantyVm = new WarrantyClaimsViewModel(crudApi);
             ShipmentsVm = new ShipmentsViewModel(crudApi);
             ActivityLogVm = new ActivityLogViewModel(crudApi);
-<<<<<<< HEAD
             QuotesVm = new QuotesViewModel(crudApi);
             CustomerAgingVm = new CustomerAgingViewModel(crudApi);
             SupplierAgingVm = new SupplierAgingViewModel(crudApi);
-=======
             BillingSubscriptionVm = new BillingSubscriptionViewModel(crudApi);
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -675,7 +663,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 if (args.PropertyName == nameof(ActivityLogViewModel.IsLoading))
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
-<<<<<<< HEAD
             QuotesVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(QuotesViewModel.IsLoading))
@@ -689,11 +676,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             SupplierAgingVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(SupplierAgingViewModel.IsLoading))
-=======
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
             BillingSubscriptionVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(BillingSubscriptionViewModel.IsLoading))
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
@@ -997,7 +984,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ActiveScreen = AppScreen.ActivityLog;
                 ActivityLogVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
-<<<<<<< HEAD
             GoToQuotesCommand = new RelayCommand(_ =>
             {
                 ActiveScreen = AppScreen.Quotes;
@@ -1012,12 +998,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 ActiveScreen = AppScreen.SupplierAging;
                 SupplierAgingVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
-=======
+            });
             GoToBillingSubscriptionCommand = new RelayCommand(_ =>
             {
                 ActiveScreen = AppScreen.BillingSubscription;
                 BillingSubscriptionVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
             });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());
@@ -1025,8 +1010,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CreateInvoiceCommand = new RelayCommand(_ => CreateInvoice());
             AddTabCommand = CreateInvoiceCommand;
             CloseTabCommand = new RelayCommand(o => CloseTab(o as InvoiceTabViewModel));
-
-            // SeedPurchasesAndStock();
             AddTab();
             RefreshInvoiceSearch();
             OwnerCockpitVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);

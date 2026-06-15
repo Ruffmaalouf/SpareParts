@@ -6,6 +6,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="BusinessRules\**" />
+    <Compile Remove="Hosting\*_BACKUP_*.cs" />
+    <Compile Remove="Hosting\*_BASE_*.cs" />
+    <Compile Remove="Hosting\*_LOCAL_*.cs" />
+    <Compile Remove="Hosting\*_REMOTE_*.cs" />
     <Content Remove="BusinessRules\**" />
     <EmbeddedResource Remove="BusinessRules\**" />
     <None Remove="BusinessRules\**" />
