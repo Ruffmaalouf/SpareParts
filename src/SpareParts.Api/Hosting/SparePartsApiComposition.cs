@@ -418,6 +418,7 @@ public static class SparePartsApiComposition
     private static void RunMigrations(ISqlConnectionFactory factory)
     {
         TenantsMigration.EnsureApplied(factory);
+        TenantIdMigration.EnsureApplied(factory);
         InvoiceNumberingMigration.EnsureApplied(factory);
         AccountingMigration.EnsureApplied(factory);
         WebAppUserRoleMigration.EnsureApplied(factory);
@@ -454,12 +455,7 @@ public static class SparePartsApiComposition
         ActivityLogMigration.EnsureApplied(factory);
         QuotesMigration.EnsureApplied(factory);
         CustomerCreditLimitMigration.EnsureApplied(factory);
-<<<<<<< HEAD
-        TenantsMigration.EnsureApplied(factory);
-        TenantIdMigration.EnsureApplied(factory);
-=======
         PricingPackagesMigration.EnsureApplied(factory);
->>>>>>> 8b0d14ea25edc438a596375278935252add7126c
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)
