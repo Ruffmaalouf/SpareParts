@@ -73,6 +73,7 @@ src/SpareParts.Mobile.ReactNative/.last-run.json
 
 artifacts/
 .codex-build/
+.codex-logs/
 logs/
 test-results/
 bin/

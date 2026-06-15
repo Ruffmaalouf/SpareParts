@@ -747,11 +747,6 @@ function UsedCarsScreen({ api }) {
       return;
     }
 
-    if (request.isReceived && request.customs <= 0) {
-      setStatus(t("usedCars.customsRequired", "Customs should be different than 0 when the car is marked as received."));
-      return;
-    }
-
     if (request.expectedSellThroughRate <= 0 || request.expectedSellThroughRate > 1) {
       setStatus(t("usedCars.sellThroughInvalid", "Expected sell-through rate must be between 0 and 1."));
       return;

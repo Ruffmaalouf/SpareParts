@@ -58,6 +58,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public WarrantyClaimsViewModel WarrantyVm { get; }
         public ShipmentsViewModel ShipmentsVm { get; }
         public ActivityLogViewModel ActivityLogVm { get; }
+        public QuotesViewModel QuotesVm { get; }
+        public CustomerAgingViewModel CustomerAgingVm { get; }
+        public SupplierAgingViewModel SupplierAgingVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -410,6 +413,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WarrantyVm.IsLoading ||
             ShipmentsVm.IsLoading ||
             ActivityLogVm.IsLoading ||
+            QuotesVm.IsLoading ||
+            CustomerAgingVm.IsLoading ||
+            SupplierAgingVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -463,6 +469,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToWarrantyCommand { get; }
         public ICommand GoToShipmentsCommand { get; }
         public ICommand GoToActivityLogCommand { get; }
+        public ICommand GoToQuotesCommand { get; }
+        public ICommand GoToCustomerAgingCommand { get; }
+        public ICommand GoToSupplierAgingCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand { get; }
@@ -511,6 +520,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             WarrantyVm = new WarrantyClaimsViewModel(crudApi);
             ShipmentsVm = new ShipmentsViewModel(crudApi);
             ActivityLogVm = new ActivityLogViewModel(crudApi);
+            QuotesVm = new QuotesViewModel(crudApi);
+            CustomerAgingVm = new CustomerAgingViewModel(crudApi);
+            SupplierAgingVm = new SupplierAgingViewModel(crudApi);
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -645,6 +657,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             ActivityLogVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(ActivityLogViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            QuotesVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(QuotesViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            CustomerAgingVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(CustomerAgingViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            SupplierAgingVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(SupplierAgingViewModel.IsLoading))
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
@@ -947,6 +974,21 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 ActiveScreen = AppScreen.ActivityLog;
                 ActivityLogVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToQuotesCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Quotes;
+                QuotesVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToCustomerAgingCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.CustomerAging;
+                CustomerAgingVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToSupplierAgingCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.SupplierAging;
+                SupplierAgingVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());

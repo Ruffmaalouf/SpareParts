@@ -21,7 +21,7 @@ function moduleByKey(key) {
 const screenRegistry = new ScreenRegistry([
   { key: "dashboard", label: "Dashboard", component: DashboardScreen },
   { key: "invoices", label: "POS / Sales", component: InvoicesScreen },
-  { key: "parts", label: "Mechanic", component: MechanicModeScreen },
+  { key: "parts", label: "Parts", component: MechanicModeScreen },
   { key: "part-passport", label: "Part Passport", component: createModuleScreen(moduleByKey("part-passport")) },
   { key: "compatibility", label: "Compatibility", component: PartCompatibilityScreen },
   { key: "contacts", label: "Contacts", component: ContactsScreen },
@@ -49,7 +49,7 @@ const screenRegistry = new ScreenRegistry([
   { key: "warranty", label: "Warranty & Returns", component: createModuleScreen(moduleByKey("warranty")) },
   { key: "shipments", label: "Shipments", component: createModuleScreen(moduleByKey("shipments")) },
   { key: "activity-log", label: "Activity Log", component: createModuleScreen(moduleByKey("activity-log")) },
-  { key: "quotes", label: "Quotes", component: createModuleScreen(moduleByKey("quotes")) },
+  { key: "quotes", label: "Quotes / Estimates", component: createModuleScreen(moduleByKey("quotes")) },
   { key: "customer-aging", label: "Customer Aging", component: createModuleScreen(moduleByKey("customer-aging")) },
   { key: "supplier-aging", label: "Supplier Aging", component: createModuleScreen(moduleByKey("supplier-aging")) }
 ]);

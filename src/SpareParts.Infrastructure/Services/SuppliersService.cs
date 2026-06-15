@@ -3,6 +3,7 @@ using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -10,22 +11,24 @@ public sealed class SuppliersService
 {
     private const string SupplierControlAccountCode = "2100";
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public SuppliersService(ISqlConnectionFactory factory)
+    public SuppliersService(ISqlConnectionFactory factory, ITenantContext? tenantContext = null)
     {
         _factory = factory;
+        _tenantContext = tenantContext ?? TenantContext.Legacy;
     }
 
     public (IEnumerable<SupplierDto> Items, int TotalCount) GetAll(int page, int pageSize)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new SuppliersRepository(session);
         return repository.GetPaged(page, pageSize);
     }
 
     public int Create(CreateSupplierRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new SuppliersRepository(session);
         var supplier = new Supplier
         {
@@ -50,7 +53,7 @@ public sealed class SuppliersService
 
     public void Update(int id, CreateSupplierRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new SuppliersRepository(session);
         var existing = repository.GetById(id) ?? throw new NotFoundException("Supplier not found.");
         if (!repository.Update(id, request, userId))
@@ -66,7 +69,7 @@ public sealed class SuppliersService
 
     public void Delete(int id)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new SuppliersRepository(session);
         var existing = repository.GetById(id) ?? throw new NotFoundException("Supplier not found.");
         if (!repository.Delete(id))
@@ -89,7 +92,7 @@ public sealed class SuppliersService
 
     public int? GetSupplierAccountId(int supplierId)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         return new SuppliersRepository(session).GetAccountId(supplierId);
     }
 
@@ -102,7 +105,7 @@ SELECT
     s.Id                                          AS SupplierId,
     s.Name                                        AS SupplierName,
     s.Phone,
-    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) < 1    THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Current,
+    SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) < 1    THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS [Current],
     SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Days1To30,
     SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Days31To60,
     SUM(CASE WHEN DATEDIFF(DAY, t.TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) ELSE 0 END) AS Days61To90,
@@ -112,12 +115,17 @@ FROM dbo.Suppliers s
 INNER JOIN dbo.Transactions t ON t.SupplierId = s.Id
 INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
 WHERE tt.TypeKey = N'Purchase'
+  AND (@TenantId = 0 OR s.TenantId = @TenantId)
+  AND (@TenantId = 0 OR t.TenantId = @TenantId)
   AND (ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) > 0
 GROUP BY s.Id, s.Name, s.Phone
 HAVING SUM(ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) > 0
 ORDER BY SUM(ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0)) DESC;
-""");
+""",
+            new { TenantId = _tenantContext.TenantId });
     }
+
+    private DbSession CreateSession() => new(_factory, _tenantContext.TenantId);
 
     private static int EnsureSupplierAccount(AccountingRepositories accounting, int supplierId, string supplierName, int? existingAccountId, int userId)
     {

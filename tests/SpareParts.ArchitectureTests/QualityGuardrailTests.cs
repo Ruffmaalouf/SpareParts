@@ -23,6 +23,7 @@ public class QualityGuardrailTests
         "business-assistant",
         "compatibility",
         "contacts",
+        "customer-aging",
         "dashboard",
         "dead-stock",
         "expiry-alerts",
@@ -35,6 +36,7 @@ public class QualityGuardrailTests
         "part-passport",
         "part-requests",
         "purchase-parts",
+        "quotes",
         "reorder",
         "repair-prep",
         "report-builder",
@@ -42,6 +44,7 @@ public class QualityGuardrailTests
         "shipments",
         "stock",
         "stock-arrival",
+        "supplier-aging",
         "used-car-wholesale",
         "used-car-purchases",
         "used-cars",
@@ -53,6 +56,9 @@ public class QualityGuardrailTests
     {
         ["Accounting"] = "accounting",
         ["ManualJournal"] = "manual-journal",
+        ["Quotes"] = "quotes",
+        ["CustomerAging"] = "customer-aging",
+        ["SupplierAging"] = "supplier-aging",
         ["PartSelection"] = "inventory",
         ["Pos"] = "invoices",
         ["PartPurchases"] = "purchase-parts",
@@ -108,6 +114,45 @@ public class QualityGuardrailTests
             Assert.False(string.IsNullOrWhiteSpace(mobileModule.Title), $"{mobileModule.Key} is missing a mobile title.");
             Assert.NotEmpty(mobileModule.Capabilities);
         }
+    }
+
+    [Fact]
+    public void Shared_mobile_and_web_screen_labels_titles_and_themes_should_match()
+    {
+        var webScreens = ParseScreenRegistry("src/SpareParts.Web.React/wwwroot/js/views/screen-registry.js");
+        var mobileScreens = ParseScreenRegistry("src/SpareParts.Mobile.ReactNative/src/screens/screen-registry.js");
+
+        foreach (var key in webScreens.Keys.Intersect(mobileScreens.Keys, StringComparer.Ordinal))
+        {
+            Assert.Equal(webScreens[key], mobileScreens[key]);
+        }
+
+        var webModules = ParseFeatureModules("src/SpareParts.Web.React/wwwroot/js/core/config.js");
+        var mobileModules = ParseFeatureModules("src/SpareParts.Mobile.ReactNative/src/core/app-config.js");
+
+        foreach (var key in webModules.Keys.Intersect(mobileModules.Keys, StringComparer.Ordinal))
+        {
+            var webModule = webModules[key];
+            var mobileModule = mobileModules[key];
+
+            Assert.Equal(webModule.Label, mobileModule.Label);
+            Assert.Equal(webModule.Title, mobileModule.Title);
+        }
+
+        foreach (var key in webScreens.Keys.Intersect(webModules.Keys, StringComparer.Ordinal))
+        {
+            Assert.Equal(webScreens[key], webModules[key].Label);
+        }
+
+        foreach (var key in mobileScreens.Keys.Intersect(mobileModules.Keys, StringComparer.Ordinal))
+        {
+            Assert.Equal(mobileScreens[key], mobileModules[key].Label);
+        }
+
+        var webThemes = ParseThemeCatalog("src/SpareParts.Web.React/wwwroot/js/core/config.js");
+        var mobileThemes = ParseThemeCatalog("src/SpareParts.Mobile.ReactNative/src/core/app-config.js");
+
+        Assert.Equal(webThemes, mobileThemes);
     }
 
     [Fact]
@@ -244,6 +289,20 @@ public class QualityGuardrailTests
                 match.Groups["title"].Value.Trim(),
                 ParseQuotedStrings(match.Groups["items"].Value).Select(CanonicalizeKey).ToArray()))
             .Where(group => group.Items.Count > 0)
+            .ToArray();
+    }
+
+    private static IReadOnlyList<ThemeContract> ParseThemeCatalog(string relativePath)
+    {
+        var text = ReadRepoFile(relativePath);
+        var array = ExtractArray(text, "wpfThemes");
+
+        return Regex.Matches(array, @"\{(?<body>.*?)\}", RegexOptions.Singleline)
+            .Cast<Match>()
+            .Select(match => new ThemeContract(
+                MatchString(match.Groups["body"].Value, "key"),
+                MatchString(match.Groups["body"].Value, "name")))
+            .Where(theme => !string.IsNullOrWhiteSpace(theme.Key))
             .ToArray();
     }
 
@@ -512,4 +571,6 @@ public class QualityGuardrailTests
         IReadOnlyList<string> Capabilities);
 
     private sealed record NavigationGroupContract(string Title, IReadOnlyList<string> Items);
+
+    private sealed record ThemeContract(string Key, string Name);
 }

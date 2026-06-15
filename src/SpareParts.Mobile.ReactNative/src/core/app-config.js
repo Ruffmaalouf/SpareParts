@@ -52,39 +52,41 @@ function shouldUsePackagedApiBaseUrl(storedApiBaseUrl) {
 const wpfThemes = [
   {
     key: "aurora",
-    name: "Apex",
+    name: "Aurora",
     colors: {
-      bg: "#0f0e0c",
-      surface: "#1a1917",
-      surface2: "#252320",
-      sidebar: "#0a0908",
-      input: "#141310",
-      line: "#302e2a",
-      text: "#f5f3f0",
-      muted: "#9a9590",
-      soft: "#6b6560",
-      accent: "#d4500c",
+      bg: "#080c14",
+      surface: "#0e1420",
+      surface2: "#141c2e",
+      sidebar: "#060a12",
+      input: "#0e1420",
+      line: "#1a2840",
+      text: "#e8f0ff",
+      muted: "#7a8faf",
+      soft: "#4a5a78",
+      accent: "#00c9a7",
       accentViolet: "#7c5cfc",
-      whatsapp: "#16a34a",
-      danger: "#dc2626"
+      accent2: "#25d366",
+      whatsapp: "#25d366",
+      danger: "#ff6b6b"
     }
   },
   {
-    key: "default",
-    name: "Default",
+    key: "carbon",
+    name: "Carbon",
     colors: {
-      bg: "#07080b",
-      surface: "#0c0f14",
-      surface2: "#111620",
-      sidebar: "#08090d",
-      input: "#060709",
-      line: "#1c2230",
-      text: "#edf1f9",
-      muted: "#7585a0",
-      soft: "#404c60",
-      accent: "#e85012",
-      whatsapp: "#22c55e",
-      danger: "#f43f5e"
+      bg: "#101114",
+      surface: "#17191f",
+      surface2: "#20232b",
+      sidebar: "#121318",
+      input: "#0f1014",
+      line: "#313642",
+      text: "#f4f5f7",
+      muted: "#a9afbd",
+      soft: "#737b8c",
+      accent: "#ff5722",
+      accent2: "#25d366",
+      whatsapp: "#25d366",
+      danger: "#ff6b5f"
     }
   },
   {
@@ -214,7 +216,7 @@ const featureModules = [
   { key: "used-car-purchases", label: "Used Car Purchases", title: "Used Car Purchases", endpoint: "/api/purchases/used-cars", capabilities: ["Used car purchase history", "Post purchased vehicles", "Delete draft purchases"] },
   { key: "used-car-wholesale", label: "Used Car Wholesale", title: "Used Car Wholesale", endpoint: "/api/usedcars + /api/usedcars/wholesale-sales + /api/customers", capabilities: ["Sell complete used cars as-is", "Capture buyer and payment details", "Track wholesale margin against loaded cost"] },
   { key: "stock-arrival", label: "Stock Arrival", title: "Stock Arrival Theater", endpoint: "/api/parts + /api/partrequests + /api/communications/campaign-assets", capabilities: ["New opportunity board", "Photo and pricing queues", "Waiting customer and campaign signals"] },
-  { key: "used-cars", label: "Used Cars", title: "Used Cars", endpoint: "/api/usedcars", capabilities: ["Used car records", "Vehicle image galleries", "Vehicle-linked parts"] },
+  { key: "used-cars", label: "Used Cars", title: "Used Cars and Galleries", endpoint: "/api/usedcars", capabilities: ["Used car records", "Vehicle image galleries", "Vehicle-linked parts"] },
   { key: "repair-prep", label: "Repair / Prep", title: "Repair / Prep Board", endpoint: "/api/usedcars", capabilities: ["Repair prep lanes", "Per-car task checklist", "Prep cost tracking"] },
   { key: "stock", label: "Stock", title: "Stock Management", endpoint: "/api/parts?page=1&pageSize=100", capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"] },
   { key: "dead-stock", label: "Dead Stock", title: "Dead Stock Recovery", endpoint: "/api/parts/dead-stock", capabilities: ["Dormant stock candidates", "Recovery actions", "Shelf-value summary"] },
@@ -230,7 +232,7 @@ const featureModules = [
   { key: "warranty", label: "Warranty & Returns", title: "Warranty Claims", endpoint: "/api/warranty", capabilities: ["Active warranty claims", "Resolved claims history", "Create and track returns"] },
   { key: "shipments", label: "Shipments", title: "Shipments", endpoint: "/api/shipments", capabilities: ["Pending shipments list", "Shipment status tracking", "Event history per shipment"] },
   { key: "activity-log", label: "Activity Log", title: "Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] },
-  { key: "quotes", label: "Quotes", title: "Quotes & Estimates", endpoint: "/api/quotes", capabilities: ["Draft and sent quotes", "Quote-to-sale conversion", "Expiry tracking"] },
+  { key: "quotes", label: "Quotes / Estimates", title: "Quotes / Estimates", endpoint: "/api/quotes", capabilities: ["Draft and sent quotes", "Quote-to-sale conversion", "Expiry tracking"] },
   { key: "customer-aging", label: "Customer Aging", title: "Customer Aging", endpoint: "/api/customers/aging", capabilities: ["Outstanding balances by customer", "0/30/60/90+ day aging buckets", "Overdue receivables overview"] },
   { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] }
 ];

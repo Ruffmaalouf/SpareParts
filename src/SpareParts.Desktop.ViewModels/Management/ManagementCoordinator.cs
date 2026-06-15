@@ -719,11 +719,6 @@ namespace SpareParts.Desktop.Wpf.Management
                 return Task.FromResult(ToFailure(new DomainValidationException("Expected sell-through rate must be between 0 and 1.", "used_car_sell_through_invalid"), "saving Used car"));
             }
 
-            if (request.IsReceived && request.Customs <= 0)
-            {
-                return Task.FromResult(ToFailure(new DomainValidationException("Customs should be different than 0 when the car is marked as received.", "used_car_customs_required_when_received"), "saving Used car"));
-            }
-
             return SaveAsync(
                 selected is { Id: > 0 },
                 selected?.Id,

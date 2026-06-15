@@ -348,7 +348,10 @@ export const featureModules = [
   { key: "loyalty", label: "Loyalty", title: "Customer Loyalty", source: "MainWindow Loyalty", endpoint: "/api/loyalty/customers/top", capabilities: ["Top loyalty customers by points", "Points balance overview", "Redemption tracking"] },
   { key: "warranty", label: "Warranty & Returns", title: "Warranty Claims", source: "MainWindow Warranty", endpoint: "/api/warranty", capabilities: ["Active warranty claims", "Resolved claims history", "Create and track returns"] },
   { key: "shipments", label: "Shipments", title: "Shipments", source: "MainWindow Shipments", endpoint: "/api/shipments", capabilities: ["Pending shipments list", "Shipment status tracking", "Event history per shipment"] },
-  { key: "activity-log", label: "Activity Log", title: "Activity Log", source: "MainWindow Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] }
+  { key: "activity-log", label: "Activity Log", title: "Activity Log", source: "MainWindow Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] },
+  { key: "quotes", label: "Quotes / Estimates", title: "Quotes / Estimates", source: "Web quotes workspace", endpoint: "/api/quotes", capabilities: ["Draft and sent quotes", "Quote-to-sale conversion", "Expiry tracking"] },
+  { key: "customer-aging", label: "Customer Aging", title: "Customer Aging", source: "Finance aging workspace", endpoint: "/api/customers/aging", capabilities: ["Outstanding balances by customer", "0/30/60/90+ day aging buckets", "Overdue receivables overview"] },
+  { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", source: "Finance aging workspace", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] }
 ];
 
 export const managementSections = [

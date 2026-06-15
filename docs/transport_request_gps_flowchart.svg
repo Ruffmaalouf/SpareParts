@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="990" height="1350" viewBox="0 0 990 1350" role="img" aria-labelledby="title desc">
+  <title id="title">مخطط تدفق طلبات النقل ومطابقة GPS</title>
+  <desc id="desc">مخطط تدفق يوضح طلبات النقل، تسجيل المسافة، فحص السيارة، مطابقة GPS، الفروقات، التدابير، والإرسال إلى المدير التنفيذي.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#53606D"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="1" stdDeviation="1.4" flood-color="#1F2937" flood-opacity="0.14"/></filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#FFFFFF"/>
+  <text x="495" y="49.5" text-anchor="middle" font-family="Segoe UI, Tahoma, Arial, sans-serif" font-size="23" font-weight="700" fill="#111827" direction="rtl" unicode-bidi="plaintext">مخطط تدفق طلبات النقل ومطابقة GPS</text>
+  <g font-family="Segoe UI, Tahoma, Arial, sans-serif" filter="url(#shadow)"><polyline points="495,146.25 495,174.6" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,239.4 495,264.6" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,329.4 495,354.6" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,419.4 495,443.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,510.75 495,537.75" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,587.25 495,614.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,681.75 495,699.75" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,767.25 495,787.5" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="495,787.5 274.5,787.5 274.5,802.8" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,787.5 715.5,787.5 715.5,802.8" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="274.5,867.6 274.5,891 495,891" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="715.5,867.6 715.5,891 495,891" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="495,891 495,904.5" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="378,949.5 274.5,949.5 274.5,1037.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="612,949.5 715.5,949.5 715.5,1037.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="715.5,1095.75 715.5,1127.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="274.5,1095.75 274.5,1192.5 495,1192.5 495,1217.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="715.5,1185.75 715.5,1192.5 495,1192.5 495,1217.25" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+    <polyline points="495,1275.75 495,1293.75" fill="none" stroke="#53606D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/></g>
+  <g font-family="Segoe UI, Tahoma, Arial, sans-serif"><rect x="387" y="96.75" width="216" height="49.5" rx="22" fill="#DFF3EA" stroke="#2E7D5B" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="16" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="121.5" dominant-baseline="middle">البداية</tspan></text>
+    <rect x="306" y="174.6" width="378" height="64.8" rx="8" fill="#EAF2FF" stroke="#2F5597" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="197.85" dominant-baseline="middle">مدير البرامج ومدير الأخبار</tspan><tspan x="495" y="216.15" dominant-baseline="middle">يحددان احتياجات النقل</tspan></text>
+    <rect x="315" y="264.6" width="360" height="64.8" rx="8" fill="#EAF2FF" stroke="#2F5597" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="287.85" dominant-baseline="middle">تُرسل المعلومات إلى</tspan><tspan x="495" y="306.15" dominant-baseline="middle">رئيس قسم السائقين</tspan></text>
+    <rect x="319.5" y="354.6" width="351" height="64.8" rx="8" fill="#EAF2FF" stroke="#2F5597" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="377.85" dominant-baseline="middle">رئيس القسم</tspan><tspan x="495" y="396.15" dominant-baseline="middle">يرسل الطلب إلى السائق</tspan></text>
+    <rect x="292.5" y="443.25" width="405" height="67.5" rx="8" fill="#FFF4DE" stroke="#B26B00" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="467.85" dominant-baseline="middle">السائق يسجل المسافة</tspan><tspan x="495" y="486.15" dominant-baseline="middle">قبل الرحلة في ورقة المسافة</tspan></text>
+    <rect x="378" y="537.75" width="234" height="49.5" rx="8" fill="#EAF2FF" stroke="#2F5597" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="562.5" dominant-baseline="middle">تنفيذ الرحلة</tspan></text>
+    <rect x="292.5" y="614.25" width="405" height="67.5" rx="8" fill="#FFF4DE" stroke="#B26B00" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="638.85" dominant-baseline="middle">السائق يسجل المسافة</tspan><tspan x="495" y="657.15" dominant-baseline="middle">بعد الرحلة في ورقة المسافة</tspan></text>
+    <rect x="292.5" y="699.75" width="405" height="67.5" rx="8" fill="#EAF2FF" stroke="#2F5597" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="724.35" dominant-baseline="middle">بعد العودة:</tspan><tspan x="495" y="742.65" dominant-baseline="middle">تُسلّم الورقة إلى رئيس القسم</tspan></text>
+    <rect x="130.5" y="802.8" width="288" height="64.8" rx="8" fill="#EEF7F4" stroke="#198A64" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="274.5" y="826.05" dominant-baseline="middle">رئيس القسم</tspan><tspan x="274.5" y="844.35" dominant-baseline="middle">يفحص السيارة</tspan></text>
+    <rect x="558" y="802.8" width="315" height="64.8" rx="8" fill="#EEF7F4" stroke="#198A64" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="715.5" y="826.05" dominant-baseline="middle">تُقارَن المسافات المسجلة</tspan><tspan x="715.5" y="844.35" dominant-baseline="middle">مع بيانات GPS</tspan></text>
+    <polygon points="495,904.5 612,949.5 495,994.5 378,949.5" fill="#FDEFF2" stroke="#A23B55" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="940.35" dominant-baseline="middle">هل توجد</tspan><tspan x="495" y="958.65" dominant-baseline="middle">فروقات؟</tspan></text>
+    <rect x="148.5" y="1037.25" width="252" height="58.5" rx="8" fill="#F5F9FF" stroke="#2F5597" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="274.5" y="1057.35" dominant-baseline="middle">توثيق</tspan><tspan x="274.5" y="1075.65" dominant-baseline="middle">المطابقة</tspan></text>
+    <rect x="589.5" y="1037.25" width="252" height="58.5" rx="8" fill="#FFF4DE" stroke="#B26B00" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="715.5" y="1057.35" dominant-baseline="middle">توثيق</tspan><tspan x="715.5" y="1075.65" dominant-baseline="middle">الفروقات</tspan></text>
+    <rect x="580.5" y="1127.25" width="270" height="58.5" rx="8" fill="#FFF4DE" stroke="#B26B00" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="715.5" y="1147.35" dominant-baseline="middle">اتخاذ التدابير اللازمة</tspan><tspan x="715.5" y="1165.65" dominant-baseline="middle">وتصحيح الخطأ</tspan></text>
+    <rect x="315" y="1217.25" width="360" height="58.5" rx="8" fill="#E8F4EA" stroke="#2E7D5B" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="15" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="1237.35" dominant-baseline="middle">إرسال النتيجة إلى المدير التنفيذي</tspan><tspan x="495" y="1255.65" dominant-baseline="middle">مع إتاحة الوصول إلى بيانات GPS</tspan></text>
+    <rect x="396" y="1293.75" width="198" height="49.5" rx="22" fill="#DFF3EA" stroke="#2E7D5B" stroke-width="2.2"/>
+<text text-anchor="middle" font-size="16" font-weight="600" fill="#1F2937" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="1318.5" dominant-baseline="middle">النهاية</tspan></text>
+    <rect x="328.05" y="918.45" width="63.9" height="31.5" rx="5" fill="#FFFFFF" fill-opacity="0.96"/><text text-anchor="middle" font-size="14" font-weight="700" fill="#374151" direction="rtl" unicode-bidi="plaintext"><tspan x="360" y="934.2" dominant-baseline="middle">لا</tspan></text>
+    <rect x="595.8" y="918.45" width="68.4" height="31.5" rx="5" fill="#FFFFFF" fill-opacity="0.96"/><text text-anchor="middle" font-size="14" font-weight="700" fill="#374151" direction="rtl" unicode-bidi="plaintext"><tspan x="630" y="934.2" dominant-baseline="middle">نعم</tspan></text>
+    <rect x="429.3" y="755.55" width="131.4" height="31.5" rx="5" fill="#FFFFFF" fill-opacity="0.96"/><text text-anchor="middle" font-size="14" font-weight="700" fill="#374151" direction="rtl" unicode-bidi="plaintext"><tspan x="495" y="771.3" dominant-baseline="middle">في الوقت نفسه</tspan></text></g>
+</svg>

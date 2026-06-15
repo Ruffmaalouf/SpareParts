@@ -620,12 +620,6 @@ public sealed class UsedCarsManagementViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (NewUsedCarIsReceived && NewUsedCarCustoms <= 0)
-        {
-            _setStatus("✗ Customs should be different than 0 when the car is marked as received.", false);
-            return;
-        }
-
         var request = new CreateUsedCarRequest
         {
             Barcode = string.IsNullOrWhiteSpace(NewUsedCarBarcode) ? null : NewUsedCarBarcode.Trim(),

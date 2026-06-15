@@ -1385,10 +1385,6 @@ public sealed class UsedCarsService
             throw new ValidationException("Expected sell-through rate must be between 0 and 1.");
         }
 
-        if (request.IsReceived && request.Customs <= 0)
-        {
-            throw new ValidationException("Customs should be different than 0 when the car is marked as received.");
-        }
     }
 
     private void SyncReceiveJournal(

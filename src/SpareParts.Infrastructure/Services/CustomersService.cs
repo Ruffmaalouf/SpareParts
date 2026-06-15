@@ -3,6 +3,7 @@ using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessPartners;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -10,22 +11,24 @@ public sealed class CustomersService
 {
     private const string CustomerControlAccountCode = "1200";
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public CustomersService(ISqlConnectionFactory factory)
+    public CustomersService(ISqlConnectionFactory factory, ITenantContext? tenantContext = null)
     {
         _factory = factory;
+        _tenantContext = tenantContext ?? TenantContext.Legacy;
     }
 
     public (IEnumerable<CustomerDto> Items, int TotalCount) GetAll(string? search, int page, int pageSize)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new CustomersRepository(session);
         return repository.GetPaged(search, page, pageSize);
     }
 
     public int Create(CreateCustomerRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new CustomersRepository(session);
         var accounting = RepositoryCatalog.For(session).Accounting;
         var customer = new Customer
@@ -50,7 +53,7 @@ public sealed class CustomersService
 
     public void Update(int id, CreateCustomerRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new CustomersRepository(session);
         var accounting = RepositoryCatalog.For(session).Accounting;
         var existing = repository.GetById(id) ?? throw new NotFoundException("Customer not found.");
@@ -67,7 +70,7 @@ public sealed class CustomersService
 
     public void Delete(int id)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         var repository = new CustomersRepository(session);
         var accounting = RepositoryCatalog.For(session).Accounting;
         var existing = repository.GetById(id) ?? throw new NotFoundException("Customer not found.");
@@ -91,7 +94,7 @@ public sealed class CustomersService
 
     public int? GetCustomerAccountId(int customerId)
     {
-        using var session = new DbSession(_factory);
+        using var session = CreateSession();
         return new CustomersRepository(session).GetAccountId(customerId);
     }
 
@@ -108,6 +111,7 @@ WITH SaleBalances AS (
     FROM dbo.Transactions t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
     WHERE tt.TypeKey = N'Sale'
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
 ),
 CreditNotes AS (
     SELECT
@@ -116,6 +120,7 @@ CreditNotes AS (
     FROM dbo.Transactions t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
     WHERE tt.TypeKey IN (N'CreditNote', N'Refund')
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
     GROUP BY t.CustomerId
 )
 SELECT
@@ -123,7 +128,7 @@ SELECT
     c.Name                                        AS CustomerName,
     c.Phone,
     ISNULL(SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) < 1    THEN sb.Balance ELSE 0 END), 0)
-        - ISNULL(MAX(cn.TotalCredits), 0)         AS Current,
+        - ISNULL(MAX(cn.TotalCredits), 0)         AS [Current],
     SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN sb.Balance ELSE 0 END) AS Days1To30,
     SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN sb.Balance ELSE 0 END) AS Days31To60,
     SUM(CASE WHEN DATEDIFF(DAY, sb.TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN sb.Balance ELSE 0 END) AS Days61To90,
@@ -133,11 +138,15 @@ FROM dbo.Customers c
 INNER JOIN SaleBalances sb ON sb.CustomerId = c.Id
 LEFT JOIN CreditNotes cn ON cn.CustomerId = c.Id
 WHERE sb.Balance > 0
+  AND (@TenantId = 0 OR c.TenantId = @TenantId)
 GROUP BY c.Id, c.Name, c.Phone
 HAVING SUM(sb.Balance) - ISNULL(MAX(cn.TotalCredits), 0) > 0
 ORDER BY SUM(sb.Balance) - ISNULL(MAX(cn.TotalCredits), 0) DESC;
-""");
+""",
+            new { TenantId = _tenantContext.TenantId });
     }
+
+    private DbSession CreateSession() => new(_factory, _tenantContext.TenantId);
 
     private static int EnsureCustomerAccount(AccountingRepositories accounting, int customerId, string customerName, int? existingAccountId, int userId)
     {

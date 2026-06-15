@@ -318,7 +318,8 @@ public sealed class ManagementCoordinatorCrudTests
                 Price = 8000m,
                 LocationId = 2,
                 Shipping = 100m,
-                Customs = 50m
+                Customs = 0m,
+                IsReceived = true
             }, new UsedCarEntry { Id = 13 }),
             "api/usedcars/13",
             typeof(CreateUsedCarRequest));

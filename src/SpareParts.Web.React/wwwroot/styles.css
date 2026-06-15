@@ -10363,10 +10363,19 @@ html[dir="rtl"] .report-hero-meta {
 
   .store-header-nav {
     grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    overflow: visible;
+    padding: 5px;
   }
 
   .store-header-nav button {
-    flex: 1 0 auto;
+    min-width: 0;
+    width: 100%;
+    padding: 0 8px;
+    white-space: nowrap;
   }
 
   .store-hero-redesign {
