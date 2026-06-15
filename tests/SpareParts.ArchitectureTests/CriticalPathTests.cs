@@ -220,6 +220,26 @@ public class CriticalPathTests
     }
 
     [Fact]
+    public void UsedCarPurchasePaymentStatus_ShouldUseCounterAmount_WhenCounterPaymentIsProvided()
+    {
+        using var factory = new InMemorySqliteConnectionFactory();
+        var handler = new CreateUsedCarPurchaseHandler(
+            factory,
+            new FixedInvoiceNumberGenerator("SALE-1", "UCP-1"),
+            new DefaultPaymentStatusPolicy(),
+            InMemorySqliteConnectionFactory.NoTenant);
+
+        var method = typeof(CreateUsedCarPurchaseHandler).GetMethod(
+            "ResolvePaymentStatus",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.NotNull(method);
+
+        var status = method!.Invoke(handler, [100m, 99.99m, 99.98m, 99.99m]);
+
+        Assert.Equal(PaymentStatus.Paid.ToString(), status);
+    }
+
+    [Fact]
     public void FailurePath_SaleAccountingStrategy_ShouldThrowForNegativeTotals()
     {
         var strategy = CreateSaleAccountingStrategy();

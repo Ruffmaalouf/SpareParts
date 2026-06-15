@@ -55,6 +55,10 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("This used car already has a posted purchase and cannot be saved as a new draft.");
             }
 
+            var paidBaseAmount = decimal.Round(request.PaidAmount, 4, MidpointRounding.AwayFromZero);
+            var paidCounterAmount = decimal.Round(request.PaidCounterAmount, 4, MidpointRounding.AwayFromZero);
+            var paymentStatus = ResolvePaymentStatus(totalBaseAmount, totalCounterAmount, paidBaseAmount, paidCounterAmount);
+
             var purchaseNumber = existingDraft?.PurchaseNumber ?? _invoiceNumberGenerator.NextUsedCarPurchaseNumber();
             var purchase = new UsedCarPurchase
             {
@@ -66,9 +70,9 @@ namespace SpareParts.Infrastructure.Services
                 CounterCurrencyCode = NormalizeCurrencyCode(request.CounterCurrencyCode, "Counter currency code"),
                 TotalBaseAmount = totalBaseAmount,
                 TotalCounterAmount = totalCounterAmount,
-                PaidAmount = decimal.Round(request.PaidAmount, 4, MidpointRounding.AwayFromZero),
-                PaidCounterAmount = decimal.Round(request.PaidCounterAmount, 4, MidpointRounding.AwayFromZero),
-                PaymentStatus = _paymentStatusPolicy.Resolve(totalBaseAmount, request.PaidAmount).ToString(),
+                PaidAmount = paidBaseAmount,
+                PaidCounterAmount = paidCounterAmount,
+                PaymentStatus = paymentStatus,
                 PostingStatus = "Draft",
                 Notes = (request.Notes ?? string.Empty).Trim(),
                 CreatedAt = DateTime.UtcNow,
@@ -103,6 +107,18 @@ namespace SpareParts.Infrastructure.Services
                 PaymentStatus = purchase.PaymentStatus,
                 PostingStatus = purchase.PostingStatus
             };
+        }
+
+        private string ResolvePaymentStatus(
+            decimal totalBaseAmount,
+            decimal totalCounterAmount,
+            decimal paidBaseAmount,
+            decimal paidCounterAmount)
+        {
+            var hasCounterPaymentContext = totalCounterAmount > 0m && paidCounterAmount > 0m;
+            return hasCounterPaymentContext
+                ? _paymentStatusPolicy.Resolve(totalCounterAmount, paidCounterAmount).ToString()
+                : _paymentStatusPolicy.Resolve(totalBaseAmount, paidBaseAmount).ToString();
         }
 
         private static void ValidateRequest(CreateUsedCarPurchaseRequest request)

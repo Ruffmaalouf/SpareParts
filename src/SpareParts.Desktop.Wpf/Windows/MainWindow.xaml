@@ -4175,14 +4175,14 @@
                                         <TextBlock Text="{Binding BillingSubscriptionVm.BillingCycleLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"/>
                                         <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0">
                                             <Run Text="Current period:"/>
-                                            <Run Text="{Binding BillingSubscriptionVm.CurrentPeriodStart, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                            <Run Text="{Binding BillingSubscriptionVm.CurrentPeriodStart, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}"/>
                                             <Run Text="→"/>
-                                            <Run Text="{Binding BillingSubscriptionVm.CurrentPeriodEnd, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                            <Run Text="{Binding BillingSubscriptionVm.CurrentPeriodEnd, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}"/>
                                         </TextBlock>
                                         <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 4 0 0"
                                                    Visibility="{Binding BillingSubscriptionVm.HasTrial, Converter={StaticResource BoolToVis}}">
                                             <Run Text="Trial ends:"/>
-                                            <Run Text="{Binding BillingSubscriptionVm.TrialEndsAt, StringFormat={}{0:yyyy-MM-dd}}"/>
+                                            <Run Text="{Binding BillingSubscriptionVm.TrialEndsAt, Mode=OneWay, StringFormat={}{0:yyyy-MM-dd}}"/>
                                         </TextBlock>
                                         <TextBlock Text="This subscription will be cancelled at the end of the current billing period."
                                                    FontSize="12" Foreground="{DynamicResource AccentBrush}" Margin="0 6 0 0" TextWrapping="Wrap"
