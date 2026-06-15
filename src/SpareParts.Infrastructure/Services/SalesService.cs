@@ -520,11 +520,5 @@ namespace SpareParts.Infrastructure.Services
                 : $"Sale payment {invoiceNumber} - {trimmedNotes}";
         }
 
-        private sealed class SalePaymentCurrencyContext
-        {
-            public string BaseCurrencyCode { get; set; } = "USD";
-            public string CounterCurrencyCode { get; set; } = "USD";
-            public decimal CounterRateToBase { get; set; } = 1m;
-        }
     }
 }

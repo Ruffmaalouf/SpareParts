@@ -139,12 +139,6 @@ WHERE c.Id = @CustomerId
             }
         }
 
-        private sealed class CustomerCreditRow
-        {
-            public decimal CreditLimit { get; init; }
-            public decimal OutstandingBalance { get; init; }
-        }
-
         private static void ValidateRequest(CreateSaleRequest request)
         {
             if (request.WarehouseId <= 0)

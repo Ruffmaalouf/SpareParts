@@ -703,22 +703,5 @@ namespace SpareParts.Infrastructure.Services
                 SentAt = record.SentAt
             };
 
-        private sealed record ResolvedRecipient(string Kind, int? Id, string Name, string? Phone);
-
-        private sealed class UsedCarMessageRow
-        {
-            public int Id { get; set; }
-            public string Car { get; set; } = string.Empty;
-            public int ModelYear { get; set; }
-            public string PriceCurrency { get; set; } = "USD";
-            public decimal Price { get; set; }
-        }
-
-        private sealed class UsedCarImageAttachmentRow
-        {
-            public int ImageId { get; set; }
-            public string ImageMimeType { get; set; } = "image/png";
-            public byte[] ImageData { get; set; } = [];
-        }
     }
 }

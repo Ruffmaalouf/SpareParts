@@ -209,11 +209,5 @@ namespace SpareParts.Infrastructure.Data
             return normalized.Length == 3 ? normalized : null;
         }
 
-        private sealed class CurrencyRateRow
-        {
-            public string Code { get; set; } = string.Empty;
-            public decimal RateToUsd { get; set; }
-            public string BaseCode { get; set; } = string.Empty;
-        }
     }
 }

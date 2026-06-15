@@ -498,10 +498,5 @@ namespace SpareParts.Infrastructure.Data
             return context;
         }
 
-        private sealed class SalesTransactionCurrencyContext
-        {
-            public string CounterCurrencyCode { get; set; } = "USD";
-            public decimal CounterRateToBase { get; set; } = 1m;
-        }
     }
 }

@@ -915,23 +915,5 @@ WHERE Id = @CampaignId;
             return trimmed.Length <= maxLength ? trimmed : trimmed[..maxLength];
         }
 
-        private sealed record CampaignBuild(
-            string Segment,
-            string Language,
-            bool IncludeImages,
-            IReadOnlyList<int> PartIds,
-            IReadOnlyList<int> UsedCarIds,
-            IReadOnlyList<WhatsAppCampaignRecipientDto> Recipients,
-            IReadOnlyList<WhatsAppCampaignAssetDto> Assets,
-            int AttachmentCount,
-            string MessageBody);
-
-        private sealed class CampaignImageRow
-        {
-            public int ImageId { get; set; }
-            public int UsedCarId { get; set; }
-            public string ImageMimeType { get; set; } = "image/png";
-            public byte[] ImageData { get; set; } = [];
-        }
     }
 }

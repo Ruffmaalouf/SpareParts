@@ -103,36 +103,5 @@ namespace SpareParts.Domain.Inventory
 
         private static decimal RoundPercent(decimal value)
             => decimal.Round(value, 4, MidpointRounding.AwayFromZero);
-
-        private sealed record PricingSeed(
-            UsedVehiclePartPricingInput Input,
-            decimal ExpectedMarketPrice,
-            decimal RateToBase,
-            decimal ExpectedMarketPriceBase);
     }
-
-    public sealed record UsedVehiclePartPricingInput(
-        int PartId,
-        decimal? EstimatedMarketPrice,
-        decimal? AveragePrice,
-        decimal SalePrice,
-        decimal RateToBase = 1m);
-
-    public sealed record UsedVehiclePartPricingResult(
-        decimal VehicleTotalCost,
-        decimal EffectiveVehicleCost,
-        decimal ExpectedSellThroughRate,
-        decimal TotalExpectedRevenue,
-        IReadOnlyList<UsedVehiclePartPricingRow> Rows);
-
-    public sealed record UsedVehiclePartPricingRow(
-        int PartId,
-        decimal ExpectedMarketPrice,
-        decimal CostAllocationPercent,
-        decimal AllocatedCost,
-        decimal MinimumSellPrice,
-        decimal FastSalePrice,
-        decimal WholesalePrice,
-        decimal RecommendedPrice,
-        string PricingStatus);
 }

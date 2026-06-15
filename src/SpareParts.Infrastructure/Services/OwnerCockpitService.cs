@@ -1382,33 +1382,5 @@ FROM DraftTransactions;",
                 _ => 3
             };
 
-        private sealed class OwnerCockpitExpenseJournalLineRow
-        {
-            public int JournalEntryId { get; set; }
-            public string AccountCode { get; set; } = string.Empty;
-            public string AccountName { get; set; } = string.Empty;
-            public string Description { get; set; } = string.Empty;
-            public decimal Amount { get; set; }
-        }
-
-        private sealed class OwnerCockpitSummaryRow
-        {
-            public int TodaySalesCount { get; set; }
-            public decimal TodaySalesAmount { get; set; }
-            public decimal TodaySalesPaidAmount { get; set; }
-            public decimal TodaySalesProfit { get; set; }
-            public int TodayPurchasesCount { get; set; }
-            public decimal TodayPurchasesAmount { get; set; }
-            public decimal TodayPurchasesPaidAmount { get; set; }
-            public decimal CustomerDebt { get; set; }
-            public decimal SupplierDebt { get; set; }
-            public decimal StockValue { get; set; }
-        }
-
-        private sealed class CountAmountRow
-        {
-            public int Count { get; set; }
-            public decimal Amount { get; set; }
-        }
     }
 }

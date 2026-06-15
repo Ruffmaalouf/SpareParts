@@ -348,45 +348,5 @@ namespace SpareParts.Infrastructure.Data
             return references;
         }
 
-        private sealed class TransactionTimelineSnapshot
-        {
-            public string TypeKey { get; set; } = string.Empty;
-            public int ReferenceId { get; set; }
-            public string TransactionNumber { get; set; } = string.Empty;
-            public DateTime TransactionDate { get; set; }
-            public decimal TotalAmount { get; set; }
-            public decimal PaidAmount { get; set; }
-            public string PaymentStatus { get; set; } = string.Empty;
-            public string PostingStatus { get; set; } = string.Empty;
-            public DateTime? PostedAt { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public DateTime? ModifiedAt { get; set; }
-            public int? UsedCarId { get; set; }
-            public DateTime? ReceivedAt { get; set; }
-        }
-
-        private sealed class StockMovementFact
-        {
-            public DateTime? FirstMovementAt { get; set; }
-            public int MovementCount { get; set; }
-            public int NetQuantity { get; set; }
-        }
-
-        private sealed class JournalFact
-        {
-            public int JournalEntryId { get; set; }
-            public string ReferenceType { get; set; } = string.Empty;
-            public int? ReferenceId { get; set; }
-            public DateTime EntryDate { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public string Description { get; set; } = string.Empty;
-            public int AccountId { get; set; }
-            public string AccountCode { get; set; } = string.Empty;
-            public string AccountName { get; set; } = string.Empty;
-            public decimal Debit { get; set; }
-            public decimal Credit { get; set; }
-        }
-
-        private readonly record struct ReferenceKey(string ReferenceType, int ReferenceId);
     }
 }
