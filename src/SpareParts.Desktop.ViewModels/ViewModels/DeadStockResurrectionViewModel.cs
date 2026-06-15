@@ -252,7 +252,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 new DeadStockMetricTile("Candidates", rows.Count.ToString("N0", CultureInfo.CurrentCulture), "Aged on-hand parts", Accent("#FFFF7043")),
                 new DeadStockMetricTile("Units", totalUnits.ToString("N0", CultureInfo.CurrentCulture), "Stock still on shelf", Accent("#FFFFB74D")),
-                new DeadStockMetricTile("Value", currency == "MIXED" ? "Mixed" : FormatMoney(stockValue, currency), "Estimated inventory value", Accent("#FF81C784")),
+                new DeadStockMetricTile("Value", currency == "MIXED" ? "Mixed" : DeadStockItemRow.FormatMoney(stockValue, currency), "Estimated inventory value", Accent("#FF81C784")),
                 new DeadStockMetricTile("Oldest", $"{worstDormant:N0}d", "Longest dormant row", Accent("#FF64B5F6"))
             });
         }
@@ -277,21 +277,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             return string.Join(" ", new string(chars).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         }
 
-        private static string FormatMoney(decimal amount, string? currency)
-            => $"{amount:N2} {NormalizeCurrency(currency)}";
-
-        private static string NormalizeCurrency(string? currency)
-            => string.IsNullOrWhiteSpace(currency) ? "USD" : currency.Trim().ToUpperInvariant();
-
-        private static string DisplayCode(string? code, int id)
-            => string.IsNullOrWhiteSpace(code) ? $"PART-{id}" : code.Trim();
-
-        private static string FormatOem(string? oem)
-            => string.IsNullOrWhiteSpace(oem) ? "not set" : oem.Trim();
-
-        private static string FormatDate(DateTime? value)
-            => value.HasValue ? value.Value.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture) : "never";
-
         private static SolidColorBrush Accent(string hex)
         {
             var brush = (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
@@ -304,118 +289,5 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void OnPropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        public sealed class DeadStockItemRow
-        {
-            private DeadStockItemRow()
-            {
-            }
-
-            public int PartId { get; private init; }
-            public string InternalCode { get; private init; } = string.Empty;
-            public string DisplayCode { get; private init; } = string.Empty;
-            public string PartName { get; private init; } = string.Empty;
-            public string OemDisplay { get; private init; } = string.Empty;
-            public string Currency { get; private init; } = "USD";
-            public decimal SalePrice { get; private init; }
-            public decimal UnitCost { get; private init; }
-            public decimal OnHand { get; private init; }
-            public decimal AvailableQuantity { get; private init; }
-            public decimal StockValue { get; private init; }
-            public int DormantDays { get; private init; }
-            public string PrimaryAction { get; private init; } = string.Empty;
-            public string SearchText { get; private init; } = string.Empty;
-            public string DormancyLabel => $"{DormantDays:N0} days dormant";
-            public string StockLabel => $"{OnHand:N0} on hand / {AvailableQuantity:N0} available";
-            public string SalePriceLabel => FormatMoney(SalePrice, Currency);
-            public string CostLabel => FormatMoney(UnitCost, Currency);
-            public string StockValueLabel => FormatMoney(StockValue, Currency);
-            public string LastSoldLabel { get; private init; } = "never";
-            public string LastReceivedLabel { get; private init; } = "never";
-            public ObservableCollection<DeadStockActionRow> SuggestedActions { get; } = new();
-
-            public static DeadStockItemRow From(DeadStockItemDto source)
-            {
-                var row = new DeadStockItemRow
-                {
-                    PartId = source.PartId,
-                    InternalCode = source.InternalCode ?? string.Empty,
-                    DisplayCode = DisplayCode(source.InternalCode, source.PartId),
-                    PartName = source.PartName ?? string.Empty,
-                    OemDisplay = FormatOem(source.OemNumber),
-                    Currency = NormalizeCurrency(source.Currency),
-                    SalePrice = source.SalePrice,
-                    UnitCost = source.UnitCost,
-                    OnHand = source.OnHand,
-                    AvailableQuantity = source.AvailableQuantity,
-                    StockValue = source.StockValue,
-                    DormantDays = source.DormantDays,
-                    PrimaryAction = source.PrimaryAction,
-                    LastSoldLabel = FormatDate(source.LastSoldAt),
-                    LastReceivedLabel = FormatDate(source.LastReceivedAt),
-                    SearchText = Normalize($"{source.InternalCode} {source.PartName} {source.OemNumber} {source.PrimaryAction}")
-                };
-
-                foreach (var action in source.SuggestedActions.Select(DeadStockActionRow.From))
-                {
-                    row.SuggestedActions.Add(action);
-                }
-
-                return row;
-            }
-        }
-    }
-
-    public sealed class DeadStockActionRow
-    {
-        private DeadStockActionRow()
-        {
-        }
-
-        public string Key { get; private init; } = string.Empty;
-        public string Label { get; private init; } = string.Empty;
-        public string Detail { get; private init; } = string.Empty;
-        public string Tone { get; private init; } = "Neutral";
-        public Brush ToneBrush { get; private init; } = Brushes.LightGray;
-
-        public static DeadStockActionRow From(DeadStockActionDto source)
-        {
-            var tone = source.Tone ?? "Neutral";
-            return new DeadStockActionRow
-            {
-                Key = source.Key ?? string.Empty,
-                Label = source.Label ?? string.Empty,
-                Detail = source.Detail ?? string.Empty,
-                Tone = tone,
-                ToneBrush = tone.Equals("Good", StringComparison.OrdinalIgnoreCase)
-                    ? Accent("#FF81C784")
-                    : tone.Equals("Warning", StringComparison.OrdinalIgnoreCase)
-                        ? Accent("#FFFFB74D")
-                        : Accent("#FF90A4AE")
-            };
-        }
-
-        private static SolidColorBrush Accent(string hex)
-        {
-            var brush = (SolidColorBrush)new BrushConverter().ConvertFromString(hex)!;
-            brush.Freeze();
-            return brush;
-        }
-    }
-
-    public sealed class DeadStockMetricTile
-    {
-        public DeadStockMetricTile(string label, string value, string detail, Brush accentBrush)
-        {
-            Label = label;
-            Value = value;
-            Detail = detail;
-            AccentBrush = accentBrush;
-        }
-
-        public string Label { get; }
-        public string Value { get; }
-        public string Detail { get; }
-        public Brush AccentBrush { get; }
     }
 }

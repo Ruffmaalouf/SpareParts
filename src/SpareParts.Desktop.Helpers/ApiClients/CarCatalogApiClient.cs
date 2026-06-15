@@ -173,6 +173,5 @@ namespace SpareParts.Desktop.Wpf
             return group;
         }
 
-        private sealed record ExifNormalizedUpload(byte[] Bytes, string FileName, string ContentType);
     }
 }

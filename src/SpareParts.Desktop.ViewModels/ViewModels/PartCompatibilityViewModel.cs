@@ -539,19 +539,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             return value[..Math.Max(0, maxLength - 1)] + "...";
         }
 
-        private static string NormalizeIdentifier(string? value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return string.Empty;
-            }
-
-            return new string(value
-                .Where(char.IsLetterOrDigit)
-                .Select(char.ToUpperInvariant)
-                .ToArray());
-        }
-
         private static string NormalizeSearch(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -566,15 +553,6 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             return string.Join(" ", new string(chars)
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-        }
-
-        private static IReadOnlyList<string> Tokenize(string? value)
-        {
-            return NormalizeSearch(value)
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(token => token.Length > 2)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
         }
 
         private static SolidColorBrush Accent(string hex)
@@ -600,159 +578,5 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         private void OnPropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        private sealed record CompatibilityMatch(PartCompatibilityPartRow Part, string Reason, int Score);
-
-        public sealed class PartCompatibilityPartRow
-        {
-            private PartCompatibilityPartRow(
-                PartDto source,
-                UsedCarDto? car,
-                string normalizedOem,
-                string normalizedName,
-                IReadOnlyList<string> nameTokens,
-                string searchText)
-            {
-                Id = source.Id;
-                InternalCode = source.InternalCode ?? string.Empty;
-                Name = source.Name ?? string.Empty;
-                OemNumber = source.OEMNumber ?? string.Empty;
-                CategoryId = source.CategoryId;
-                UsedCarId = source.UsedCarId;
-                StockQuantity = source.StockQuantity;
-                AvailableQuantity = source.AvailableQuantity;
-                SalePrice = source.SalePrice;
-                Currency = source.Currency ?? "USD";
-                IsActive = source.IsActive;
-                VehicleName = car?.Car ?? string.Empty;
-                ModelYear = car?.ModelYear ?? 0;
-                NormalizedOem = normalizedOem;
-                NormalizedName = normalizedName;
-                NameTokens = nameTokens;
-                SearchText = searchText;
-            }
-
-            public int Id { get; }
-            public string InternalCode { get; }
-            public string Name { get; }
-            public string OemNumber { get; }
-            public int CategoryId { get; }
-            public int? UsedCarId { get; }
-            public int StockQuantity { get; }
-            public int AvailableQuantity { get; }
-            public decimal SalePrice { get; }
-            public string Currency { get; }
-            public bool IsActive { get; }
-            public string VehicleName { get; }
-            public int ModelYear { get; }
-            public string NormalizedOem { get; }
-            public string NormalizedName { get; }
-            public IReadOnlyList<string> NameTokens { get; }
-            public string SearchText { get; }
-            public bool HasOem => !string.IsNullOrWhiteSpace(NormalizedOem);
-            public string DisplayCode => string.IsNullOrWhiteSpace(InternalCode) ? $"PART-{Id}" : InternalCode;
-            public string OemDisplay => string.IsNullOrWhiteSpace(OemNumber) ? "not set" : OemNumber;
-            public string VehicleLabel => string.IsNullOrWhiteSpace(VehicleName)
-                ? "No donor vehicle"
-                : ModelYear > 0 ? $"{VehicleName} {ModelYear}" : VehicleName;
-            public string StockLabel => AvailableQuantity > 0
-                ? $"{AvailableQuantity:N0} available / {StockQuantity:N0} on hand"
-                : $"{StockQuantity:N0} on hand";
-            public string PriceLabel => $"{SalePrice:N2} {Currency}";
-            public string ListSubtitle => $"{DisplayCode} - {VehicleLabel}";
-
-            public static PartCompatibilityPartRow From(PartDto source, UsedCarDto? car)
-            {
-                var normalizedOem = NormalizeIdentifier(source.OEMNumber);
-                var normalizedName = NormalizeSearch(source.Name);
-                var tokens = Tokenize(source.Name);
-                var vehicleText = car == null ? string.Empty : $"{car.Car} {car.ModelYear}";
-                var searchText = NormalizeSearch($"{source.InternalCode} {source.Name} {source.OEMNumber} {vehicleText}");
-
-                return new PartCompatibilityPartRow(source, car, normalizedOem, normalizedName, tokens, searchText);
-            }
-        }
-    }
-
-    public sealed class PartCompatibilityMetricTile
-    {
-        public PartCompatibilityMetricTile(string label, string value, string detail, Brush accentBrush)
-        {
-            Label = label;
-            Value = value;
-            Detail = detail;
-            AccentBrush = accentBrush;
-        }
-
-        public string Label { get; }
-        public string Value { get; }
-        public string Detail { get; }
-        public Brush AccentBrush { get; }
-    }
-
-    public sealed class PartCompatibilityFitmentGroup
-    {
-        public string ModelName { get; init; } = string.Empty;
-        public string YearRange { get; init; } = string.Empty;
-        public int PartCount { get; init; }
-        public int DonorCount { get; init; }
-        public string ReasonText { get; init; } = string.Empty;
-        public string ProofCodes { get; init; } = string.Empty;
-        public string PartCountText => $"{PartCount:N0} matching parts";
-        public string DonorCountText => $"{DonorCount:N0} donor cars";
-    }
-
-    public sealed class PartCompatibilityProofPart
-    {
-        public PartCompatibilityProofPart(
-            PartCompatibilityViewModel.PartCompatibilityPartRow part,
-            string reason,
-            int score)
-        {
-            Part = part;
-            Reason = reason;
-            ScoreText = $"{score}%";
-        }
-
-        public PartCompatibilityViewModel.PartCompatibilityPartRow Part { get; }
-        public string Reason { get; }
-        public string ScoreText { get; }
-    }
-
-    public sealed class PartCompatibilityGraphNode
-    {
-        public string Title { get; init; } = string.Empty;
-        public string Subtitle { get; init; } = string.Empty;
-        public double X { get; init; }
-        public double Y { get; init; }
-        public double Radius { get; init; }
-        public Brush Fill { get; init; } = Brushes.DimGray;
-        public Brush Stroke { get; init; } = Brushes.LightGray;
-        public Brush Foreground { get; init; } = Brushes.White;
-        public double StrokeThickness { get; init; } = 2;
-        public PartCompatibilityViewModel.PartCompatibilityPartRow? Part { get; init; }
-        public double Left => X - Radius;
-        public double Top => Y - Radius;
-        public double Diameter => Radius * 2;
-    }
-
-    public sealed class PartCompatibilityGraphEdge
-    {
-        public PartCompatibilityGraphEdge(double x1, double y1, double x2, double y2, Brush stroke, double thickness)
-        {
-            X1 = x1;
-            Y1 = y1;
-            X2 = x2;
-            Y2 = y2;
-            Stroke = stroke;
-            Thickness = thickness;
-        }
-
-        public double X1 { get; }
-        public double Y1 { get; }
-        public double X2 { get; }
-        public double Y2 { get; }
-        public Brush Stroke { get; }
-        public double Thickness { get; }
     }
 }
