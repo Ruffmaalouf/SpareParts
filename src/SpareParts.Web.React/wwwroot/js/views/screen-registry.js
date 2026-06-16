@@ -34,6 +34,20 @@ import { NeedBoardView } from "./needboard-view.js";
 import { WatchlistView } from "./watchlist-view.js";
 import { SellerReputationView } from "./seller-reputation-view.js";
 import { SellerVerificationView } from "./seller-verification-view.js";
+import { SymptomSearchView } from "./symptom-search-view.js";
+import { MechanicDeskView } from "./mechanic-desk-view.js";
+import { GarageStockView } from "./garage-stock-view.js";
+import { PartReserveView } from "./part-reserve-view.js";
+import { PartReelView } from "./part-reel-view.js";
+import { WhatsAppSellingView } from "./whatsapp-selling-view.js";
+import { HalfCutView } from "./halfcut-view.js";
+import { CarCrushView } from "./car-crush-view.js";
+import { EscrowView } from "./escrow-view.js";
+import { MarketPriceView } from "./market-price-view.js";
+import { ListingBoostView } from "./listing-boost-view.js";
+import { ReferralView } from "./referral-view.js";
+import { VoiceSearchView } from "./voice-search-view.js";
+import { DoesItFitView } from "./does-it-fit-view.js";
 
 function moduleByKey(key) {
   return featureModules.find((module) => module.key === key);
@@ -79,5 +93,19 @@ export const screenRegistry = new ScreenRegistry([
   { key: "needboard", label: "NeedBoard", component: NeedBoardView },
   { key: "watchlist", label: "WatchPart", component: WatchlistView },
   { key: "seller-reputation", label: "Shop Reputation", component: SellerReputationView },
-  { key: "seller-verification", label: "Seller Verification", component: SellerVerificationView }
+  { key: "seller-verification", label: "Seller Verification", component: SellerVerificationView },
+  { key: "symptom-search", label: "Symptom Finder", component: SymptomSearchView },
+  { key: "mechanic-desk", label: "Mechanic Desk", component: MechanicDeskView },
+  { key: "garage-stock", label: "Garage Stock", component: GarageStockView },
+  { key: "part-reserve", label: "Part Reservations", component: PartReserveView },
+  { key: "part-reel", label: "Part Reels", component: PartReelView },
+  { key: "whatsapp-selling", label: "WhatsApp Selling", component: WhatsAppSellingView },
+  { key: "halfcut", label: "Half-Cut Showcase", component: HalfCutView },
+  { key: "car-crush", label: "CarCrush", component: CarCrushView },
+  { key: "escrow", label: "Escrow / Protection", component: EscrowView },
+  { key: "market-price", label: "Market Price Index", component: MarketPriceView },
+  { key: "listing-boost", label: "Boost Listings", component: ListingBoostView },
+  { key: "referral", label: "Referral Program", component: ReferralView },
+  { key: "voice-search", label: "Voice Search", component: VoiceSearchView },
+  { key: "does-it-fit", label: "Does It Fit?", component: DoesItFitView }
 ]);

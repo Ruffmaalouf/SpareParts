@@ -95,18 +95,28 @@ public static class SparePartsApiComposition
         nameof(NeedBoardMigration),
         nameof(WatchlistMigration),
         nameof(SellerVerificationMigration),
-        nameof(MarketplaceFeaturesMigration)
+        nameof(MarketplaceFeaturesMigration),
+        nameof(RepairOrdersMigration),
+        nameof(GarageStockMigration),
+        nameof(PartReservationsMigration),
+        nameof(PartReelsMigration),
+        nameof(HalfCutsMigration),
+        nameof(EscrowTransactionsMigration),
+        nameof(ListingBoostsMigration),
+        nameof(ReferralsMigration),
+        nameof(PartCompatibilityMigration),
+        nameof(Phase2FeatureCodesMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController), nameof(SymptomSearchController), nameof(RepairOrdersController), nameof(HalfCutController), nameof(EscrowController), nameof(ListingBoostController), nameof(WhatsAppLinkController), nameof(PartReservationsController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
-        [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(WatchlistController)],
+        [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(WatchlistController), nameof(GarageStockController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
-        [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController), nameof(SellerReputationController), nameof(SellerVerificationController)],
-        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(VehicleProfileController)],
-        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController)],
+        [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController), nameof(SellerReputationController), nameof(SellerVerificationController), nameof(ReferralController)],
+        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(VehicleProfileController), nameof(PartReelsController), nameof(CarCrushController), nameof(PartCompatibilityController)],
+        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController), nameof(MarketPriceController), nameof(VoiceSearchController)],
         [ServiceCapability.Health] = [nameof(HealthController)],
         [ServiceCapability.Billing] = [nameof(PricingController), nameof(SubscriptionController), nameof(PaymentsController), nameof(InvoicesController), nameof(AdminPricingController), nameof(AdminSubscriptionsController), nameof(AdminPaymentsController), nameof(AdminInvoicesController)]
     };
@@ -262,6 +272,13 @@ public static class SparePartsApiComposition
             services.AddScoped<ShipmentsService>();
             services.AddScoped<CustomerAccountResolver>();
             services.AddScoped<NeedBoardService>();
+            services.AddScoped<SymptomSearchService>();
+            services.AddScoped<RepairOrdersService>();
+            services.AddScoped<HalfCutService>();
+            services.AddScoped<EscrowService>();
+            services.AddScoped<ListingBoostService>();
+            services.AddScoped<WhatsAppLinkService>();
+            services.AddScoped<PartReservationService>();
             services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>
             {
                 return new SaleAccountingStrategy(
@@ -325,6 +342,7 @@ public static class SparePartsApiComposition
             services.AddScoped<TransactionTypesService>();
             services.AddScoped<ScanLookupService>();
             services.AddScoped<WatchlistService>();
+            services.AddScoped<GarageStockService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Accounting))
@@ -341,6 +359,7 @@ public static class SparePartsApiComposition
             services.AddScoped<RolesService>();
             services.AddScoped<SellerReputationService>();
             services.AddScoped<SellerVerificationService>();
+            services.AddScoped<ReferralService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Catalog))
@@ -357,6 +376,9 @@ public static class SparePartsApiComposition
             services.AddScoped<ExcelImportService>();
             services.AddScoped<UserVehicleService>();
             services.AddSingleton(new VinDecodeService());
+            services.AddScoped<PartReelsService>();
+            services.AddScoped<CarCrushService>();
+            services.AddScoped<PartCompatibilityService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Reporting))
@@ -372,6 +394,7 @@ public static class SparePartsApiComposition
             services.AddScoped<OwnerCockpitService>();
             services.AddScoped<SmartSearchService>();
             services.AddScoped<GrowthIntelligenceService>();
+            services.AddScoped<MarketPriceIndexService>();
         }
     }
 
