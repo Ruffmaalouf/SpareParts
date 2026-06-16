@@ -90,12 +90,13 @@ public static class SparePartsApiComposition
         nameof(ActivityLogMigration),
         nameof(QuotesMigration),
         nameof(CustomerCreditLimitMigration),
-        nameof(PricingPackagesMigration)
+        nameof(PricingPackagesMigration),
+        nameof(SalesReturnTypeMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(SalesReturnsController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
@@ -265,8 +266,19 @@ public static class SparePartsApiComposition
                     sp.GetService<ILogger<SaleAccountingStrategy>>());
             });
 
+            services.AddScoped<IAccountingStrategy<SalesReturn>>(sp =>
+            {
+                return new ReturnAccountingStrategy(
+                    sp.GetRequiredService<ISqlConnectionFactory>(),
+                    sp.GetRequiredService<AccountingSettingsProvider>(),
+                    sp.GetRequiredService<CustomerAccountResolver>(),
+                    sp.GetService<ILogger<ReturnAccountingStrategy>>());
+            });
+
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
+            services.AddScoped<CreateSalesReturnHandler>();
             services.AddScoped<SalesService>();
+            services.AddScoped<SalesReturnsService>();
             services.AddScoped<QuotesService>();
             services.AddScoped<WebCatalogService>();
             services.TryAddScoped<PartRequestsService>();
@@ -456,6 +468,7 @@ public static class SparePartsApiComposition
         QuotesMigration.EnsureApplied(factory);
         CustomerCreditLimitMigration.EnsureApplied(factory);
         PricingPackagesMigration.EnsureApplied(factory);
+        SalesReturnTypeMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)
