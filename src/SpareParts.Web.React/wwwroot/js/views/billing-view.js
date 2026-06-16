@@ -19,7 +19,15 @@ export const FEATURE_LABELS = {
   API_ACCESS: "API Access",
   PRIORITY_SUPPORT: "Priority Support",
   CUSTOM_INTEGRATIONS: "Custom Integrations",
-  WHITE_LABEL: "White-label Branding"
+  WHITE_LABEL: "White-label Branding",
+  VIN_AUTOPILOT: "VIN Autopilot (Auto-match by VIN)",
+  NEEDBOARD_POST: "NeedBoard — Post Wanted Ads",
+  NEEDBOARD_OFFERS: "NeedBoard — Respond to Buyer Ads",
+  WATCHLIST: "Part Watchlist & Alerts",
+  SELLER_VERIFICATION: "Seller Verification Badge",
+  CURRENCY_SHIELD: "Dual Currency Display (USD + LBP)",
+  REPUTATION_SCORE: "Shop Reputation Score",
+  BULK_PHOTO_STUDIO: "Bulk Photo Studio (AI Background Removal)"
 };
 
 export const LIMIT_LABELS = {

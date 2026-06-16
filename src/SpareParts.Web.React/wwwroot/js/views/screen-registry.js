@@ -29,6 +29,11 @@ import { UsedCarsView } from "./used-cars-view.js";
 import { WarrantyView } from "./warranty-view.js";
 import { WhatsAppView } from "./whatsapp-view.js";
 import { createModuleView } from "./module-workspace-view.js";
+import { MyGarageView } from "./my-garage-view.js";
+import { NeedBoardView } from "./needboard-view.js";
+import { WatchlistView } from "./watchlist-view.js";
+import { SellerReputationView } from "./seller-reputation-view.js";
+import { SellerVerificationView } from "./seller-verification-view.js";
 
 function moduleByKey(key) {
   return featureModules.find((module) => module.key === key);
@@ -69,5 +74,10 @@ export const screenRegistry = new ScreenRegistry([
   { key: "quotes", label: "Quotes / Estimates", component: QuotesView },
   { key: "customer-aging", label: "Customer Aging", component: CustomerAgingView },
   { key: "supplier-aging", label: "Supplier Aging", component: SupplierAgingView },
-  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingView }
+  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingView },
+  { key: "my-garage", label: "My Garage", component: MyGarageView },
+  { key: "needboard", label: "NeedBoard", component: NeedBoardView },
+  { key: "watchlist", label: "WatchPart", component: WatchlistView },
+  { key: "seller-reputation", label: "Shop Reputation", component: SellerReputationView },
+  { key: "seller-verification", label: "Seller Verification", component: SellerVerificationView }
 ]);
