@@ -513,6 +513,7 @@ public class CriticalPathTests
     private sealed class FixedInvoiceNumberGenerator(string salesNumber, string purchaseNumber) : IInvoiceNumberGenerator
     {
         public string NextSalesNumber() => salesNumber;
+        public string NextSalesReturnNumber() => $"RET-{salesNumber}";
         public string NextPurchaseNumber() => purchaseNumber;
         public string NextUsedCarPurchaseNumber() => purchaseNumber;
     }

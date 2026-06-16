@@ -106,11 +106,15 @@ public static class SparePartsApiComposition
         nameof(ReferralsMigration),
         nameof(PartCompatibilityMigration),
         nameof(Phase2FeatureCodesMigration)
+        nameof(MarketplaceFeaturesMigration)
+        nameof(SalesReturnTypeMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
         [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController), nameof(SymptomSearchController), nameof(RepairOrdersController), nameof(HalfCutController), nameof(EscrowController), nameof(ListingBoostController), nameof(WhatsAppLinkController), nameof(PartReservationsController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(SalesReturnsController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(WatchlistController), nameof(GarageStockController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
@@ -288,8 +292,19 @@ public static class SparePartsApiComposition
                     sp.GetService<ILogger<SaleAccountingStrategy>>());
             });
 
+            services.AddScoped<IAccountingStrategy<SalesReturn>>(sp =>
+            {
+                return new ReturnAccountingStrategy(
+                    sp.GetRequiredService<ISqlConnectionFactory>(),
+                    sp.GetRequiredService<AccountingSettingsProvider>(),
+                    sp.GetRequiredService<CustomerAccountResolver>(),
+                    sp.GetService<ILogger<ReturnAccountingStrategy>>());
+            });
+
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
+            services.AddScoped<CreateSalesReturnHandler>();
             services.AddScoped<SalesService>();
+            services.AddScoped<SalesReturnsService>();
             services.AddScoped<QuotesService>();
             services.AddScoped<WebCatalogService>();
             services.TryAddScoped<PartRequestsService>();
@@ -505,6 +520,7 @@ public static class SparePartsApiComposition
         ReferralsMigration.EnsureApplied(factory);
         PartCompatibilityMigration.EnsureApplied(factory);
         Phase2FeatureCodesMigration.EnsureApplied(factory);
+        SalesReturnTypeMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)
