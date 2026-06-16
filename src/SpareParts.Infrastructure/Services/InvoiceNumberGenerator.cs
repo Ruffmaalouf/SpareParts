@@ -15,6 +15,8 @@ namespace SpareParts.Infrastructure.Services
 
         public string NextSalesNumber() => NextTransactionNumber(TransactionTypeKeys.Sale);
 
+        public string NextSalesReturnNumber() => NextTransactionNumber(TransactionTypeKeys.SalesReturn);
+
         public string NextPurchaseNumber() => NextTransactionNumber(TransactionTypeKeys.Purchase);
 
         public string NextUsedCarPurchaseNumber() => NextTransactionNumber(TransactionTypeKeys.UsedCarPurchase);
