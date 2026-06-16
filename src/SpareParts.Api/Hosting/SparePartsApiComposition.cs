@@ -90,7 +90,12 @@ public static class SparePartsApiComposition
         nameof(ActivityLogMigration),
         nameof(QuotesMigration),
         nameof(CustomerCreditLimitMigration),
-        nameof(PricingPackagesMigration)
+        nameof(PricingPackagesMigration),
+        nameof(UserVehiclesMigration),
+        nameof(NeedBoardMigration),
+        nameof(WatchlistMigration),
+        nameof(SellerVerificationMigration),
+        nameof(MarketplaceFeaturesMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
@@ -456,6 +461,11 @@ public static class SparePartsApiComposition
         QuotesMigration.EnsureApplied(factory);
         CustomerCreditLimitMigration.EnsureApplied(factory);
         PricingPackagesMigration.EnsureApplied(factory);
+        UserVehiclesMigration.EnsureApplied(factory);
+        NeedBoardMigration.EnsureApplied(factory);
+        WatchlistMigration.EnsureApplied(factory);
+        SellerVerificationMigration.EnsureApplied(factory);
+        MarketplaceFeaturesMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)
