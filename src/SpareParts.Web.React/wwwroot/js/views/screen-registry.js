@@ -13,6 +13,7 @@ import { ExpiryAlertsView } from "./expiry-alerts-view.js";
 import { GrowthLabView } from "./growth-lab-view.js";
 import { InventoryView } from "./inventory-view.js";
 import { InvoicesView } from "./invoices-view.js";
+import { SalesReturnsView } from "./sales-returns-view.js";
 import { LoyaltyView } from "./loyalty-view.js";
 import { ManagementWorkspaceView } from "./management-view.js";
 import { PartCompatibilityView } from "./part-compatibility-view.js";
@@ -37,6 +38,7 @@ function moduleByKey(key) {
 export const screenRegistry = new ScreenRegistry([
   { key: "dashboard", label: "Dashboard", component: DashboardView },
   { key: "invoices", label: "POS / Sales", component: InvoicesView },
+  { key: "sales-returns", label: "Sales Returns", component: SalesReturnsView },
   { key: "inventory", label: "Parts", component: InventoryView },
   { key: "part-passport", label: "Part Passport", component: PartPassportWorkspaceView },
   { key: "compatibility", label: "Compatibility", component: PartCompatibilityView },
