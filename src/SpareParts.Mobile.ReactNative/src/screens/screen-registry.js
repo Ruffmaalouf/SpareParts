@@ -1,6 +1,7 @@
 const { featureModules } = require("../core/app-config");
 const { ScreenRegistry } = require("../core/screen-registry");
 const { AccountingScreen } = require("./accounting-screen");
+const { AdminBillingScreen } = require("./admin-billing-screen");
 const { BillingScreen } = require("./billing-screen");
 const { ContactsScreen } = require("./contacts-screen");
 const { DashboardScreen } = require("./dashboard-screen");
@@ -53,7 +54,8 @@ const screenRegistry = new ScreenRegistry([
   { key: "activity-log", label: "Activity Log", component: createModuleScreen(moduleByKey("activity-log")) },
   { key: "quotes", label: "Quotes / Estimates", component: createModuleScreen(moduleByKey("quotes")) },
   { key: "customer-aging", label: "Customer Aging", component: createModuleScreen(moduleByKey("customer-aging")) },
-  { key: "supplier-aging", label: "Supplier Aging", component: createModuleScreen(moduleByKey("supplier-aging")) }
+  { key: "supplier-aging", label: "Supplier Aging", component: createModuleScreen(moduleByKey("supplier-aging")) },
+  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingScreen }
 ]);
 
 module.exports = { screenRegistry };

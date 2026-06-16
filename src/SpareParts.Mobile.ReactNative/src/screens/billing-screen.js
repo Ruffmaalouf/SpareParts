@@ -316,3 +316,5 @@ function BillingScreen({ api }) {
 }
 
 module.exports = { BillingScreen };
+module.exports.FEATURE_LABELS = FEATURE_LABELS;
+module.exports.LIMIT_LABELS = LIMIT_LABELS;

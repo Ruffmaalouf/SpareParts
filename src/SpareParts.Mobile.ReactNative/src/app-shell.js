@@ -21,15 +21,17 @@ const { SmartSearch } = require("./components/smart-search");
 const { LoginScreen } = require("./screens/login-screen");
 const { CustomerStorefrontScreen } = require("./screens/customer-storefront-screen");
 const { screenRegistry } = require("./screens/screen-registry");
+const { isSuperAdmin } = require("./core/role-policy");
 const { ThemeContext } = require("./theme/theme-context");
 const { createPalette, createStyles } = require("./theme/styles");
-const { isWebAppUser } = require("./core/role-policy");
+const { isWebAppUser: isWebAppRoleUser } = require("./core/role-policy");
 
 const { useCallback, useEffect, useMemo, useState } = React;
 const el = React.createElement;
 
 const sessionStore = new MobileSessionStore(AsyncStorage, storageKeys);
 const bottomTabKeys = ["dashboard", "invoices", "parts", "management", "settings"];
+const superAdminOnlyKeys = new Set(["admin-billing"]);
 const customerTabs = [
   { key: "store-home", label: "Garage", icon: "gauge", description: "Cockpit" },
   { key: "store-parts", label: "Parts", icon: "piston", description: "Fitment" },
@@ -103,12 +105,16 @@ function AppContent() {
     });
   }, []);
   const api = useMemo(() => new ApiClient(apiBaseUrl, token, clearSession, handlePlanLocked), [apiBaseUrl, clearSession, handlePlanLocked, token]);
-  const isCustomerMode = Boolean(user && isWebAppUser(user));
+  const isCustomerMode = Boolean(user && isWebAppRoleUser(user));
+  const visibleAdminScreens = useMemo(
+    () => screenRegistry.items.filter((item) => !superAdminOnlyKeys.has(item.key) || isSuperAdmin(user)),
+    [user]
+  );
   const bottomTabs = useMemo(
     () => bottomTabKeys
-      .map((key) => screenRegistry.items.find((item) => item.key === key))
+      .map((key) => visibleAdminScreens.find((item) => item.key === key))
       .filter(Boolean),
-    []
+    [visibleAdminScreens]
   );
   const visibleBottomTabs = isCustomerMode ? customerTabs : bottomTabs;
   const activeScreen = useMemo(() => {
@@ -116,8 +122,8 @@ function AppContent() {
       return visibleBottomTabs.find((item) => item.key === activeTab) || visibleBottomTabs[0];
     }
 
-    return screenRegistry.items.find((item) => item.key === activeTab) || bottomTabs[0];
-  }, [activeTab, bottomTabs, isCustomerMode, visibleBottomTabs]);
+    return visibleAdminScreens.find((item) => item.key === activeTab) || bottomTabs[0];
+  }, [activeTab, bottomTabs, isCustomerMode, visibleAdminScreens, visibleBottomTabs]);
   const ActiveScreen = isCustomerMode ? null : screenRegistry.resolve(activeScreen.key);
   const activeBottomKey = useMemo(() => {
     if (visibleBottomTabs.some((item) => item.key === activeScreen.key)) {
@@ -197,7 +203,7 @@ function AppContent() {
         !isCustomerMode && isSidebarOpen && el(AppSidebar, {
           activeKey: activeScreen.key,
           isWideLayout,
-          screens: screenRegistry.items,
+          screens: visibleAdminScreens,
           themeKey,
           user,
           onClose: closeSidebar,
@@ -227,7 +233,7 @@ function AppContent() {
               : el(ActiveScreen, {
                 api,
                 activeScreenKey: activeScreen.key,
-                adminScreens: screenRegistry.items,
+                adminScreens: visibleAdminScreens,
                 onLogout: logout,
                 onNavigate: selectScreen,
                 onLanguage: changeLanguage,

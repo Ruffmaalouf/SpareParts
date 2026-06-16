@@ -2,14 +2,25 @@ const React = require("react");
 const { Pressable, ScrollView, Text, View } = require("react-native");
 const { navigationGroups, wpfThemes } = require("../core/app-config");
 const { initials } = require("../core/formatters");
+const { isSuperAdmin } = require("../core/role-policy");
 const { useTheme } = require("../theme/theme-context");
 
 const { useMemo } = React;
 const el = React.createElement;
+const superAdminOnlyKeys = new Set(["admin-billing"]);
 
 function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose, onLogout, onSelect, onTheme }) {
   const { styles, t } = useTheme();
-  const screensByKey = useMemo(() => new Map(screens.map((item) => [item.key, item])), [screens]);
+  const visibleScreens = useMemo(
+    () => screens.filter((item) => !superAdminOnlyKeys.has(item.key) || isSuperAdmin(user)),
+    [screens, user]
+  );
+  const groups = useMemo(() => navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.keys.map((key) => visibleScreens.find((item) => item.key === key)).filter(Boolean)
+    }))
+    .filter((group) => group.items.length > 0), [visibleScreens]);
 
   return el(View, { style: [styles.sidePanel, !isWideLayout && styles.sidePanelOverlay] },
     el(View, { style: styles.sideHeader },
@@ -25,12 +36,10 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
       )
     ),
     el(ScrollView, { style: styles.sideNav, contentContainerStyle: styles.sideNavContent, showsVerticalScrollIndicator: false },
-      navigationGroups.map((group) =>
+      groups.map((group) =>
         el(View, { key: group.title, style: styles.navGroup },
           el(Text, { style: styles.navGroupTitle }, t(`nav.groups.${group.title}`, group.title)),
-          group.keys.map((key) => {
-            const item = screensByKey.get(key);
-            if (!item) return null;
+          group.items.map((item) => {
             const isActive = item.key === activeKey;
             return el(Pressable, {
               key: item.key,
