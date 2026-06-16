@@ -472,6 +472,16 @@ public static class SparePartsApiComposition
         WatchlistMigration.EnsureApplied(factory);
         SellerVerificationMigration.EnsureApplied(factory);
         MarketplaceFeaturesMigration.EnsureApplied(factory);
+        RepairOrdersMigration.EnsureApplied(factory);
+        GarageStockMigration.EnsureApplied(factory);
+        PartReservationsMigration.EnsureApplied(factory);
+        PartReelsMigration.EnsureApplied(factory);
+        HalfCutsMigration.EnsureApplied(factory);
+        EscrowTransactionsMigration.EnsureApplied(factory);
+        ListingBoostsMigration.EnsureApplied(factory);
+        ReferralsMigration.EnsureApplied(factory);
+        PartCompatibilityMigration.EnsureApplied(factory);
+        Phase2FeatureCodesMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)
