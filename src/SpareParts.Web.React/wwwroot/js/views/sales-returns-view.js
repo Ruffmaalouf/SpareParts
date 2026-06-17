@@ -1,13 +1,11 @@
-import { h } from "../core/mini-react.js";
-import { api } from "../core/api.js";
-import { useState, useEffect, useCallback } from "../core/hooks.js";
-import { formatDate, formatCurrency } from "../core/formatters.js";
+import { h, useState, useEffect, useCallback } from "../core/react-runtime.js";
+import { money, shortDate } from "../core/formatters.js";
 
 const MODE_LIST = "list";
 const MODE_CREATE = "create";
 const MODE_DETAIL = "detail";
 
-export function SalesReturnsView() {
+export function SalesReturnsView({ api }) {
   const [mode, setMode] = useState(MODE_LIST);
   const [returns, setReturns] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,7 +51,7 @@ export function SalesReturnsView() {
   };
 
   if (mode === MODE_CREATE) {
-    return h(CreateReturnForm, { onCreated: backToList, onCancel: () => setMode(MODE_LIST) });
+    return h(CreateReturnForm, { api, onCreated: backToList, onCancel: () => setMode(MODE_LIST) });
   }
 
   if (mode === MODE_DETAIL && selected) {
@@ -95,9 +93,9 @@ export function SalesReturnsView() {
                   h("tr", { key: r.returnId, style: { cursor: "pointer" }, onClick: () => openDetail(r.returnId) },
                     h("td", null, h("strong", null, r.returnNumber)),
                     h("td", null, r.originalInvoiceNumber || `#${r.originalInvoiceId}`),
-                    h("td", null, formatDate(r.returnDate)),
-                    h("td", null, formatCurrency(r.totalAmount)),
-                    h("td", null, formatCurrency(r.refundAmount))
+                    h("td", null, shortDate(r.returnDate)),
+                    h("td", null, money(r.totalAmount)),
+                    h("td", null, money(r.refundAmount))
                   )
                 )
           )
@@ -118,15 +116,15 @@ function ReturnDetailPanel({ data, onBack }) {
       ),
       h("div", null,
         h("label", null, "Return Date"),
-        h("span", null, formatDate(data.returnDate))
+        h("span", null, shortDate(data.returnDate))
       ),
       h("div", null,
         h("label", null, "Credit Amount"),
-        h("span", null, formatCurrency(data.totalAmount))
+        h("span", null, money(data.totalAmount))
       ),
       h("div", null,
         h("label", null, "Refund Amount"),
-        h("span", null, formatCurrency(data.refundAmount))
+        h("span", null, money(data.refundAmount))
       ),
       data.reason && h("div", { style: { gridColumn: "1 / -1" } },
         h("label", null, "Reason"),
@@ -149,9 +147,9 @@ function ReturnDetailPanel({ data, onBack }) {
           h("tr", { key: i },
             h("td", null, item.description || `Part #${item.partId}`),
             h("td", null, item.quantity),
-            h("td", null, formatCurrency(item.unitPrice)),
+            h("td", null, money(item.unitPrice)),
             h("td", null, `${item.taxRate}%`),
-            h("td", null, formatCurrency(item.lineTotal))
+            h("td", null, money(item.lineTotal))
           )
         )
       )
@@ -159,7 +157,7 @@ function ReturnDetailPanel({ data, onBack }) {
   );
 }
 
-function CreateReturnForm({ onCreated, onCancel }) {
+function CreateReturnForm({ api, onCreated, onCancel }) {
   const [step, setStep] = useState(1);
   const [invoiceId, setInvoiceId] = useState("");
   const [invoiceSearch, setInvoiceSearch] = useState("");
@@ -237,7 +235,7 @@ function CreateReturnForm({ onCreated, onCancel }) {
     const creditAmount = computeCredit();
     const refund = parseFloat(refundAmount) || 0;
     if (refund > creditAmount) {
-      setError(`Refund amount cannot exceed credit amount (${formatCurrency(creditAmount)}).`);
+      setError(`Refund amount cannot exceed credit amount (${money(creditAmount)}).`);
       return;
     }
 
@@ -289,8 +287,8 @@ function CreateReturnForm({ onCreated, onCancel }) {
           invoiceResults.map((inv) =>
             h("tr", { key: inv.invoiceId },
               h("td", null, inv.invoiceNumber),
-              h("td", null, formatDate(inv.invoiceDate)),
-              h("td", null, formatCurrency(inv.totalAmount)),
+              h("td", null, shortDate(inv.invoiceDate)),
+              h("td", null, money(inv.totalAmount)),
               h("td", null,
                 h("button", { className: "btn btn-sm", onClick: () => selectInvoice(inv.invoiceId) }, "Select")
               )
@@ -350,7 +348,7 @@ function CreateReturnForm({ onCreated, onCancel }) {
         returnableLines.map((line) =>
           h("tr", { key: line.partId },
             h("td", null, line.description || `Part #${line.partId}`),
-            h("td", null, formatCurrency(line.unitPrice)),
+            h("td", null, money(line.unitPrice)),
             h("td", null, line.returnableQuantity),
             h("td", null,
               h("input", {
@@ -370,7 +368,7 @@ function CreateReturnForm({ onCreated, onCancel }) {
       )
     ),
     h("div", { className: "form-row" },
-      h("label", null, `Credit Amount: ${formatCurrency(creditAmount)}`)
+      h("label", null, `Credit Amount: ${money(creditAmount)}`)
     ),
     h("div", { className: "form-row" },
       h("label", null, "Refund Amount (optional)"),
