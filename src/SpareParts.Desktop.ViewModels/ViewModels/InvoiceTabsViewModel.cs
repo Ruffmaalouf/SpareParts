@@ -62,6 +62,44 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public CustomerAgingViewModel CustomerAgingVm { get; }
         public SupplierAgingViewModel SupplierAgingVm { get; }
         public BillingSubscriptionViewModel BillingSubscriptionVm { get; }
+        public SalesReturnsViewModel SalesReturnsVm { get; }
+        public AdminBillingViewModel AdminBillingVm { get; }
+        public NeedboardViewModel NeedboardVm { get; }
+        public WatchlistViewModel WatchlistVm { get; }
+        public SellerReputationViewModel SellerReputationVm { get; }
+        public SellerVerificationViewModel SellerVerificationVm { get; }
+        public SymptomSearchViewModel SymptomSearchVm { get; }
+        public MechanicDeskViewModel MechanicDeskVm { get; }
+        public GarageStockViewModel GarageStockVm { get; }
+        public PartReserveViewModel PartReserveVm { get; }
+        public PartReelViewModel PartReelVm { get; }
+        public WhatsAppSellingViewModel WhatsAppSellingVm { get; }
+        public HalfcutViewModel HalfcutVm { get; }
+        public CarCrushViewModel CarCrushVm { get; }
+        public EscrowViewModel EscrowVm { get; }
+        public MarketPriceViewModel MarketPriceVm { get; }
+        public ListingBoostViewModel ListingBoostVm { get; }
+        public ReferralViewModel ReferralVm { get; }
+        public VoiceSearchViewModel VoiceSearchVm { get; }
+        public MyGarageViewModel MyGarageVm { get; }
+        public DoesItFitViewModel DoesItFitVm { get; }
+        public PriceGeniusViewModel PriceGeniusVm { get; }
+        public ConditionScannerViewModel ConditionScannerVm { get; }
+        public CommunityGuardViewModel CommunityGuardVm { get; }
+        public LiveInspectionViewModel LiveInspectionVm { get; }
+        public QrTagViewModel QrTagVm { get; }
+        public PartGenealogyViewModel PartGenealogyVm { get; }
+        public DismantlerForecastViewModel DismantlerForecastVm { get; }
+        public RegionalDemandViewModel RegionalDemandVm { get; }
+        public MechanicTrustViewModel MechanicTrustVm { get; }
+        public NewVsUsedViewModel NewVsUsedVm { get; }
+        public NegotiationViewModel NegotiationVm { get; }
+        public YardTourViewModel YardTourVm { get; }
+        public InstantOfferViewModel InstantOfferVm { get; }
+        public PartInsuranceViewModel PartInsuranceVm { get; }
+        public KareemViewModel KareemVm { get; }
+        public ArFinderViewModel ArFinderVm { get; }
+        public PriceReportViewModel PriceReportVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -418,6 +456,44 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CustomerAgingVm.IsLoading ||
             SupplierAgingVm.IsLoading ||
             BillingSubscriptionVm.IsLoading ||
+            SalesReturnsVm.IsBusy ||
+            AdminBillingVm.IsLoading ||
+            NeedboardVm.IsLoading ||
+            WatchlistVm.IsLoading ||
+            SellerReputationVm.IsLoading ||
+            SellerVerificationVm.IsLoading ||
+            SymptomSearchVm.IsLoading ||
+            MechanicDeskVm.IsLoading ||
+            GarageStockVm.IsLoading ||
+            PartReserveVm.IsLoading ||
+            PartReelVm.IsLoading ||
+            WhatsAppSellingVm.IsLoading ||
+            HalfcutVm.IsLoading ||
+            CarCrushVm.IsBusy ||
+            EscrowVm.IsLoading ||
+            MarketPriceVm.IsLoading ||
+            ListingBoostVm.IsLoading ||
+            ReferralVm.IsLoading ||
+            VoiceSearchVm.IsLoading ||
+            MyGarageVm.IsLoading ||
+            DoesItFitVm.IsLoading ||
+            PriceGeniusVm.IsLoading ||
+            ConditionScannerVm.IsLoading ||
+            CommunityGuardVm.IsLoading ||
+            LiveInspectionVm.IsLoading ||
+            QrTagVm.IsLoading ||
+            PartGenealogyVm.IsLoading ||
+            DismantlerForecastVm.IsLoading ||
+            RegionalDemandVm.IsLoading ||
+            MechanicTrustVm.IsLoading ||
+            NewVsUsedVm.IsLoading ||
+            NegotiationVm.IsLoading ||
+            YardTourVm.IsLoading ||
+            InstantOfferVm.IsLoading ||
+            PartInsuranceVm.IsLoading ||
+            KareemVm.IsBusy ||
+            ArFinderVm.IsLoading ||
+            PriceReportVm.IsLoading ||
             ManagementVm.IsLoading ||
             ManagementVm.AccountingVm.IsLoading;
 
@@ -475,6 +551,44 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToCustomerAgingCommand { get; }
         public ICommand GoToSupplierAgingCommand { get; }
         public ICommand GoToBillingSubscriptionCommand { get; }
+        public ICommand GoToSalesReturnsCommand { get; }
+        public ICommand GoToAdminBillingCommand { get; }
+        public ICommand GoToNeedboardCommand { get; }
+        public ICommand GoToWatchlistCommand { get; }
+        public ICommand GoToSellerReputationCommand { get; }
+        public ICommand GoToSellerVerificationCommand { get; }
+        public ICommand GoToSymptomSearchCommand { get; }
+        public ICommand GoToMechanicDeskCommand { get; }
+        public ICommand GoToGarageStockCommand { get; }
+        public ICommand GoToPartReserveCommand { get; }
+        public ICommand GoToPartReelCommand { get; }
+        public ICommand GoToWhatsAppSellingCommand { get; }
+        public ICommand GoToHalfcutCommand { get; }
+        public ICommand GoToCarCrushCommand { get; }
+        public ICommand GoToEscrowCommand { get; }
+        public ICommand GoToMarketPriceCommand { get; }
+        public ICommand GoToListingBoostCommand { get; }
+        public ICommand GoToReferralCommand { get; }
+        public ICommand GoToVoiceSearchCommand { get; }
+        public ICommand GoToMyGarageCommand { get; }
+        public ICommand GoToDoesItFitCommand { get; }
+        public ICommand GoToPriceGeniusCommand { get; }
+        public ICommand GoToConditionScannerCommand { get; }
+        public ICommand GoToCommunityGuardCommand { get; }
+        public ICommand GoToLiveInspectionCommand { get; }
+        public ICommand GoToQrTagCommand { get; }
+        public ICommand GoToPartGenealogyCommand { get; }
+        public ICommand GoToDismantlerForecastCommand { get; }
+        public ICommand GoToRegionalDemandCommand { get; }
+        public ICommand GoToMechanicTrustCommand { get; }
+        public ICommand GoToNewVsUsedCommand { get; }
+        public ICommand GoToNegotiationCommand { get; }
+        public ICommand GoToYardTourCommand { get; }
+        public ICommand GoToInstantOfferCommand { get; }
+        public ICommand GoToPartInsuranceCommand { get; }
+        public ICommand GoToKareemCommand { get; }
+        public ICommand GoToArFinderCommand { get; }
+        public ICommand GoToPriceReportCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand { get; }
@@ -527,6 +641,44 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             CustomerAgingVm = new CustomerAgingViewModel(crudApi);
             SupplierAgingVm = new SupplierAgingViewModel(crudApi);
             BillingSubscriptionVm = new BillingSubscriptionViewModel(crudApi);
+            SalesReturnsVm = new SalesReturnsViewModel(crudApi);
+            AdminBillingVm = new AdminBillingViewModel(crudApi);
+            NeedboardVm = new NeedboardViewModel(crudApi);
+            WatchlistVm = new WatchlistViewModel(crudApi);
+            SellerReputationVm = new SellerReputationViewModel(crudApi);
+            SellerVerificationVm = new SellerVerificationViewModel(crudApi);
+            SymptomSearchVm = new SymptomSearchViewModel(crudApi);
+            MechanicDeskVm = new MechanicDeskViewModel(crudApi);
+            GarageStockVm = new GarageStockViewModel(crudApi);
+            PartReserveVm = new PartReserveViewModel(crudApi);
+            PartReelVm = new PartReelViewModel(crudApi);
+            WhatsAppSellingVm = new WhatsAppSellingViewModel(crudApi);
+            HalfcutVm = new HalfcutViewModel(crudApi);
+            CarCrushVm = new CarCrushViewModel(crudApi);
+            EscrowVm = new EscrowViewModel(crudApi);
+            MarketPriceVm = new MarketPriceViewModel(crudApi);
+            ListingBoostVm = new ListingBoostViewModel(crudApi);
+            ReferralVm = new ReferralViewModel(crudApi);
+            VoiceSearchVm = new VoiceSearchViewModel(crudApi);
+            MyGarageVm = new MyGarageViewModel(crudApi);
+            DoesItFitVm = new DoesItFitViewModel(crudApi);
+            PriceGeniusVm = new PriceGeniusViewModel(crudApi);
+            ConditionScannerVm = new ConditionScannerViewModel(crudApi);
+            CommunityGuardVm = new CommunityGuardViewModel(crudApi);
+            LiveInspectionVm = new LiveInspectionViewModel(crudApi);
+            QrTagVm = new QrTagViewModel(crudApi);
+            PartGenealogyVm = new PartGenealogyViewModel(crudApi);
+            DismantlerForecastVm = new DismantlerForecastViewModel(crudApi);
+            RegionalDemandVm = new RegionalDemandViewModel(crudApi);
+            MechanicTrustVm = new MechanicTrustViewModel(crudApi);
+            NewVsUsedVm = new NewVsUsedViewModel(crudApi);
+            NegotiationVm = new NegotiationViewModel(crudApi);
+            YardTourVm = new YardTourViewModel(crudApi);
+            InstantOfferVm = new InstantOfferViewModel(crudApi);
+            PartInsuranceVm = new PartInsuranceViewModel(crudApi);
+            KareemVm = new KareemViewModel(crudApi);
+            ArFinderVm = new ArFinderViewModel(crudApi);
+            PriceReportVm = new PriceReportViewModel(crudApi);
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -681,6 +833,196 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             BillingSubscriptionVm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(BillingSubscriptionViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            SalesReturnsVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(SalesReturnsViewModel.IsBusy))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            AdminBillingVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(AdminBillingViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            NeedboardVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(NeedboardViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            WatchlistVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(WatchlistViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            SellerReputationVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(SellerReputationViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            SellerVerificationVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(SellerVerificationViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            SymptomSearchVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(SymptomSearchViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            MechanicDeskVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(MechanicDeskViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            GarageStockVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(GarageStockViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            PartReserveVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartReserveViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            PartReelVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartReelViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            WhatsAppSellingVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(WhatsAppSellingViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            HalfcutVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(HalfcutViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            CarCrushVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(CarCrushViewModel.IsBusy))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            EscrowVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(EscrowViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            MarketPriceVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(MarketPriceViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ListingBoostVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ListingBoostViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ReferralVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ReferralViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            VoiceSearchVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(VoiceSearchViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            MyGarageVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(MyGarageViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            DoesItFitVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(DoesItFitViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            PriceGeniusVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PriceGeniusViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ConditionScannerVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ConditionScannerViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            CommunityGuardVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(CommunityGuardViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            LiveInspectionVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(LiveInspectionViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            QrTagVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(QrTagViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            PartGenealogyVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartGenealogyViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            DismantlerForecastVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(DismantlerForecastViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            RegionalDemandVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(RegionalDemandViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            MechanicTrustVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(MechanicTrustViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            NewVsUsedVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(NewVsUsedViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            NegotiationVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(NegotiationViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            YardTourVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(YardTourViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            InstantOfferVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(InstantOfferViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            PartInsuranceVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PartInsuranceViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            KareemVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(KareemViewModel.IsBusy))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            ArFinderVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(ArFinderViewModel.IsLoading))
+                    OnPropertyChanged(nameof(IsGlobalLoading));
+            };
+            PriceReportVm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PriceReportViewModel.IsLoading))
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
@@ -1003,6 +1345,183 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 ActiveScreen = AppScreen.BillingSubscription;
                 BillingSubscriptionVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToSalesReturnsCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.SalesReturns;
+                SalesReturnsVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToAdminBillingCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.AdminBilling;
+                AdminBillingVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToNeedboardCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Needboard;
+                NeedboardVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToWatchlistCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Watchlist;
+                WatchlistVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToSellerReputationCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.SellerReputation;
+                SellerReputationVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToSellerVerificationCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.SellerVerification;
+                SellerVerificationVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToSymptomSearchCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.SymptomSearch;
+            });
+            GoToMechanicDeskCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.MechanicDesk;
+                MechanicDeskVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToGarageStockCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.GarageStock;
+                GarageStockVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToPartReserveCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.PartReserve;
+                PartReserveVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToPartReelCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.PartReel;
+                PartReelVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToWhatsAppSellingCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.WhatsAppSelling;
+                WhatsAppSellingVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToHalfcutCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Halfcut;
+                HalfcutVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToCarCrushCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.CarCrush;
+            });
+            GoToEscrowCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Escrow;
+                EscrowVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToMarketPriceCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.MarketPrice;
+            });
+            GoToListingBoostCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.ListingBoost;
+                ListingBoostVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToReferralCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Referral;
+                ReferralVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToVoiceSearchCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.VoiceSearch;
+            });
+            GoToMyGarageCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.MyGarage;
+                MyGarageVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToDoesItFitCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.DoesItFit;
+            });
+            GoToPriceGeniusCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.PriceGenius;
+            });
+            GoToConditionScannerCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.ConditionScanner;
+            });
+            GoToCommunityGuardCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.CommunityGuard;
+                CommunityGuardVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToLiveInspectionCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.LiveInspection;
+                LiveInspectionVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToQrTagCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.QrTag;
+            });
+            GoToPartGenealogyCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.PartGenealogy;
+            });
+            GoToDismantlerForecastCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.DismantlerForecast;
+            });
+            GoToRegionalDemandCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.RegionalDemand;
+                RegionalDemandVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToMechanicTrustCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.MechanicTrust;
+                MechanicTrustVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToNewVsUsedCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.NewVsUsed;
+                NewVsUsedVm.LoadDataAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToNegotiationCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Negotiation;
+                NegotiationVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToYardTourCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.YardTour;
+                YardTourVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToInstantOfferCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.InstantOffer;
+                InstantOfferVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToPartInsuranceCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.PartInsurance;
+                PartInsuranceVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
+            GoToKareemCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.Kareem;
+            });
+            GoToArFinderCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.ArFinder;
+            });
+            GoToPriceReportCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.PriceReport;
             });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());
