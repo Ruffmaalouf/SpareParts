@@ -118,12 +118,13 @@ public static class SparePartsApiComposition
         nameof(InstantOffersMigration),
         nameof(InsuranceAddonsMigration),
         nameof(ApiKeysMigration),
-        nameof(Phase3FeatureCodesMigration)
+        nameof(Phase3FeatureCodesMigration),
+        nameof(SalesReturnTypeMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController), nameof(SymptomSearchController), nameof(RepairOrdersController), nameof(HalfCutController), nameof(EscrowController), nameof(ListingBoostController), nameof(WhatsAppLinkController), nameof(PartReservationsController), nameof(PriceGeniusController), nameof(CommunityGuardController), nameof(LiveInspectionController), nameof(YardTourController), nameof(NegotiationController), nameof(InstantOfferController), nameof(PartInsuranceController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(SalesReturnsController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController), nameof(SymptomSearchController), nameof(RepairOrdersController), nameof(HalfCutController), nameof(EscrowController), nameof(ListingBoostController), nameof(WhatsAppLinkController), nameof(PartReservationsController), nameof(PriceGeniusController), nameof(CommunityGuardController), nameof(LiveInspectionController), nameof(YardTourController), nameof(NegotiationController), nameof(InstantOfferController), nameof(PartInsuranceController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
         [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(WatchlistController), nameof(GarageStockController), nameof(ConditionScannerController), nameof(PartPassportController), nameof(QrTagController), nameof(PartGenealogyController), nameof(NewVsUsedController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
@@ -309,8 +310,19 @@ public static class SparePartsApiComposition
                     sp.GetService<ILogger<SaleAccountingStrategy>>());
             });
 
+            services.AddScoped<IAccountingStrategy<SalesReturn>>(sp =>
+            {
+                return new ReturnAccountingStrategy(
+                    sp.GetRequiredService<ISqlConnectionFactory>(),
+                    sp.GetRequiredService<AccountingSettingsProvider>(),
+                    sp.GetRequiredService<CustomerAccountResolver>(),
+                    sp.GetService<ILogger<ReturnAccountingStrategy>>());
+            });
+
             services.AddScoped<ICreateSaleHandler, CreateSaleHandler>();
+            services.AddScoped<CreateSalesReturnHandler>();
             services.AddScoped<SalesService>();
+            services.AddScoped<SalesReturnsService>();
             services.AddScoped<QuotesService>();
             services.AddScoped<WebCatalogService>();
             services.TryAddScoped<PartRequestsService>();
@@ -553,6 +565,7 @@ public static class SparePartsApiComposition
         InsuranceAddonsMigration.EnsureApplied(factory);
         ApiKeysMigration.EnsureApplied(factory);
         Phase3FeatureCodesMigration.EnsureApplied(factory);
+        SalesReturnTypeMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)
