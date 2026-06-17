@@ -403,7 +403,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 if (string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return long.TryParse(rowView[column]?.ToString(), out var id) ? id : null;
+                    return long.TryParse(rowView[column.ColumnName]?.ToString(), out var id) ? id : null;
                 }
             }
             return null;

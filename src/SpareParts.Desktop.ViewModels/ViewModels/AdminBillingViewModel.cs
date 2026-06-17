@@ -214,7 +214,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     {
                         if (string.Equals(column.ColumnName, "isActive", StringComparison.OrdinalIgnoreCase))
                         {
-                            bool.TryParse(SelectedRow[column]?.ToString(), out isActive);
+                            bool.TryParse(SelectedRow[column.ColumnName]?.ToString(), out isActive);
                         }
                     }
                 }
