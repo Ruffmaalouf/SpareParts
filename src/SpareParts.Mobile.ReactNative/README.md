@@ -17,7 +17,7 @@ Set `EXPO_PUBLIC_API_BASE_URL` in `.env` to an API URL the device can reach.
 - iOS simulator on macOS: `http://localhost:5000`
 - Physical Android/iPhone: use the computer LAN IP, for example `http://192.168.1.20:5000`
 
-The mobile app mirrors the WPF shell modules and theme catalog. The five primary workspaces are available from the bottom tab bar: Dashboard, POS / Sales, Parts, Contacts, and Management. The collapsible side menu still exposes the wider operations, finance, tools, theme, and sign-out actions.
+The mobile app mirrors the shared admin screen catalog used by the WPF and web apps. The bottom tab bar keeps the primary workspaces close at hand, while the side menu exposes the full operations, finance, tools, platform-admin, and extra-marketplace screens from the same spec set.
 
 ## Social login
 

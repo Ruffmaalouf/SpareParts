@@ -209,6 +209,7 @@ const managementSections = [
 ];
 
 const featureModules = [
+  { key: "sales-returns", label: "Sales Returns", title: "Sales Returns", endpoint: "/api/sales-returns", capabilities: ["Browse return records", "Open return details", "Review credit and refund values"] },
   { key: "part-passport", label: "Part Passport", title: "Part Passport", endpoint: "/api/parts + /api/usedcars", capabilities: ["Select inventory part", "Review public proof card", "Prepare WhatsApp-ready passport link"] },
   { key: "compatibility", label: "Compatibility", title: "Part Compatibility", endpoint: "/api/parts + /api/usedcars", capabilities: ["Visual part-to-vehicle graph", "OEM and donor-car fitment evidence", "Model/year sales assist"] },
   { key: "part-requests", label: "Part Requests", title: "Parts Request Board", endpoint: "/api/partrequests", capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"] },
@@ -234,7 +235,12 @@ const featureModules = [
   { key: "activity-log", label: "Activity Log", title: "Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] },
   { key: "quotes", label: "Quotes / Estimates", title: "Quotes / Estimates", endpoint: "/api/quotes", capabilities: ["Draft and sent quotes", "Quote-to-sale conversion", "Expiry tracking"] },
   { key: "customer-aging", label: "Customer Aging", title: "Customer Aging", endpoint: "/api/customers/aging", capabilities: ["Outstanding balances by customer", "0/30/60/90+ day aging buckets", "Overdue receivables overview"] },
-  { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] }
+  { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] },
+  { key: "my-garage", label: "My Garage", title: "My Garage", endpoint: "/api/vehicle-profile", capabilities: ["Saved customer vehicles", "Default vehicle selection", "VIN-based garage profile"] },
+  { key: "needboard", label: "NeedBoard", title: "NeedBoard", endpoint: "/api/needboard", capabilities: ["Browse buyer requests", "Post new demand", "Respond with seller offers"] },
+  { key: "watchlist", label: "WatchPart", title: "WatchPart", endpoint: "/api/watchlist", capabilities: ["Track wanted parts", "View incoming match counts", "Remove fulfilled watch items"] },
+  { key: "seller-reputation", label: "Shop Reputation", title: "Shop Reputation", endpoint: "/api/seller-reputation", capabilities: ["Seller reputation score", "Leaderboard comparison", "Fulfillment and dispute signals"] },
+  { key: "seller-verification", label: "Seller Verification", title: "Seller Verification", endpoint: "/api/seller-verification", capabilities: ["Verification status", "Business document submission", "Admin review notes"] }
 ];
 
 const navigationGroups = [

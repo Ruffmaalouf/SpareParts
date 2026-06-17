@@ -23,6 +23,7 @@ function moduleByKey(key) {
 const screenRegistry = new ScreenRegistry([
   { key: "dashboard", label: "Dashboard", component: DashboardScreen },
   { key: "invoices", label: "POS / Sales", component: InvoicesScreen },
+  { key: "sales-returns", label: "Sales Returns", component: createModuleScreen(moduleByKey("sales-returns")) },
   { key: "parts", label: "Parts", component: MechanicModeScreen },
   { key: "part-passport", label: "Part Passport", component: createModuleScreen(moduleByKey("part-passport")) },
   { key: "compatibility", label: "Compatibility", component: PartCompatibilityScreen },
@@ -55,7 +56,12 @@ const screenRegistry = new ScreenRegistry([
   { key: "quotes", label: "Quotes / Estimates", component: createModuleScreen(moduleByKey("quotes")) },
   { key: "customer-aging", label: "Customer Aging", component: createModuleScreen(moduleByKey("customer-aging")) },
   { key: "supplier-aging", label: "Supplier Aging", component: createModuleScreen(moduleByKey("supplier-aging")) },
-  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingScreen }
+  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingScreen },
+  { key: "my-garage", label: "My Garage", component: createModuleScreen(moduleByKey("my-garage")) },
+  { key: "needboard", label: "NeedBoard", component: createModuleScreen(moduleByKey("needboard")) },
+  { key: "watchlist", label: "WatchPart", component: createModuleScreen(moduleByKey("watchlist")) },
+  { key: "seller-reputation", label: "Shop Reputation", component: createModuleScreen(moduleByKey("seller-reputation")) },
+  { key: "seller-verification", label: "Seller Verification", component: createModuleScreen(moduleByKey("seller-verification")) }
 ]);
 
 module.exports = { screenRegistry };

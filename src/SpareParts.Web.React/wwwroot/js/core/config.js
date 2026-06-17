@@ -168,6 +168,14 @@ export const featureModules = [
     capabilities: ["Create invoices", "Search invoices", "Send invoice by WhatsApp", "Send payment reminder"]
   },
   {
+    key: "sales-returns",
+    label: "Sales Returns",
+    title: "Sales Returns",
+    source: "Web sales return workspace",
+    endpoint: "/api/sales-returns",
+    capabilities: ["Browse return records", "Open return details", "Review credit and refund values"]
+  },
+  {
     key: "inventory",
     label: "Parts",
     title: "Parts Inventory",
@@ -351,7 +359,12 @@ export const featureModules = [
   { key: "activity-log", label: "Activity Log", title: "Activity Log", source: "MainWindow Activity Log", endpoint: "/api/activity-log", capabilities: ["Recent activity feed", "Filter by entity type", "Full audit trail"] },
   { key: "quotes", label: "Quotes / Estimates", title: "Quotes / Estimates", source: "Web quotes workspace", endpoint: "/api/quotes", capabilities: ["Draft and sent quotes", "Quote-to-sale conversion", "Expiry tracking"] },
   { key: "customer-aging", label: "Customer Aging", title: "Customer Aging", source: "Finance aging workspace", endpoint: "/api/customers/aging", capabilities: ["Outstanding balances by customer", "0/30/60/90+ day aging buckets", "Overdue receivables overview"] },
-  { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", source: "Finance aging workspace", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] }
+  { key: "supplier-aging", label: "Supplier Aging", title: "Supplier Aging", source: "Finance aging workspace", endpoint: "/api/suppliers/aging", capabilities: ["Outstanding balances by supplier", "0/30/60/90+ day aging buckets", "Overdue payables overview"] },
+  { key: "my-garage", label: "My Garage", title: "My Garage", source: "Web customer garage workspace", endpoint: "/api/vehicle-profile", capabilities: ["Saved customer vehicles", "Default vehicle selection", "VIN-based garage profile"] },
+  { key: "needboard", label: "NeedBoard", title: "NeedBoard", source: "Marketplace demand board", endpoint: "/api/needboard", capabilities: ["Browse buyer requests", "Post new demand", "Respond with seller offers"] },
+  { key: "watchlist", label: "WatchPart", title: "WatchPart", source: "Wanted parts watchlist", endpoint: "/api/watchlist", capabilities: ["Track wanted parts", "View incoming match counts", "Remove fulfilled watch items"] },
+  { key: "seller-reputation", label: "Shop Reputation", title: "Shop Reputation", source: "Seller performance workspace", endpoint: "/api/seller-reputation", capabilities: ["Seller reputation score", "Leaderboard comparison", "Fulfillment and dispute signals"] },
+  { key: "seller-verification", label: "Seller Verification", title: "Seller Verification", source: "Seller onboarding workspace", endpoint: "/api/seller-verification", capabilities: ["Verification status", "Business document submission", "Admin review notes"] }
 ];
 
 export const managementSections = [

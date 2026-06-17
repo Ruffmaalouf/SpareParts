@@ -15,12 +15,19 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
     () => screens.filter((item) => !superAdminOnlyKeys.has(item.key) || isSuperAdmin(user)),
     [screens, user]
   );
-  const groups = useMemo(() => navigationGroups
-    .map((group) => ({
-      ...group,
-      items: group.keys.map((key) => visibleScreens.find((item) => item.key === key)).filter(Boolean)
-    }))
-    .filter((group) => group.items.length > 0), [visibleScreens]);
+  const groups = useMemo(() => {
+    const screenMap = new Map(visibleScreens.map((item) => [item.key, item]));
+    const groupedKeys = new Set(navigationGroups.flatMap((group) => group.keys));
+    const extraScreens = visibleScreens.filter((item) => !groupedKeys.has(item.key));
+
+    return [
+      ...navigationGroups.map((group) => ({
+        ...group,
+        items: group.keys.map((key) => screenMap.get(key)).filter(Boolean)
+      })),
+      extraScreens.length ? { title: "Other", keys: extraScreens.map((item) => item.key), items: extraScreens } : null
+    ].filter((group) => group && group.items.length > 0);
+  }, [visibleScreens]);
 
   return el(View, { style: [styles.sidePanel, !isWideLayout && styles.sidePanelOverlay] },
     el(View, { style: styles.sideHeader },
