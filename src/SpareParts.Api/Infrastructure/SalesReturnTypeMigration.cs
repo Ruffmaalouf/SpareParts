@@ -19,6 +19,9 @@ BEGIN
     (
         Name,
         TypeKey,
+        CurrencyCode,
+        CounterRate,
+        IsActive,
         SortOrder,
         SerialNumberFormat,
         SerialStartNumber,
@@ -28,6 +31,9 @@ BEGIN
     (
         N'Sales Return',
         N'sale_return',
+        N'USD',
+        1,
+        1,
         @MaxSort + 10,
         N'RET-{DATE:yyyyMMdd}-{NUMBER:00000000}',
         1,
