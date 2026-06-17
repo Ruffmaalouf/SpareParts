@@ -105,22 +105,32 @@ public static class SparePartsApiComposition
         nameof(ListingBoostsMigration),
         nameof(ReferralsMigration),
         nameof(PartCompatibilityMigration),
-        nameof(Phase2FeatureCodesMigration)
-        nameof(MarketplaceFeaturesMigration)
+        nameof(Phase2FeatureCodesMigration),
+        nameof(ConditionCertificatesMigration),
+        nameof(PartPassportPhotosMigration),
+        nameof(ContentReportsMigration),
+        nameof(InspectionRequestsMigration),
+        nameof(PartGenealogyMigration),
+        nameof(MechanicProfilesMigration),
+        nameof(NewVsUsedPricingMigration),
+        nameof(YardToursMigration),
+        nameof(NegotiationsMigration),
+        nameof(InstantOffersMigration),
+        nameof(InsuranceAddonsMigration),
+        nameof(ApiKeysMigration),
+        nameof(Phase3FeatureCodesMigration),
         nameof(SalesReturnTypeMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
     {
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController), nameof(SymptomSearchController), nameof(RepairOrdersController), nameof(HalfCutController), nameof(EscrowController), nameof(ListingBoostController), nameof(WhatsAppLinkController), nameof(PartReservationsController)],
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController)],
-        [ServiceCapability.Sales] = [nameof(SalesController), nameof(SalesReturnsController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController)],
+        [ServiceCapability.Sales] = [nameof(SalesController), nameof(SalesReturnsController), nameof(CustomersController), nameof(WebCatalogController), nameof(LoyaltyController), nameof(CustomerPricingController), nameof(WarrantyController), nameof(ShipmentsController), nameof(QuotesController), nameof(NeedBoardController), nameof(SymptomSearchController), nameof(RepairOrdersController), nameof(HalfCutController), nameof(EscrowController), nameof(ListingBoostController), nameof(WhatsAppLinkController), nameof(PartReservationsController), nameof(PriceGeniusController), nameof(CommunityGuardController), nameof(LiveInspectionController), nameof(YardTourController), nameof(NegotiationController), nameof(InstantOfferController), nameof(PartInsuranceController)],
         [ServiceCapability.Purchases] = [nameof(PurchasesController), nameof(SuppliersController), nameof(SupplierPriceHistoryController)],
-        [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(WatchlistController), nameof(GarageStockController)],
+        [ServiceCapability.Inventory] = [nameof(PartsController), nameof(PartRequestsController), nameof(WarehousesController), nameof(TransactionTypesController), nameof(ScansController), nameof(ReorderController), nameof(PartSubstitutesController), nameof(PartExpiryController), nameof(WatchlistController), nameof(GarageStockController), nameof(ConditionScannerController), nameof(PartPassportController), nameof(QrTagController), nameof(PartGenealogyController), nameof(NewVsUsedController)],
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
-        [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController), nameof(SellerReputationController), nameof(SellerVerificationController), nameof(ReferralController)],
-        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(VehicleProfileController), nameof(PartReelsController), nameof(CarCrushController), nameof(PartCompatibilityController)],
-        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController), nameof(MarketPriceController), nameof(VoiceSearchController)],
+        [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController), nameof(SellerReputationController), nameof(SellerVerificationController), nameof(ReferralController), nameof(MechanicTrustController), nameof(ApiPlatformController)],
+        [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(VehicleProfileController), nameof(PartReelsController), nameof(CarCrushController), nameof(PartCompatibilityController), nameof(ArPartsFinderController)],
+        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController), nameof(MarketPriceController), nameof(VoiceSearchController), nameof(DismantlerForecastController), nameof(RegionalDemandController), nameof(PriceReportController), nameof(KareemController)],
         [ServiceCapability.Health] = [nameof(HealthController)],
         [ServiceCapability.Billing] = [nameof(PricingController), nameof(SubscriptionController), nameof(PaymentsController), nameof(InvoicesController), nameof(AdminPricingController), nameof(AdminSubscriptionsController), nameof(AdminPaymentsController), nameof(AdminInvoicesController)]
     };
@@ -283,6 +293,14 @@ public static class SparePartsApiComposition
             services.AddScoped<ListingBoostService>();
             services.AddScoped<WhatsAppLinkService>();
             services.AddScoped<PartReservationService>();
+            services.TryAddScoped<MarketPriceIndexService>();
+            services.AddScoped<PriceGeniusService>();
+            services.AddScoped<CommunityGuardService>();
+            services.AddScoped<LiveInspectionService>();
+            services.AddScoped<YardTourService>();
+            services.AddScoped<NegotiationBotService>();
+            services.AddScoped<InstantOfferService>();
+            services.AddScoped<PartInsuranceService>();
             services.AddScoped<IAccountingStrategy<SalesInvoice>>(sp =>
             {
                 return new SaleAccountingStrategy(
@@ -358,6 +376,11 @@ public static class SparePartsApiComposition
             services.AddScoped<ScanLookupService>();
             services.AddScoped<WatchlistService>();
             services.AddScoped<GarageStockService>();
+            services.AddScoped<ConditionScannerService>();
+            services.AddScoped<PartPassportService>();
+            services.AddScoped<QrTagService>();
+            services.AddScoped<PartGenealogyService>();
+            services.AddScoped<NewVsUsedService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Accounting))
@@ -375,6 +398,8 @@ public static class SparePartsApiComposition
             services.AddScoped<SellerReputationService>();
             services.AddScoped<SellerVerificationService>();
             services.AddScoped<ReferralService>();
+            services.AddScoped<MechanicTrustService>();
+            services.AddScoped<ApiPlatformService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Catalog))
@@ -394,6 +419,9 @@ public static class SparePartsApiComposition
             services.AddScoped<PartReelsService>();
             services.AddScoped<CarCrushService>();
             services.AddScoped<PartCompatibilityService>();
+            services.TryAddScoped<SmartSearchService>();
+            services.TryAddScoped<ScanLookupService>();
+            services.AddScoped<ArPartsFinderService>();
         }
 
         if (distinctCapabilities.Contains(ServiceCapability.Reporting))
@@ -410,6 +438,10 @@ public static class SparePartsApiComposition
             services.AddScoped<SmartSearchService>();
             services.AddScoped<GrowthIntelligenceService>();
             services.AddScoped<MarketPriceIndexService>();
+            services.AddScoped<DismantlerForecastService>();
+            services.AddScoped<RegionalDemandService>();
+            services.AddScoped<PriceReportService>();
+            services.AddScoped<KareemConciergeService>();
         }
     }
 
@@ -520,6 +552,19 @@ public static class SparePartsApiComposition
         ReferralsMigration.EnsureApplied(factory);
         PartCompatibilityMigration.EnsureApplied(factory);
         Phase2FeatureCodesMigration.EnsureApplied(factory);
+        ConditionCertificatesMigration.EnsureApplied(factory);
+        PartPassportPhotosMigration.EnsureApplied(factory);
+        ContentReportsMigration.EnsureApplied(factory);
+        InspectionRequestsMigration.EnsureApplied(factory);
+        PartGenealogyMigration.EnsureApplied(factory);
+        MechanicProfilesMigration.EnsureApplied(factory);
+        NewVsUsedPricingMigration.EnsureApplied(factory);
+        YardToursMigration.EnsureApplied(factory);
+        NegotiationsMigration.EnsureApplied(factory);
+        InstantOffersMigration.EnsureApplied(factory);
+        InsuranceAddonsMigration.EnsureApplied(factory);
+        ApiKeysMigration.EnsureApplied(factory);
+        Phase3FeatureCodesMigration.EnsureApplied(factory);
         SalesReturnTypeMigration.EnsureApplied(factory);
     }
 
