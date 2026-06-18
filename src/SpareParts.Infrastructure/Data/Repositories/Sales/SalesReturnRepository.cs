@@ -57,7 +57,8 @@ namespace SpareParts.Infrastructure.Data
                                      TotalCounterAmount,
                                      PaidCounterAmount,
                                      CreatedAt,
-                                     CreatedByUserId
+                                     CreatedByUserId,
+                                     TenantId
                                  )
                                  SELECT
                                      @TransactionTypeId,
@@ -83,7 +84,8 @@ namespace SpareParts.Infrastructure.Data
                                      @TotalAmount,
                                      @RefundAmount,
                                      @CreatedAt,
-                                     @CreatedByUserId
+                                     @CreatedByUserId,
+                                     @TenantId
                                  ;
 
                                  DECLARE @ReturnId INT = CAST(SCOPE_IDENTITY() AS INT);
@@ -111,7 +113,8 @@ namespace SpareParts.Infrastructure.Data
                     currencyContext.CounterCurrencyCode,
                     currencyContext.CounterRateToBase,
                     salesReturn.CreatedAt,
-                    salesReturn.CreatedByUserId
+                    salesReturn.CreatedByUserId,
+                    TenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null
                 },
                 _session.Transaction);
         }
@@ -122,11 +125,12 @@ namespace SpareParts.Infrastructure.Data
                                           FROM dbo.Transactions t
                                           INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                           WHERE tt.TypeKey = @TypeKey
-                                            AND t.ReferenceId = @ReturnId;";
+                                            AND t.ReferenceId = @ReturnId
+                                            AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             var transactionId = _session.Connection.QuerySingleOrDefault<int>(
                 resolveIdSql,
-                new { TypeKey = TransactionTypeKeys.SalesReturn, ReturnId = returnId },
+                new { TypeKey = TransactionTypeKeys.SalesReturn, ReturnId = returnId, TenantId = _session.TenantId },
                 _session.Transaction);
 
             if (transactionId <= 0)
@@ -219,6 +223,7 @@ namespace SpareParts.Infrastructure.Data
                                          SELECT Id FROM dbo.TransactionTypes WHERE TypeKey = @SaleTypeKey
                                      )
                                  WHERE tt.TypeKey = @TypeKey
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND (@Query IS NULL OR @Query = N''
                                         OR t.TransactionNumber LIKE N'%' + @Query + N'%'
                                         OR orig.TransactionNumber LIKE N'%' + @Query + N'%'
@@ -231,7 +236,8 @@ namespace SpareParts.Infrastructure.Data
                 {
                     TypeKey = TransactionTypeKeys.SalesReturn,
                     SaleTypeKey = TransactionTypeKeys.Sale,
-                    Query = query?.Trim()
+                    Query = query?.Trim(),
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
         }
@@ -256,7 +262,8 @@ namespace SpareParts.Infrastructure.Data
                                                 SELECT Id FROM dbo.TransactionTypes WHERE TypeKey = @SaleTypeKey
                                             )
                                         WHERE tt.TypeKey = @TypeKey
-                                          AND t.ReferenceId = @ReturnId;";
+                                          AND t.ReferenceId = @ReturnId
+                                          AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             const string itemsSql = @"SELECT
                                              ti.PartId,
@@ -271,6 +278,7 @@ namespace SpareParts.Infrastructure.Data
                                       LEFT JOIN dbo.Parts p ON p.Id = ti.PartId
                                       WHERE tt.TypeKey = @TypeKey
                                         AND t.ReferenceId = @ReturnId
+                                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                       ORDER BY ti.SortOrder, ti.Id;";
 
             var dto = _session.Connection.QuerySingleOrDefault<SalesReturnDetailsDto>(
@@ -279,7 +287,8 @@ namespace SpareParts.Infrastructure.Data
                 {
                     TypeKey = TransactionTypeKeys.SalesReturn,
                     SaleTypeKey = TransactionTypeKeys.Sale,
-                    ReturnId = returnId
+                    ReturnId = returnId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
 
@@ -290,7 +299,7 @@ namespace SpareParts.Infrastructure.Data
 
             dto.Items = _session.Connection.Query<SalesReturnLineDto>(
                 itemsSql,
-                new { TypeKey = TransactionTypeKeys.SalesReturn, ReturnId = returnId },
+                new { TypeKey = TransactionTypeKeys.SalesReturn, ReturnId = returnId, TenantId = _session.TenantId },
                 _session.Transaction).ToList();
 
             return dto;
@@ -318,6 +327,7 @@ namespace SpareParts.Infrastructure.Data
                                      AND ret_ti.PartId = ti.PartId
                                  WHERE tt.TypeKey = @SaleTypeKey
                                    AND t.ReferenceId = @OriginalInvoiceId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                  GROUP BY ti.PartId, p.Name, ti.Quantity, ti.UnitPrice, ti.TaxRate
                                  HAVING CAST(ti.Quantity AS INT) - ISNULL(SUM(CAST(ret_ti.Quantity AS INT)), 0) > 0
                                  ORDER BY ti.PartId;";
@@ -328,15 +338,10 @@ namespace SpareParts.Infrastructure.Data
                 {
                     SaleTypeKey = TransactionTypeKeys.Sale,
                     ReturnTypeKey = TransactionTypeKeys.SalesReturn,
-                    OriginalInvoiceId = originalInvoiceId
+                    OriginalInvoiceId = originalInvoiceId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
-        }
-
-        private sealed class ReturnCurrencyRow
-        {
-            public string CounterCurrencyCode { get; set; } = "USD";
-            public decimal CounterRateToBase { get; set; } = 1m;
         }
     }
 }

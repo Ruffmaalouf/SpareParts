@@ -22,6 +22,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
+        private readonly ITenantContext _tenantContext;
 
         public SalesService(
             ICreateSaleHandler createSaleHandler,
@@ -31,7 +32,8 @@ namespace SpareParts.Infrastructure.Services
             IAccountingStrategy<SalesInvoice> accountingStrategy,
             IInvoiceTotalsCalculator totalsCalculator,
             AccountingSettingsProvider settingsProvider,
-            CustomerAccountResolver customerAccountResolver)
+            CustomerAccountResolver customerAccountResolver,
+            ITenantContext tenantContext)
         {
             _createSaleHandler = createSaleHandler;
             _factory = factory;
@@ -41,6 +43,7 @@ namespace SpareParts.Infrastructure.Services
             _totalsCalculator = totalsCalculator;
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
+            _tenantContext = tenantContext;
         }
 
         public CreateSaleResponse CreateSale(CreateSaleRequest request, int userId)
@@ -48,21 +51,21 @@ namespace SpareParts.Infrastructure.Services
 
         public List<SalesInvoiceLookupDto> SearchInvoices(string? query)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var salesRepository = new SalesRepository(session);
             return salesRepository.SearchInvoices(query);
         }
 
         public SalesInvoiceDetailsDto? GetInvoiceById(int invoiceId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var salesRepository = new SalesRepository(session);
             return salesRepository.GetInvoiceById(invoiceId);
         }
 
         public List<SalesProfitHistoryPointDto> GetProfitHistory(int months)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var salesRepository = new SalesRepository(session);
             return salesRepository.GetProfitHistory(months);
         }
@@ -74,7 +77,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Payment amount must be greater than zero.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
             var salesRepository = repositories.Sales.Invoices;
             var journalRepository = repositories.Accounting.Journal;
@@ -128,7 +131,7 @@ namespace SpareParts.Infrastructure.Services
 
         public bool UpdateInvoice(int invoiceId, UpdateSaleRequest request, int userId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var salesRepository = new SalesRepository(session);
             var inventoryRepository = new InventoryRepository(session);
             var partsRepository = new PartsRepository(session);
