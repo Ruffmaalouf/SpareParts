@@ -36,7 +36,7 @@ public sealed class SmartSearchService
 
         results.AddRange(QueryParts(connection, searchText, take, tenantId));
         results.AddRange(QueryPartners(connection, searchText, take, tenantId));
-        results.AddRange(QueryTransactions(connection, searchText, take, tenantId));
+        results.AddRange(QueryTransactions(connection, searchText, take));
         results.AddRange(QueryUsedCars(connection, searchText, take));
 
         return new SmartSearchResponseDto
@@ -206,7 +206,9 @@ public sealed class SmartSearchService
             """,
             Parameters(searchText, take, tenantId)).ToList();
 
-    private static IReadOnlyList<SmartSearchResultDto> QueryTransactions(IDbConnection connection, string searchText, int take, int tenantId)
+    // NOTE: dbo.Transactions has no TenantId column (architectural gap shared with dbo.UsedCars);
+    // results are not tenant-scoped here. Fixing this requires a schema migration (out of scope).
+    private static IReadOnlyList<SmartSearchResultDto> QueryTransactions(IDbConnection connection, string searchText, int take)
         => connection.Query<SmartSearchResultDto>(
             """
             SELECT TOP (@Take)
