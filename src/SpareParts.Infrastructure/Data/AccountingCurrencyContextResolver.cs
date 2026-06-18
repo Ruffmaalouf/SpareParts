@@ -13,9 +13,10 @@ namespace SpareParts.Infrastructure.Data
 
             const string sql = @"SELECT [Key], [Value]
                                  FROM dbo.AppConstants
-                                 WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode', 'CounterCurrencyCode', 'DisplayCurrencyCode', 'DefaultCounterRate');";
+                                 WHERE [Key] IN ('BaseCurrencyCode', 'DefaultCurrencyCode', 'CounterCurrencyCode', 'DisplayCurrencyCode', 'DefaultCounterRate')
+                                   AND (@TenantId = 0 OR TenantId = @TenantId);";
 
-            var rows = session.Connection.Query<AppConstantRow>(sql, transaction: session.Transaction)
+            var rows = session.Connection.Query<AppConstantRow>(sql, new { session.TenantId }, transaction: session.Transaction)
                 .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
 
             var baseCurrencyCode = ResolveCurrencyCode(rows, "BaseCurrencyCode")
@@ -86,9 +87,10 @@ namespace SpareParts.Infrastructure.Data
             }
 
             const string sql = @"SELECT Code, RateToUsd, BaseCode
-                                 FROM dbo.CurrencyRates;";
+                                 FROM dbo.CurrencyRates
+                                 WHERE (@TenantId = 0 OR TenantId = @TenantId);";
 
-            return session.Connection.Query<CurrencyRateRow>(sql, transaction: session.Transaction)
+            return session.Connection.Query<CurrencyRateRow>(sql, new { session.TenantId }, transaction: session.Transaction)
                 .Select(rate => new { Rate = rate, Code = NormalizeCurrencyCode(rate.Code) })
                 .Where(item => item.Code is not null && item.Rate.RateToUsd > 0m)
                 .GroupBy(item => item.Code!, StringComparer.OrdinalIgnoreCase)

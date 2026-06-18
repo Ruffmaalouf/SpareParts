@@ -34,7 +34,7 @@ public sealed partial class ReportBuilderService
             uniqueColumnsByName,
             "currency amount");
 
-        var (configuredBaseCurrencyCode, configuredCounterCurrencyCode) = GetConfiguredCurrencyContext(connection);
+        var (configuredBaseCurrencyCode, configuredCounterCurrencyCode) = GetConfiguredCurrencyContext(connection, _tenantContext.TenantId);
         var reportingCurrencyCode = NormalizeCurrencyCode(settings.ReportingCurrencyCode) ?? configuredBaseCurrencyCode;
 
         var amountExpression = $"{aliasByTableKey[amountColumn.TableKey]}.{Quote(amountColumn.ColumnName)}";
@@ -50,14 +50,14 @@ public sealed partial class ReportBuilderService
         var counterRateExpression = TryResolveOptionalColumnExpression(settings.CounterRateToBaseColumnKey, columnsByKey, columnsByQualifiedName, uniqueColumnsByName, aliasByTableKey);
         if (string.IsNullOrWhiteSpace(counterRateExpression))
         {
-            var configuredCounterRateToBase = ResolveCurrencyRateToConfiguredBase(connection, configuredCounterCurrencyCode, configuredBaseCurrencyCode) ?? 1m;
+            var configuredCounterRateToBase = ResolveCurrencyRateToConfiguredBase(connection, configuredCounterCurrencyCode, configuredBaseCurrencyCode, _tenantContext.TenantId) ?? 1m;
             counterRateExpression = configuredCounterRateToBase.ToString(CultureInfo.InvariantCulture);
         }
 
         var baseAmountExpression = $"ROUND(({amountExpression}) * (CASE WHEN ISNULL({rateExpression}, 0) > 0 THEN {rateExpression} ELSE 1 END), 4)";
         var counterAmountExpression = $"CASE WHEN ISNULL({counterRateExpression}, 0) > 0 THEN ROUND(({baseAmountExpression}) / {counterRateExpression}, 4) ELSE NULL END";
 
-        var reportingRateToBase = ResolveCurrencyRateToConfiguredBase(connection, reportingCurrencyCode, configuredBaseCurrencyCode) ?? 1m;
+        var reportingRateToBase = ResolveCurrencyRateToConfiguredBase(connection, reportingCurrencyCode, configuredBaseCurrencyCode, _tenantContext.TenantId) ?? 1m;
         var reportingAmountExpression = string.Equals(reportingCurrencyCode, configuredBaseCurrencyCode, StringComparison.OrdinalIgnoreCase)
             ? baseAmountExpression
             : $"CASE WHEN {reportingRateToBase.ToString(CultureInfo.InvariantCulture)} > 0 THEN ROUND(({baseAmountExpression}) / {reportingRateToBase.ToString(CultureInfo.InvariantCulture)}, 4) ELSE NULL END";
@@ -91,7 +91,7 @@ public sealed partial class ReportBuilderService
         return $"{aliasByTableKey[column.TableKey]}.{Quote(column.ColumnName)}";
     }
 
-    private static decimal? ResolveCurrencyRateToConfiguredBase(IDbConnection connection, string currencyCode, string configuredBaseCode)
+    private static decimal? ResolveCurrencyRateToConfiguredBase(IDbConnection connection, string currencyCode, string configuredBaseCode, int tenantId)
     {
         if (string.IsNullOrWhiteSpace(currencyCode) || string.IsNullOrWhiteSpace(configuredBaseCode))
         {
@@ -112,7 +112,9 @@ public sealed partial class ReportBuilderService
                 @"SELECT Code, RateToUsd, BaseCode, SnapshotUtc
                   FROM dbo.CurrencyRates
                   WHERE Code IS NOT NULL
-                    AND BaseCode IS NOT NULL;")
+                    AND BaseCode IS NOT NULL
+                    AND (@TenantId = 0 OR TenantId = @TenantId);",
+                new { TenantId = tenantId })
             .ToList();
 
         if (rawRates.Count == 0)

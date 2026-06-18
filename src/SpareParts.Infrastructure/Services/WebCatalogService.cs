@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Sales;
 using SpareParts.Domain.WebCatalog;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using System.Data;
 
 namespace SpareParts.Infrastructure.Services;
@@ -13,11 +14,13 @@ public sealed class WebCatalogService
 
     private readonly ISqlConnectionFactory _factory;
     private readonly SalesService _salesService;
+    private readonly ITenantContext _tenantContext;
 
-    public WebCatalogService(ISqlConnectionFactory factory, SalesService salesService)
+    public WebCatalogService(ISqlConnectionFactory factory, SalesService salesService, ITenantContext tenantContext)
     {
         _factory = factory;
         _salesService = salesService;
+        _tenantContext = tenantContext;
     }
 
     public IReadOnlyList<WebCatalogPartDto> GetAvailableParts(string? search, int page, int pageSize)
@@ -53,6 +56,7 @@ LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
 LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
 WHERE p.IsActive = 1
   AND s.Quantity > 0
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
   AND (@Search IS NULL OR @Search = N''
        OR p.InternalCode LIKE N'%' + @Search + N'%'
        OR p.Name LIKE N'%' + @Search + N'%'
@@ -64,6 +68,7 @@ OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
             new
             {
                 WarehouseId = warehouse.Id,
+                _tenantContext.TenantId,
                 Search = search?.Trim(),
                 Skip = (page - 1) * pageSize,
                 Take = pageSize
@@ -91,11 +96,13 @@ FROM dbo.Parts p
 INNER JOIN @PartIds ids ON ids.Id = p.Id
 INNER JOIN dbo.Stock s ON s.PartId = p.Id AND s.WarehouseId = @WarehouseId
 WHERE p.IsActive = 1
-  AND s.Quantity > 0;
+  AND s.Quantity > 0
+  AND (@TenantId = 0 OR p.TenantId = @TenantId);
 """,
             new
             {
                 WarehouseId = warehouse.Id,
+                _tenantContext.TenantId,
                 PartIds = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList")
             })
             .ToDictionary(part => part.Id);
@@ -157,19 +164,22 @@ WHERE p.IsActive = 1
             """
 SELECT TOP (1) TRY_CONVERT(INT, [Value])
 FROM dbo.AppConstants
-WHERE [Key] = N'WebCheckoutWarehouseId';
-""");
+WHERE [Key] = N'WebCheckoutWarehouseId'
+  AND (@TenantId = 0 OR TenantId = @TenantId);
+""",
+            new { _tenantContext.TenantId });
 
         var warehouse = conn.QueryFirstOrDefault<CheckoutWarehouse>(
             """
 SELECT TOP (1) Id, Name
 FROM dbo.Warehouses
 WHERE (@WarehouseId IS NULL OR Id = @WarehouseId)
+  AND (@TenantId = 0 OR TenantId = @TenantId)
 ORDER BY CASE WHEN @WarehouseId IS NOT NULL AND Id = @WarehouseId THEN 0 ELSE 1 END,
          IsMain DESC,
          Id;
 """,
-            new { WarehouseId = configuredWarehouseId });
+            new { WarehouseId = configuredWarehouseId, _tenantContext.TenantId });
 
         return warehouse ?? throw new ValidationException("No checkout warehouse is configured.");
     }
@@ -220,20 +230,5 @@ ORDER BY CASE WHEN @WarehouseId IS NOT NULL AND Id = @WarehouseId THEN 0 ELSE 1 
         }
 
         return table;
-    }
-
-    private sealed class CheckoutWarehouse
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
-
-    private sealed class WebCheckoutPartRow
-    {
-        public int Id { get; set; }
-        public decimal SalePrice { get; set; }
-        public string Currency { get; set; } = "USD";
-        public decimal CostPrice { get; set; }
-        public int AvailableQuantity { get; set; }
     }
 }

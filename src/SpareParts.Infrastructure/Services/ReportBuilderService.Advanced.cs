@@ -178,7 +178,7 @@ WHERE s.name = @SchemaName
     public ReportSecurityOptionsDto GetSecurityOptions(int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        var (baseCurrencyCode, counterCurrencyCode) = GetConfiguredCurrencyContext(connection);
+        var (baseCurrencyCode, counterCurrencyCode) = GetConfiguredCurrencyContext(connection, _tenantContext.TenantId);
         var roles = connection.Query<RoleSecurityOptionDto>(
             @"SELECT Id AS RoleId, Name AS RoleName FROM dbo.Roles WHERE IsActive = 1 ORDER BY Name;")
             .ToList();
@@ -189,7 +189,7 @@ WHERE s.name = @SchemaName
             DefaultBaseCurrencyCode = baseCurrencyCode,
             DefaultCounterCurrencyCode = counterCurrencyCode,
             Roles = roles,
-            CurrencyCodes = GetAvailableCurrencyCodes(connection, baseCurrencyCode, counterCurrencyCode)
+            CurrencyCodes = GetAvailableCurrencyCodes(connection, baseCurrencyCode, counterCurrencyCode, _tenantContext.TenantId)
         };
     }
 
@@ -210,7 +210,9 @@ SELECT Id,
        CreatedByUserId
 FROM dbo.ReportBuilderSavedReports
 WHERE IsActive = 1
-ORDER BY [Name], Id;")
+  AND (@TenantId = 0 OR TenantId = @TenantId)
+ORDER BY [Name], Id;",
+                new { _tenantContext.TenantId })
             .ToList();
 
         var reportIds = summaries.Select(summary => summary.Id).ToArray();
@@ -233,7 +235,7 @@ ORDER BY [Name], Id;")
     public ReportSavedReportDetailDto GetSavedReport(int id, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        return GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false);
+        return GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false, _tenantContext.TenantId);
     }
 
     public ReportSavedReportDetailDto SaveReport(SaveReportDefinitionRequest request, int currentUserId, int currentRoleId)
@@ -256,7 +258,7 @@ ORDER BY [Name], Id;")
 
         using var connection = _factory.CreateConnection();
         var existing = request.Id is > 0
-            ? GetSavedReportDetail(connection, request.Id.Value, currentUserId, currentRoleId, requireEdit: true)
+            ? GetSavedReportDetail(connection, request.Id.Value, currentUserId, currentRoleId, requireEdit: true, _tenantContext.TenantId)
             : null;
 
         var validRoleIds = connection.Query<int>("SELECT Id FROM dbo.Roles WHERE IsActive = 1;").ToHashSet();
@@ -280,7 +282,8 @@ SET [Name] = @Name,
     IsSensitive = @IsSensitive,
     ModifiedByUserId = @ModifiedByUserId,
     ModifiedAt = SYSUTCDATETIME()
-WHERE Id = @Id;",
+WHERE Id = @Id
+  AND (@TenantId = 0 OR TenantId = @TenantId);",
                 new
                 {
                     Id = existing.Id,
@@ -291,13 +294,15 @@ WHERE Id = @Id;",
                     DefaultExportFormat = normalizedExportFormat,
                     PreferredChartType = normalizedChartType,
                     request.IsSensitive,
-                    ModifiedByUserId = currentUserId
+                    ModifiedByUserId = currentUserId,
+                    _tenantContext.TenantId
                 });
 
             reportId = existing.Id;
         }
         else
         {
+            var tenantId = _tenantContext.TenantId > 0 ? (int?)_tenantContext.TenantId : null;
             reportId = connection.ExecuteScalar<int>(
                 @"
 INSERT INTO dbo.ReportBuilderSavedReports
@@ -310,7 +315,8 @@ INSERT INTO dbo.ReportBuilderSavedReports
     PreferredChartType,
     IsSensitive,
     IsActive,
-    CreatedByUserId
+    CreatedByUserId,
+    TenantId
 )
 VALUES
 (
@@ -322,7 +328,8 @@ VALUES
     @PreferredChartType,
     @IsSensitive,
     1,
-    @CreatedByUserId
+    @CreatedByUserId,
+    @TenantId
 );
 
 SELECT CAST(SCOPE_IDENTITY() AS INT);",
@@ -335,7 +342,8 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
                     DefaultExportFormat = normalizedExportFormat,
                     PreferredChartType = normalizedChartType,
                     request.IsSensitive,
-                    CreatedByUserId = currentUserId
+                    CreatedByUserId = currentUserId,
+                    TenantId = tenantId
                 });
         }
 
@@ -357,13 +365,13 @@ VALUES (@ReportId, @RoleId, @CanView, @CanEdit, @CanExport);",
         }
 
         SetFavoriteInternal(connection, reportId, currentUserId, request.IsFavorite);
-        return GetSavedReportDetail(connection, reportId, currentUserId, currentRoleId, requireEdit: false);
+        return GetSavedReportDetail(connection, reportId, currentUserId, currentRoleId, requireEdit: false, _tenantContext.TenantId);
     }
 
     public void DeleteSavedReport(int id, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: true);
+        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: true, _tenantContext.TenantId);
 
         var affected = connection.Execute(
             @"
@@ -372,8 +380,9 @@ SET IsActive = 0,
     ModifiedByUserId = @ModifiedByUserId,
     ModifiedAt = SYSUTCDATETIME()
 WHERE Id = @Id
-  AND IsActive = 1;",
-            new { Id = id, ModifiedByUserId = currentUserId });
+  AND IsActive = 1
+  AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = id, ModifiedByUserId = currentUserId, _tenantContext.TenantId });
 
         if (affected == 0)
         {
@@ -384,9 +393,9 @@ WHERE Id = @Id
     public ReportSavedReportSummaryDto SetFavorite(int id, bool isFavorite, int currentUserId, int currentRoleId)
     {
         using var connection = _factory.CreateConnection();
-        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false);
+        _ = GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false, _tenantContext.TenantId);
         SetFavoriteInternal(connection, id, currentUserId, isFavorite);
-        return GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false);
+        return GetSavedReportDetail(connection, id, currentUserId, currentRoleId, requireEdit: false, _tenantContext.TenantId);
     }
 
     public BackgroundReportRunSummaryDto QueueBackgroundRun(QueueBackgroundReportRunRequest request, int currentUserId, int currentRoleId)
@@ -643,7 +652,7 @@ WHERE Id = @Id;",
         }
     }
 
-    private ReportSavedReportDetailDto GetSavedReportDetail(IDbConnection connection, int id, int currentUserId, int currentRoleId, bool requireEdit)
+    private ReportSavedReportDetailDto GetSavedReportDetail(IDbConnection connection, int id, int currentUserId, int currentRoleId, bool requireEdit, int tenantId)
     {
         var row = connection.QuerySingleOrDefault(
             @"
@@ -660,8 +669,9 @@ SELECT Id,
        CreatedByUserId
 FROM dbo.ReportBuilderSavedReports
 WHERE Id = @Id
-  AND IsActive = 1;",
-            new { Id = id });
+  AND IsActive = 1
+  AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = id, TenantId = tenantId });
 
         if (row == null)
         {
@@ -977,7 +987,7 @@ ORDER BY CONVERT(NVARCHAR(160), {Quote(columnName)});";
         return samples.Count == 0 ? "No sample values yet." : string.Join("  •  ", samples);
     }
 
-    private static (string BaseCurrencyCode, string CounterCurrencyCode) GetConfiguredCurrencyContext(IDbConnection connection)
+    private static (string BaseCurrencyCode, string CounterCurrencyCode) GetConfiguredCurrencyContext(IDbConnection connection, int tenantId)
     {
         var values = connection.Query(
                 @"
@@ -989,8 +999,10 @@ END
 ELSE
 BEGIN
     SELECT [Key], [Value]
-    FROM dbo.AppConstants;
-END;")
+    FROM dbo.AppConstants
+    WHERE (@TenantId = 0 OR TenantId = @TenantId);
+END;",
+                new { TenantId = tenantId })
             .Select(row => (IDictionary<string, object?>)row)
             .Where(row => row["Key"] != null)
             .ToDictionary(
@@ -1009,7 +1021,7 @@ END;")
         return (baseCurrency, counterCurrency);
     }
 
-    private static List<string> GetAvailableCurrencyCodes(IDbConnection connection, string baseCurrencyCode, string counterCurrencyCode)
+    private static List<string> GetAvailableCurrencyCodes(IDbConnection connection, string baseCurrencyCode, string counterCurrencyCode, int tenantId)
     {
         var codes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -1019,7 +1031,9 @@ END;")
 
         if (TableExists(connection, "dbo", "CurrencyRates"))
         {
-            foreach (var code in connection.Query<string>("SELECT DISTINCT Code FROM dbo.CurrencyRates WHERE Code IS NOT NULL AND LTRIM(RTRIM(Code)) <> N'';"))
+            foreach (var code in connection.Query<string>(
+                "SELECT DISTINCT Code FROM dbo.CurrencyRates WHERE Code IS NOT NULL AND LTRIM(RTRIM(Code)) <> N'' AND (@TenantId = 0 OR TenantId = @TenantId);",
+                new { TenantId = tenantId }))
             {
                 var normalized = NormalizeCurrencyCode(code);
                 if (!string.IsNullOrWhiteSpace(normalized))
