@@ -28,7 +28,7 @@ public sealed class WhatsAppLinkService
             """
 SELECT Name, InternalCode, SalePrice, Currency
 FROM dbo.Parts
-WHERE Id = @PartId AND TenantId = @TenantId;
+WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
             new { PartId = partId, TenantId = tenantId });
 
@@ -68,7 +68,7 @@ OUTER APPLY (
     WHERE PartId = p.Id
 ) s
 WHERE p.IsActive = 1
-  AND p.TenantId = @TenantId
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY p.Name;
 """,
             new { TenantId = tenantId })

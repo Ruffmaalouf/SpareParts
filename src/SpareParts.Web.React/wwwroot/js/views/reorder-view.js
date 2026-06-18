@@ -56,32 +56,40 @@ export function ReorderView({ api }) {
       h("button", { className: `tab-btn${tab === "suggestions" ? " active" : ""}`, onClick: () => setTab("suggestions") }, "Reorder Suggestions"),
       h("button", { className: `tab-btn${tab === "rules" ? " active" : ""}`, onClick: () => setTab("rules") }, "Reorder Rules")
     ),
-    h(StatusLine, { message: status, isLoading }),
+    h(StatusLine, { status }),
     tab === "suggestions" && h(DataTable, {
       rows: suggestions,
+      getRowKey: (row) => row.partId,
+      emptyText: "No reorder suggestions found.",
       columns: [
-        { key: "partCode", label: "Code" },
-        { key: "partName", label: "Part" },
-        { key: "currentStock", label: "Stock" },
-        { key: "reorderPoint", label: "Reorder At" },
-        { key: "suggestedOrderQuantity", label: "Order Qty" },
-        { key: "salesLast30Days", label: "Sales/30d" },
-        { key: "salesLast90Days", label: "Sales/90d" },
-        { key: "preferredSupplierName", label: "Supplier" },
-        { key: "lastPurchasePrice", label: "Last Price" }
+        { key: "partCode", label: "Code", render: (row) => row.partCode },
+        { key: "partName", label: "Part", render: (row) => row.partName },
+        { key: "currentStock", label: "Stock", render: (row) => row.currentStock },
+        { key: "reorderPoint", label: "Reorder At", render: (row) => row.reorderPoint },
+        { key: "suggestedOrderQuantity", label: "Order Qty", render: (row) => row.suggestedOrderQuantity },
+        { key: "salesLast30Days", label: "Sales/30d", render: (row) => row.salesLast30Days },
+        { key: "salesLast90Days", label: "Sales/90d", render: (row) => row.salesLast90Days },
+        { key: "preferredSupplierName", label: "Supplier", render: (row) => row.preferredSupplierName || "" },
+        { key: "lastPurchasePrice", label: "Last Price", render: (row) => row.lastPurchasePrice != null ? row.lastPurchasePrice : "" }
       ]
     }),
     tab === "rules" && h(DataTable, {
       rows: rules,
+      getRowKey: (row) => row.partId,
+      emptyText: "No reorder rules found.",
       columns: [
-        { key: "partCode", label: "Code" },
-        { key: "partName", label: "Part" },
-        { key: "reorderPoint", label: "Reorder Point" },
-        { key: "reorderQuantity", label: "Order Qty" },
-        { key: "preferredSupplierName", label: "Supplier" },
-        { key: "isActive", label: "Active", render: (v) => v ? "Yes" : "No" }
-      ],
-      onDelete: (row) => deleteRule(row.partId)
+        { key: "partCode", label: "Code", render: (row) => row.partCode },
+        { key: "partName", label: "Part", render: (row) => row.partName },
+        { key: "reorderPoint", label: "Reorder Point", render: (row) => row.reorderPoint },
+        { key: "reorderQuantity", label: "Order Qty", render: (row) => row.reorderQuantity },
+        { key: "preferredSupplierName", label: "Supplier", render: (row) => row.preferredSupplierName || "" },
+        { key: "isActive", label: "Active", render: (row) => row.isActive ? "Yes" : "No" },
+        {
+          key: "actions",
+          label: "Actions",
+          render: (row) => h("button", { type: "button", className: "danger-button", onClick: () => deleteRule(row.partId) }, "Remove")
+        }
+      ]
     })
   );
 }

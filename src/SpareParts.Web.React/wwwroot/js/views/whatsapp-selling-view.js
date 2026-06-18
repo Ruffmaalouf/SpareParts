@@ -39,7 +39,7 @@ export function WhatsAppSellingView({ api }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    api.get("/api/app-constants").then(data => {
+    api.get("/api/appconstants").then(data => {
       const arr = Array.isArray(data) ? data : [];
       const row = arr.find(r => (r.key || r.Key || "").toLowerCase() === "whatsappnumber");
       const val = row ? (row.value || row.Value || "") : "";
@@ -60,7 +60,7 @@ export function WhatsAppSellingView({ api }) {
     setIsSaving(true);
     setStatus("Saving...");
     try {
-      await api.post("/api/app-constants", { key: "WhatsAppNumber", value: sellerPhone.trim() });
+      await api.post("/api/appconstants", { key: "WhatsAppNumber", value: sellerPhone.trim() });
       setSavedPhone(sellerPhone.trim());
       setStatus("WhatsApp number saved.");
     } catch (e) {
