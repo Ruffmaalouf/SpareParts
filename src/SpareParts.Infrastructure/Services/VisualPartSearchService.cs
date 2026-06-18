@@ -5,6 +5,7 @@ using Dapper;
 using SpareParts.Domain.Common;
 using SpareParts.Domain.Scanning;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -35,15 +36,18 @@ public sealed class VisualPartSearchService
     private readonly ISqlConnectionFactory _factory;
     private readonly HttpClient _httpClient;
     private readonly OpenAiOptions _options;
+    private readonly ITenantContext _tenantContext;
 
     public VisualPartSearchService(
         ISqlConnectionFactory factory,
         HttpClient httpClient,
-        OpenAiOptions options)
+        OpenAiOptions options,
+        ITenantContext tenantContext)
     {
         _factory = factory;
         _httpClient = httpClient;
         _options = options;
+        _tenantContext = tenantContext;
     }
 
     public async Task<VisualPartSearchResponseDto> SearchAsync(
@@ -296,7 +300,7 @@ public sealed class VisualPartSearchService
 
     private IReadOnlyList<VisualPartCandidate> QueryPartCandidates()
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var rows = session.Connection.Query<VisualPartCandidate>(
             """
             WITH StockByPart AS
@@ -305,6 +309,7 @@ public sealed class VisualPartSearchService
                     PartId,
                     AvailableQuantity = SUM(ISNULL(Quantity, 0) - ISNULL(ReservedQuantity, 0))
                 FROM dbo.Stock
+                WHERE (@TenantId = 0 OR TenantId = @TenantId)
                 GROUP BY PartId
             )
             SELECT TOP (1500)
@@ -320,14 +325,15 @@ public sealed class VisualPartSearchService
                    ISNULL(NULLIF(p.Currency, N''), N'USD') AS Currency,
                    ISNULL(stock.AvailableQuantity, 0) AS AvailableQuantity
             FROM dbo.Parts p
-            LEFT JOIN dbo.Brands b ON b.Id = p.BrandId
-            LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId
+            LEFT JOIN dbo.Brands b ON b.Id = p.BrandId AND (@TenantId = 0 OR b.TenantId = @TenantId)
+            LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId AND (@TenantId = 0 OR c.TenantId = @TenantId)
             LEFT JOIN StockByPart stock ON stock.PartId = p.Id
-            WHERE p.IsActive = 1
+            WHERE p.IsActive = 1 AND (@TenantId = 0 OR p.TenantId = @TenantId)
             ORDER BY
                 CASE WHEN ISNULL(stock.AvailableQuantity, 0) > 0 THEN 0 ELSE 1 END,
                 p.Name;
             """,
+            new { session.TenantId },
             transaction: session.Transaction).ToList();
 
         session.Commit();

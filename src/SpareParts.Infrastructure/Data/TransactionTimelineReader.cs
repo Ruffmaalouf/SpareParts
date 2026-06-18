@@ -271,11 +271,12 @@ namespace SpareParts.Infrastructure.Data
                                         ISNULL(SUM(Quantity), 0) AS NetQuantity
                                  FROM dbo.StockMovements
                                  WHERE ReferenceType = @ReferenceType
-                                   AND ReferenceId = @ReferenceId;";
+                                   AND ReferenceId = @ReferenceId
+                                   AND (@TenantId = 0 OR TenantId = @TenantId);";
 
             return _session.Connection.QuerySingle<StockMovementFact>(
                 sql,
-                new { ReferenceType = referenceType, ReferenceId = referenceId },
+                new { ReferenceType = referenceType, ReferenceId = referenceId, _session.TenantId },
                 _session.Transaction);
         }
 
@@ -300,13 +301,14 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.Accounts a ON a.Id = jl.AccountId
                                  WHERE je.ReferenceType = @ReferenceType
                                    AND je.ReferenceId = @ReferenceId
+                                   AND (@TenantId = 0 OR je.TenantId = @TenantId)
                                  ORDER BY je.CreatedAt, je.Id, jl.Id;";
 
             foreach (var reference in references)
             {
                 facts.AddRange(_session.Connection.Query<JournalFact>(
                     sql,
-                    new { reference.ReferenceType, reference.ReferenceId },
+                    new { reference.ReferenceType, reference.ReferenceId, _session.TenantId },
                     _session.Transaction));
             }
 

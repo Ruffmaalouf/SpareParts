@@ -1,20 +1,23 @@
 using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
     public sealed class AppConstantsService
     {
         private readonly ISqlConnectionFactory _factory;
+        private readonly ITenantContext _tenantContext;
 
-        public AppConstantsService(ISqlConnectionFactory factory)
+        public AppConstantsService(ISqlConnectionFactory factory, ITenantContext tenantContext)
         {
             _factory = factory;
+            _tenantContext = tenantContext;
         }
 
         public IEnumerable<AppConstantDto> GetAll()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repository = new AppConstantsRepository(session);
             return repository.GetAll().ToList();
         }
@@ -31,7 +34,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("App constant request is required.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repository = new AppConstantsRepository(session);
 
             repository.Upsert(

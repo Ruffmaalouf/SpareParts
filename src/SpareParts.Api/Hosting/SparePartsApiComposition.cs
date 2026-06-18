@@ -307,6 +307,7 @@ public static class SparePartsApiComposition
                     sp.GetRequiredService<ISqlConnectionFactory>(),
                     sp.GetRequiredService<AccountingSettingsProvider>(),
                     sp.GetRequiredService<CustomerAccountResolver>(),
+                    sp.GetRequiredService<ITenantContext>(),
                     sp.GetService<ILogger<SaleAccountingStrategy>>());
             });
 
@@ -316,6 +317,7 @@ public static class SparePartsApiComposition
                     sp.GetRequiredService<ISqlConnectionFactory>(),
                     sp.GetRequiredService<AccountingSettingsProvider>(),
                     sp.GetRequiredService<CustomerAccountResolver>(),
+                    sp.GetRequiredService<ITenantContext>(),
                     sp.GetService<ILogger<ReturnAccountingStrategy>>());
             });
 

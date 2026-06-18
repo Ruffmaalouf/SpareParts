@@ -1067,7 +1067,7 @@ public sealed class UsedCarsService
 
     private void BackfillMissingWholesaleSaleJournalEntries()
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repositories = RepositoryCatalog.For(session);
         var missingSales = session.Connection.Query<UsedCarWholesaleSaleRecord>(
             @"SELECT w.Id,
@@ -1095,8 +1095,9 @@ public sealed class UsedCarsService
                   WHERE je.ReferenceType = @ReferenceType
                     AND je.ReferenceId = w.Id
               )
+              AND (@TenantId = 0 OR w.TenantId = @TenantId)
               ORDER BY w.Id;",
-            new { ReferenceType = UsedCarWholesaleSaleReferenceType },
+            new { ReferenceType = UsedCarWholesaleSaleReferenceType, session.TenantId },
             session.Transaction)
             .ToList();
 
