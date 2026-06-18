@@ -105,7 +105,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 var payload = new
                 {
-                    name = Name,
+                    itemName = Name,
                     category = Category,
                     barcode = Barcode,
                     oemNumber = OemNumber,

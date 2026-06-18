@@ -74,8 +74,8 @@ export function MarketPriceView({ api }) {
 
   const yourPriceNum = yourPrice ? Number(yourPrice) : null;
   let priceComparison = null;
-  if (result && yourPriceNum && result.avgPrice) {
-    const diff = ((yourPriceNum - result.avgPrice) / result.avgPrice) * 100;
+  if (result && yourPriceNum && result.averagePrice) {
+    const diff = ((yourPriceNum - result.averagePrice) / result.averagePrice) * 100;
     const abs = Math.abs(diff).toFixed(1);
     if (diff < 0) {
       priceComparison = { text: `${abs}% below market average`, tone: "positive" };
@@ -150,14 +150,14 @@ export function MarketPriceView({ api }) {
           ),
           h("div", null,
             h("div", { style: { fontSize: "12px", color: "#888" } }, "Average"),
-            h("div", { style: { fontSize: "28px", fontWeight: "bold", color: "#1976d2" } }, money(result.avgPrice, result.currency || "USD"))
+            h("div", { style: { fontSize: "28px", fontWeight: "bold", color: "#1976d2" } }, money(result.averagePrice, result.currency || "USD"))
           ),
           h("div", null,
             h("div", { style: { fontSize: "12px", color: "#888" } }, "Max"),
             h("div", { style: { fontSize: "20px", fontWeight: "bold" } }, money(result.maxPrice, result.currency || "USD"))
           )
         ),
-        h(PriceBar, { minPrice: result.minPrice, avgPrice: result.avgPrice, maxPrice: result.maxPrice }),
+        h(PriceBar, { minPrice: result.minPrice, avgPrice: result.averagePrice, maxPrice: result.maxPrice }),
         h("p", { style: { fontSize: "13px", color: "#888", marginTop: "8px" } },
           `Based on ${result.sampleCount} active listing${result.sampleCount === 1 ? "" : "s"}`
         )

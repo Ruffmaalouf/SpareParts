@@ -28,7 +28,9 @@ public sealed class HalfCutService
             """
 SELECT h.Id, h.TenantId, h.VehicleMake, h.VehicleModel, h.VehicleYear, h.VinNumber,
        h.Color, h.OriginCountry, h.Mileage, h.Notes, h.PhotoUrls, h.AskingPrice,
-       h.Currency, h.Status, h.ClaimsCount, h.CreatedAt, t.Name AS SellerName
+       h.Currency, h.Status,
+       CASE h.Status WHEN 1 THEN 'Available' WHEN 2 THEN 'PartlyClaimed' WHEN 3 THEN 'FullyClaimed' WHEN 4 THEN 'Sold' ELSE 'Unknown' END AS StatusLabel,
+       h.ClaimsCount, h.CreatedAt, t.Name AS SellerName
 FROM dbo.HalfCutListings h
 LEFT JOIN dbo.Tenants t ON t.Id = h.TenantId
 WHERE (@TenantId = 0 OR h.TenantId = @TenantId)
@@ -56,7 +58,9 @@ WHERE (@TenantId = 0 OR TenantId = @TenantId)
             """
 SELECT h.Id, h.TenantId, h.VehicleMake, h.VehicleModel, h.VehicleYear, h.VinNumber,
        h.Color, h.OriginCountry, h.Mileage, h.Notes, h.PhotoUrls, h.AskingPrice,
-       h.Currency, h.Status, h.ClaimsCount, h.CreatedAt, t.Name AS SellerName
+       h.Currency, h.Status,
+       CASE h.Status WHEN 1 THEN 'Available' WHEN 2 THEN 'PartlyClaimed' WHEN 3 THEN 'FullyClaimed' WHEN 4 THEN 'Sold' ELSE 'Unknown' END AS StatusLabel,
+       h.ClaimsCount, h.CreatedAt, t.Name AS SellerName
 FROM dbo.HalfCutListings h
 LEFT JOIN dbo.Tenants t ON t.Id = h.TenantId
 WHERE h.Id = @Id AND (@TenantId = 0 OR h.TenantId = @TenantId);

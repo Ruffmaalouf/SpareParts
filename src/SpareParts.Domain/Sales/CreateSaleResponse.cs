@@ -6,5 +6,6 @@ namespace SpareParts.Domain.Sales
         public string InvoiceNumber { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
         public string PaymentStatus { get; set; } = string.Empty;
+        public string CurrencyCode { get; set; } = "USD";
     }
 }

@@ -25,10 +25,17 @@ public sealed class GarageStockController : SparePartsControllerBase
     public ActionResult<int> Create([FromBody] CreateGarageStockItemRequest request)
         => Ok(_service.Create(request, CurrentUserId));
 
-    [HttpPut("{id:int}/quantity")]
-    public IActionResult UpdateQuantity(int id, [FromQuery] int quantity)
+    [HttpPut("{id:int}")]
+    public IActionResult Update(int id, [FromBody] UpdateGarageStockItemRequest request)
     {
-        _service.UpdateQuantity(id, quantity, CurrentUserId);
+        _service.Update(id, request, CurrentUserId);
+        return NoContent();
+    }
+
+    [HttpPut("{id:int}/quantity")]
+    public IActionResult UpdateQuantity(int id, [FromBody] UpdateGarageStockQuantityRequest request)
+    {
+        _service.UpdateQuantity(id, request.Quantity, CurrentUserId);
         return NoContent();
     }
 

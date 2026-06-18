@@ -44,18 +44,20 @@ export function ActivityLogView({ api }) {
       }),
       h("button", { onClick: load }, "Search")
     ),
-    h(StatusLine, { message: status, isLoading }),
+    h(StatusLine, { status }),
     h(DataTable, {
       rows: logs,
+      getRowKey: (row, index) => row?.id ?? index,
       columns: [
-        { key: "createdAt", label: "Time", render: (v) => new Date(v).toLocaleString() },
-        { key: "userName", label: "User" },
-        { key: "action", label: "Action" },
-        { key: "entityType", label: "Entity" },
-        { key: "entityId", label: "ID" },
-        { key: "entityDescription", label: "Description" },
-        { key: "ipAddress", label: "IP" }
-      ]
+        { key: "createdAt", label: "Time", render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleString() : "-" },
+        { key: "userName", label: "User", render: (row) => row.userName || "-" },
+        { key: "action", label: "Action", render: (row) => row.action || "-" },
+        { key: "entityType", label: "Entity", render: (row) => row.entityType || "-" },
+        { key: "entityId", label: "ID", render: (row) => row.entityId ?? "-" },
+        { key: "entityDescription", label: "Description", render: (row) => row.entityDescription || "-" },
+        { key: "ipAddress", label: "IP", render: (row) => row.ipAddress || "-" }
+      ],
+      emptyText: "No activity log entries found."
     }),
     h("div", { className: "pagination-bar" },
       page > 1 && h("button", { onClick: () => setPage(page - 1) }, "← Prev"),

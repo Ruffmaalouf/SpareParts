@@ -29,6 +29,7 @@ SELECT
     lb.Fee,
     lb.Currency,
     lb.Status,
+    CASE lb.Status WHEN 1 THEN 'Active' WHEN 2 THEN 'Expired' WHEN 3 THEN 'Cancelled' ELSE 'Unknown' END AS StatusLabel,
     lb.StartsAt,
     lb.ExpiresAt,
     lb.PaymentReference,

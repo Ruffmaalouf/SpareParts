@@ -69,18 +69,18 @@ export function CarCrushView({ api }) {
     setCreatedCount(null);
     try {
       const payload = {
-        vin: vehicleForm.vin.trim() || null,
-        make: vehicleForm.make.trim(),
-        model: vehicleForm.model.trim(),
-        year: vehicleForm.year ? Number(vehicleForm.year) : null,
+        vinNumber: vehicleForm.vin.trim() || null,
+        vehicleMake: vehicleForm.make.trim(),
+        vehicleModel: vehicleForm.model.trim(),
+        vehicleYear: vehicleForm.year ? Number(vehicleForm.year) : null,
         trim: vehicleForm.trim.trim() || null
       };
-      const result = await api.post("/api/car-crush/checklist", payload);
-      const parts = Array.isArray(result?.parts) ? result.parts : Array.isArray(result) ? result : [];
+      const result = await api.post("/api/car-crush/generate", payload);
+      const parts = Array.isArray(result?.suggestions) ? result.suggestions : [];
       setVehicleDescription(result?.vehicleDescription || [vehicleForm.year, vehicleForm.make, vehicleForm.model, vehicleForm.trim].filter(Boolean).join(" "));
       setChecklist(parts.map(p => ({
         ...p,
-        selected: p.isHighValue || p.IsFastMoving || true
+        selected: Boolean(p.isHighValue || p.isFastMoving)
       })));
       setStatus(parts.length === 0 ? "No parts generated. Try again." : "");
     } catch (e) {
@@ -100,16 +100,14 @@ export function CarCrushView({ api }) {
     setStatus("Creating draft listings...");
     try {
       const result = await api.post("/api/car-crush/create-listings", {
-        vin: vehicleForm.vin.trim() || null,
-        make: vehicleForm.make.trim(),
-        model: vehicleForm.model.trim(),
-        year: vehicleForm.year ? Number(vehicleForm.year) : null,
-        trim: vehicleForm.trim.trim() || null,
-        parts: selected.map(p => ({
-          partName: p.partName || p.PartName,
-          category: p.category || p.Category,
-          oemHint: p.oemHint || p.OemHint || null
-        }))
+        vehicle: {
+          vinNumber: vehicleForm.vin.trim() || null,
+          vehicleMake: vehicleForm.make.trim(),
+          vehicleModel: vehicleForm.model.trim(),
+          vehicleYear: vehicleForm.year ? Number(vehicleForm.year) : null,
+          trim: vehicleForm.trim.trim() || null
+        },
+        selectedPartNames: selected.map(p => p.partName)
       });
       const count = result?.createdCount || selected.length;
       setCreatedCount(count);
@@ -209,16 +207,16 @@ export function CarCrushView({ api }) {
                     checked: part.selected,
                     onChange: () => togglePart(i)
                   }),
-                  h("strong", null, part.partName || part.PartName)
+                  h("strong", null, part.partName)
                 ),
                 h("div", { className: "row-actions" },
-                  (part.isHighValue || part.IsHighValue) && h(Badge, { tone: "warning" }, "High Value"),
-                  (part.isFastMoving || part.IsFastMoving) && h(Badge, { tone: "info" }, "Fast Moving")
+                  part.isHighValue && h(Badge, { tone: "warning" }, "High Value"),
+                  part.isFastMoving && h(Badge, { tone: "info" }, "Fast Moving")
                 )
               ),
               h("div", { className: "data-card-body" },
-                (part.category || part.Category) && h("div", null, h("span", null, "Category: "), h("strong", null, part.category || part.Category)),
-                (part.oemHint || part.OemHint) && h("div", null, h("span", null, "OEM Hint: "), h("strong", null, part.oemHint || part.OemHint))
+                part.category && h("div", null, h("span", null, "Category: "), h("strong", null, part.category)),
+                part.defaultOemHint && h("div", null, h("span", null, "OEM Hint: "), h("strong", null, part.defaultOemHint))
               )
             )
           )

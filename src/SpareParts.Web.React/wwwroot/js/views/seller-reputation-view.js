@@ -18,7 +18,7 @@ function ScoreCircle({ score }) {
 }
 
 function MetricBar({ label, value, tone }) {
-  const pct = Math.max(0, Math.min(100, Math.round((value || 0) * 100)));
+  const pct = Math.max(0, Math.min(100, Math.round(value || 0)));
   const barTone = tone || (pct >= 80 ? "positive" : pct >= 50 ? "warning" : "danger");
   return h("div", { className: "metric-bar-row" },
     h("div", { className: "metric-bar-label" },
@@ -97,7 +97,7 @@ export function SellerReputationView({ api }) {
             h("div", { style: { display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" } },
               h(ScoreCircle, { score: reputation.reputationScore }),
               h("div", null,
-                h("h3", null, reputation.shopName || "Your Shop"),
+                h("h3", null, reputation.tenantName || "Your Shop"),
                 h("p", null, `Reputation Score: ${reputation.reputationScore || 0} / 100`)
               )
             )
@@ -118,21 +118,21 @@ export function SellerReputationView({ api }) {
           h("section", { className: "admin-panel" },
             h("h3", null, "Performance Metrics"),
             h("div", { className: "module-summary" },
-              reputation.salesCount !== undefined && h("div", null,
-                h("span", null, "Total Sales"),
-                h("strong", null, reputation.salesCount || 0)
+              reputation.reviewCount !== undefined && h("div", null,
+                h("span", null, "Active Listings"),
+                h("strong", null, reputation.reviewCount || 0)
               ),
-              reputation.avgResponseTime !== undefined && h("div", null,
+              reputation.averageResponseTimeMinutes !== undefined && h("div", null,
                 h("span", null, "Avg Response"),
-                h("strong", null, reputation.avgResponseTime || "—")
+                h("strong", null, reputation.averageResponseTimeMinutes ? `${reputation.averageResponseTimeMinutes}m` : "—")
               ),
               reputation.fulfillmentRate !== undefined && h("div", null,
                 h("span", null, "Fulfillment Rate"),
-                h("strong", null, `${Math.round((reputation.fulfillmentRate || 0) * 100)}%`)
+                h("strong", null, `${Math.round(reputation.fulfillmentRate || 0)}%`)
               ),
               reputation.returnRate !== undefined && h("div", null,
                 h("span", null, "Return Rate"),
-                h("strong", null, `${Math.round((reputation.returnRate || 0) * 100)}%`)
+                h("strong", null, `${Math.round(reputation.returnRate || 0)}%`)
               )
             ),
 
@@ -145,12 +145,12 @@ export function SellerReputationView({ api }) {
               reputation.disputeRate !== undefined && h(MetricBar, {
                 label: "Dispute Rate",
                 value: reputation.disputeRate,
-                tone: reputation.disputeRate < 0.1 ? "positive" : "danger"
+                tone: reputation.disputeRate < 10 ? "positive" : "danger"
               }),
               reputation.returnRate !== undefined && h(MetricBar, {
                 label: "Return Rate",
                 value: reputation.returnRate,
-                tone: reputation.returnRate < 0.1 ? "positive" : "warning"
+                tone: reputation.returnRate < 10 ? "positive" : "warning"
               })
             )
           ),
@@ -172,7 +172,7 @@ export function SellerReputationView({ api }) {
                   label: "#",
                   render: (row, index) => h("strong", null, index + 1)
                 },
-                { key: "shopName", label: "Shop", render: row => row.shopName || "—" },
+                { key: "tenantName", label: "Shop", render: row => row.tenantName || "—" },
                 {
                   key: "reputationScore",
                   label: "Score",
@@ -181,12 +181,12 @@ export function SellerReputationView({ api }) {
                 {
                   key: "fulfillmentRate",
                   label: "Fulfillment",
-                  render: row => `${Math.round((row.fulfillmentRate || 0) * 100)}%`
+                  render: row => `${Math.round(row.fulfillmentRate || 0)}%`
                 },
                 {
-                  key: "salesCount",
-                  label: "Sales",
-                  render: row => row.salesCount || 0
+                  key: "reviewCount",
+                  label: "Active Listings",
+                  render: row => row.reviewCount || 0
                 },
                 {
                   key: "badges",
@@ -201,7 +201,7 @@ export function SellerReputationView({ api }) {
                 }
               ],
               rows: leaderboard,
-              getRowKey: (row, i) => row.tenantId || row.shopName || i,
+              getRowKey: (row, i) => row.tenantId || row.tenantName || i,
               emptyText: "No leaderboard data available."
             })
           )

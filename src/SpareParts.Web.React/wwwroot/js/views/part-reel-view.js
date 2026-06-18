@@ -30,7 +30,7 @@ function ReelCard({ reel, onLike, onArchive, isSaving }) {
     ),
     h("div", { className: "data-card-header" },
       h("strong", null, reel.title || "Untitled Reel"),
-      h(Badge, { tone: statusTone(reel.status) }, reel.status || "Active")
+      h(Badge, { tone: statusTone(reel.statusLabel) }, reel.statusLabel || "Active")
     ),
     h("div", { className: "data-card-body" },
       reel.partName && h("div", null, h("span", null, "Part: "), h("strong", null, reel.partName)),
@@ -53,7 +53,7 @@ function ReelCard({ reel, onLike, onArchive, isSaving }) {
         onClick: () => onLike(reel.id),
         disabled: isSaving
       }, "Like"),
-      reel.isOwner && reel.status !== "Archived" && h("button", {
+      reel.isOwner && reel.statusLabel !== "Archived" && h("button", {
         type: "button",
         className: "danger-button",
         onClick: () => onArchive(reel.id),
@@ -105,7 +105,7 @@ export function PartReelView({ api }) {
         description: form.description.trim() || null,
         videoUrl: form.videoUrl.trim(),
         thumbnailUrl: form.thumbnailUrl.trim() || null,
-        linkedPartId: form.linkedPartId.trim() || null,
+        partId: form.linkedPartId.trim() ? Number(form.linkedPartId.trim()) : null,
         partName: form.partName.trim() || null,
         price: form.price ? Number(form.price) : null,
         currency: form.currency

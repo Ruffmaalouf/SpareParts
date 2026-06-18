@@ -12,6 +12,7 @@ namespace SpareParts.Domain.Marketplace
         public decimal? HoldFee { get; set; }
         public string Currency { get; set; } = "USD";
         public PartReservationStatus Status { get; set; } = PartReservationStatus.Active;
+        public string StatusLabel { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
         public string? Notes { get; set; }
         public string? PartName { get; set; }

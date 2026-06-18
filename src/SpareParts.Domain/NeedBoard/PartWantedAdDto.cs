@@ -20,6 +20,7 @@ namespace SpareParts.Domain.NeedBoard
         public string Urgency { get; set; } = "Normal";
         public string? PhotoUrl { get; set; }
         public PartWantedAdStatus Status { get; set; } = PartWantedAdStatus.Open;
+        public string StatusLabel { get; set; } = string.Empty;
         public DateTime? ExpiresAt { get; set; }
         public int OffersCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; }

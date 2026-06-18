@@ -24,7 +24,7 @@ function StockCard({ item, onEditQty, onEdit, onDelete, isSaving }) {
 
   return h("div", { className: "data-card" },
     h("div", { className: "data-card-header" },
-      h("strong", null, item.name),
+      h("strong", null, item.itemName),
       h("div", { className: "row-actions" },
         low && h(Badge, { tone: "danger" }, "Low Stock"),
         item.category && h(Badge, { tone: "neutral" }, item.category)
@@ -108,7 +108,7 @@ export function GarageStockView({ api }) {
   const handleEdit = useCallback((item) => {
     setEditingId(item.id);
     setForm({
-      name: item.name || "",
+      name: item.itemName || "",
       category: item.category || "",
       barcode: item.barcode || "",
       oemNumber: item.oemNumber || "",
@@ -128,7 +128,7 @@ export function GarageStockView({ api }) {
     setStatus(editingId ? "Updating item..." : "Adding item...");
     try {
       const payload = {
-        name: form.name.trim(),
+        itemName: form.name.trim(),
         category: form.category.trim() || null,
         barcode: form.barcode.trim() || null,
         oemNumber: form.oemNumber.trim() || null,

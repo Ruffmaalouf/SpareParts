@@ -4,7 +4,6 @@ import { Badge, PageHeader, StatusLine } from "../components/shared.js";
 
 const emptyForm = {
   partId: "",
-  partName: "",
   reservedByName: "",
   reservedByPhone: "",
   holdHours: "24",
@@ -22,8 +21,8 @@ function statusTone(status) {
 function ReservationCard({ reservation, onRelease, isSaving }) {
   return h("div", { className: "data-card" },
     h("div", { className: "data-card-header" },
-      h("strong", null, reservation.partName || reservation.partCode || `Part #${reservation.partId}`),
-      h(Badge, { tone: statusTone(reservation.status) }, reservation.status)
+      h("strong", null, reservation.partName || reservation.partInternalCode || `Part #${reservation.partId}`),
+      h(Badge, { tone: statusTone(reservation.statusLabel) }, reservation.statusLabel)
     ),
     h("div", { className: "data-card-body" },
       h("div", null, h("span", null, "Reserved By: "), h("strong", null, reservation.reservedByName || "—")),
@@ -32,7 +31,7 @@ function ReservationCard({ reservation, onRelease, isSaving }) {
       reservation.expiresAt && h("div", null, h("span", null, "Expires: "), h("strong", null, shortDate(reservation.expiresAt))),
       reservation.notes && h("p", null, reservation.notes)
     ),
-    reservation.status === "Active" && h("div", { className: "row-actions" },
+    reservation.statusLabel === "Active" && h("div", { className: "row-actions" },
       h("button", {
         type: "button",
         className: "danger-button",
@@ -73,8 +72,9 @@ export function PartReserveView({ api }) {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    if (!form.partId.trim() && !form.partName.trim()) {
-      setStatus("Part ID or Part Name is required.");
+    const partId = Number(form.partId.trim());
+    if (!form.partId.trim() || !Number.isInteger(partId) || partId <= 0) {
+      setStatus("A valid Part ID is required.");
       return;
     }
     if (!form.reservedByName.trim()) {
@@ -85,8 +85,7 @@ export function PartReserveView({ api }) {
     setStatus("Creating reservation...");
     try {
       await api.post("/api/part-reservations", {
-        partId: form.partId.trim() || null,
-        partName: form.partName.trim() || null,
+        partId,
         reservedByName: form.reservedByName.trim(),
         reservedByPhone: form.reservedByPhone.trim() || null,
         holdHours: Number(form.holdHours) || 24,
@@ -118,7 +117,7 @@ export function PartReserveView({ api }) {
     }
   }, [api, load]);
 
-  const activeCount = reservations.filter(r => r.status === "Active").length;
+  const activeCount = reservations.filter(r => r.statusLabel === "Active").length;
 
   return h("section", { className: "screen" },
     h(PageHeader, {
@@ -150,12 +149,8 @@ export function PartReserveView({ api }) {
       ),
       h("div", { className: "editor-grid" },
         h("label", null,
-          h("span", null, "Part ID"),
-          h("input", { value: form.partId, onChange: e => setField("partId", e.target.value), placeholder: "Internal part ID" })
-        ),
-        h("label", null,
-          h("span", null, "Part Name"),
-          h("input", { value: form.partName, onChange: e => setField("partName", e.target.value), placeholder: "e.g. Front brake caliper" })
+          h("span", null, "Part ID *"),
+          h("input", { type: "number", value: form.partId, onChange: e => setField("partId", e.target.value), required: true, placeholder: "Internal part ID" })
         ),
         h("label", null,
           h("span", null, "Reserved By (Name) *"),

@@ -28,7 +28,9 @@ public sealed class PartReelsService
             """
 SELECT pr.Id, pr.TenantId, pr.PartId, pr.Title, pr.Description, pr.VideoUrl,
        pr.ThumbnailUrl, pr.PartName, pr.Price, pr.Currency, pr.Status,
-       pr.ViewCount, pr.LikeCount, pr.CreatedAt, t.Name AS SellerName
+       CASE pr.Status WHEN 1 THEN 'Active' WHEN 2 THEN 'Archived' ELSE 'Unknown' END AS StatusLabel,
+       pr.ViewCount, pr.LikeCount, pr.CreatedAt, t.Name AS SellerName,
+       CASE WHEN pr.TenantId = @TenantId THEN 1 ELSE 0 END AS IsOwner
 FROM dbo.PartReels pr
 LEFT JOIN dbo.Tenants t ON t.Id = pr.TenantId
 WHERE (@TenantId = 0 OR pr.TenantId = @TenantId)
@@ -56,7 +58,9 @@ WHERE (@TenantId = 0 OR TenantId = @TenantId)
             """
 SELECT pr.Id, pr.TenantId, pr.PartId, pr.Title, pr.Description, pr.VideoUrl,
        pr.ThumbnailUrl, pr.PartName, pr.Price, pr.Currency, pr.Status,
-       pr.ViewCount, pr.LikeCount, pr.CreatedAt, t.Name AS SellerName
+       CASE pr.Status WHEN 1 THEN 'Active' WHEN 2 THEN 'Archived' ELSE 'Unknown' END AS StatusLabel,
+       pr.ViewCount, pr.LikeCount, pr.CreatedAt, t.Name AS SellerName,
+       CASE WHEN pr.TenantId = @TenantId THEN 1 ELSE 0 END AS IsOwner
 FROM dbo.PartReels pr
 LEFT JOIN dbo.Tenants t ON t.Id = pr.TenantId
 WHERE pr.Id = @Id AND (@TenantId = 0 OR pr.TenantId = @TenantId);

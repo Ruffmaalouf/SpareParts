@@ -26,7 +26,7 @@ public sealed class QrTagService
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         var row = session.Connection.QuerySingleOrDefault<PartNameRow>(
-            "SELECT Id, Name, InternalCode FROM dbo.Parts WHERE Id = @PartId AND TenantId = @TenantId;",
+            "SELECT Id, Name, InternalCode FROM dbo.Parts WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { PartId = partId, TenantId = _tenantContext.TenantId },
             session.Transaction);
 

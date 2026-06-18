@@ -71,19 +71,24 @@ export function LoyaltyView({ api }) {
 
   return h("div", { className: "view-container" },
     h(PageHeader, { title: "Customer Loyalty" }),
-    h(StatusLine, { message: status, isLoading }),
+    h(StatusLine, { status }),
     h("div", { className: "split-layout" },
       h("div", { className: "split-left" },
         h("h3", null, "Top Customers by Points"),
         h(DataTable, {
           rows: topCustomers,
           columns: [
-            { key: "customerName", label: "Customer" },
-            { key: "totalPoints", label: "Points" },
-            { key: "lifetimePointsEarned", label: "Earned" },
-            { key: "lifetimePointsRedeemed", label: "Redeemed" }
+            {
+              key: "customerName",
+              label: "Customer",
+              render: (row) => h("button", { type: "button", className: "link-button", onClick: () => selectCustomer(row) }, row.customerName)
+            },
+            { key: "totalPoints", label: "Points", render: (row) => row.totalPoints },
+            { key: "lifetimePointsEarned", label: "Earned", render: (row) => row.lifetimePointsEarned },
+            { key: "lifetimePointsRedeemed", label: "Redeemed", render: (row) => row.lifetimePointsRedeemed }
           ],
-          onSelect: selectCustomer
+          getRowKey: (row, index) => row.customerId ?? index,
+          emptyText: "No loyalty customers found."
         })
       ),
       selectedCustomer && h("div", { className: "split-right" },
@@ -99,11 +104,13 @@ export function LoyaltyView({ api }) {
         h(DataTable, {
           rows: transactions,
           columns: [
-            { key: "createdAt", label: "Date", render: (v) => new Date(v).toLocaleDateString() },
-            { key: "transactionType", label: "Type" },
-            { key: "points", label: "Points" },
-            { key: "notes", label: "Notes" }
-          ]
+            { key: "createdAt", label: "Date", render: (row) => new Date(row.createdAt).toLocaleDateString() },
+            { key: "transactionType", label: "Type", render: (row) => row.transactionType },
+            { key: "points", label: "Points", render: (row) => row.points },
+            { key: "notes", label: "Notes", render: (row) => row.notes }
+          ],
+          getRowKey: (row, index) => row.id ?? index,
+          emptyText: "No transactions yet."
         })
       )
     )

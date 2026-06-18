@@ -1,6 +1,7 @@
 using Dapper;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -10,11 +11,13 @@ public sealed class QuotesService
 
     private readonly ISqlConnectionFactory _factory;
     private readonly SalesService _salesService;
+    private readonly ITenantContext _tenantContext;
 
-    public QuotesService(ISqlConnectionFactory factory, SalesService salesService)
+    public QuotesService(ISqlConnectionFactory factory, SalesService salesService, ITenantContext tenantContext)
     {
         _factory = factory;
         _salesService = salesService;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<QuoteLookupDto> GetAll(string? status = null, string? search = null)
@@ -39,7 +42,9 @@ SELECT
          FROM dbo.QuoteItems qi
          WHERE qi.QuoteId = q.Id), 0) AS TotalAmount
 FROM dbo.Quotes q
-WHERE (@Status IS NULL OR q.Status = @Status)
+LEFT JOIN dbo.Warehouses w ON w.Id = q.WarehouseId
+WHERE (@TenantId = 0 OR q.WarehouseId IS NULL OR w.TenantId = @TenantId)
+  AND (@Status IS NULL OR q.Status = @Status)
   AND (
       @Search IS NULL
       OR q.QuoteNumber     LIKE N'%' + @Search + N'%'
@@ -48,7 +53,7 @@ WHERE (@Status IS NULL OR q.Status = @Status)
   )
 ORDER BY q.QuoteDate DESC, q.Id DESC;
 """,
-            new { Status = normalizedStatus, Search = normalizedSearch });
+            new { TenantId = _tenantContext.TenantId, Status = normalizedStatus, Search = normalizedSearch });
     }
 
     public QuoteDetailsDto? GetById(int id)
@@ -70,9 +75,11 @@ SELECT
     q.Notes,
     q.CreatedAt
 FROM dbo.Quotes q
-WHERE q.Id = @Id;
+LEFT JOIN dbo.Warehouses w ON w.Id = q.WarehouseId
+WHERE q.Id = @Id
+  AND (@TenantId = 0 OR q.WarehouseId IS NULL OR w.TenantId = @TenantId);
 """,
-            new { Id = id });
+            new { Id = id, TenantId = _tenantContext.TenantId });
 
         if (quote == null) return null;
 
@@ -99,6 +106,16 @@ ORDER BY qi.SortOrder, qi.Id;
     public int Create(CreateQuoteRequest request, int userId)
     {
         using var conn = _factory.CreateConnection();
+
+        if (request.WarehouseId.HasValue)
+        {
+            var warehouseOk = conn.ExecuteScalar<bool>(
+                "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Warehouses WHERE Id = @WarehouseId AND (@TenantId = 0 OR TenantId = @TenantId)) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;",
+                new { request.WarehouseId, TenantId = _tenantContext.TenantId });
+
+            if (!warehouseOk)
+                throw new NotFoundException($"Warehouse {request.WarehouseId} not found.");
+        }
 
         var quoteNumber = GenerateQuoteNumber(conn);
 
@@ -150,8 +167,14 @@ VALUES (@QuoteId, @PartId, @Description, @Quantity, @UnitPrice, @DiscountAmount,
     {
         using var conn = _factory.CreateConnection();
         conn.Execute(
-            "UPDATE dbo.Quotes SET Status = @Status WHERE Id = @Id;",
-            new { Id = id, Status = status.Trim() });
+            """
+UPDATE q SET q.Status = @Status
+FROM dbo.Quotes q
+LEFT JOIN dbo.Warehouses w ON w.Id = q.WarehouseId
+WHERE q.Id = @Id
+  AND (@TenantId = 0 OR q.WarehouseId IS NULL OR w.TenantId = @TenantId);
+""",
+            new { Id = id, Status = status.Trim(), TenantId = _tenantContext.TenantId });
     }
 
     public ConvertQuoteToInvoiceResponse ConvertToInvoice(int quoteId, int userId)
@@ -202,6 +225,19 @@ VALUES (@QuoteId, @PartId, @Description, @Quantity, @UnitPrice, @DiscountAmount,
     public void Delete(int id)
     {
         using var conn = _factory.CreateConnection();
+        var ownedByTenant = conn.ExecuteScalar<bool>(
+            """
+SELECT CASE WHEN EXISTS (
+    SELECT 1 FROM dbo.Quotes q
+    LEFT JOIN dbo.Warehouses w ON w.Id = q.WarehouseId
+    WHERE q.Id = @Id AND (@TenantId = 0 OR q.WarehouseId IS NULL OR w.TenantId = @TenantId)
+) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;
+""",
+            new { Id = id, TenantId = _tenantContext.TenantId });
+
+        if (!ownedByTenant)
+            throw new NotFoundException($"Quote {id} not found.");
+
         conn.Execute("DELETE FROM dbo.QuoteItems WHERE QuoteId = @Id;", new { Id = id });
         conn.Execute("DELETE FROM dbo.Quotes WHERE Id = @Id;", new { Id = id });
     }
