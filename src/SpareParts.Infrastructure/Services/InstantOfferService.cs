@@ -31,7 +31,7 @@ SELECT
     CASE Status WHEN 1 THEN 'Pending' WHEN 2 THEN 'Accepted' WHEN 3 THEN 'Rejected' WHEN 4 THEN 'Contacted' WHEN 5 THEN 'Expired' ELSE 'Unknown' END AS StatusLabel,
     CreatedAt
 FROM dbo.InstantOffers
-WHERE TenantId = @TenantId
+WHERE (@TenantId = 0 OR TenantId = @TenantId)
   AND (@Status IS NULL OR Status = @Status)
 ORDER BY CreatedAt DESC;
 """,
@@ -51,7 +51,7 @@ SELECT
     CASE Status WHEN 1 THEN 'Pending' WHEN 2 THEN 'Accepted' WHEN 3 THEN 'Rejected' WHEN 4 THEN 'Contacted' WHEN 5 THEN 'Expired' ELSE 'Unknown' END AS StatusLabel,
     CreatedAt
 FROM dbo.InstantOffers
-WHERE Id = @Id AND TenantId = @TenantId;
+WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
             new { Id = id, TenantId = _tenantContext.TenantId },
             session.Transaction);
@@ -129,7 +129,7 @@ SELECT SCOPE_IDENTITY();
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         session.Connection.Execute(
-            "UPDATE dbo.InstantOffers SET Status = @Status, ModifiedAt = @Now WHERE Id = @Id AND TenantId = @TenantId;",
+            "UPDATE dbo.InstantOffers SET Status = @Status, ModifiedAt = @Now WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { Id = id, Status = (int)request.NewStatus, Now = DateTime.UtcNow, TenantId = _tenantContext.TenantId },
             session.Transaction);
 

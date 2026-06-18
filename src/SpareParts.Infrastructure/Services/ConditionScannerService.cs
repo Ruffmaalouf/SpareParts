@@ -84,7 +84,7 @@ SELECT TOP 1
     CASE WHEN DATEDIFF(DAY, CreatedAt, GETUTCDATE()) > 90 THEN 1 ELSE 0 END AS IsExpired,
     CreatedAt
 FROM dbo.ConditionCertificates
-WHERE PartId = @PartId AND TenantId = @TenantId
+WHERE PartId = @PartId AND (@TenantId = 0 OR TenantId = @TenantId)
 ORDER BY CreatedAt DESC;
 """,
             new { PartId = partId, TenantId = _tenantContext.TenantId },

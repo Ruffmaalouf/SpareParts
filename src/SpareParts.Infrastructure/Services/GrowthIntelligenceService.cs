@@ -4,26 +4,30 @@ using System.Text.RegularExpressions;
 using Dapper;
 using SpareParts.Domain.Growth;
 using SpareParts.Domain.Transactions;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class GrowthIntelligenceService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public GrowthIntelligenceService(ISqlConnectionFactory factory)
+    public GrowthIntelligenceService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public GrowthBriefingDto GetBriefing()
     {
+        var tenantId = _tenantContext.TenantId;
         using var connection = _factory.CreateConnection();
-        var donorCars = LoadDonorCars(connection);
+        var donorCars = LoadDonorCars(connection, tenantId);
         var teardownQueue = BuildTeardownQueue(donorCars);
-        var buyingRadar = LoadBuyingRadar(connection);
-        var duplicates = LoadDuplicateGroups(connection);
-        var moneyActions = LoadMoneyActions(connection, donorCars, buyingRadar);
+        var buyingRadar = LoadBuyingRadar(connection, tenantId);
+        var duplicates = LoadDuplicateGroups(connection, tenantId);
+        var moneyActions = LoadMoneyActions(connection, tenantId, donorCars, buyingRadar);
 
         return new GrowthBriefingDto
         {
@@ -56,7 +60,7 @@ WHERE cm.Id = @CarModelId;
 """,
                 new { CarModelId = carModelId })
             : null;
-        var history = LoadAuctionHistory(connection, request.CarModelId);
+        var history = LoadAuctionHistory(connection, _tenantContext.TenantId, request.CarModelId);
         var costs = request.Transportation + request.Customs + request.Shipping + request.Repairs + request.PartOutCost;
         var loadedCost = request.AuctionPrice + costs;
         var historicalRecovery = history.ComparableCars > 0 ? history.AverageRecovery : 0m;
@@ -101,7 +105,7 @@ WHERE cm.Id = @CarModelId;
 
         var tokens = VisualPartSearchService.ExtractSearchTokens(transcript);
         using var connection = _factory.CreateConnection();
-        var candidates = LoadQuoteCandidates(connection);
+        var candidates = LoadQuoteCandidates(connection, _tenantContext.TenantId);
         var matches = candidates
             .Select(candidate => ScoreQuoteCandidate(candidate, tokens))
             .Where(match => match.Score > 0)
@@ -128,6 +132,7 @@ WHERE cm.Id = @CarModelId;
 
     private static List<MoneyActionDto> LoadMoneyActions(
         IDbConnection connection,
+        int tenantId,
         IReadOnlyList<DonorCarTreasureDto> donorCars,
         IReadOnlyList<BuyingRadarItemDto> buyingRadar)
     {
@@ -157,8 +162,10 @@ INNER JOIN dbo.Parts p ON p.Id = pr.PartId
 INNER JOIN StockByPart stock ON stock.PartId = p.Id
 WHERE pr.Status IN (N'Open', N'Contacted')
   AND stock.AvailableQuantity > 0
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY EstimatedValue DESC, pr.CreatedAt;
-""").ToList();
+""",
+            new { TenantId = tenantId }).ToList();
 
         actions.AddRange(connection.Query<MoneyActionDto>(
             """
@@ -186,8 +193,10 @@ INNER JOIN StockByPart stock ON stock.PartId = p.Id
 WHERE p.IsActive = 1
   AND stock.AvailableQuantity > 0
   AND ISNULL(p.SalePrice, 0) <= 0
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY EstimatedValue DESC, p.Name;
-"""));
+""",
+            new { TenantId = tenantId }));
 
         actions.AddRange(connection.Query<MoneyActionDto>(
             """
@@ -228,9 +237,10 @@ WHERE p.IsActive = 1
   AND stock.AvailableQuantity > 0
   AND p.SalePrice > 0
   AND (sales.LastSoldAt IS NULL OR sales.LastSoldAt < DATEADD(DAY, -120, GETDATE()))
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY EstimatedValue DESC, p.Name;
 """,
-            new { SaleType = TransactionTypeKeys.Sale }));
+            new { SaleType = TransactionTypeKeys.Sale, TenantId = tenantId }));
 
         var donorCar = donorCars
             .Where(car => car.BreakEvenGap > 0m && car.ProjectedStockRevenue > 0m)
@@ -276,7 +286,7 @@ ORDER BY EstimatedValue DESC, p.Name;
             .ToList();
     }
 
-    private static List<DonorCarTreasureDto> LoadDonorCars(IDbConnection connection)
+    private static List<DonorCarTreasureDto> LoadDonorCars(IDbConnection connection, int tenantId)
     {
         var cars = connection.Query<DonorCarRow>(
             """
@@ -299,9 +309,10 @@ OUTER APPLY
     WHERE p.UsedCarId = uc.Id
 ) sold
 WHERE uc.IsReceived = 1
+  AND (@TenantId = 0 OR uc.TenantId = @TenantId)
 ORDER BY uc.Id DESC;
 """,
-            new { SaleType = TransactionTypeKeys.Sale })
+            new { SaleType = TransactionTypeKeys.Sale, TenantId = tenantId })
             .ToList();
         var partRows = connection.Query<DonorPartRow>(
             """
@@ -336,8 +347,10 @@ LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId
 LEFT JOIN StockByPart stock ON stock.PartId = p.Id
 LEFT JOIN WaitingByPart waiting ON waiting.PartId = p.Id
 WHERE p.IsActive = 1
-  AND p.UsedCarId IS NOT NULL;
-""").ToList();
+  AND p.UsedCarId IS NOT NULL
+  AND (@TenantId = 0 OR p.TenantId = @TenantId);
+""",
+            new { TenantId = tenantId }).ToList();
         var partsByCar = partRows.ToLookup(part => part.UsedCarId);
 
         return cars.Select(car =>
@@ -465,7 +478,7 @@ WHERE p.IsActive = 1
             .ToList();
     }
 
-    private static List<DuplicatePartGroupDto> LoadDuplicateGroups(IDbConnection connection)
+    private static List<DuplicatePartGroupDto> LoadDuplicateGroups(IDbConnection connection, int tenantId)
     {
         var candidates = connection.Query<DuplicateCandidateRow>(
             """
@@ -488,8 +501,10 @@ FROM dbo.Parts p
 LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId
 LEFT JOIN StockByPart stock ON stock.PartId = p.Id
 WHERE p.IsActive = 1
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY p.Name, p.Id;
-""").ToList();
+""",
+            new { TenantId = tenantId }).ToList();
 
         return candidates
             .Select(candidate => new
@@ -533,7 +548,7 @@ ORDER BY p.Name, p.Id;
             .ToList();
     }
 
-    private static List<BuyingRadarItemDto> LoadBuyingRadar(IDbConnection connection)
+    private static List<BuyingRadarItemDto> LoadBuyingRadar(IDbConnection connection, int tenantId)
     {
         var rows = connection.Query<BuyingRadarRow>(
             """
@@ -580,6 +595,7 @@ LEFT JOIN StockByPart stock ON stock.PartId = p.Id
 LEFT JOIN SalesByPart sales ON sales.PartId = p.Id
 LEFT JOIN WaitingByPart waiting ON waiting.PartId = p.Id
 WHERE p.IsActive = 1
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
   AND
   (
       ISNULL(waiting.WaitingCustomers, 0) > 0
@@ -587,7 +603,7 @@ WHERE p.IsActive = 1
       OR ISNULL(sales.SoldQuantityLast90, 0) > ISNULL(stock.AvailableQuantity, 0)
   );
 """,
-            new { SaleType = TransactionTypeKeys.Sale })
+            new { SaleType = TransactionTypeKeys.Sale, TenantId = tenantId })
             .ToList();
 
         return rows.Select(row =>
@@ -628,7 +644,7 @@ WHERE p.IsActive = 1
         .ToList();
     }
 
-    private static AuctionHistoryRow LoadAuctionHistory(IDbConnection connection, int? carModelId)
+    private static AuctionHistoryRow LoadAuctionHistory(IDbConnection connection, int tenantId, int? carModelId)
         => connection.QuerySingle<AuctionHistoryRow>(
             """
 SELECT ComparableCars = COUNT(1),
@@ -653,11 +669,12 @@ OUTER APPLY
     WHERE p.UsedCarId = uc.Id
 ) stock
 WHERE (@CarModelId IS NULL OR uc.CarModelId = @CarModelId)
-  AND uc.IsReceived = 1;
+  AND uc.IsReceived = 1
+  AND (@TenantId = 0 OR uc.TenantId = @TenantId);
 """,
-            new { CarModelId = carModelId, SaleType = TransactionTypeKeys.Sale });
+            new { CarModelId = carModelId, SaleType = TransactionTypeKeys.Sale, TenantId = tenantId });
 
-    private static List<QuoteCandidateRow> LoadQuoteCandidates(IDbConnection connection)
+    private static List<QuoteCandidateRow> LoadQuoteCandidates(IDbConnection connection, int tenantId)
         => connection.Query<QuoteCandidateRow>(
             """
 WITH StockByPart AS
@@ -683,8 +700,10 @@ LEFT JOIN dbo.Brands b ON b.Id = p.BrandId
 LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId
 LEFT JOIN StockByPart stock ON stock.PartId = p.Id
 WHERE p.IsActive = 1
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY CASE WHEN ISNULL(stock.AvailableQuantity, 0) > 0 THEN 0 ELSE 1 END, p.Name;
-""").ToList();
+""",
+            new { TenantId = tenantId }).ToList();
 
     private static VoiceQuoteMatchDto ScoreQuoteCandidate(QuoteCandidateRow candidate, IReadOnlyList<string> tokens)
     {
