@@ -60,7 +60,7 @@ export function WhatsAppSellingView({ api }) {
     setIsSaving(true);
     setStatus("Saving...");
     try {
-      await api.post("/api/appconstants", { key: "WhatsAppNumber", value: sellerPhone.trim() });
+      await api.put("/api/appconstants/WhatsAppNumber", { value: sellerPhone.trim() });
       setSavedPhone(sellerPhone.trim());
       setStatus("WhatsApp number saved.");
     } catch (e) {

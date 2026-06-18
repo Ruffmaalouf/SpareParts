@@ -1,5 +1,4 @@
 import { h, useCallback, useEffect, useRef, useState } from "../core/react-runtime.js";
-import { money } from "../core/formatters.js";
 import { Badge, PageHeader, StatusLine } from "../components/shared.js";
 
 const LANGUAGES = [
@@ -213,16 +212,15 @@ export function VoiceSearchView({ api }) {
         results.map((item, idx) =>
           h("div", { key: item.id || idx, className: "data-card" },
             h("div", { className: "data-card-header" },
-              h("strong", null, item.name || item.partName || "Part"),
-              item.code && h(Badge, { tone: "neutral" }, item.code)
+              h("strong", null, item.title || "Result"),
+              item.badge && h(Badge, { tone: "neutral" }, item.badge)
             ),
             h("div", { className: "data-card-body" },
-              item.price != null && h("div", null,
-                h("span", null, "Price: "),
-                h("strong", null, money(item.price, item.currency || "USD"))
+              item.subtitle && h("div", null,
+                h("span", null, item.subtitle)
               ),
-              item.id && h("div", null,
-                h("small", null, `ID: ${item.id}`)
+              item.section && h("div", null,
+                h("small", null, item.section)
               )
             )
           )

@@ -1,6 +1,7 @@
 using Dapper;
 using SpareParts.Domain.Cars;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -8,10 +9,12 @@ public sealed class UsedCarImagesService
 {
     private const int MaxImageBytes = 8 * 1024 * 1024;
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public UsedCarImagesService(ISqlConnectionFactory factory)
+    public UsedCarImagesService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<UsedCarImageDto> GetAll(int usedCarId)
@@ -22,7 +25,7 @@ public sealed class UsedCarImagesService
         }
 
         using var conn = _factory.CreateConnection();
-        EnsureUsedCarExists(conn, usedCarId);
+        EnsureUsedCarExists(conn, usedCarId, _tenantContext.TenantId);
 
         return conn.Query<UsedCarImageDto>(
             @"SELECT ImageId AS Id,
@@ -41,7 +44,7 @@ public sealed class UsedCarImagesService
         ValidateImage(imageData, mimeType);
 
         using var conn = _factory.CreateConnection();
-        EnsureUsedCarExists(conn, usedCarId);
+        EnsureUsedCarExists(conn, usedCarId, _tenantContext.TenantId);
 
         return conn.ExecuteScalar<int>(
             @"INSERT INTO dbo.usedcar_images
@@ -62,8 +65,11 @@ public sealed class UsedCarImagesService
     {
         using var conn = _factory.CreateConnection();
         var deleted = conn.Execute(
-            "DELETE FROM dbo.usedcar_images WHERE ImageId = @ImageId;",
-            new { ImageId = imageId });
+            @"DELETE i
+              FROM dbo.usedcar_images i
+              INNER JOIN dbo.UsedCars uc ON uc.Id = i.UsedCarId
+              WHERE i.ImageId = @ImageId AND (@TenantId = 0 OR uc.TenantId = @TenantId);",
+            new { ImageId = imageId, TenantId = _tenantContext.TenantId });
 
         if (deleted == 0)
         {
@@ -89,11 +95,11 @@ public sealed class UsedCarImagesService
         }
     }
 
-    private static void EnsureUsedCarExists(System.Data.IDbConnection conn, int usedCarId)
+    private static void EnsureUsedCarExists(System.Data.IDbConnection conn, int usedCarId, int tenantId)
     {
         var exists = conn.ExecuteScalar<int>(
-            "SELECT COUNT(1) FROM dbo.UsedCars WHERE Id = @UsedCarId;",
-            new { UsedCarId = usedCarId });
+            "SELECT COUNT(1) FROM dbo.UsedCars WHERE Id = @UsedCarId AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { UsedCarId = usedCarId, TenantId = tenantId });
 
         if (exists == 0)
         {

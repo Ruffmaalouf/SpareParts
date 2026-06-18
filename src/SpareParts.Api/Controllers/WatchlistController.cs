@@ -27,7 +27,7 @@ public sealed class WatchlistController : SparePartsControllerBase
 
     [HttpGet("{id:int}/matches")]
     public ActionResult<int> GetMatchCount(int id)
-        => Ok(_service.GetMatchCount(id));
+        => Ok(_service.GetMatchCount(id, CurrentUserId));
 
     [HttpDelete("{id:int}")]
     public IActionResult Delete(int id)

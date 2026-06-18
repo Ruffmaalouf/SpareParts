@@ -76,8 +76,8 @@ export function SymptomSearchView({ api, navigate }) {
       const payload = {
         symptoms: form.symptoms.trim(),
         language: form.language,
-        make: form.make.trim() || null,
-        model: form.model.trim() || null
+        vehicleMake: form.make.trim() || null,
+        vehicleModel: form.model.trim() || null
       };
       const data = await api.post("/api/symptom-search", payload);
       const arr = Array.isArray(data) ? data : data?.results || [];
