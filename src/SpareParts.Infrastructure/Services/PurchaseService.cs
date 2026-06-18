@@ -24,6 +24,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly IInventoryService _inventoryService;
         private readonly IInvoiceTotalsCalculator _totalsCalculator;
         private readonly IPaymentStatusPolicy _paymentStatusPolicy;
+        private readonly ITenantContext _tenantContext;
 
         public PurchaseService(
             ICreatePurchaseHandler createPurchaseHandler,
@@ -33,7 +34,8 @@ namespace SpareParts.Infrastructure.Services
             SupplierAccountResolver supplierAccountResolver,
             IInventoryService inventoryService,
             IInvoiceTotalsCalculator totalsCalculator,
-            IPaymentStatusPolicy paymentStatusPolicy)
+            IPaymentStatusPolicy paymentStatusPolicy,
+            ITenantContext tenantContext)
         {
             _createPurchaseHandler = createPurchaseHandler;
             _createUsedCarPurchaseHandler = createUsedCarPurchaseHandler;
@@ -43,6 +45,7 @@ namespace SpareParts.Infrastructure.Services
             _inventoryService = inventoryService;
             _totalsCalculator = totalsCalculator;
             _paymentStatusPolicy = paymentStatusPolicy;
+            _tenantContext = tenantContext;
         }
 
         public CreatePurchaseResponse CreatePurchase(CreatePurchaseRequest request, int userId)
@@ -53,19 +56,19 @@ namespace SpareParts.Infrastructure.Services
 
         public List<PurchaseInvoiceLookupDto> SearchPurchases(string? query)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Purchases.Invoices.SearchPurchases(query);
         }
 
         public PurchaseInvoiceDetailsDto? GetPurchaseById(int purchaseId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Purchases.Invoices.GetInvoiceById(purchaseId);
         }
 
         public bool UpdatePurchase(int purchaseId, UpdatePurchaseRequest request, int userId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
             var purchasesRepository = repositories.Purchases.Invoices;
             var inventoryRepository = repositories.Inventory.Stock;
@@ -122,20 +125,20 @@ namespace SpareParts.Infrastructure.Services
 
         public IReadOnlyList<UsedCarPurchaseSummaryDto> GetUsedCarPurchases()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Purchases.UsedCarPurchases.GetAll();
         }
 
         public UsedCarPurchaseDetailDto GetUsedCarPurchase(int id)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var purchase = RepositoryCatalog.For(session).Purchases.UsedCarPurchases.GetDetail(id);
             return purchase ?? throw new NotFoundException("Used-car purchase not found.");
         }
 
         public PostUsedCarPurchaseResponse PostUsedCarPurchase(int id, int userId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
             var purchase = repositories.Purchases.UsedCarPurchases.GetDetail(id)
                 ?? throw new NotFoundException("Used-car purchase not found.");
@@ -187,7 +190,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void DeleteUsedCarPurchase(int id)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session);
             repositories.Accounting.Journal.DeleteEntriesByReference("UsedCarPurchase", id);
             repositories.Accounting.Journal.DeleteEntriesByReference(UsedCarPurchasePaymentReferenceType, id);

@@ -58,11 +58,12 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  LEFT JOIN dbo.UsedCars uc ON uc.Id = t.UsedCarId
                                  WHERE tt.TypeKey = @TransactionTypeKey
-                                   AND t.ReferenceId = @ReferenceId;";
+                                   AND t.ReferenceId = @ReferenceId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             return _session.Connection.QueryFirstOrDefault<TransactionTimelineSnapshot>(
                 sql,
-                new { TransactionTypeKey = transactionTypeKey, ReferenceId = referenceId },
+                new { TransactionTypeKey = transactionTypeKey, ReferenceId = referenceId, TenantId = _session.TenantId },
                 _session.Transaction);
         }
 

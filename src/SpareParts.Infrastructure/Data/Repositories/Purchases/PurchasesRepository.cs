@@ -47,7 +47,8 @@ namespace SpareParts.Infrastructure.Data
                                      TotalCounterAmount,
                                      PaidCounterAmount,
                                      CreatedAt,
-                                     CreatedByUserId
+                                     CreatedByUserId,
+                                     TenantId
                                  )
                                  SELECT
                                      @TransactionTypeId,
@@ -69,7 +70,8 @@ namespace SpareParts.Infrastructure.Data
                                      @TotalAmount,
                                      @PaidAmount,
                                      @CreatedAt,
-                                     @CreatedByUserId
+                                     @CreatedByUserId,
+                                     @TenantId
                                  FROM dbo.TransactionTypes tt
                                  WHERE tt.Id = @TransactionTypeId;
 
@@ -97,7 +99,8 @@ namespace SpareParts.Infrastructure.Data
                     invoice.PaidAmount,
                     invoice.PaymentStatus,
                     invoice.CreatedAt,
-                    invoice.CreatedByUserId
+                    invoice.CreatedByUserId,
+                    TenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null
                 },
                 _session.Transaction);
         }
@@ -199,6 +202,7 @@ namespace SpareParts.Infrastructure.Data
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND (@Query IS NULL OR @Query = N''
                                         OR t.TransactionNumber LIKE N'%' + @Query + N'%'
                                         OR t.ScanCode LIKE N'%' + @Query + N'%'
@@ -210,7 +214,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.Purchase,
-                    Query = query?.Trim()
+                    Query = query?.Trim(),
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
         }
@@ -229,7 +234,8 @@ namespace SpareParts.Infrastructure.Data
                                         FROM dbo.Transactions t
                                         INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                         WHERE tt.TypeKey = @TypeKey
-                                          AND t.ReferenceId = @PurchaseId;";
+                                          AND t.ReferenceId = @PurchaseId
+                                          AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             const string itemsSql = @"SELECT
                                              ti.PartId,
@@ -242,6 +248,7 @@ namespace SpareParts.Infrastructure.Data
                                       LEFT JOIN dbo.Parts p ON p.Id = ti.PartId
                                       WHERE tt.TypeKey = @TypeKey
                                         AND t.ReferenceId = @PurchaseId
+                                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                       ORDER BY ti.SortOrder, ti.Id;";
 
             var invoice = _session.Connection.QuerySingleOrDefault<PurchaseInvoiceDetailsDto>(
@@ -249,7 +256,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.Purchase,
-                    PurchaseId = purchaseId
+                    PurchaseId = purchaseId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
 
@@ -263,7 +271,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.Purchase,
-                    PurchaseId = purchaseId
+                    PurchaseId = purchaseId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
             invoice.Timeline = new TransactionTimelineReader(_session).Build(TransactionTypeKeys.Purchase, purchaseId);
@@ -345,14 +354,16 @@ namespace SpareParts.Infrastructure.Data
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
-                                   AND t.ReferenceId = @PurchaseId;";
+                                   AND t.ReferenceId = @PurchaseId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             return _session.Connection.QuerySingleOrDefault<int>(
                 sql,
                 new
                 {
                     TypeKey = TransactionTypeKeys.Purchase,
-                    PurchaseId = purchaseId
+                    PurchaseId = purchaseId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
         }

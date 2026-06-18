@@ -48,7 +48,8 @@ namespace SpareParts.Infrastructure.Data
                                      TotalCounterAmount,
                                      PaidCounterAmount,
                                      CreatedAt,
-                                     CreatedByUserId
+                                     CreatedByUserId,
+                                     TenantId
                                  )
                                  VALUES
                                  (
@@ -72,7 +73,8 @@ namespace SpareParts.Infrastructure.Data
                                      @TotalCounterAmount,
                                      @PaidCounterAmount,
                                      @CreatedAt,
-                                     @CreatedByUserId
+                                     @CreatedByUserId,
+                                     @TenantId
                                  );
 
                                  DECLARE @TransactionId INT = CAST(SCOPE_IDENTITY() AS INT);
@@ -103,7 +105,8 @@ namespace SpareParts.Infrastructure.Data
                     purchase.PostedByUserId,
                     purchase.Notes,
                     purchase.CreatedAt,
-                    purchase.CreatedByUserId
+                    purchase.CreatedByUserId,
+                    TenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null
                 },
                 _session.Transaction);
         }
@@ -214,6 +217,7 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.Suppliers s ON s.Id = t.SupplierId
                                  LEFT JOIN dbo.TransactionItems l ON l.TransactionId = t.Id
                                  WHERE tt.TypeKey = @TypeKey
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                  GROUP BY t.ReferenceId,
                                           t.TransactionNumber,
                                           t.ScanCode,
@@ -238,7 +242,7 @@ namespace SpareParts.Infrastructure.Data
 
             return _session.Connection.Query<UsedCarPurchaseSummaryDto>(
                 sql,
-                new { TypeKey = TransactionTypeKeys.UsedCarPurchase },
+                new { TypeKey = TransactionTypeKeys.UsedCarPurchase, TenantId = _session.TenantId },
                 _session.Transaction).ToList();
         }
 
@@ -273,12 +277,14 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
                                    AND t.ReferenceId = @Id
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND ISNULL(t.PostingStatus, N'Draft') <> N'Posted';";
 
             return _session.Connection.Execute(sql, new
             {
                 TypeKey = TransactionTypeKeys.UsedCarPurchase,
                 Id = id,
+                TenantId = _session.TenantId,
                 purchase.SupplierId,
                 purchase.PurchaseDate,
                 purchase.BaseCurrencyCode,
@@ -320,12 +326,14 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
                                    AND t.ReferenceId = @Id
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND ISNULL(t.PostingStatus, N'Draft') <> N'Posted';";
 
             return _session.Connection.Execute(sql, new
             {
                 TypeKey = TransactionTypeKeys.UsedCarPurchase,
                 Id = id,
+                TenantId = _session.TenantId,
                 PostedAt = postedAt,
                 PostedByUserId = postedByUserId
             }, _session.Transaction) > 0;
@@ -338,6 +346,7 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
                                    AND t.UsedCarId = @UsedCarId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND ISNULL(t.PostingStatus, N'Draft') = N'Posted';";
 
             return _session.Connection.ExecuteScalar<int>(
@@ -345,7 +354,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.UsedCarPurchase,
-                    UsedCarId = usedCarId
+                    UsedCarId = usedCarId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction) > 0;
         }
@@ -357,12 +367,14 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
                                    AND t.UsedCarId = @UsedCarId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND ISNULL(t.PostingStatus, N'Draft') <> N'Posted';";
 
             return _session.Connection.Execute(sql, new
             {
                 TypeKey = TransactionTypeKeys.UsedCarPurchase,
-                UsedCarId = usedCarId
+                UsedCarId = usedCarId,
+                TenantId = _session.TenantId
             }, _session.Transaction);
         }
 
@@ -372,12 +384,14 @@ namespace SpareParts.Infrastructure.Data
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
-                                   AND t.ReferenceId = @Id;";
+                                   AND t.ReferenceId = @Id
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             return _session.Connection.Execute(sql, new
             {
                 TypeKey = TransactionTypeKeys.UsedCarPurchase,
-                Id = id
+                Id = id,
+                TenantId = _session.TenantId
             }, _session.Transaction) > 0;
         }
 
@@ -385,6 +399,7 @@ namespace SpareParts.Infrastructure.Data
         {
             var queryParameters = new DynamicParameters(parameters);
             queryParameters.Add("TypeKey", TransactionTypeKeys.UsedCarPurchase);
+            queryParameters.Add("TenantId", _session.TenantId);
 
             var headerSql = $@"SELECT TOP (1)
                                       t.ReferenceId AS Id,
@@ -425,6 +440,7 @@ namespace SpareParts.Infrastructure.Data
                                INNER JOIN dbo.Suppliers s ON s.Id = t.SupplierId
                                LEFT JOIN dbo.TransactionItems l ON l.TransactionId = t.Id
                                WHERE tt.TypeKey = @TypeKey
+                                 AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                  AND {whereClause}
                                GROUP BY t.ReferenceId,
                                         t.TransactionNumber,
@@ -467,6 +483,7 @@ namespace SpareParts.Infrastructure.Data
                                       INNER JOIN dbo.Accounts a ON a.Id = ti.AccountId
                                       WHERE tt.TypeKey = @TypeKey
                                         AND t.ReferenceId = @Id
+                                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                       ORDER BY ti.SortOrder, ti.Id;";
 
             var detail = _session.Connection.QueryFirstOrDefault<UsedCarPurchaseDetailDto>(
@@ -484,7 +501,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.UsedCarPurchase,
-                    detail.Id
+                    detail.Id,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
             detail.Timeline = new TransactionTimelineReader(_session).Build(TransactionTypeKeys.UsedCarPurchase, detail.Id);
@@ -498,14 +516,16 @@ namespace SpareParts.Infrastructure.Data
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
-                                   AND t.ReferenceId = @PurchaseId;";
+                                   AND t.ReferenceId = @PurchaseId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             var transactionId = _session.Connection.QuerySingleOrDefault<int>(
                 sql,
                 new
                 {
                     TypeKey = TransactionTypeKeys.UsedCarPurchase,
-                    PurchaseId = purchaseId
+                    PurchaseId = purchaseId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
 

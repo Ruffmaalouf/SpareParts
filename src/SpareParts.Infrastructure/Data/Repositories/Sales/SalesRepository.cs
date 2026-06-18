@@ -63,7 +63,8 @@ namespace SpareParts.Infrastructure.Data
                                      TotalCounterAmount,
                                      PaidCounterAmount,
                                      CreatedAt,
-                                     CreatedByUserId
+                                     CreatedByUserId,
+                                     TenantId
                                  )
                                  SELECT
                                      @TransactionTypeId,
@@ -90,7 +91,8 @@ namespace SpareParts.Infrastructure.Data
                                      @TotalAmount,
                                      @PaidAmount,
                                      @CreatedAt,
-                                     @CreatedByUserId
+                                     @CreatedByUserId,
+                                     @TenantId
                                  ;
 
                                  DECLARE @TransactionId INT = CAST(SCOPE_IDENTITY() AS INT);
@@ -125,7 +127,8 @@ namespace SpareParts.Infrastructure.Data
                     currencyContext.CounterCurrencyCode,
                     currencyContext.CounterRateToBase,
                     invoice.CreatedAt,
-                    invoice.CreatedByUserId
+                    invoice.CreatedByUserId,
+                    TenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null
                 },
                 _session.Transaction);
         }
@@ -217,6 +220,7 @@ namespace SpareParts.Infrastructure.Data
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId
                                  WHERE tt.TypeKey = @TypeKey
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                    AND (@Query IS NULL OR @Query = N''
                                         OR t.TransactionNumber LIKE N'%' + @Query + N'%'
                                         OR t.ScanCode LIKE N'%' + @Query + N'%'
@@ -228,7 +232,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.Sale,
-                    Query = query?.Trim()
+                    Query = query?.Trim(),
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
         }
@@ -254,7 +259,8 @@ namespace SpareParts.Infrastructure.Data
                                         FROM dbo.Transactions t
                                         INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                         WHERE tt.TypeKey = @TypeKey
-                                          AND t.ReferenceId = @InvoiceId;";
+                                          AND t.ReferenceId = @InvoiceId
+                                          AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             const string itemsSql = @"SELECT
                                              ti.PartId,
@@ -268,6 +274,7 @@ namespace SpareParts.Infrastructure.Data
                                       LEFT JOIN dbo.Parts p ON p.Id = ti.PartId
                                       WHERE tt.TypeKey = @TypeKey
                                         AND t.ReferenceId = @InvoiceId
+                                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                                       ORDER BY ti.SortOrder, ti.Id;";
 
             var invoice = _session.Connection.QuerySingleOrDefault<SalesInvoiceDetailsDto>(
@@ -275,7 +282,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.Sale,
-                    InvoiceId = invoiceId
+                    InvoiceId = invoiceId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
 
@@ -289,7 +297,8 @@ namespace SpareParts.Infrastructure.Data
                 new
                 {
                     TypeKey = TransactionTypeKeys.Sale,
-                    InvoiceId = invoiceId
+                    InvoiceId = invoiceId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
             invoice.Timeline = new TransactionTimelineReader(_session).Build(TransactionTypeKeys.Sale, invoiceId);
@@ -318,14 +327,16 @@ namespace SpareParts.Infrastructure.Data
                                   INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                   LEFT JOIN dbo.Parts p ON p.Id = ti.PartId
                                   WHERE tt.TypeKey = @TypeKey
-                                    AND t.TransactionDate >= @StartDate;";
+                                    AND t.TransactionDate >= @StartDate
+                                    AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             var lines = _session.Connection.Query<SalesProfitHistoryRawLine>(
                 sql,
                 new
                 {
                     TypeKey = TransactionTypeKeys.Sale,
-                    StartDate = startDate
+                    StartDate = startDate,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
 
@@ -463,14 +474,16 @@ namespace SpareParts.Infrastructure.Data
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                                  WHERE tt.TypeKey = @TypeKey
-                                   AND t.ReferenceId = @InvoiceId;";
+                                   AND t.ReferenceId = @InvoiceId
+                                   AND (@TenantId = 0 OR t.TenantId = @TenantId);";
 
             return _session.Connection.QuerySingleOrDefault<int>(
                 sql,
                 new
                 {
                     TypeKey = TransactionTypeKeys.Sale,
-                    InvoiceId = invoiceId
+                    InvoiceId = invoiceId,
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction);
         }
