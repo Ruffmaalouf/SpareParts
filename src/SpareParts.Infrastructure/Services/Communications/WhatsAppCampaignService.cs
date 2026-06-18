@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Communications;
 using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using System.Data;
 using System.Globalization;
 
@@ -14,18 +15,22 @@ namespace SpareParts.Infrastructure.Services
 
         private readonly ISqlConnectionFactory _factory;
         private readonly CommunicationsService _communicationsService;
+        private readonly ITenantContext _tenantContext;
 
         public WhatsAppCampaignService(
             ISqlConnectionFactory factory,
-            CommunicationsService communicationsService)
+            CommunicationsService communicationsService,
+            ITenantContext tenantContext)
         {
             _factory = factory;
             _communicationsService = communicationsService;
+            _tenantContext = tenantContext;
         }
 
         public IReadOnlyList<WhatsAppCampaignAssetDto> GetAssets()
         {
             using var conn = _factory.CreateConnection();
+            var tenantId = _tenantContext.TenantId;
             var parts = conn.Query<WhatsAppCampaignAssetDto>(
                 """
 SELECT TOP (180)
@@ -51,11 +56,13 @@ OUTER APPLY
     WHERE s.PartId = p.Id
 ) stock
 WHERE p.IsActive = 1
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY
     CASE WHEN ISNULL(stock.AvailableQuantity, 0) > 0 THEN 0 ELSE 1 END,
     p.Name,
     p.Id;
-""").ToList();
+""",
+                new { TenantId = tenantId }).ToList();
 
             var cars = conn.Query<WhatsAppCampaignAssetDto>(
                 """
@@ -100,8 +107,10 @@ OUTER APPLY
     FROM dbo.usedcar_images image
     WHERE image.UsedCarId = uc.Id
 ) images
+WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
 ORDER BY uc.CreatedAt DESC, uc.Id DESC;
-""").ToList();
+""",
+                new { TenantId = tenantId }).ToList();
 
             return parts.Concat(cars).ToList();
         }
@@ -142,8 +151,9 @@ ORDER BY uc.CreatedAt DESC, uc.Id DESC;
                 : request.MessageBodyOverride.Trim();
 
             using var conn = _factory.CreateConnection();
+            var tenantId = _tenantContext.TenantId;
             var attachments = build.IncludeImages
-                ? LoadAttachments(conn, build.UsedCarIds)
+                ? LoadAttachments(conn, build.UsedCarIds, tenantId)
                 : new List<CommunicationAttachmentDto>();
             var campaignName = NormalizeCampaignName(request.Name, build.Segment);
             var campaignId = InsertCampaign(
@@ -152,7 +162,8 @@ ORDER BY uc.CreatedAt DESC, uc.Id DESC;
                 build,
                 body,
                 attachments.Count,
-                userId);
+                userId,
+                tenantId);
 
             var sentCount = 0;
             var failedCount = 0;
@@ -219,7 +230,7 @@ ORDER BY uc.CreatedAt DESC, uc.Id DESC;
             }
 
             var campaignStatus = ResolveCampaignStatus(sentCount, failedCount, preparedCount, build.Recipients.Count);
-            UpdateCampaignCounts(conn, campaignId, sentCount, failedCount, preparedCount, campaignStatus);
+            UpdateCampaignCounts(conn, campaignId, sentCount, failedCount, preparedCount, campaignStatus, tenantId);
 
             return new WhatsAppCampaignSendResponse
             {
@@ -265,6 +276,7 @@ OUTER APPLY
         ON inbound.Direction = N'Inbound'
        AND inbound.RecipientPhone = r.RecipientPhone
        AND inbound.CreatedAt >= c.CreatedAt
+       AND (@TenantId = 0 OR inbound.TenantId = @TenantId)
     WHERE r.CampaignId = c.Id
 ) replies
 OUTER APPLY
@@ -276,17 +288,20 @@ OUTER APPLY
     INNER JOIN dbo.Transactions t
         ON t.CustomerId = r.CustomerId
        AND t.TransactionDate >= c.CreatedAt
+       AND (@TenantId = 0 OR t.TenantId = @TenantId)
     INNER JOIN dbo.TransactionTypes tt
         ON tt.Id = t.TransactionTypeId
        AND tt.TypeKey = @SaleType
     WHERE r.CampaignId = c.Id
 ) sales
+WHERE (@TenantId = 0 OR c.TenantId = @TenantId)
 ORDER BY c.CreatedAt DESC, c.Id DESC;
 """,
                 new
                 {
                     Take = Math.Clamp(take, 1, 100),
-                    SaleType = TransactionTypeKeys.Sale
+                    SaleType = TransactionTypeKeys.Sale,
+                    TenantId = _tenantContext.TenantId
                 }).ToList();
         }
 
@@ -308,9 +323,10 @@ ORDER BY c.CreatedAt DESC, c.Id DESC;
             var customerIds = NormalizeIds(request.CustomerIds);
 
             using var conn = _factory.CreateConnection();
-            var recipients = LoadRecipients(conn, segment, customerIds, maxRecipients);
-            var assets = LoadSelectedAssets(conn, partIds, usedCarIds);
-            var attachmentCount = request.IncludeImages ? CountAttachments(conn, usedCarIds) : 0;
+            var tenantId = _tenantContext.TenantId;
+            var recipients = LoadRecipients(conn, segment, customerIds, maxRecipients, tenantId);
+            var assets = LoadSelectedAssets(conn, partIds, usedCarIds, tenantId);
+            var attachmentCount = request.IncludeImages ? CountAttachments(conn, usedCarIds, tenantId) : 0;
             var body = BuildMessage(language, assets, request.Note, request.IncludeImages && attachmentCount > 0);
 
             return new CampaignBuild(
@@ -329,11 +345,12 @@ ORDER BY c.CreatedAt DESC, c.Id DESC;
             IDbConnection conn,
             string segment,
             IReadOnlyCollection<int> customerIds,
-            int maxRecipients)
+            int maxRecipients,
+            int tenantId)
         {
             var rows = string.Equals(segment, WhatsAppCampaignSegments.WaitingForParts, StringComparison.Ordinal)
-                ? LoadWaitingRecipients(conn, customerIds, maxRecipients)
-                : LoadCustomerRecipients(conn, segment, customerIds, maxRecipients);
+                ? LoadWaitingRecipients(conn, customerIds, maxRecipients, tenantId)
+                : LoadCustomerRecipients(conn, segment, customerIds, maxRecipients, tenantId);
 
             var deduped = new Dictionary<string, WhatsAppCampaignRecipientDto>(StringComparer.Ordinal);
             foreach (var row in rows)
@@ -356,7 +373,8 @@ ORDER BY c.CreatedAt DESC, c.Id DESC;
             IDbConnection conn,
             string segment,
             IReadOnlyCollection<int> customerIds,
-            int maxRecipients)
+            int maxRecipients,
+            int tenantId)
         {
             return conn.Query<WhatsAppCampaignRecipientDto>(
                 """
@@ -376,6 +394,7 @@ WITH SaleSummary AS
     FROM dbo.Transactions t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = @SaleType
     WHERE t.CustomerId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
     GROUP BY t.CustomerId
 ),
 ContactSummary AS
@@ -387,6 +406,7 @@ ContactSummary AS
     FROM dbo.OutboundMessages om
     WHERE om.RecipientKind = N'Customer'
       AND om.RecipientId IS NOT NULL
+      AND (@TenantId = 0 OR om.TenantId = @TenantId)
     GROUP BY om.RecipientId
 )
 SELECT TOP (@MaxRecipients)
@@ -403,6 +423,7 @@ FROM dbo.Customers c
 LEFT JOIN SaleSummary s ON s.CustomerId = c.Id
 LEFT JOIN ContactSummary contact ON contact.CustomerId = c.Id
 WHERE NULLIF(LTRIM(RTRIM(c.Phone)), N'') IS NOT NULL
+  AND (@TenantId = 0 OR c.TenantId = @TenantId)
   AND (@HasCustomerIds = 0 OR c.Id IN @CustomerIds)
   AND
   (
@@ -428,14 +449,16 @@ ORDER BY
                     UnpaidCustomers = WhatsAppCampaignSegments.UnpaidCustomers,
                     RecentBuyers = WhatsAppCampaignSegments.RecentBuyers,
                     HasCustomerIds = customerIds.Count > 0,
-                    CustomerIds = customerIds.Count == 0 ? new[] { 0 } : customerIds
+                    CustomerIds = customerIds.Count == 0 ? new[] { 0 } : customerIds,
+                    TenantId = tenantId
                 }).ToList();
         }
 
         private static IReadOnlyList<WhatsAppCampaignRecipientDto> LoadWaitingRecipients(
             IDbConnection conn,
             IReadOnlyCollection<int> customerIds,
-            int maxRecipients)
+            int maxRecipients,
+            int tenantId)
         {
             return conn.Query<WhatsAppCampaignRecipientDto>(
                 """
@@ -467,6 +490,7 @@ SaleSummary AS
     FROM dbo.Transactions t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = @SaleType
     WHERE t.CustomerId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
     GROUP BY t.CustomerId
 )
 SELECT TOP (@MaxRecipients)
@@ -480,7 +504,7 @@ SELECT TOP (@MaxRecipients)
     LastInboundAt = phoneContact.LastInboundAt,
     LastOutboundAt = phoneContact.LastOutboundAt
 FROM Waiting w
-LEFT JOIN dbo.Customers c ON c.Id = w.CustomerId
+LEFT JOIN dbo.Customers c ON c.Id = w.CustomerId AND (@TenantId = 0 OR c.TenantId = @TenantId)
 LEFT JOIN SaleSummary s ON s.CustomerId = COALESCE(c.Id, w.CustomerId)
 OUTER APPLY
 (
@@ -489,6 +513,7 @@ OUTER APPLY
         LastOutboundAt = MAX(CASE WHEN om.Direction = N'Outbound' THEN om.CreatedAt END)
     FROM dbo.OutboundMessages om
     WHERE om.RecipientPhone = COALESCE(NULLIF(LTRIM(RTRIM(c.Phone)), N''), NULLIF(LTRIM(RTRIM(w.CustomerPhone)), N''))
+      AND (@TenantId = 0 OR om.TenantId = @TenantId)
 ) phoneContact
 WHERE COALESCE(NULLIF(LTRIM(RTRIM(c.Phone)), N''), NULLIF(LTRIM(RTRIM(w.CustomerPhone)), N'')) IS NOT NULL
   AND (@HasCustomerIds = 0 OR COALESCE(c.Id, w.CustomerId) IN @CustomerIds)
@@ -499,14 +524,16 @@ ORDER BY w.LastRequestAt DESC;
                     MaxRecipients = maxRecipients * 2,
                     SaleType = TransactionTypeKeys.Sale,
                     HasCustomerIds = customerIds.Count > 0,
-                    CustomerIds = customerIds.Count == 0 ? new[] { 0 } : customerIds
+                    CustomerIds = customerIds.Count == 0 ? new[] { 0 } : customerIds,
+                    TenantId = tenantId
                 }).ToList();
         }
 
         private static IReadOnlyList<WhatsAppCampaignAssetDto> LoadSelectedAssets(
             IDbConnection conn,
             IReadOnlyCollection<int> partIds,
-            IReadOnlyCollection<int> usedCarIds)
+            IReadOnlyCollection<int> usedCarIds,
+            int tenantId)
         {
             var parts = partIds.Count == 0
                 ? new List<WhatsAppCampaignAssetDto>()
@@ -527,9 +554,14 @@ SELECT
     IsSelected = CAST(1 AS BIT)
 FROM dbo.Parts p
 INNER JOIN @Ids ids ON ids.Id = p.Id
+WHERE (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY p.Name, p.Id;
 """,
-                    new { Ids = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList") }).ToList();
+                    new
+                    {
+                        Ids = ToIntIdList(partIds).AsTableValuedParameter("dbo.IntIdList"),
+                        TenantId = tenantId
+                    }).ToList();
 
             var cars = usedCarIds.Count == 0
                 ? new List<WhatsAppCampaignAssetDto>()
@@ -574,14 +606,19 @@ OUTER APPLY
     FROM dbo.usedcar_images image
     WHERE image.UsedCarId = uc.Id
 ) images
+WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
 ORDER BY uc.ModelYear DESC, uc.Id DESC;
 """,
-                    new { Ids = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList") }).ToList();
+                    new
+                    {
+                        Ids = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList"),
+                        TenantId = tenantId
+                    }).ToList();
 
             return parts.Concat(cars).ToList();
         }
 
-        private static int CountAttachments(IDbConnection conn, IReadOnlyCollection<int> usedCarIds)
+        private static int CountAttachments(IDbConnection conn, IReadOnlyCollection<int> usedCarIds, int tenantId)
         {
             if (usedCarIds.Count == 0)
             {
@@ -596,15 +633,22 @@ FROM
     SELECT TOP (6) image.ImageId
     FROM dbo.usedcar_images image
     INNER JOIN @UsedCarIds ids ON ids.Id = image.UsedCarId
+    INNER JOIN dbo.UsedCars uc ON uc.Id = image.UsedCarId
+    WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
     ORDER BY image.CreatedAt DESC, image.ImageId DESC
 ) selected;
 """,
-                new { UsedCarIds = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList") });
+                new
+                {
+                    UsedCarIds = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList"),
+                    TenantId = tenantId
+                });
         }
 
         private static List<CommunicationAttachmentDto> LoadAttachments(
             IDbConnection conn,
-            IReadOnlyCollection<int> usedCarIds)
+            IReadOnlyCollection<int> usedCarIds,
+            int tenantId)
         {
             if (usedCarIds.Count == 0)
             {
@@ -620,9 +664,15 @@ SELECT TOP (6)
     image.ImageData
 FROM dbo.usedcar_images image
 INNER JOIN @UsedCarIds ids ON ids.Id = image.UsedCarId
+INNER JOIN dbo.UsedCars uc ON uc.Id = image.UsedCarId
+WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
 ORDER BY image.CreatedAt DESC, image.ImageId DESC;
 """,
-                new { UsedCarIds = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList") });
+                new
+                {
+                    UsedCarIds = ToIntIdList(usedCarIds).AsTableValuedParameter("dbo.IntIdList"),
+                    TenantId = tenantId
+                });
 
             return rows.Select(row => new CommunicationAttachmentDto
             {
@@ -639,14 +689,15 @@ ORDER BY image.CreatedAt DESC, image.ImageId DESC;
             CampaignBuild build,
             string body,
             int attachmentCount,
-            int userId)
+            int userId,
+            int tenantId)
         {
             return conn.ExecuteScalar<int>(
                 """
 INSERT INTO dbo.WhatsAppCampaigns
-    (Name, Segment, Language, MessageBody, SelectedPartIds, SelectedUsedCarIds, RecipientCount, SentCount, FailedCount, PreparedCount, AttachmentCount, Status, CreatedByUserId)
+    (Name, Segment, Language, MessageBody, SelectedPartIds, SelectedUsedCarIds, RecipientCount, SentCount, FailedCount, PreparedCount, AttachmentCount, Status, CreatedByUserId, TenantId)
 VALUES
-    (@Name, @Segment, @Language, @MessageBody, @SelectedPartIds, @SelectedUsedCarIds, @RecipientCount, 0, 0, 0, @AttachmentCount, N'Sending', @UserId);
+    (@Name, @Segment, @Language, @MessageBody, @SelectedPartIds, @SelectedUsedCarIds, @RecipientCount, 0, 0, 0, @AttachmentCount, N'Sending', @UserId, @TenantId);
 SELECT CAST(SCOPE_IDENTITY() AS INT);
 """,
                 new
@@ -659,7 +710,8 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
                     SelectedUsedCarIds = string.Join(",", build.UsedCarIds),
                     RecipientCount = build.Recipients.Count,
                     AttachmentCount = attachmentCount,
-                    UserId = userId
+                    UserId = userId,
+                    TenantId = tenantId > 0 ? (int?)tenantId : null
                 });
         }
 
@@ -675,9 +727,10 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
             conn.Execute(
                 """
 INSERT INTO dbo.WhatsAppCampaignRecipients
-    (CampaignId, CustomerId, RecipientName, RecipientPhone, MessageId, Status, ErrorMessage, SentAt)
-VALUES
-    (@CampaignId, @CustomerId, @RecipientName, @RecipientPhone, @MessageId, @Status, @ErrorMessage, @SentAt);
+    (CampaignId, CustomerId, RecipientName, RecipientPhone, MessageId, Status, ErrorMessage, SentAt, TenantId)
+SELECT @CampaignId, @CustomerId, @RecipientName, @RecipientPhone, @MessageId, @Status, @ErrorMessage, @SentAt, c.TenantId
+FROM dbo.WhatsAppCampaigns c
+WHERE c.Id = @CampaignId;
 """,
                 new
                 {
@@ -698,7 +751,8 @@ VALUES
             int sentCount,
             int failedCount,
             int preparedCount,
-            string status)
+            string status,
+            int tenantId)
         {
             conn.Execute(
                 """
@@ -707,7 +761,7 @@ SET SentCount = @SentCount,
     FailedCount = @FailedCount,
     PreparedCount = @PreparedCount,
     Status = @Status
-WHERE Id = @CampaignId;
+WHERE Id = @CampaignId AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
                 new
                 {
@@ -715,7 +769,8 @@ WHERE Id = @CampaignId;
                     SentCount = sentCount,
                     FailedCount = failedCount,
                     PreparedCount = preparedCount,
-                    Status = status
+                    Status = status,
+                    TenantId = tenantId
                 });
         }
 

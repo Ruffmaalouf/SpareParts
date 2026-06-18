@@ -21,5 +21,6 @@ namespace SpareParts.Infrastructure.Data
         public DateTime CreatedAt { get; set; }
         public int? CreatedByUserId { get; set; }
         public DateTime? SentAt { get; set; }
+        public int? TenantId { get; set; }
     }
 }
