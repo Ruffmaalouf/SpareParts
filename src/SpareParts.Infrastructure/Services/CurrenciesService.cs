@@ -1,26 +1,32 @@
 using Dapper;
 using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class CurrenciesService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public CurrenciesService(ISqlConnectionFactory factory)
+    public CurrenciesService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<CurrencyRateDto> GetAll()
     {
         using var conn = _factory.CreateConnection();
-        var configuredBaseCode = ResolveConfiguredBaseCurrency(conn);
+        var tenantId = _tenantContext.TenantId;
+        var configuredBaseCode = ResolveConfiguredBaseCurrency(conn, tenantId);
         var rawRates = conn.Query<CurrencyRateDto>(
             @"SELECT Code, RateToUsd, BaseCode, SnapshotUtc
               FROM CurrencyRates
-              ORDER BY Code;")
+              WHERE (@TenantId = 0 OR TenantId = @TenantId)
+              ORDER BY Code;",
+            new { TenantId = tenantId })
             .ToList();
 
         if (rawRates.Count == 0)
@@ -134,7 +140,7 @@ public sealed class CurrenciesService
         return resolvedUnits;
     }
 
-    private static string ResolveConfiguredBaseCurrency(System.Data.IDbConnection connection)
+    private static string ResolveConfiguredBaseCurrency(System.Data.IDbConnection connection, int tenantId)
     {
         var constants = connection.Query<AppConstantDto>(
             @"IF OBJECT_ID('dbo.AppConstants', 'U') IS NULL
@@ -142,7 +148,9 @@ public sealed class CurrenciesService
                   WHERE 1 = 0;
               ELSE
                   SELECT [Key], [Value]
-                  FROM dbo.AppConstants;")
+                  FROM dbo.AppConstants
+                  WHERE (@TenantId = 0 OR TenantId = @TenantId);",
+            new { TenantId = tenantId })
             .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
 
         return ResolveCurrencyCode(constants, "BaseCurrencyCode")

@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Auth;
 using SpareParts.Domain.Reports;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using System.Data;
 using System.Globalization;
 
@@ -34,10 +35,12 @@ public sealed partial class ReportBuilderService
     };
 
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public ReportBuilderService(ISqlConnectionFactory factory)
+    public ReportBuilderService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IReadOnlyList<ReportTableDto> GetTables()
@@ -144,14 +147,16 @@ WHERE SourceTableKey = @SourceTableKey
   AND SourceColumnName = @SourceColumnName
   AND TargetTableKey = @TargetTableKey
   AND TargetColumnName = @TargetColumnName
-  AND (@Id IS NULL OR Id <> @Id);",
+  AND (@Id IS NULL OR Id <> @Id)
+  AND (@TenantId = 0 OR TenantId = @TenantId);",
             new
             {
                 request.Id,
                 SourceTableKey = sourceTable.Key,
                 SourceColumnName = sourceColumn.ColumnName,
                 TargetTableKey = targetTable.Key,
-                TargetColumnName = targetColumn.ColumnName
+                TargetColumnName = targetColumn.ColumnName,
+                _tenantContext.TenantId
             });
 
         if (duplicateCount > 0)
@@ -173,7 +178,8 @@ SET LinkName = @LinkName,
     JoinType = @JoinType,
     IsActive = 1,
     ModifiedAt = SYSUTCDATETIME()
-WHERE Id = @Id;",
+WHERE Id = @Id
+  AND (@TenantId = 0 OR TenantId = @TenantId);",
                 new
                 {
                     Id = request.Id.Value,
@@ -182,7 +188,8 @@ WHERE Id = @Id;",
                     SourceColumnName = sourceColumn.ColumnName,
                     TargetTableKey = targetTable.Key,
                     TargetColumnName = targetColumn.ColumnName,
-                    JoinType = joinType
+                    JoinType = joinType,
+                    _tenantContext.TenantId
                 });
 
             if (updated == 0)
@@ -194,6 +201,7 @@ WHERE Id = @Id;",
         }
         else
         {
+            var tenantId = _tenantContext.TenantId > 0 ? (int?)_tenantContext.TenantId : null;
             linkId = connection.ExecuteScalar<int>(
                 @"
 INSERT INTO dbo.ReportBuilderTableLinks
@@ -204,7 +212,8 @@ INSERT INTO dbo.ReportBuilderTableLinks
     TargetTableKey,
     TargetColumnName,
     JoinType,
-    IsActive
+    IsActive,
+    TenantId
 )
 VALUES
 (
@@ -214,7 +223,8 @@ VALUES
     @TargetTableKey,
     @TargetColumnName,
     @JoinType,
-    1
+    1,
+    @TenantId
 );
 
 SELECT CAST(SCOPE_IDENTITY() AS INT);",
@@ -225,7 +235,8 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
                     SourceColumnName = sourceColumn.ColumnName,
                     TargetTableKey = targetTable.Key,
                     TargetColumnName = targetColumn.ColumnName,
-                    JoinType = joinType
+                    JoinType = joinType,
+                    TenantId = tenantId
                 });
         }
 
@@ -238,7 +249,9 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
         EnsureAdmin(currentRoleId);
 
         using var connection = _factory.CreateConnection();
-        var deleted = connection.Execute("DELETE FROM dbo.ReportBuilderTableLinks WHERE Id = @Id;", new { Id = id });
+        var deleted = connection.Execute(
+            "DELETE FROM dbo.ReportBuilderTableLinks WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = id, _tenantContext.TenantId });
         if (deleted == 0)
         {
             throw new NotFoundException($"Report table link '{id}' was not found.");
@@ -1266,7 +1279,9 @@ SELECT Id,
        CAST(0 AS bit) AS IsSystemDefined
 FROM dbo.ReportBuilderTableLinks
 WHERE IsActive = 1
-ORDER BY LinkName, SourceTableKey, TargetTableKey, SourceColumnName, TargetColumnName;")
+  AND (@TenantId = 0 OR TenantId = @TenantId)
+ORDER BY LinkName, SourceTableKey, TargetTableKey, SourceColumnName, TargetColumnName;",
+                new { _tenantContext.TenantId })
             .ToList();
 
         var systemLinks = connection.Query<ReportTableLinkDto>(

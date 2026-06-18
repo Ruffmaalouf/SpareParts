@@ -1,21 +1,24 @@
 using Dapper;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class SupplierPriceHistoryService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public SupplierPriceHistoryService(ISqlConnectionFactory factory)
+    public SupplierPriceHistoryService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IReadOnlyList<SupplierPriceHistoryDto> GetHistory(int partId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         return session.Connection.Query<SupplierPriceHistoryDto>(
             """
 SELECT TOP 50
@@ -34,19 +37,23 @@ FROM dbo.SupplierPriceHistory sph
 INNER JOIN dbo.Parts p ON p.Id = sph.PartId
 INNER JOIN dbo.Suppliers s ON s.Id = sph.SupplierId
 WHERE sph.PartId = @PartId
+  AND (@TenantId = 0 OR sph.TenantId = @TenantId)
 ORDER BY sph.RecordedAt DESC
 """,
-            new { PartId = partId },
+            new { PartId = partId, session.TenantId },
             session.Transaction).ToList();
     }
 
     public SupplierPriceComparisonDto? GetComparison(int partId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         var part = session.Connection.QueryFirstOrDefault<(string Name, string Code)>(
-            "SELECT Name, InternalCode AS Code FROM dbo.Parts WHERE Id = @PartId AND IsActive = 1",
-            new { PartId = partId },
+            """
+SELECT Name, InternalCode AS Code FROM dbo.Parts
+WHERE Id = @PartId AND IsActive = 1 AND (@TenantId = 0 OR TenantId = @TenantId)
+""",
+            new { PartId = partId, session.TenantId },
             session.Transaction);
 
         if (part == default)
@@ -65,10 +72,11 @@ SELECT
 FROM dbo.SupplierPriceHistory sph
 INNER JOIN dbo.Suppliers s ON s.Id = sph.SupplierId
 WHERE sph.PartId = @PartId
+  AND (@TenantId = 0 OR sph.TenantId = @TenantId)
 GROUP BY s.Id, s.Name
 ORDER BY LastPrice ASC
 """,
-            new { PartId = partId },
+            new { PartId = partId, session.TenantId },
             session.Transaction).ToList();
 
         // Correct LastPrice to be the most recent (not MAX)
@@ -79,9 +87,10 @@ ORDER BY LastPrice ASC
 SELECT TOP 1 UnitPrice
 FROM dbo.SupplierPriceHistory
 WHERE PartId = @PartId AND SupplierId = @SupplierId
+  AND (@TenantId = 0 OR TenantId = @TenantId)
 ORDER BY RecordedAt DESC
 """,
-                new { PartId = partId, SupplierId = sp.SupplierId },
+                new { PartId = partId, SupplierId = sp.SupplierId, session.TenantId },
                 session.Transaction);
             sp.LastPrice = lastPrice;
         }
@@ -97,11 +106,13 @@ ORDER BY RecordedAt DESC
 
     public void RecordPrice(RecordSupplierPriceRequest req, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
+        var tenantId = session.TenantId > 0 ? (int?)session.TenantId : null;
+
         session.Connection.Execute(
             """
-INSERT INTO dbo.SupplierPriceHistory (PartId, SupplierId, UnitPrice, CurrencyCode, Quantity, InvoiceId, RecordedAt, CreatedByUserId)
-VALUES (@PartId, @SupplierId, @UnitPrice, @CurrencyCode, @Quantity, @InvoiceId, SYSUTCDATETIME(), @UserId)
+INSERT INTO dbo.SupplierPriceHistory (PartId, SupplierId, UnitPrice, CurrencyCode, Quantity, InvoiceId, RecordedAt, CreatedByUserId, TenantId)
+VALUES (@PartId, @SupplierId, @UnitPrice, @CurrencyCode, @Quantity, @InvoiceId, SYSUTCDATETIME(), @UserId, @TenantId)
 """,
             new
             {
@@ -111,7 +122,8 @@ VALUES (@PartId, @SupplierId, @UnitPrice, @CurrencyCode, @Quantity, @InvoiceId, 
                 CurrencyCode = req.CurrencyCode ?? "USD",
                 req.Quantity,
                 req.InvoiceId,
-                UserId = userId
+                UserId = userId,
+                TenantId = tenantId
             },
             session.Transaction);
         session.Commit();
