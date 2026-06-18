@@ -151,12 +151,19 @@ export function InvoicesView({ api }) {
     if (nextPartId) {
       try {
         const stockData = await api.get(`/api/parts/${nextPartId}/stock`);
-        setAvailableStock(typeof stockData === "number" ? stockData : Number(stockData?.availableQuantity ?? stockData?.available ?? stockData ?? 0));
+        if (Array.isArray(stockData)) {
+          const relevant = warehouseId
+            ? stockData.filter((row) => String(row.warehouseId) === String(warehouseId))
+            : stockData;
+          setAvailableStock(relevant.reduce((sum, row) => sum + Number(row.availableQuantity || 0), 0));
+        } else {
+          setAvailableStock(Number(stockData?.availableQuantity ?? stockData ?? 0));
+        }
       } catch {
         setAvailableStock(null);
       }
     }
-  }, [api, parts]);
+  }, [api, parts, warehouseId]);
 
   const addLine = useCallback(() => {
     if (!selectedPart) {
@@ -433,8 +440,8 @@ export function InvoicesView({ api }) {
           { key: "invoice", label: "Invoice", render: (invoice) => invoice.invoiceNumber },
           { key: "customer", label: "Customer", render: (invoice) => invoice.customerName || "Walk-in" },
           { key: "date", label: "Date", render: (invoice) => invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : "" },
-          { key: "total", label: "Total", render: (invoice) => money(invoice.totalAmount, invoice.currencyCode || "USD") },
-          { key: "paid", label: "Paid", render: (invoice) => money(invoice.paidAmount, invoice.currencyCode || "USD") },
+          { key: "total", label: "Total", render: (invoice) => money(invoice.totalAmount, invoice.counterCurrencyCode || "USD") },
+          { key: "paid", label: "Paid", render: (invoice) => money(invoice.paidAmount, invoice.counterCurrencyCode || "USD") },
           {
             key: "actions",
             label: "Actions",

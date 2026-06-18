@@ -13,9 +13,11 @@ namespace SpareParts.Domain.Marketplace
         public decimal? Price { get; set; }
         public string Currency { get; set; } = "USD";
         public PartReelStatus Status { get; set; } = PartReelStatus.Active;
+        public string StatusLabel { get; set; } = string.Empty;
         public int ViewCount { get; set; } = 0;
         public int LikeCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; }
         public string? SellerName { get; set; }
+        public bool IsOwner { get; set; }
     }
 }

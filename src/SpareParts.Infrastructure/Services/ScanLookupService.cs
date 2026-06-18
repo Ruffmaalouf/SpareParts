@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Scanning;
 using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using System.Data;
 
 namespace SpareParts.Infrastructure.Services;
@@ -9,10 +10,12 @@ namespace SpareParts.Infrastructure.Services;
 public sealed class ScanLookupService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public ScanLookupService(ISqlConnectionFactory factory)
+    public ScanLookupService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IReadOnlyList<ScanLookupResultDto> Resolve(string? scannedText)
@@ -26,26 +29,27 @@ public sealed class ScanLookupService
         var (targetType, lookupCode) = ParseTarget(code);
         var lookupId = targetType == null ? null : TryParseId(lookupCode);
         using var conn = _factory.CreateConnection();
+        var tenantId = _tenantContext.TenantId;
         var results = new List<ScanLookupResultDto>();
 
         if (targetType is null or ScanTargetTypes.Part)
         {
-            results.AddRange(QueryParts(conn, lookupCode, lookupId));
+            results.AddRange(QueryParts(conn, lookupCode, lookupId, tenantId));
         }
 
         if (targetType is null or ScanTargetTypes.Warehouse)
         {
-            results.AddRange(QueryWarehouses(conn, lookupCode, lookupId));
+            results.AddRange(QueryWarehouses(conn, lookupCode, lookupId, tenantId));
         }
 
         if (targetType is null or ScanTargetTypes.UsedCar)
         {
-            results.AddRange(QueryUsedCars(conn, lookupCode, lookupId));
+            results.AddRange(QueryUsedCars(conn, lookupCode, lookupId, tenantId));
         }
 
         if (targetType is null or ScanTargetTypes.StockMovement)
         {
-            results.AddRange(QueryStockMovements(conn, lookupCode, lookupId));
+            results.AddRange(QueryStockMovements(conn, lookupCode, lookupId, tenantId));
         }
 
         if (targetType is null or ScanTargetTypes.SaleInvoice)
@@ -54,6 +58,7 @@ public sealed class ScanLookupService
                 conn,
                 lookupCode,
                 lookupId,
+                tenantId,
                 TransactionTypeKeys.Sale,
                 ScanTargetTypes.SaleInvoice,
                 "Sale invoice",
@@ -66,6 +71,7 @@ public sealed class ScanLookupService
                 conn,
                 lookupCode,
                 lookupId,
+                tenantId,
                 TransactionTypeKeys.Purchase,
                 ScanTargetTypes.PurchaseInvoice,
                 "Purchase",
@@ -78,6 +84,7 @@ public sealed class ScanLookupService
                 conn,
                 lookupCode,
                 lookupId,
+                tenantId,
                 TransactionTypeKeys.UsedCarPurchase,
                 ScanTargetTypes.UsedCarPurchase,
                 "Used-car purchase",
@@ -163,7 +170,7 @@ public sealed class ScanLookupService
     private static int? TryParseId(string value)
         => int.TryParse(value.Trim(), out var id) && id > 0 ? id : null;
 
-    private static IReadOnlyList<ScanLookupResultDto> QueryParts(IDbConnection conn, string code, int? id)
+    private static IReadOnlyList<ScanLookupResultDto> QueryParts(IDbConnection conn, string code, int? id, int tenantId)
         => conn.Query<ScanLookupResultDto>(
             """
             SELECT TOP (20)
@@ -175,6 +182,7 @@ public sealed class ScanLookupService
                    CONCAT(N'api/parts?scan=', @Code) AS ApiRoute
             FROM dbo.Parts p
             WHERE p.IsActive = 1
+              AND (@TenantId = 0 OR p.TenantId = @TenantId)
               AND (
                     NULLIF(LTRIM(RTRIM(p.Barcode)), N'') = @Code
                     OR NULLIF(LTRIM(RTRIM(p.InternalCode)), N'') = @Code
@@ -182,9 +190,9 @@ public sealed class ScanLookupService
                   )
             ORDER BY p.Name;
             """,
-            new { TargetType = ScanTargetTypes.Part, Code = code, Id = id }).ToList();
+            new { TargetType = ScanTargetTypes.Part, Code = code, Id = id, TenantId = tenantId }).ToList();
 
-    private static IReadOnlyList<ScanLookupResultDto> QueryWarehouses(IDbConnection conn, string code, int? id)
+    private static IReadOnlyList<ScanLookupResultDto> QueryWarehouses(IDbConnection conn, string code, int? id, int tenantId)
         => conn.Query<ScanLookupResultDto>(
             """
             SELECT TOP (20)
@@ -195,13 +203,16 @@ public sealed class ScanLookupService
                    w.Address AS SecondaryText,
                    CONCAT(N'api/warehouses?scan=', @Code) AS ApiRoute
             FROM dbo.Warehouses w
-            WHERE NULLIF(LTRIM(RTRIM(w.Barcode)), N'') = @Code
-               OR (@Id IS NOT NULL AND w.Id = @Id)
+            WHERE (@TenantId = 0 OR w.TenantId = @TenantId)
+              AND (
+                    NULLIF(LTRIM(RTRIM(w.Barcode)), N'') = @Code
+                    OR (@Id IS NOT NULL AND w.Id = @Id)
+                  )
             ORDER BY w.IsMain DESC, w.Name;
             """,
-            new { TargetType = ScanTargetTypes.Warehouse, Code = code, Id = id }).ToList();
+            new { TargetType = ScanTargetTypes.Warehouse, Code = code, Id = id, TenantId = tenantId }).ToList();
 
-    private static IReadOnlyList<ScanLookupResultDto> QueryUsedCars(IDbConnection conn, string code, int? id)
+    private static IReadOnlyList<ScanLookupResultDto> QueryUsedCars(IDbConnection conn, string code, int? id, int tenantId)
         => conn.Query<ScanLookupResultDto>(
             """
             SELECT TOP (20)
@@ -222,13 +233,16 @@ public sealed class ScanLookupService
             INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
             INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
             LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
-            WHERE NULLIF(LTRIM(RTRIM(uc.Barcode)), N'') = @Code
-               OR (@Id IS NOT NULL AND uc.Id = @Id)
+            WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
+              AND (
+                    NULLIF(LTRIM(RTRIM(uc.Barcode)), N'') = @Code
+                    OR (@Id IS NOT NULL AND uc.Id = @Id)
+                  )
             ORDER BY uc.Id DESC;
             """,
-            new { TargetType = ScanTargetTypes.UsedCar, Code = code, Id = id }).ToList();
+            new { TargetType = ScanTargetTypes.UsedCar, Code = code, Id = id, TenantId = tenantId }).ToList();
 
-    private static IReadOnlyList<ScanLookupResultDto> QueryStockMovements(IDbConnection conn, string code, int? id)
+    private static IReadOnlyList<ScanLookupResultDto> QueryStockMovements(IDbConnection conn, string code, int? id, int tenantId)
         => conn.Query<ScanLookupResultDto>(
             """
             SELECT TOP (20)
@@ -241,16 +255,20 @@ public sealed class ScanLookupService
             FROM dbo.StockMovements sm
             LEFT JOIN dbo.Parts p ON p.Id = sm.PartId
             LEFT JOIN dbo.Warehouses w ON w.Id = sm.WarehouseId
-            WHERE NULLIF(LTRIM(RTRIM(sm.ScanCode)), N'') = @Code
-               OR (@Id IS NOT NULL AND sm.Id = @Id)
+            WHERE (@TenantId = 0 OR sm.TenantId = @TenantId)
+              AND (
+                    NULLIF(LTRIM(RTRIM(sm.ScanCode)), N'') = @Code
+                    OR (@Id IS NOT NULL AND sm.Id = @Id)
+                  )
             ORDER BY sm.Id DESC;
             """,
-            new { TargetType = ScanTargetTypes.StockMovement, Code = code, Id = id }).ToList();
+            new { TargetType = ScanTargetTypes.StockMovement, Code = code, Id = id, TenantId = tenantId }).ToList();
 
     private static IReadOnlyList<ScanLookupResultDto> QueryTransactions(
         IDbConnection conn,
         string code,
         int? id,
+        int tenantId,
         string typeKey,
         string targetType,
         string displayPrefix,
@@ -267,6 +285,7 @@ public sealed class ScanLookupService
             FROM dbo.Transactions t
             INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
             WHERE tt.TypeKey = @TypeKey
+              AND (@TenantId = 0 OR t.TenantId = @TenantId)
               AND (
                     NULLIF(LTRIM(RTRIM(t.ScanCode)), N'') = @Code
                     OR NULLIF(LTRIM(RTRIM(t.TransactionNumber)), N'') = @Code
@@ -279,6 +298,7 @@ public sealed class ScanLookupService
                 TargetType = targetType,
                 Code = code,
                 Id = id,
+                TenantId = tenantId,
                 TypeKey = typeKey,
                 DisplayPrefix = displayPrefix,
                 ApiRoute = apiRoute

@@ -25,7 +25,7 @@ public sealed class NewVsUsedService
             """
 SELECT Id, Name, SalePrice, OemNewPrice, AftermarketNewPrice, Currency
 FROM dbo.Parts
-WHERE Id = @PartId AND TenantId = @TenantId;
+WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
             new { PartId = partId, TenantId = _tenantContext.TenantId },
             session.Transaction);
@@ -71,7 +71,7 @@ SET OemNewPrice = @OemNewPrice,
     AftermarketNewPrice = @AftermarketNewPrice,
     ModifiedAt = @Now,
     ModifiedByUserId = @ModifiedByUserId
-WHERE Id = @PartId AND TenantId = @TenantId;
+WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
             new
             {

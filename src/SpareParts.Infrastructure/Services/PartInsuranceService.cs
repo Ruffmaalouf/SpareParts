@@ -47,7 +47,7 @@ public sealed class PartInsuranceService
         if (request.PartId.HasValue)
         {
             baseAmount = session.Connection.ExecuteScalar<decimal>(
-                "SELECT ISNULL(SalePrice, 0) FROM dbo.Parts WHERE Id = @PartId AND TenantId = @TenantId;",
+                "SELECT ISNULL(SalePrice, 0) FROM dbo.Parts WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);",
                 new { PartId = request.PartId.Value, TenantId = _tenantContext.TenantId },
                 session.Transaction);
         }

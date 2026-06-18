@@ -57,7 +57,7 @@ export function ApiPlatformView({ api }) {
         h("tbody", null, keys.map(k =>
           h("tr", { key: k.id },
             h("td", null, k.name), h("td", null, h("code", null, k.keyPrefix)),
-            h("td", null, (k.scopes || []).join(", ") || "—"),
+            h("td", null, (k.scopes ? k.scopes.split(",").map(s => s.trim()).filter(Boolean).join(", ") : "") || "—"),
             h("td", null, k.isActive ? "✅" : "—"),
             h("td", null, k.isActive && h("button", { className: "secondary-button", onClick: () => handleRevoke(k.id) }, "Revoke"))
           )

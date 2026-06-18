@@ -3,6 +3,7 @@ using SpareParts.Domain.Scanning;
 using SpareParts.Domain.Search;
 using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 using System.Data;
 
 namespace SpareParts.Infrastructure.Services;
@@ -11,17 +12,20 @@ public sealed class SmartSearchService
 {
     private readonly ISqlConnectionFactory _factory;
     private readonly ScanLookupService _scanLookupService;
+    private readonly ITenantContext _tenantContext;
 
-    public SmartSearchService(ISqlConnectionFactory factory, ScanLookupService scanLookupService)
+    public SmartSearchService(ISqlConnectionFactory factory, ScanLookupService scanLookupService, ITenantContext tenantContext)
     {
         _factory = factory;
         _scanLookupService = scanLookupService;
+        _tenantContext = tenantContext;
     }
 
     public SmartSearchResponseDto Search(string? query, int limit = 30)
     {
         var searchText = Normalize(query);
         var take = Math.Clamp(limit, 8, 60);
+        var tenantId = _tenantContext.TenantId;
         using var connection = _factory.CreateConnection();
         var results = new List<SmartSearchResultDto>();
 
@@ -30,10 +34,10 @@ public sealed class SmartSearchService
             results.AddRange(_scanLookupService.Resolve(searchText).Select(ToScanResult));
         }
 
-        results.AddRange(QueryParts(connection, searchText, take));
-        results.AddRange(QueryPartners(connection, searchText, take));
-        results.AddRange(QueryTransactions(connection, searchText, take));
-        results.AddRange(QueryUsedCars(connection, searchText, take));
+        results.AddRange(QueryParts(connection, searchText, take, tenantId));
+        results.AddRange(QueryPartners(connection, searchText, take, tenantId));
+        results.AddRange(QueryTransactions(connection, searchText, take, tenantId));
+        results.AddRange(QueryUsedCars(connection, searchText, take, tenantId));
 
         return new SmartSearchResponseDto
         {
@@ -64,6 +68,17 @@ public sealed class SmartSearchService
             HasQuery = !string.IsNullOrWhiteSpace(searchText)
         };
 
+    private static object Parameters(string searchText, int take, int tenantId)
+        => new
+        {
+            Take = take,
+            Query = searchText,
+            Like = $"%{searchText}%",
+            Prefix = $"{searchText}%",
+            HasQuery = !string.IsNullOrWhiteSpace(searchText),
+            TenantId = tenantId
+        };
+
     private static SmartSearchResultDto ToScanResult(ScanLookupResultDto result)
         => new()
         {
@@ -87,7 +102,7 @@ public sealed class SmartSearchService
             Score = 120
         };
 
-    private static IReadOnlyList<SmartSearchResultDto> QueryParts(IDbConnection connection, string searchText, int take)
+    private static IReadOnlyList<SmartSearchResultDto> QueryParts(IDbConnection connection, string searchText, int take, int tenantId)
         => connection.Query<SmartSearchResultDto>(
             """
             SELECT TOP (@Take)
@@ -120,6 +135,7 @@ public sealed class SmartSearchService
                 WHERE s.PartId = p.Id
             ) stock
             WHERE p.IsActive = 1
+              AND (@TenantId = 0 OR p.TenantId = @TenantId)
               AND (
                     @HasQuery = 0
                     OR p.InternalCode LIKE @Like
@@ -131,9 +147,9 @@ public sealed class SmartSearchService
                   )
             ORDER BY Score DESC, p.Name;
             """,
-            Parameters(searchText, take)).ToList();
+            Parameters(searchText, take, tenantId)).ToList();
 
-    private static IReadOnlyList<SmartSearchResultDto> QueryPartners(IDbConnection connection, string searchText, int take)
+    private static IReadOnlyList<SmartSearchResultDto> QueryPartners(IDbConnection connection, string searchText, int take, int tenantId)
         => connection.Query<SmartSearchResultDto>(
             """
             SELECT TOP (@Take)
@@ -153,11 +169,14 @@ public sealed class SmartSearchService
                        ELSE 42
                    END AS Score
             FROM dbo.Customers c
-            WHERE @HasQuery = 0
-               OR c.Name LIKE @Like
-               OR c.Phone LIKE @Like
-               OR c.Email LIKE @Like
-               OR c.TaxNumber LIKE @Like
+            WHERE (@TenantId = 0 OR c.TenantId = @TenantId)
+              AND (
+                    @HasQuery = 0
+                    OR c.Name LIKE @Like
+                    OR c.Phone LIKE @Like
+                    OR c.Email LIKE @Like
+                    OR c.TaxNumber LIKE @Like
+                  )
             UNION ALL
             SELECT TOP (@Take)
                    N'People' AS Section,
@@ -176,15 +195,18 @@ public sealed class SmartSearchService
                        ELSE 40
                    END AS Score
             FROM dbo.Suppliers s
-            WHERE @HasQuery = 0
-               OR s.Name LIKE @Like
-               OR s.Phone LIKE @Like
-               OR s.Email LIKE @Like
-               OR s.TaxNumber LIKE @Like;
+            WHERE (@TenantId = 0 OR s.TenantId = @TenantId)
+              AND (
+                    @HasQuery = 0
+                    OR s.Name LIKE @Like
+                    OR s.Phone LIKE @Like
+                    OR s.Email LIKE @Like
+                    OR s.TaxNumber LIKE @Like
+                  );
             """,
-            Parameters(searchText, take)).ToList();
+            Parameters(searchText, take, tenantId)).ToList();
 
-    private static IReadOnlyList<SmartSearchResultDto> QueryTransactions(IDbConnection connection, string searchText, int take)
+    private static IReadOnlyList<SmartSearchResultDto> QueryTransactions(IDbConnection connection, string searchText, int take, int tenantId)
         => connection.Query<SmartSearchResultDto>(
             """
             SELECT TOP (@Take)
@@ -224,6 +246,7 @@ public sealed class SmartSearchService
             LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId
             LEFT JOIN dbo.Suppliers s ON s.Id = t.SupplierId
             WHERE tt.TypeKey IN (@SaleType, @PurchaseType, @UsedCarPurchaseType)
+              AND (@TenantId = 0 OR t.TenantId = @TenantId)
               AND (
                     @HasQuery = 0
                     OR t.TransactionNumber LIKE @Like
@@ -236,7 +259,6 @@ public sealed class SmartSearchService
             """,
             new
             {
-                Parameters = Parameters(searchText, take),
                 Take = take,
                 Query = searchText,
                 Like = $"%{searchText}%",
@@ -244,10 +266,11 @@ public sealed class SmartSearchService
                 HasQuery = !string.IsNullOrWhiteSpace(searchText),
                 SaleType = TransactionTypeKeys.Sale,
                 PurchaseType = TransactionTypeKeys.Purchase,
-                UsedCarPurchaseType = TransactionTypeKeys.UsedCarPurchase
+                UsedCarPurchaseType = TransactionTypeKeys.UsedCarPurchase,
+                TenantId = tenantId
             }).ToList();
 
-    private static IReadOnlyList<SmartSearchResultDto> QueryUsedCars(IDbConnection connection, string searchText, int take)
+    private static IReadOnlyList<SmartSearchResultDto> QueryUsedCars(IDbConnection connection, string searchText, int take, int tenantId)
         => connection.Query<SmartSearchResultDto>(
             """
             SELECT TOP (@Take)
@@ -271,15 +294,18 @@ public sealed class SmartSearchService
             INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
             INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
             LEFT JOIN dbo.Location loc ON loc.LocationId = uc.LocationId
-            WHERE @HasQuery = 0
-               OR uc.Barcode LIKE @Like
-               OR cb.Name LIKE @Like
-               OR cm.Name LIKE @Like
-               OR uc.Location LIKE @Like
-               OR loc.Name LIKE @Like
-               OR CONVERT(NVARCHAR(4), uc.ModelYear) LIKE @Like
-               OR CAST(uc.Id AS NVARCHAR(50)) LIKE @Like
+            WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
+              AND (
+                    @HasQuery = 0
+                    OR uc.Barcode LIKE @Like
+                    OR cb.Name LIKE @Like
+                    OR cm.Name LIKE @Like
+                    OR uc.Location LIKE @Like
+                    OR loc.Name LIKE @Like
+                    OR CONVERT(NVARCHAR(4), uc.ModelYear) LIKE @Like
+                    OR CAST(uc.Id AS NVARCHAR(50)) LIKE @Like
+                  )
             ORDER BY Score DESC, uc.Id DESC;
             """,
-            Parameters(searchText, take)).ToList();
+            Parameters(searchText, take, tenantId)).ToList();
 }

@@ -6,6 +6,7 @@ using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Purchases;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
+using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Interfaces.Repositories;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
@@ -22,21 +23,25 @@ public sealed class UsedCarsService
     private readonly CurrenciesService _currenciesService;
     private readonly AppConstantsService _appConstantsService;
     private readonly AccountingSettingsProvider _accountingSettingsProvider;
+    private readonly ITenantContext _tenantContext;
 
     public UsedCarsService(
         ISqlConnectionFactory factory,
         CurrenciesService currenciesService,
         AppConstantsService appConstantsService,
-        AccountingSettingsProvider accountingSettingsProvider)
+        AccountingSettingsProvider accountingSettingsProvider,
+        ITenantContext tenantContext)
     {
         _factory = factory;
         _currenciesService = currenciesService;
         _appConstantsService = appConstantsService;
         _accountingSettingsProvider = accountingSettingsProvider;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<UsedCarDto> GetAll()
     {
+        var tenantId = _tenantContext.TenantId;
         using var conn = _factory.CreateConnection();
         var cars = conn.Query<UsedCarDto>(
             @"SELECT uc.Id,
@@ -186,7 +191,9 @@ public sealed class UsedCarsService
                              ELSE ROUND(ISNULL(sales.PartsSoldAmountBase, 0) - cost.FullCostBase, 2)
                          END
               ) profit
-              ORDER BY cb.Name, cm.Name, uc.ModelYear DESC, uc.Id DESC;")
+              WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
+              ORDER BY cb.Name, cm.Name, uc.ModelYear DESC, uc.Id DESC;",
+            new { TenantId = tenantId })
             .ToList();
 
         ApplyUsedCarInventoryValuation(conn, cars);
@@ -278,15 +285,15 @@ public sealed class UsedCarsService
     {
         var snapshot = BuildSnapshot(request);
 
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repositories = RepositoryCatalog.For(session);
         var receivedAt = snapshot.IsReceived ? DateTime.UtcNow : (DateTime?)null;
 
         var usedCarId = session.Connection.ExecuteScalar<int>(
             @"INSERT INTO dbo.UsedCars
-                (Barcode, SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, Repairs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, ExpectedSellThroughRate, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId)
+                (Barcode, SupplierId, CarModelId, ModelYear, PriceCurrency, Price, PriceBase, PriceCounter, LocationId, Location, Transportation, IsReceived, IsShipped, PartOutAmount, Shipping, Customs, Repairs, TotalBeforeShipping, GrandTotalBase, GrandTotalCounter, ExpectedSellThroughRate, BaseCurrencyCode, CounterCurrencyCode, CounterRateToBase, ReceivedAt, CreatedByUserId, TenantId)
               VALUES
-                (@Barcode, @SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @Repairs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @ExpectedSellThroughRate, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId);
+                (@Barcode, @SupplierId, @CarModelId, @ModelYear, @PriceCurrency, @Price, @PriceBase, @PriceCounter, @LocationId, @Location, @Transportation, @IsReceived, @IsShipped, @PartOut, @Shipping, @Customs, @Repairs, @TotalBeforeShipping, @GrandTotalBase, @GrandTotalCounter, @ExpectedSellThroughRate, @BaseCurrencyCode, @CounterCurrencyCode, @CounterRateToBase, @ReceivedAt, @UserId, @TenantId);
               SELECT CAST(SCOPE_IDENTITY() AS INT);",
             new
             {
@@ -315,7 +322,8 @@ public sealed class UsedCarsService
                 snapshot.CounterCurrencyCode,
                 snapshot.CounterRateToBase,
                 ReceivedAt = receivedAt,
-                UserId = userId
+                UserId = userId,
+                TenantId = session.TenantId > 0 ? (int?)session.TenantId : null
             },
             session.Transaction);
 
@@ -343,6 +351,7 @@ public sealed class UsedCarsService
     {
         BackfillMissingWholesaleSaleJournalEntries();
 
+        var tenantId = _tenantContext.TenantId;
         using var conn = _factory.CreateConnection();
         return conn.Query<UsedCarWholesaleSaleRecord>(
             @"SELECT w.Id,
@@ -391,7 +400,9 @@ public sealed class UsedCarsService
               INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
               INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
               LEFT JOIN dbo.Customers c ON c.Id = w.CustomerId
-              ORDER BY w.SaleDate DESC, w.Id DESC;")
+              WHERE (@TenantId = 0 OR uc.TenantId = @TenantId)
+              ORDER BY w.SaleDate DESC, w.Id DESC;",
+            new { TenantId = tenantId })
             .Select(MapWholesaleSale);
     }
 
@@ -433,7 +444,7 @@ public sealed class UsedCarsService
         var repairTotalCounterAmount = ConvertBaseToCounter(repairTotalBaseAmount, currencyContext.CounterRateToBase);
         var repairItemsJson = JsonSerializer.Serialize(repairItems);
 
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repositories = RepositoryCatalog.For(session);
         var usedCar = LoadWholesaleUsedCar(session, usedCarId)
             ?? throw new NotFoundException("Used car not found.");
@@ -534,7 +545,7 @@ public sealed class UsedCarsService
     {
         var snapshot = BuildSnapshot(request);
 
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repositories = RepositoryCatalog.For(session);
         var existing = GetExistingState(session, id);
         if (existing == null)
@@ -579,10 +590,11 @@ public sealed class UsedCarsService
                   ReceivedAt = @ReceivedAt,
                   ModifiedAt = @Now,
                   ModifiedByUserId = @UserId
-              WHERE Id = @Id",
+              WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)",
             new
             {
                 Id = id,
+                TenantId = session.TenantId,
                 snapshot.Barcode,
                 snapshot.SupplierId,
                 snapshot.CarModelId,
@@ -635,8 +647,14 @@ public sealed class UsedCarsService
 
     public void Delete(int id)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repositories = RepositoryCatalog.For(session);
+
+        if (GetExistingState(session, id) == null)
+        {
+            throw new NotFoundException("Used car not found.");
+        }
+
         repositories.Accounting.Journal.DeleteEntriesByReference(UsedCarReferenceType, id);
 
         if (repositories.Purchases.UsedCarPurchases.HasPostedPurchase(id))
@@ -647,8 +665,8 @@ public sealed class UsedCarsService
         repositories.Purchases.UsedCarPurchases.DeleteDraftsByUsedCarId(id);
 
         var deleted = session.Connection.Execute(
-            "DELETE FROM dbo.UsedCars WHERE Id = @Id",
-            new { Id = id },
+            "DELETE FROM dbo.UsedCars WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)",
+            new { Id = id, TenantId = session.TenantId },
             session.Transaction);
 
         if (deleted == 0)
@@ -867,8 +885,8 @@ public sealed class UsedCarsService
               FROM dbo.UsedCars uc
               INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
               INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
-              WHERE uc.Id = @Id;",
-            new { Id = usedCarId },
+              WHERE uc.Id = @Id AND (@TenantId = 0 OR uc.TenantId = @TenantId);",
+            new { Id = usedCarId, TenantId = session.TenantId },
             session.Transaction);
 
     private static bool HasWholesaleSale(DbSession session, int usedCarId)
@@ -1589,8 +1607,8 @@ public sealed class UsedCarsService
                      IsReceived,
                      ReceivedAt
               FROM dbo.UsedCars
-              WHERE Id = @Id;",
-            new { Id = id },
+              WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = id, TenantId = session.TenantId },
             session.Transaction);
 
     private int ResolveUsedCarSupplierAccountId(

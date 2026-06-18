@@ -30,7 +30,7 @@ public sealed class PriceGeniusService
             """
 SELECT p.Id, p.Name, p.SalePrice, p.Currency
 FROM dbo.Parts p
-WHERE p.Id = @PartId AND p.TenantId = @TenantId;
+WHERE p.Id = @PartId AND (@TenantId = 0 OR p.TenantId = @TenantId);
 """,
             new { PartId = request.PartId, TenantId = _tenantContext.TenantId },
             session.Transaction);

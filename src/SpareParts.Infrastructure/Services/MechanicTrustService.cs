@@ -33,7 +33,7 @@ SELECT
     mp.IsVerified, mp.VerifiedAt, mp.CreatedAt
 FROM dbo.MechanicProfiles mp
 LEFT JOIN dbo.Users u ON u.Id = mp.UserId
-WHERE mp.TenantId = @TenantId
+WHERE (@TenantId = 0 OR mp.TenantId = @TenantId)
 ORDER BY mp.BadgeLevel DESC, mp.PurchaseCount DESC;
 """,
             new { TenantId = _tenantContext.TenantId },
@@ -56,7 +56,7 @@ SELECT
     mp.IsVerified, mp.VerifiedAt, mp.CreatedAt
 FROM dbo.MechanicProfiles mp
 LEFT JOIN dbo.Users u ON u.Id = mp.UserId
-WHERE mp.UserId = @UserId AND mp.TenantId = @TenantId;
+WHERE mp.UserId = @UserId AND (@TenantId = 0 OR mp.TenantId = @TenantId);
 """,
             new { UserId = userId, TenantId = _tenantContext.TenantId },
             session.Transaction);
@@ -70,7 +70,7 @@ WHERE mp.UserId = @UserId AND mp.TenantId = @TenantId;
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         var existing = session.Connection.ExecuteScalar<int?>(
-            "SELECT Id FROM dbo.MechanicProfiles WHERE UserId = @UserId AND TenantId = @TenantId;",
+            "SELECT Id FROM dbo.MechanicProfiles WHERE UserId = @UserId AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { UserId = request.UserId, TenantId = _tenantContext.TenantId },
             session.Transaction);
 
@@ -120,7 +120,7 @@ VALUES (@TenantId, @UserId, 0, @SpecialtyBrands, @SpecialtyTypes, 0, 0, 0, @Crea
 UPDATE dbo.MechanicProfiles
 SET IsVerified = 1, VerifiedAt = @Now,
     BadgeLevel = CASE WHEN BadgeLevel < 2 THEN 2 ELSE BadgeLevel END
-WHERE UserId = @UserId AND TenantId = @TenantId;
+WHERE UserId = @UserId AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
             new { UserId = userId, Now = DateTime.UtcNow, TenantId = _tenantContext.TenantId },
             session.Transaction);

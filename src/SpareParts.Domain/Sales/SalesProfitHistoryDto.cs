@@ -15,7 +15,7 @@ namespace SpareParts.Domain.Sales
     }
 
     /// <summary>A single sale line, used to build <see cref="SalesProfitHistoryPointDto"/> buckets.</summary>
-    public record SalesProfitHistoryRawLine(DateTime TransactionDate, int TransactionId, decimal Quantity, decimal UnitPrice, decimal CostPrice);
+    public record SalesProfitHistoryRawLine(int TransactionId, DateTime TransactionDate, decimal Quantity, decimal UnitPrice, decimal CostPrice);
 
     /// <summary>Groups raw sale lines into a contiguous run of monthly profit/margin buckets.</summary>
     public static class SalesProfitHistoryBuilder

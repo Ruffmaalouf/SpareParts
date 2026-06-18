@@ -96,8 +96,6 @@ export function DoesItFitView({ api }) {
     setCompatForm(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  const splitCsv = (str) => str.split(",").map(s => s.trim()).filter(Boolean);
-
   const handleSaveCompat = useCallback(async (e) => {
     e.preventDefault();
     if (!compatForm.partId) {
@@ -109,12 +107,12 @@ export function DoesItFitView({ api }) {
     try {
       await api.post("/api/part-compatibility", {
         partId: Number(compatForm.partId),
-        compatibleMakes: splitCsv(compatForm.compatibleMakes),
-        compatibleModels: splitCsv(compatForm.compatibleModels),
+        compatibleMakes: compatForm.compatibleMakes.trim() || null,
+        compatibleModels: compatForm.compatibleModels.trim() || null,
         yearFrom: compatForm.yearFrom ? Number(compatForm.yearFrom) : null,
         yearTo: compatForm.yearTo ? Number(compatForm.yearTo) : null,
-        oemNumbers: splitCsv(compatForm.oemNumbers),
-        alternativeNumbers: splitCsv(compatForm.alternativeNumbers)
+        oemNumbers: compatForm.oemNumbers.trim() || null,
+        alternativeNumbers: compatForm.alternativeNumbers.trim() || null
       });
       setManageStatus("Compatibility data saved.");
       await handleLoadData();
@@ -125,7 +123,9 @@ export function DoesItFitView({ api }) {
     }
   }, [api, compatForm, handleLoadData]);
 
-  const verdictConfig = verdict && verdict.verdict ? VERDICT_CONFIG[verdict.verdict] || VERDICT_CONFIG.UNKNOWN : null;
+  const verdictConfig = verdict && verdict.verdictLabel
+    ? VERDICT_CONFIG[verdict.verdictLabel.toUpperCase()] || VERDICT_CONFIG.UNKNOWN
+    : null;
 
   return h("section", { className: "screen" },
     h(PageHeader, {

@@ -96,7 +96,7 @@ function AdCard({ ad, onMakeOffer }) {
       h("strong", null, ad.partName),
       h("div", { className: "row-actions" },
         h(Badge, { tone: urgencyBadgeTone(ad.urgency) }, ad.urgency),
-        h(Badge, { tone: statusBadgeTone(ad.status) }, ad.status)
+        h(Badge, { tone: statusBadgeTone(ad.statusLabel) }, ad.statusLabel)
       )
     ),
     h("div", { className: "data-card-body" },
@@ -121,7 +121,7 @@ function AdCard({ ad, onMakeOffer }) {
       ),
       ad.notes && h("p", null, ad.notes)
     ),
-    ad.status === "Open" && h("div", null,
+    ad.statusLabel === "Open" && h("div", null,
       h("button", {
         type: "button",
         className: "secondary-button",

@@ -22,7 +22,9 @@ public sealed class PartReservationService
         var items = session.Connection.Query<PartReservationDto>(
             """
 SELECT pr.Id, pr.TenantId, pr.PartId, pr.ReservedByUserId, pr.ReservedByName, pr.ReservedByPhone,
-       pr.Quantity, pr.HoldFee, pr.Currency, pr.Status, pr.ExpiresAt, pr.Notes, pr.CreatedAt,
+       pr.Quantity, pr.HoldFee, pr.Currency, pr.Status,
+       CASE pr.Status WHEN 1 THEN 'Active' WHEN 2 THEN 'Released' WHEN 3 THEN 'Expired' WHEN 4 THEN 'Fulfilled' ELSE 'Unknown' END AS StatusLabel,
+       pr.ExpiresAt, pr.Notes, pr.CreatedAt,
        p.Name AS PartName, p.InternalCode AS PartInternalCode
 FROM dbo.PartReservations pr
 LEFT JOIN dbo.Parts p ON p.Id = pr.PartId
@@ -42,7 +44,9 @@ ORDER BY pr.CreatedAt DESC;
         var item = session.Connection.QueryFirstOrDefault<PartReservationDto>(
             """
 SELECT pr.Id, pr.TenantId, pr.PartId, pr.ReservedByUserId, pr.ReservedByName, pr.ReservedByPhone,
-       pr.Quantity, pr.HoldFee, pr.Currency, pr.Status, pr.ExpiresAt, pr.Notes, pr.CreatedAt,
+       pr.Quantity, pr.HoldFee, pr.Currency, pr.Status,
+       CASE pr.Status WHEN 1 THEN 'Active' WHEN 2 THEN 'Released' WHEN 3 THEN 'Expired' WHEN 4 THEN 'Fulfilled' ELSE 'Unknown' END AS StatusLabel,
+       pr.ExpiresAt, pr.Notes, pr.CreatedAt,
        p.Name AS PartName, p.InternalCode AS PartInternalCode
 FROM dbo.PartReservations pr
 LEFT JOIN dbo.Parts p ON p.Id = pr.PartId

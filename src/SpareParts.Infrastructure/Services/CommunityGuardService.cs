@@ -39,7 +39,7 @@ SELECT
     END AS StatusLabel,
     AutoFlagged, CreatedAt
 FROM dbo.ContentReports
-WHERE TenantId = @TenantId
+WHERE (@TenantId = 0 OR TenantId = @TenantId)
   AND (@Status IS NULL OR Status = @Status)
   AND (@TargetType IS NULL OR TargetType = @TargetType)
 ORDER BY CreatedAt DESC;
@@ -61,7 +61,7 @@ ORDER BY CreatedAt DESC;
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         var reportCount = session.Connection.ExecuteScalar<int>(
-            "SELECT COUNT(1) FROM dbo.ContentReports WHERE TenantId = @TenantId AND TargetType = @TargetType AND TargetId = @TargetId;",
+            "SELECT COUNT(1) FROM dbo.ContentReports WHERE (@TenantId = 0 OR TenantId = @TenantId) AND TargetType = @TargetType AND TargetId = @TargetId;",
             new { TenantId = _tenantContext.TenantId, TargetType = (int)request.TargetType, TargetId = request.TargetId },
             session.Transaction);
 
@@ -111,7 +111,7 @@ SELECT SCOPE_IDENTITY();
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         session.Connection.Execute(
-            "UPDATE dbo.ContentReports SET Status = @Status, ModifiedAt = @Now WHERE Id = @Id AND TenantId = @TenantId;",
+            "UPDATE dbo.ContentReports SET Status = @Status, ModifiedAt = @Now WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { Id = reportId, Status = (int)newStatus, Now = DateTime.UtcNow, TenantId = _tenantContext.TenantId },
             session.Transaction);
 

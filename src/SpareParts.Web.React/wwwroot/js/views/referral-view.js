@@ -85,8 +85,8 @@ export function ReferralView({ api }) {
 
   const totalReferrals = referrals.length;
   const totalCredits = referrals.reduce((sum, r) => sum + (r.creditAmount || 0), 0);
-  const creditCurrency = referrals.length > 0 && referrals[0].creditCurrency
-    ? referrals[0].creditCurrency : "USD";
+  const creditCurrency = referrals.length > 0 && referrals[0].currency
+    ? referrals[0].currency : "USD";
 
   return h("section", { className: "screen" },
     h(PageHeader, {
@@ -166,13 +166,13 @@ export function ReferralView({ api }) {
                 h("tbody", null,
                   referrals.map((ref, idx) =>
                     h("tr", { key: ref.id || idx },
-                      h("td", { style: { padding: "6px 8px" } }, ref.email || "—"),
-                      h("td", { style: { padding: "6px 8px" } }, ref.joinedAt ? shortDate(ref.joinedAt) : "—"),
+                      h("td", { style: { padding: "6px 8px" } }, ref.referredEmail || ref.referredName || "—"),
+                      h("td", { style: { padding: "6px 8px" } }, ref.createdAt ? shortDate(ref.createdAt) : "—"),
                       h("td", { style: { textAlign: "right", padding: "6px 8px" } },
-                        ref.creditAmount != null ? money(ref.creditAmount, ref.creditCurrency || "USD") : "—"
+                        ref.creditAmount != null ? money(ref.creditAmount, ref.currency || "USD") : "—"
                       ),
                       h("td", { style: { textAlign: "center", padding: "6px 8px" } },
-                        h(Badge, { tone: ref.isPaid ? "positive" : "warning" }, ref.isPaid ? "Paid" : "Pending")
+                        h(Badge, { tone: ref.creditPaid ? "positive" : "warning" }, ref.creditPaid ? "Paid" : "Pending")
                       )
                     )
                   )

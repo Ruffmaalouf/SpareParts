@@ -1,21 +1,24 @@
 using Dapper;
 using SpareParts.Domain.Forecasting;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class ReorderAnalysisService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public ReorderAnalysisService(ISqlConnectionFactory factory)
+    public ReorderAnalysisService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IReadOnlyList<ReorderRuleDto> GetRules()
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         return session.Connection.Query<ReorderRuleDto>(
             """
 SELECT
@@ -32,14 +35,25 @@ SELECT
 FROM dbo.ReorderRules r
 INNER JOIN dbo.Parts p ON p.Id = r.PartId
 LEFT JOIN dbo.Suppliers s ON s.Id = r.PreferredSupplierId
+WHERE (@TenantId = 0 OR p.TenantId = @TenantId)
 ORDER BY p.Name
 """,
+            new { TenantId = _tenantContext.TenantId },
             transaction: session.Transaction).ToList();
     }
 
     public void UpsertRule(UpsertReorderRuleRequest req, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
+
+        var partExists = session.Connection.ExecuteScalar<bool>(
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Parts WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId)) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;",
+            new { req.PartId, TenantId = _tenantContext.TenantId },
+            session.Transaction);
+
+        if (!partExists)
+            throw new NotFoundException($"Part {req.PartId} not found.");
+
         session.Connection.Execute(
             """
 MERGE dbo.ReorderRules AS target
@@ -71,17 +85,21 @@ WHEN NOT MATCHED THEN
 
     public void DeleteRule(int partId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         session.Connection.Execute(
-            "DELETE FROM dbo.ReorderRules WHERE PartId = @PartId",
-            new { PartId = partId },
+            """
+DELETE r FROM dbo.ReorderRules r
+INNER JOIN dbo.Parts p ON p.Id = r.PartId
+WHERE r.PartId = @PartId AND (@TenantId = 0 OR p.TenantId = @TenantId)
+""",
+            new { PartId = partId, TenantId = _tenantContext.TenantId },
             session.Transaction);
         session.Commit();
     }
 
     public IReadOnlyList<ReorderSuggestionDto> GetSuggestions()
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         return session.Connection.Query<ReorderSuggestionDto>(
             """
 SELECT
@@ -122,11 +140,13 @@ INNER JOIN dbo.Parts p ON p.Id = r.PartId
 LEFT JOIN dbo.Stock s ON s.PartId = r.PartId
 LEFT JOIN dbo.Suppliers sup ON sup.Id = r.PreferredSupplierId
 WHERE r.IsActive = 1
+  AND (@TenantId = 0 OR p.TenantId = @TenantId)
 GROUP BY r.PartId, p.Name, p.InternalCode, r.ReorderPoint, r.ReorderQuantity,
          r.PreferredSupplierId, sup.Name
 HAVING ISNULL(SUM(s.Quantity - ISNULL(s.ReservedQuantity, 0)), 0) <= r.ReorderPoint
 ORDER BY CurrentStock ASC
 """,
+            new { TenantId = _tenantContext.TenantId },
             transaction: session.Transaction).ToList();
     }
 }

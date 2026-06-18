@@ -88,6 +88,38 @@ SELECT SCOPE_IDENTITY();
         return id;
     }
 
+    public void Update(int id, UpdateGarageStockItemRequest request, int modifiedByUserId)
+    {
+        if (string.IsNullOrWhiteSpace(request.ItemName))
+            throw new ValidationException("Item name is required.");
+
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
+        session.Connection.Execute(
+            """
+UPDATE dbo.GarageStockItems
+SET ItemName = @ItemName, Category = @Category, Barcode = @Barcode, OemNumber = @OemNumber,
+    Quantity = @Quantity, MinimumQuantity = @MinimumQuantity, PreferredSupplierId = @PreferredSupplierId,
+    Notes = @Notes, ModifiedAt = SYSUTCDATETIME(), ModifiedByUserId = @ModifiedByUserId
+WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);
+""",
+            new
+            {
+                Id = id,
+                request.ItemName,
+                request.Category,
+                request.Barcode,
+                request.OemNumber,
+                request.Quantity,
+                request.MinimumQuantity,
+                request.PreferredSupplierId,
+                request.Notes,
+                TenantId = _tenantContext.TenantId,
+                ModifiedByUserId = modifiedByUserId
+            },
+            transaction: session.Transaction);
+        session.Commit();
+    }
+
     public void UpdateQuantity(int id, int newQuantity, int modifiedByUserId)
     {
         using var session = new DbSession(_factory, _tenantContext.TenantId);

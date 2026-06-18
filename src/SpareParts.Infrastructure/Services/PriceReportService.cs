@@ -42,6 +42,17 @@ WHERE IsActive = 1
       WHERE pc.PartId = dbo.Parts.Id
         AND pc.CompatibleMakes LIKE '%' + @Make + '%'
   ))
+  AND (@Model IS NULL OR EXISTS (
+      SELECT 1 FROM dbo.PartCompatibilities pc
+      WHERE pc.PartId = dbo.Parts.Id
+        AND pc.CompatibleModels LIKE '%' + @Model + '%'
+  ))
+  AND (@Year IS NULL OR EXISTS (
+      SELECT 1 FROM dbo.PartCompatibilities pc
+      WHERE pc.PartId = dbo.Parts.Id
+        AND (pc.YearFrom IS NULL OR pc.YearFrom <= @Year)
+        AND (pc.YearTo IS NULL OR pc.YearTo >= @Year)
+  ))
   AND (@FromDate IS NULL OR CreatedAt >= @FromDate)
   AND (@ToDate IS NULL OR CreatedAt <= @ToDate);
 """,
@@ -49,6 +60,8 @@ WHERE IsActive = 1
             {
                 PartName = filter.PartName.Trim(),
                 Make = filter.Make,
+                Model = filter.Model,
+                Year = filter.Year,
                 FromDate = filter.FromDate,
                 ToDate = filter.ToDate
             });

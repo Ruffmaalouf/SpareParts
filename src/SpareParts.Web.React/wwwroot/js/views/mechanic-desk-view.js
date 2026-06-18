@@ -40,28 +40,51 @@ function quoteTone(status) {
   return "neutral";
 }
 
-function RepairOrderCard({ order, onSendToSellers, onAcceptQuote, isSaving }) {
+function RepairOrderCard({ api, order, onSendToSellers, onAcceptQuote, isSaving }) {
   const [expanded, setExpanded] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [detailError, setDetailError] = useState("");
+
+  const toggleExpanded = useCallback(async () => {
+    if (expanded) {
+      setExpanded(false);
+      return;
+    }
+    setExpanded(true);
+    setIsLoadingDetail(true);
+    setDetailError("");
+    try {
+      const data = await api.get(`/api/repair-orders/${order.id}`);
+      setDetail(data);
+    } catch (e) {
+      setDetailError(e.message || "Could not load parts & quotes.");
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  }, [api, order.id, expanded]);
+
+  const items = (detail && detail.items) || order.items || [];
 
   return h("div", { className: "data-card" },
     h("div", { className: "data-card-header" },
       h("strong", null, order.customerName || "Unnamed Customer"),
       h("div", { className: "row-actions" },
-        h(Badge, { tone: statusTone(order.status) }, order.status)
+        h(Badge, { tone: statusTone(order.statusLabel) }, order.statusLabel)
       )
     ),
     h("div", { className: "data-card-body" },
       h("div", null, h("span", null, "Vehicle: "), h("strong", null, [order.vehicleYear, order.vehicleMake, order.vehicleModel].filter(Boolean).join(" ") || "—")),
-      order.vehicleVin && h("div", null, h("span", null, "VIN: "), h("strong", null, order.vehicleVin)),
+      order.vinNumber && h("div", null, h("span", null, "VIN: "), h("strong", null, order.vinNumber)),
       order.customerPhone && h("div", null, h("span", null, "Phone: "), h("strong", null, order.customerPhone)),
-      order.deadline && h("div", null, h("span", null, "Deadline: "), h("strong", null, shortDate(order.deadline))),
+      order.deadlineAt && h("div", null, h("span", null, "Deadline: "), h("strong", null, shortDate(order.deadlineAt))),
       order.notes && h("p", null, order.notes),
-      order.items && order.items.length > 0 && h("div", null,
-        h("small", null, `${order.items.length} part(s) needed`)
+      order.itemCount > 0 && h("div", null,
+        h("small", null, `${order.itemCount} part(s) needed`)
       )
     ),
     h("div", { className: "row-actions" },
-      order.status === "Draft" && h("button", {
+      order.statusLabel === "Draft" && h("button", {
         type: "button",
         className: "primary-button",
         onClick: () => onSendToSellers(order.id),
@@ -70,15 +93,18 @@ function RepairOrderCard({ order, onSendToSellers, onAcceptQuote, isSaving }) {
       h("button", {
         type: "button",
         className: "secondary-button",
-        onClick: () => setExpanded(v => !v)
+        onClick: toggleExpanded
       }, expanded ? "Hide Details" : "View Parts & Quotes")
     ),
-    expanded && h("div", { style: { marginTop: "8px" } },
-      (order.items || []).map((item, i) =>
-        h("div", { key: i, className: "data-card", style: { marginBottom: "6px" } },
+    expanded && isLoadingDetail && h("p", null, "Loading parts & quotes..."),
+    expanded && detailError && h("p", { className: "status-line" }, detailError),
+    expanded && !isLoadingDetail && h("div", { style: { marginTop: "8px" } },
+      items.map((item, i) => {
+        const isFulfilled = (item.quotes || []).some(q => q.isAccepted);
+        return h("div", { key: i, className: "data-card", style: { marginBottom: "6px" } },
           h("div", { className: "data-card-header" },
             h("strong", null, item.partName),
-            h(Badge, { tone: item.isFulfilled ? "positive" : "neutral" }, item.isFulfilled ? "Fulfilled" : "Pending")
+            h(Badge, { tone: isFulfilled ? "positive" : "neutral" }, isFulfilled ? "Fulfilled" : "Pending")
           ),
           h("div", { className: "data-card-body" },
             item.oemNumber && h("div", null, h("span", null, "OEM: "), h("strong", null, item.oemNumber)),
@@ -91,19 +117,23 @@ function RepairOrderCard({ order, onSendToSellers, onAcceptQuote, isSaving }) {
             (item.quotes || []).map((q, qi) =>
               h("div", { key: qi, style: { display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" } },
                 h("span", null, q.sellerName),
-                h("strong", null, money(q.price, q.currency || "USD")),
-                h(Badge, { tone: quoteTone(q.status) }, q.status || "Pending"),
-                q.status !== "Accepted" && !item.isFulfilled && h("button", {
+                h("strong", null, money(q.offeredPrice, q.currency || "USD")),
+                h(Badge, { tone: quoteTone(q.isAccepted ? "Accepted" : "Pending") }, q.isAccepted ? "Accepted" : "Pending"),
+                !q.isAccepted && !isFulfilled && h("button", {
                   type: "button",
                   className: "primary-button",
-                  onClick: () => onAcceptQuote(order.id, item.id, q.id),
+                  onClick: async () => {
+                    await onAcceptQuote(item.id, q.id);
+                    const refreshed = await api.get(`/api/repair-orders/${order.id}`);
+                    setDetail(refreshed);
+                  },
                   disabled: isSaving
                 }, "Accept")
               )
             )
           )
-        )
-      )
+        );
+      })
     )
   );
 }
@@ -122,7 +152,7 @@ export function MechanicDeskView({ api }) {
     setIsLoading(true);
     setStatus("Loading repair orders...");
     try {
-      const data = await api.get("/api/mechanic-desk");
+      const data = await api.get("/api/repair-orders");
       setOrders(Array.isArray(data) ? data : []);
       setStatus("");
     } catch (e) {
@@ -173,15 +203,15 @@ export function MechanicDeskView({ api }) {
     setIsSaving(true);
     setStatus("Creating repair order...");
     try {
-      await api.post("/api/mechanic-desk", {
+      await api.post("/api/repair-orders", {
         customerName: orderForm.customerName.trim(),
         customerPhone: orderForm.customerPhone.trim() || null,
         vehicleMake: orderForm.vehicleMake.trim() || null,
         vehicleModel: orderForm.vehicleModel.trim() || null,
         vehicleYear: orderForm.vehicleYear ? Number(orderForm.vehicleYear) : null,
-        vehicleVin: orderForm.vehicleVin.trim() || null,
+        vinNumber: orderForm.vehicleVin.trim() || null,
         notes: orderForm.notes.trim() || null,
-        deadline: orderForm.deadline || null,
+        deadlineAt: orderForm.deadline || null,
         items: parts
       });
       setOrderForm({ ...emptyOrderForm });
@@ -199,7 +229,7 @@ export function MechanicDeskView({ api }) {
     setIsSaving(true);
     setStatus("Sending to sellers...");
     try {
-      await api.put(`/api/mechanic-desk/${id}/send`);
+      await api.put(`/api/repair-orders/${id}/send`);
       setStatus("Sent to sellers.");
       await load();
     } catch (e) {
@@ -209,11 +239,11 @@ export function MechanicDeskView({ api }) {
     }
   }, [api, load]);
 
-  const handleAcceptQuote = useCallback(async (orderId, itemId, quoteId) => {
+  const handleAcceptQuote = useCallback(async (itemId, quoteId) => {
     setIsSaving(true);
     setStatus("Accepting quote...");
     try {
-      await api.put(`/api/mechanic-desk/${orderId}/items/${itemId}/quotes/${quoteId}/accept`);
+      await api.put(`/api/repair-orders/items/${itemId}/quotes/${quoteId}/accept`);
       setStatus("Quote accepted.");
       await load();
     } catch (e) {
@@ -256,6 +286,7 @@ export function MechanicDeskView({ api }) {
             orders.map(o =>
               h(RepairOrderCard, {
                 key: o.id,
+                api,
                 order: o,
                 onSendToSellers: handleSendToSellers,
                 onAcceptQuote: handleAcceptQuote,

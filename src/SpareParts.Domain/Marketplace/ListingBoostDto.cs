@@ -9,6 +9,7 @@ namespace SpareParts.Domain.Marketplace
         public decimal? Fee { get; set; }
         public string Currency { get; set; } = "USD";
         public ListingBoostStatus Status { get; set; } = ListingBoostStatus.Active;
+        public string StatusLabel { get; set; } = string.Empty;
         public DateTime StartsAt { get; set; }
         public DateTime ExpiresAt { get; set; }
         public string? PaymentReference { get; set; }

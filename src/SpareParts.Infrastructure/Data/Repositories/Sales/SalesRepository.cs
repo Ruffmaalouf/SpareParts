@@ -208,12 +208,14 @@ namespace SpareParts.Infrastructure.Data
                                         t.ScanCode,
                                         t.TransactionDate AS InvoiceDate,
                                         t.CustomerId,
+                                        c.Name AS CustomerName,
                                         t.WarehouseId,
                                         t.TotalAmount,
                                         t.PaidAmount,
                                         ISNULL(NULLIF(t.CounterCurrencyCode, N''), N'USD') AS CounterCurrencyCode
                                  FROM dbo.Transactions t
                                  INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+                                 LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId
                                  WHERE tt.TypeKey = @TypeKey
                                    AND (@Query IS NULL OR @Query = N''
                                         OR t.TransactionNumber LIKE N'%' + @Query + N'%'

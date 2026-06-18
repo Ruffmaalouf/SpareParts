@@ -33,7 +33,7 @@ SELECT
     CreatedAt
 FROM dbo.ReferralCodes
 WHERE UserId = @UserId
-  AND TenantId = @TenantId
+  AND (@TenantId = 0 OR TenantId = @TenantId)
   AND IsActive = 1;
 """,
             new { UserId = userId, TenantId = _tenantContext.TenantId },
@@ -53,7 +53,7 @@ WHERE UserId = @UserId
             """
 SELECT CASE WHEN EXISTS (
     SELECT 1 FROM dbo.ReferralCodes
-    WHERE UserId = @UserId AND TenantId = @TenantId AND IsActive = 1
+    WHERE UserId = @UserId AND (@TenantId = 0 OR TenantId = @TenantId) AND IsActive = 1
 ) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;
 """,
             new { UserId = userId, TenantId = _tenantContext.TenantId },

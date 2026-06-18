@@ -98,20 +98,25 @@ export function WarrantyView({ api }) {
       h("textarea", { placeholder: "Description", value: description, onChange: (e) => setDescription(e.target.value) }),
       h("button", { onClick: createClaim, className: "btn-primary" }, "Submit Claim")
     ),
-    h(StatusLine, { message: status, isLoading }),
+    h(StatusLine, { status }),
     h(DataTable, {
       rows: claims,
       columns: [
-        { key: "claimNumber", label: "Claim #" },
-        { key: "customerName", label: "Customer" },
-        { key: "partName", label: "Part" },
-        { key: "claimType", label: "Type" },
-        { key: "quantity", label: "Qty" },
-        { key: "status", label: "Status", render: statusBadge },
-        { key: "refundAmount", label: "Refund" },
-        { key: "createdAt", label: "Created", render: (v) => new Date(v).toLocaleDateString() }
+        {
+          key: "claimNumber",
+          label: "Claim #",
+          render: (row) => h("button", { type: "button", className: "link-button", onClick: () => setSelected(row) }, row.claimNumber)
+        },
+        { key: "customerName", label: "Customer", render: (row) => row.customerName },
+        { key: "partName", label: "Part", render: (row) => row.partName },
+        { key: "claimType", label: "Type", render: (row) => row.claimType },
+        { key: "quantity", label: "Qty", render: (row) => row.quantity },
+        { key: "status", label: "Status", render: (row) => statusBadge(row.status) },
+        { key: "refundAmount", label: "Refund", render: (row) => row.refundAmount },
+        { key: "createdAt", label: "Created", render: (row) => new Date(row.createdAt).toLocaleDateString() }
       ],
-      onSelect: setSelected
+      getRowKey: (row, index) => row.id ?? index,
+      emptyText: "No warranty claims found."
     }),
     selected && h("div", { className: "form-card" },
       h("h3", null, `Resolve: ${selected.claimNumber}`),

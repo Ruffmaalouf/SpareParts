@@ -14,14 +14,16 @@ namespace SpareParts.Infrastructure.Data
 
         public int Insert(OutboundMessageRecord record)
         {
+            record.TenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null;
+
             const string sql = @"INSERT INTO dbo.OutboundMessages
                 (Direction, Channel, RecipientKind, RecipientId, RecipientName, RecipientPhone, TemplateKey,
                  ReferenceType, ReferenceId, Body, AttachmentCount, Status, Provider, ProviderMessageId,
-                 ProviderStatus, ErrorMessage, CreatedAt, CreatedByUserId, SentAt)
+                 ProviderStatus, ErrorMessage, CreatedAt, CreatedByUserId, SentAt, TenantId)
                 VALUES
                 (@Direction, @Channel, @RecipientKind, @RecipientId, @RecipientName, @RecipientPhone, @TemplateKey,
                  @ReferenceType, @ReferenceId, @Body, @AttachmentCount, @Status, @Provider, @ProviderMessageId,
-                 @ProviderStatus, @ErrorMessage, @CreatedAt, @CreatedByUserId, @SentAt);
+                 @ProviderStatus, @ErrorMessage, @CreatedAt, @CreatedByUserId, @SentAt, @TenantId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
             return _session.Connection.ExecuteScalar<int>(sql, record, _session.Transaction);
@@ -43,7 +45,7 @@ namespace SpareParts.Infrastructure.Data
                                      ProviderStatus = @ProviderStatus,
                                      ErrorMessage = @ErrorMessage,
                                      SentAt = @SentAt
-                                 WHERE Id = @Id;";
+                                 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);";
 
             _session.Connection.Execute(sql, new
             {
@@ -53,7 +55,8 @@ namespace SpareParts.Infrastructure.Data
                 ProviderMessageId = providerMessageId,
                 ProviderStatus = providerStatus,
                 ErrorMessage = errorMessage,
-                SentAt = sentAt
+                SentAt = sentAt,
+                TenantId = _session.TenantId
             }, _session.Transaction);
         }
 
@@ -80,11 +83,12 @@ namespace SpareParts.Infrastructure.Data
                                         CreatedAt,
                                         SentAt
                                  FROM dbo.OutboundMessages
+                                 WHERE (@TenantId = 0 OR TenantId = @TenantId)
                                  ORDER BY CreatedAt DESC, Id DESC;";
 
             return _session.Connection.Query<OutboundMessageLogDto>(
                 sql,
-                new { Take = Math.Clamp(take, 1, 200) },
+                new { Take = Math.Clamp(take, 1, 200), TenantId = _session.TenantId },
                 _session.Transaction).ToList();
         }
 
@@ -96,6 +100,7 @@ WITH FilteredMessages AS
     SELECT *
     FROM dbo.OutboundMessages
     WHERE NULLIF(LTRIM(RTRIM(RecipientPhone)), N'') IS NOT NULL
+      AND (@TenantId = 0 OR TenantId = @TenantId)
       AND (@Search IS NULL
            OR RecipientName LIKE @Like
            OR RecipientPhone LIKE @Like
@@ -142,7 +147,8 @@ ORDER BY CreatedAt DESC, Id DESC;";
                 {
                     Search = trimmedSearch,
                     Like = trimmedSearch == null ? null : $"%{trimmedSearch}%",
-                    Take = Math.Clamp(take, 1, 200)
+                    Take = Math.Clamp(take, 1, 200),
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
         }
@@ -175,6 +181,7 @@ FROM
            SentAt
     FROM dbo.OutboundMessages
     WHERE RecipientPhone = @Phone
+      AND (@TenantId = 0 OR TenantId = @TenantId)
     ORDER BY CreatedAt DESC, Id DESC
 ) recent
 ORDER BY CreatedAt, Id;";
@@ -184,7 +191,8 @@ ORDER BY CreatedAt, Id;";
                 new
                 {
                     Phone = phone,
-                    Take = Math.Clamp(take, 1, 500)
+                    Take = Math.Clamp(take, 1, 500),
+                    TenantId = _session.TenantId
                 },
                 _session.Transaction).ToList();
         }

@@ -34,7 +34,7 @@ SELECT
     ir.VideoProvider, ir.VideoRoomUrl, ir.CreatedAt
 FROM dbo.InspectionRequests ir
 LEFT JOIN dbo.Parts p ON p.Id = ir.PartId
-WHERE ir.TenantId = @TenantId
+WHERE (@TenantId = 0 OR ir.TenantId = @TenantId)
   AND (@Status IS NULL OR ir.Status = @Status)
 ORDER BY ir.CreatedAt DESC;
 """,
@@ -59,7 +59,7 @@ SELECT
     ir.VideoProvider, ir.VideoRoomUrl, ir.CreatedAt
 FROM dbo.InspectionRequests ir
 LEFT JOIN dbo.Parts p ON p.Id = ir.PartId
-WHERE ir.Id = @Id AND ir.TenantId = @TenantId;
+WHERE ir.Id = @Id AND (@TenantId = 0 OR ir.TenantId = @TenantId);
 """,
             new { Id = id, TenantId = _tenantContext.TenantId },
             session.Transaction);
@@ -123,7 +123,7 @@ SET Status = @Status,
     Notes = COALESCE(@Notes, Notes),
     VideoRoomUrl = COALESCE(@VideoRoomUrl, VideoRoomUrl),
     ModifiedAt = @Now
-WHERE Id = @Id AND TenantId = @TenantId;
+WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
             new
             {

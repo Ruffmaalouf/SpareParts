@@ -34,11 +34,29 @@ function statusTone(status) {
   return "neutral";
 }
 
-function HalfCutCard({ listing, onAddClaim, onConfirmClaim, isSaving }) {
+function HalfCutCard({ listing, api, onAddClaim, onConfirmClaim, isSaving }) {
   const [expanded, setExpanded] = useState(false);
+  const [claims, setClaims] = useState(null);
   const [showClaimForm, setShowClaimForm] = useState(false);
   const [claimForm, setClaimForm] = useState({ ...emptyClaimForm });
   const [claimStatus, setClaimStatus] = useState("");
+
+  const loadClaims = useCallback(async () => {
+    try {
+      const data = await api.get(`/api/half-cuts/${listing.id}/claims`);
+      setClaims(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setClaimStatus(e.message || "Could not load claims.");
+    }
+  }, [api, listing.id]);
+
+  const toggleExpanded = useCallback(() => {
+    setExpanded(v => {
+      const next = !v;
+      if (next) loadClaims();
+      return next;
+    });
+  }, [loadClaims]);
 
   const setClaimField = useCallback((key, value) => {
     setClaimForm(prev => ({ ...prev, [key]: value }));
@@ -61,29 +79,35 @@ function HalfCutCard({ listing, onAddClaim, onConfirmClaim, isSaving }) {
       setClaimForm({ ...emptyClaimForm });
       setShowClaimForm(false);
       setClaimStatus("");
+      if (expanded) await loadClaims();
     } catch (e) {
       setClaimStatus(e.message || "Could not add claim.");
     }
-  }, [listing.id, claimForm, onAddClaim]);
+  }, [listing.id, claimForm, onAddClaim, expanded, loadClaims]);
+
+  const handleConfirmClaim = useCallback(async (claimId) => {
+    await onConfirmClaim(listing.id, claimId);
+    await loadClaims();
+  }, [listing.id, onConfirmClaim, loadClaims]);
 
   return h("div", { className: "data-card" },
     h("div", { className: "data-card-header" },
-      h("strong", null, `${listing.year || ""} ${listing.make || ""} ${listing.model || ""}`.trim() || "Half-Cut Vehicle"),
+      h("strong", null, `${listing.vehicleYear || ""} ${listing.vehicleMake || ""} ${listing.vehicleModel || ""}`.trim() || "Half-Cut Vehicle"),
       h("div", { className: "row-actions" },
-        h(Badge, { tone: statusTone(listing.status) }, listing.status || "Available")
+        h(Badge, { tone: statusTone(listing.statusLabel) }, listing.statusLabel || "Available")
       )
     ),
     h("div", { className: "data-card-body" },
-      listing.vin && h("div", null, h("span", null, "VIN: "), h("strong", null, listing.vin)),
+      listing.vinNumber && h("div", null, h("span", null, "VIN: "), h("strong", null, listing.vinNumber)),
       listing.color && h("div", null, h("span", null, "Color: "), h("strong", null, listing.color)),
       listing.originCountry && h("div", null, h("span", null, "Origin: "), h("strong", null, listing.originCountry)),
       listing.mileage && h("div", null, h("span", null, "Mileage: "), h("strong", null, Number(listing.mileage).toLocaleString())),
       listing.askingPrice && h("div", null, h("span", null, "Asking: "), h("strong", null, money(listing.askingPrice, listing.currency || "USD"))),
       listing.notes && h("p", null, listing.notes),
-      listing.claims && h("div", null, h("small", null, `${listing.claims.length} claim(s)`))
+      h("div", null, h("small", null, `${listing.claimsCount || 0} claim(s)`))
     ),
     h("div", { className: "row-actions" },
-      h("button", { type: "button", className: "secondary-button", onClick: () => setExpanded(v => !v) },
+      h("button", { type: "button", className: "secondary-button", onClick: toggleExpanded },
         expanded ? "Hide Claims" : "View Claims"),
       h("button", { type: "button", className: "primary-button", onClick: () => setShowClaimForm(v => !v) },
         showClaimForm ? "Cancel" : "Add Claim")
@@ -113,22 +137,24 @@ function HalfCutCard({ listing, onAddClaim, onConfirmClaim, isSaving }) {
       h("button", { type: "submit", className: "primary-button", disabled: isSaving }, "Submit Claim")
     ),
     expanded && h("div", { style: { marginTop: "8px" } },
-      (listing.claims || []).length === 0
-        ? h("p", { className: "empty-state" }, "No claims yet.")
-        : (listing.claims || []).map((c, i) =>
-          h("div", { key: i, style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" } },
-            h("strong", null, c.claimantName),
-            h("span", null, c.partName),
-            c.depositAmount && h("span", null, money(c.depositAmount, "USD")),
-            h(Badge, { tone: c.isConfirmed ? "positive" : "neutral" }, c.isConfirmed ? "Confirmed" : "Pending"),
-            !c.isConfirmed && h("button", {
-              type: "button",
-              className: "secondary-button",
-              onClick: () => onConfirmClaim(listing.id, c.id),
-              disabled: isSaving
-            }, "Confirm")
+      claims === null
+        ? h("p", null, "Loading claims...")
+        : claims.length === 0
+          ? h("p", { className: "empty-state" }, "No claims yet.")
+          : claims.map((c) =>
+            h("div", { key: c.id, style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" } },
+              h("strong", null, c.claimantName),
+              h("span", null, c.partName),
+              c.depositAmount && h("span", null, money(c.depositAmount, "USD")),
+              h(Badge, { tone: c.isConfirmed ? "positive" : "neutral" }, c.isConfirmed ? "Confirmed" : "Pending"),
+              !c.isConfirmed && h("button", {
+                type: "button",
+                className: "secondary-button",
+                onClick: () => handleConfirmClaim(c.id),
+                disabled: isSaving
+              }, "Confirm")
+            )
           )
-        )
     )
   );
 }
@@ -145,7 +171,7 @@ export function HalfCutView({ api }) {
     setIsLoading(true);
     setStatus("Loading half-cut listings...");
     try {
-      const data = await api.get("/api/half-cut");
+      const data = await api.get("/api/half-cuts");
       setListings(Array.isArray(data) ? data : []);
       setStatus("");
     } catch (e) {
@@ -165,26 +191,26 @@ export function HalfCutView({ api }) {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    if (!form.make.trim() || !form.model.trim()) {
-      setStatus("Make and model are required.");
+    if (!form.make.trim() || !form.model.trim() || !form.year) {
+      setStatus("Make, model, and year are required.");
       return;
     }
     setIsSaving(true);
     setStatus("Creating listing...");
     try {
-      const photoUrls = form.photoUrls.split("\n").map(u => u.trim()).filter(Boolean);
-      await api.post("/api/half-cut", {
-        make: form.make.trim(),
-        model: form.model.trim(),
-        year: form.year ? Number(form.year) : null,
-        vin: form.vin.trim() || null,
+      const photoUrls = form.photoUrls.split("\n").map(u => u.trim()).filter(Boolean).join("\n");
+      await api.post("/api/half-cuts", {
+        vehicleMake: form.make.trim(),
+        vehicleModel: form.model.trim(),
+        vehicleYear: form.year ? Number(form.year) : null,
+        vinNumber: form.vin.trim() || null,
         color: form.color.trim() || null,
         originCountry: form.originCountry.trim() || null,
         mileage: form.mileage ? Number(form.mileage) : null,
         askingPrice: form.askingPrice ? Number(form.askingPrice) : null,
         currency: form.currency,
         notes: form.notes.trim() || null,
-        photoUrls: photoUrls.length > 0 ? photoUrls : null
+        photoUrls: photoUrls || null
       });
       setForm({ ...emptyListingForm });
       setStatus("Listing created.");
@@ -197,14 +223,14 @@ export function HalfCutView({ api }) {
   }, [api, form]);
 
   const handleAddClaim = useCallback(async (listingId, claimPayload) => {
-    await api.post(`/api/half-cut/${listingId}/claims`, claimPayload);
+    await api.post(`/api/half-cuts/${listingId}/claims`, claimPayload);
     await load();
   }, [api, load]);
 
   const handleConfirmClaim = useCallback(async (listingId, claimId) => {
     setIsSaving(true);
     try {
-      await api.put(`/api/half-cut/${listingId}/claims/${claimId}/confirm`);
+      await api.put(`/api/half-cuts/${listingId}/claims/${claimId}/confirm`);
       await load();
     } catch (e) {
       setStatus(e.message || "Could not confirm claim.");
@@ -242,6 +268,7 @@ export function HalfCutView({ api }) {
               h(HalfCutCard, {
                 key: l.id,
                 listing: l,
+                api,
                 onAddClaim: handleAddClaim,
                 onConfirmClaim: handleConfirmClaim,
                 isSaving
@@ -259,7 +286,7 @@ export function HalfCutView({ api }) {
         h("div", { className: "editor-grid" },
           h("label", null, h("span", null, "Make *"), h("input", { value: form.make, onChange: e => setField("make", e.target.value), required: true, placeholder: "e.g. Toyota" })),
           h("label", null, h("span", null, "Model *"), h("input", { value: form.model, onChange: e => setField("model", e.target.value), required: true, placeholder: "e.g. Camry" })),
-          h("label", null, h("span", null, "Year"), h("input", { type: "number", value: form.year, onChange: e => setField("year", e.target.value), placeholder: "e.g. 2008" })),
+          h("label", null, h("span", null, "Year *"), h("input", { type: "number", value: form.year, onChange: e => setField("year", e.target.value), required: true, placeholder: "e.g. 2008" })),
           h("label", null, h("span", null, "VIN"), h("input", { value: form.vin, onChange: e => setField("vin", e.target.value), placeholder: "Optional" })),
           h("label", null, h("span", null, "Color"), h("input", { value: form.color, onChange: e => setField("color", e.target.value), placeholder: "e.g. Black" })),
           h("label", null, h("span", null, "Origin Country"), h("input", { value: form.originCountry, onChange: e => setField("originCountry", e.target.value), placeholder: "e.g. Japan" })),

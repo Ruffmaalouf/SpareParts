@@ -99,7 +99,7 @@ export function ListingBoostView({ api }) {
     }
   }, [api, load]);
 
-  const activeCount = boosts.filter(b => (b.status || "").toLowerCase() === "active").length;
+  const activeCount = boosts.filter(b => (b.statusLabel || "").toLowerCase() === "active").length;
 
   return h("section", { className: "screen" },
     h(PageHeader, {
@@ -174,7 +174,7 @@ export function ListingBoostView({ api }) {
               h("div", { className: "data-card-header" },
                 h("strong", null, boost.partName || boost.partCode || `Part #${boost.partId}`),
                 h("div", { className: "row-actions" },
-                  h(Badge, { tone: boostStatusTone(boost.status) }, boost.status || "Unknown")
+                  h(Badge, { tone: boostStatusTone(boost.statusLabel) }, boost.statusLabel || "Unknown")
                 )
               ),
               h("div", { className: "data-card-body" },
@@ -186,7 +186,7 @@ export function ListingBoostView({ api }) {
                   h("span", null, "Expires: "),
                   h("strong", null, shortDate(boost.expiresAt))
                 ),
-                (boost.status || "").toLowerCase() === "active" && boost.expiresAt && h("div", null,
+                (boost.statusLabel || "").toLowerCase() === "active" && boost.expiresAt && h("div", null,
                   h("span", null, "Days Remaining: "),
                   h("strong", null, daysRemaining(boost.expiresAt))
                 ),
@@ -194,7 +194,7 @@ export function ListingBoostView({ api }) {
                   h("span", null, "Fee: "),
                   h("strong", null, money(boost.fee, "USD"))
                 ),
-                (boost.status || "").toLowerCase() === "active" && h("div", { className: "row-actions", style: { marginTop: "8px" } },
+                (boost.statusLabel || "").toLowerCase() === "active" && h("div", { className: "row-actions", style: { marginTop: "8px" } },
                   h("button", {
                     type: "button",
                     className: "danger-button",

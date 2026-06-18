@@ -7,6 +7,7 @@ namespace SpareParts.Domain.Sales
         public string? ScanCode { get; set; }
         public DateTime InvoiceDate { get; set; }
         public int? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
         public int WarehouseId { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal PaidAmount { get; set; }

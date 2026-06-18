@@ -125,7 +125,7 @@ VALUES (@YardTourId, @Name, @Phone, @PartRequests, @CreatedAt);
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         session.Connection.Execute(
-            "UPDATE dbo.YardTours SET Status = @Status WHERE Id = @Id AND TenantId = @TenantId;",
+            "UPDATE dbo.YardTours SET Status = @Status WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { Id = id, Status = (int)newStatus, TenantId = _tenantContext.TenantId },
             session.Transaction);
 

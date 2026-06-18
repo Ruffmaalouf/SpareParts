@@ -16,6 +16,7 @@ namespace SpareParts.Domain.Marketplace
         public decimal? AskingPrice { get; set; }
         public string Currency { get; set; } = "USD";
         public HalfCutStatus Status { get; set; } = HalfCutStatus.Available;
+        public string StatusLabel { get; set; } = string.Empty;
         public int ClaimsCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; }
         public string? SellerName { get; set; }

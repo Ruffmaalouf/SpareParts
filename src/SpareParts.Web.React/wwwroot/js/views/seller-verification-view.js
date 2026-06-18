@@ -10,6 +10,13 @@ const emptyForm = {
   businessDocumentUrl: ""
 };
 
+const STATUS_NAMES = ["Unverified", "PendingReview", "Verified", "Rejected", "Suspended"];
+
+function resolveStatusName(status) {
+  if (typeof status === "number") return STATUS_NAMES[status] || "Unverified";
+  return status || "Unverified";
+}
+
 function verificationStatusTone(verificationStatus) {
   if (verificationStatus === "Verified") return "positive";
   if (verificationStatus === "PendingReview") return "warning";
@@ -99,7 +106,7 @@ export function SellerVerificationView({ api }) {
     }
   }, [api, form, load]);
 
-  const currentStatus = verification ? (verification.verificationStatus || "Unverified") : null;
+  const currentStatus = verification ? resolveStatusName(verification.status) : null;
 
   return h("section", { className: "screen" },
     h(PageHeader, {

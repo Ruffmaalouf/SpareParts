@@ -92,6 +92,8 @@ namespace SpareParts.Infrastructure.Services
             CreateJournalEntryForSale(journalRepository, invoice, invoiceId, userId);
             CreatePaymentJournalEntryForSale(session, journalRepository, invoice, invoiceId, userId);
 
+            var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
+
             session.Commit();
 
             return new CreateSaleResponse
@@ -99,7 +101,8 @@ namespace SpareParts.Infrastructure.Services
                 InvoiceId = invoiceId,
                 InvoiceNumber = invoiceNumber,
                 TotalAmount = totals.TotalAmount,
-                PaymentStatus = invoice.PaymentStatus
+                PaymentStatus = invoice.PaymentStatus,
+                CurrencyCode = currencyContext.CounterCurrencyCode
             };
         }
 

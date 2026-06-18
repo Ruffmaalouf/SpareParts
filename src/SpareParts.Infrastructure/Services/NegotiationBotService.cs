@@ -31,7 +31,7 @@ SELECT
     n.Currency, n.CreatedAt
 FROM dbo.Negotiations n
 LEFT JOIN dbo.Parts p ON p.Id = n.PartId
-WHERE n.TenantId = @TenantId
+WHERE (@TenantId = 0 OR n.TenantId = @TenantId)
   AND (@Status IS NULL OR n.Status = @Status)
 ORDER BY n.CreatedAt DESC;
 """,
@@ -63,7 +63,7 @@ SELECT
     n.Currency, n.CreatedAt
 FROM dbo.Negotiations n
 LEFT JOIN dbo.Parts p ON p.Id = n.PartId
-WHERE n.Id = @Id AND n.TenantId = @TenantId;
+WHERE n.Id = @Id AND (@TenantId = 0 OR n.TenantId = @TenantId);
 """,
             new { Id = id, TenantId = _tenantContext.TenantId },
             session.Transaction);
@@ -90,7 +90,7 @@ WHERE n.Id = @Id AND n.TenantId = @TenantId;
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         var partRow = session.Connection.QuerySingleOrDefault<PartPriceRow>(
-            "SELECT Id, Name, SalePrice, Currency FROM dbo.Parts WHERE Id = @PartId AND TenantId = @TenantId;",
+            "SELECT Id, Name, SalePrice, Currency FROM dbo.Parts WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { PartId = request.PartId, TenantId = _tenantContext.TenantId },
             session.Transaction);
 
@@ -153,7 +153,7 @@ SELECT SCOPE_IDENTITY();
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
         var nego = session.Connection.QuerySingleOrDefault<NegotiationBotRow>(
-            "SELECT Id, AskingPrice, BuyerMaxPrice, SellerMinPrice, Status FROM dbo.Negotiations WHERE Id = @Id AND TenantId = @TenantId;",
+            "SELECT Id, AskingPrice, BuyerMaxPrice, SellerMinPrice, Status FROM dbo.Negotiations WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { Id = sessionId, TenantId = _tenantContext.TenantId },
             session.Transaction);
 
@@ -182,7 +182,7 @@ SELECT SCOPE_IDENTITY();
     {
         using var session = new DbSession(_factory, _tenantContext.TenantId);
         session.Connection.Execute(
-            "UPDATE dbo.Negotiations SET Status = 3 WHERE Id = @Id AND TenantId = @TenantId;",
+            "UPDATE dbo.Negotiations SET Status = 3 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { Id = sessionId, TenantId = _tenantContext.TenantId }, session.Transaction);
         session.Commit();
     }
@@ -191,7 +191,7 @@ SELECT SCOPE_IDENTITY();
     {
         using var session = new DbSession(_factory, _tenantContext.TenantId);
         session.Connection.Execute(
-            "UPDATE dbo.Negotiations SET Status = 4 WHERE Id = @Id AND TenantId = @TenantId;",
+            "UPDATE dbo.Negotiations SET Status = 4 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
             new { Id = sessionId, TenantId = _tenantContext.TenantId }, session.Transaction);
         session.Commit();
     }

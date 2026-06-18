@@ -140,7 +140,7 @@ SELECT CASE WHEN EXISTS (
         session.Commit();
     }
 
-    public int GetMatchCount(int id)
+    public int GetMatchCount(int id, int userId)
     {
         using var session = new DbSession(_factory, _tenantContext.TenantId);
 
@@ -149,10 +149,10 @@ SELECT CASE WHEN EXISTS (
 SELECT Id, TenantId, UserId, PartName, VehicleMake, VehicleModel, VehicleYear,
        VinNumber, MaxBudget, Currency, Notes, IsActive, LastAlertedAt, CreatedAt
 FROM dbo.WatchedParts
-WHERE Id = @Id AND IsActive = 1
+WHERE Id = @Id AND UserId = @UserId AND IsActive = 1
   AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
-            new { Id = id, TenantId = _tenantContext.TenantId },
+            new { Id = id, UserId = userId, TenantId = _tenantContext.TenantId },
             session.Transaction);
 
         if (watchedPart is null)

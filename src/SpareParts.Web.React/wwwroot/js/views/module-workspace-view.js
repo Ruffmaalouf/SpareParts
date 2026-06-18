@@ -1812,7 +1812,7 @@ function ScanLookupWorkspace({ api, module, t }) {
     setIsLoading(true);
     setStatus(t("scans.resolving", "Resolving scan code..."));
     try {
-      const result = asRows(await api.get(`${module.endpoint}?code=${encodeURIComponent(scanCode)}`));
+      const result = asRows(await api.get(`/api/scans/resolve?code=${encodeURIComponent(scanCode)}`));
       setRows(result);
       setStatus(result.length
         ? t("scans.resolved", "{count} result(s) found.", { count: result.length })

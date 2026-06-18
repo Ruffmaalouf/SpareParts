@@ -7,6 +7,7 @@ using SpareParts.Domain.Purchases;
 using SpareParts.Domain.Sales;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
@@ -16,17 +17,20 @@ namespace SpareParts.Infrastructure.Services
         private readonly AccountingService _accountingService;
         private readonly CustomersService _customersService;
         private readonly ICommunicationDeliveryClient _deliveryClient;
+        private readonly ITenantContext _tenantContext;
 
         public CommunicationsService(
             ISqlConnectionFactory factory,
             AccountingService accountingService,
             CustomersService customersService,
-            ICommunicationDeliveryClient deliveryClient)
+            ICommunicationDeliveryClient deliveryClient,
+            ITenantContext tenantContext)
         {
             _factory = factory;
             _accountingService = accountingService;
             _customersService = customersService;
             _deliveryClient = deliveryClient;
+            _tenantContext = tenantContext;
         }
 
         public async Task<SendBusinessMessageResponse> SendAsync(
@@ -58,7 +62,7 @@ namespace SpareParts.Infrastructure.Services
 
         public IReadOnlyList<OutboundMessageLogDto> GetRecent(int take)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var messages = new OutboundMessagesRepository(session).GetRecent(take);
             session.Commit();
             return messages;
@@ -66,7 +70,7 @@ namespace SpareParts.Infrastructure.Services
 
         public IReadOnlyList<CommunicationConversationDto> GetConversations(string? search, int take)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var conversations = new OutboundMessagesRepository(session).GetConversations(search, take);
             session.Commit();
             return conversations;
@@ -80,7 +84,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Conversation phone is required.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var messages = new OutboundMessagesRepository(session).GetMessagesByPhone(normalizedPhone, take);
             session.Commit();
             return messages;
@@ -105,7 +109,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Inbound sender phone is required.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var recipient = ResolveContactByPhone(session, normalizedPhone, request.SenderName);
             var createdAt = request.ReceivedAt?.ToUniversalTime() ?? DateTime.UtcNow;
             var record = new OutboundMessageRecord
@@ -151,7 +155,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var invoiceId = RequireId(request.SalesInvoiceId, "Sales invoice");
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var invoice = new SalesRepository(session).GetInvoiceById(invoiceId)
                 ?? throw new NotFoundException("Sales invoice not found.");
             var customer = ResolveCustomer(session, invoice.CustomerId);
@@ -175,7 +179,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var invoiceId = RequireId(request.SalesInvoiceId, "Sales invoice");
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var invoice = new SalesRepository(session).GetInvoiceById(invoiceId)
                 ?? throw new NotFoundException("Sales invoice not found.");
             var customer = ResolveCustomer(session, invoice.CustomerId);
@@ -203,7 +207,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var customerId = RequireId(request.RecipientId, "Customer");
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var recipient = ResolveCustomer(session, customerId);
             session.Commit();
 
@@ -236,7 +240,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var purchaseId = RequireId(request.PurchaseInvoiceId, "Purchase invoice");
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var purchase = new PurchasesRepository(session).GetInvoiceById(purchaseId)
                 ?? throw new NotFoundException("Purchase invoice not found.");
             var supplier = ResolveSupplier(session, purchase.SupplierId);
@@ -264,7 +268,7 @@ namespace SpareParts.Infrastructure.Services
                 request.StatementDateFrom,
                 request.StatementDateTo);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var recipient = ResolveRecipient(session, request, null);
             var period = FormatPeriod(statement.DateFrom, statement.DateTo);
             var body = string.Join(Environment.NewLine, new[]
@@ -285,7 +289,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var partId = RequireId(request.PartId, "Part");
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var part = new PartsRepository(session).GetByIds([partId]).GetValueOrDefault(partId)
                 ?? throw new NotFoundException("Part not found.");
             var recipient = ResolveRecipient(session, request, null);
@@ -310,7 +314,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var usedCarId = RequireId(request.UsedCarId, "Used car");
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var usedCar = session.Connection.QuerySingleOrDefault<UsedCarMessageRow>(
                 @"SELECT TOP (1)
                          uc.Id,
@@ -332,8 +336,8 @@ namespace SpareParts.Infrastructure.Services
                   FROM dbo.UsedCars uc
                   INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
                   INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
-                  WHERE uc.Id = @UsedCarId;",
-                new { UsedCarId = usedCarId },
+                  WHERE uc.Id = @UsedCarId AND (@TenantId = 0 OR uc.TenantId = @TenantId);",
+                new { UsedCarId = usedCarId, TenantId = session.TenantId },
                 session.Transaction)
                 ?? throw new NotFoundException("Used car not found.");
 
@@ -360,7 +364,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Message body is required.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var recipient = ResolveRecipient(session, request, null);
             session.Commit();
 
@@ -371,7 +375,7 @@ namespace SpareParts.Infrastructure.Services
 
         private int InsertInitialLog(CommunicationPreparedMessage prepared, int userId, string status)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var id = new OutboundMessagesRepository(session).Insert(new OutboundMessageRecord
             {
                 Direction = "Outbound",
@@ -396,7 +400,7 @@ namespace SpareParts.Infrastructure.Services
 
         private void UpdateDeliveryLog(int messageId, CommunicationDeliveryResult result)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             new OutboundMessagesRepository(session).UpdateDeliveryResult(
                 messageId,
                 result.Status,

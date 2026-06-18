@@ -43,16 +43,18 @@ export function ExpiryAlertsView({ api }) {
         h("option", { value: 0 }, "Already expired")
       )
     ),
-    h(StatusLine, { message: status, isLoading }),
+    h(StatusLine, { status }),
     h(DataTable, {
       rows: alerts,
+      getRowKey: (row) => row.partId,
+      emptyText: "No expiring parts found.",
       columns: [
-        { key: "partCode", label: "Code" },
-        { key: "partName", label: "Part" },
-        { key: "expiryDate", label: "Expiry Date", render: (v) => v ? new Date(v).toLocaleDateString() : "" },
-        { key: "daysUntilExpiry", label: "Days Left" },
-        { key: "stockQuantity", label: "In Stock" },
-        { key: "expiryStatus", label: "Status", render: (v) => h("span", { className: statusColor(v) }, v) }
+        { key: "partCode", label: "Code", render: (row) => row.partCode },
+        { key: "partName", label: "Part", render: (row) => row.partName },
+        { key: "expiryDate", label: "Expiry Date", render: (row) => row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : "" },
+        { key: "daysUntilExpiry", label: "Days Left", render: (row) => row.daysUntilExpiry },
+        { key: "stockQuantity", label: "In Stock", render: (row) => row.stockQuantity },
+        { key: "expiryStatus", label: "Status", render: (row) => h("span", { className: statusColor(row.expiryStatus) }, row.expiryStatus) }
       ]
     })
   );

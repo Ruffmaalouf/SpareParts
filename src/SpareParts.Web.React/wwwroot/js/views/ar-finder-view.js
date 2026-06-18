@@ -16,7 +16,8 @@ export function ArFinderView({ api }) {
     setIsLoading(true); setStatus("Scanning..."); setResult(null);
     try {
       const data = await api.post("/api/ar-finder/scan", { photoUrl, make: make || null, model: model || null, year: year ? Number(year) : null });
-      setResult(data); setStatus("");
+      setResult(data);
+      setStatus(data.success ? "" : (data.disclaimer || "No matches found."));
     } catch (err) { setStatus(err.message || "Failed."); }
     finally { setIsLoading(false); }
   }, [api, photoUrl, make, model, year]);
@@ -36,8 +37,8 @@ export function ArFinderView({ api }) {
         h("label", null, h("span", null, "Year"), h("input", { type: "number", value: year, onChange: e => setYear(e.target.value) }))
       )
     ),
-    result && h("div", { className: "admin-panel" },
-      h("div", { className: "admin-panel-header" }, h("h3", null, `Matches (${result.matchedParts.length}) — Confidence: ${result.confidence}%`)),
+    result && result.success && h("div", { className: "admin-panel" },
+      h("div", { className: "admin-panel-header" }, h("h3", null, `Matches (${result.matchedParts.length}) — Confidence: ${result.confidence}`)),
       h("table", { className: "data-table" },
         h("thead", null, h("tr", null, h("th", null, "Part"), h("th", null, "Internal Code"))),
         h("tbody", null, result.matchedParts.map((p, i) =>
