@@ -12,7 +12,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/DefaultTheme.xaml"/>
+                <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/ApexTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -21,13 +21,13 @@
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
-                <Setter Property="BorderBrush"              Value="#1A00C9A7"/>
+                <Setter Property="BorderBrush"              Value="#1A2E8CFF"/>
                 <Setter Property="BorderThickness"          Value="1"/>
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="14"/>
                 <Setter Property="FontFamily"               Value="Segoe UI"/>
-                <Setter Property="CaretBrush"               Value="#FF00C9A7"/>
-                <Setter Property="SelectionBrush"           Value="#3300C9A7"/>
+                <Setter Property="CaretBrush"               Value="#FF2E8CFF"/>
+                <Setter Property="SelectionBrush"           Value="#332E8CFF"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -45,17 +45,17 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FF00C9A7"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FF2E8CFF"/>
                                     <Setter TargetName="Bd" Property="Background"  Value="#0F1830"/>
                                     <Setter TargetName="Bd" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect Color="#FF00C9A7" BlurRadius="10"
+                                            <DropShadowEffect Color="#FF2E8CFF" BlurRadius="10"
                                                               ShadowDepth="0" Opacity="0.25"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#4400C9A7"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#442E8CFF"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -67,7 +67,7 @@
             <Style x:Key="LoginPasswordStyle" TargetType="PasswordBox">
                 <Setter Property="Background"               Value="#0E1420"/>
                 <Setter Property="Foreground"               Value="#FFE8F0FF"/>
-                <Setter Property="BorderBrush"              Value="#1A00C9A7"/>
+                <Setter Property="BorderBrush"              Value="#1A2E8CFF"/>
                 <Setter Property="BorderThickness"          Value="1"/>
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="18"/>
@@ -89,17 +89,17 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FF00C9A7"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FF2E8CFF"/>
                                     <Setter TargetName="Bd" Property="Background"  Value="#0F1830"/>
                                     <Setter TargetName="Bd" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect Color="#FF00C9A7" BlurRadius="10"
+                                            <DropShadowEffect Color="#FF2E8CFF" BlurRadius="10"
                                                               ShadowDepth="0" Opacity="0.25"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#4400C9A7"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#442E8CFF"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -139,7 +139,7 @@
                              Margin="-140,-140,0,0" Opacity="0.12">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#FF00C9A7" Offset="0"/>
+                                <GradientStop Color="#FF2E8CFF" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
@@ -150,7 +150,7 @@
                              Margin="0,0,-100,-100" Opacity="0.08">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#FF7C5CFC" Offset="0"/>
+                                <GradientStop Color="#FF22D67A" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
@@ -161,7 +161,7 @@
                              Margin="0,60,0,0" Opacity="0.06">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#FF00C9A7" Offset="0"/>
+                                <GradientStop Color="#FF2E8CFF" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
@@ -174,30 +174,30 @@
                             <Ellipse Width="108" Height="108">
                                 <Ellipse.Stroke>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FF00C9A7" Offset="0"/>
-                                        <GradientStop Color="#FF7C5CFC" Offset="1"/>
+                                        <GradientStop Color="#FF2E8CFF" Offset="0"/>
+                                        <GradientStop Color="#FF22D67A" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Ellipse.Stroke>
                                 <Ellipse.StrokeThickness>1.5</Ellipse.StrokeThickness>
                                 <Ellipse.Effect>
-                                    <DropShadowEffect Color="#FF00C9A7" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+                                    <DropShadowEffect Color="#FF2E8CFF" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
                                 </Ellipse.Effect>
                             </Ellipse>
                             <Ellipse Width="94" Height="94">
                                 <Ellipse.Fill>
                                     <RadialGradientBrush>
-                                        <GradientStop Color="#1400C9A7" Offset="0"/>
-                                        <GradientStop Color="#0800C9A7" Offset="1"/>
+                                        <GradientStop Color="#142E8CFF" Offset="0"/>
+                                        <GradientStop Color="#082E8CFF" Offset="1"/>
                                     </RadialGradientBrush>
                                 </Ellipse.Fill>
                             </Ellipse>
                             <TextBlock Text="M" FontSize="44" FontWeight="Bold"
-                                       Foreground="#FF00C9A7"
+                                       Foreground="#FF2E8CFF"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        FontFamily="Segoe UI">
                                 <TextBlock.Effect>
-                                    <DropShadowEffect Color="#FF00C9A7" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
+                                    <DropShadowEffect Color="#FF2E8CFF" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
                                 </TextBlock.Effect>
                             </TextBlock>
                         </Grid>
@@ -212,8 +212,8 @@
                                    Margin="0 3 0 0" FontFamily="Segoe UI">
                             <TextBlock.Foreground>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#FF00C9A7" Offset="0"/>
-                                    <GradientStop Color="#FF7C5CFC" Offset="1"/>
+                                    <GradientStop Color="#FF2E8CFF" Offset="0"/>
+                                    <GradientStop Color="#FF22D67A" Offset="1"/>
                                 </LinearGradientBrush>
                             </TextBlock.Foreground>
                         </TextBlock>
@@ -223,7 +223,7 @@
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="Transparent" Offset="0"/>
-                                    <GradientStop Color="#4400C9A7" Offset="0.5"/>
+                                    <GradientStop Color="#442E8CFF" Offset="0.5"/>
                                     <GradientStop Color="Transparent" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
@@ -241,16 +241,16 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#1200C9A7" Offset="0"/>
-                                        <GradientStop Color="#0A007A65" Offset="1"/>
+                                        <GradientStop Color="#122E8CFF" Offset="0"/>
+                                        <GradientStop Color="#0A1B63CC" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#1A00C9A7"/>
+                                    <SolidColorBrush Color="#1A2E8CFF"/>
                                 </Border.BorderBrush>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🖥" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
-                                    <TextBlock Text="Desktop" FontSize="10" Foreground="#FF00C9A7"
+                                    <TextBlock Text="Desktop" FontSize="10" Foreground="#FF2E8CFF"
                                                VerticalAlignment="Center" FontFamily="Segoe UI"/>
                                 </StackPanel>
                             </Border>
@@ -258,12 +258,12 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#12007A65" Offset="0"/>
-                                        <GradientStop Color="#0A007A65" Offset="1"/>
+                                        <GradientStop Color="#121B63CC" Offset="0"/>
+                                        <GradientStop Color="#0A1B63CC" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#1200C9A7"/>
+                                    <SolidColorBrush Color="#122E8CFF"/>
                                 </Border.BorderBrush>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🌐" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
@@ -275,12 +275,12 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#12007A65" Offset="0"/>
-                                        <GradientStop Color="#0A007A65" Offset="1"/>
+                                        <GradientStop Color="#121B63CC" Offset="0"/>
+                                        <GradientStop Color="#0A1B63CC" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#1200C9A7"/>
+                                    <SolidColorBrush Color="#122E8CFF"/>
                                 </Border.BorderBrush>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📱" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
@@ -290,7 +290,7 @@
                             </Border>
                         </StackPanel>
 
-                        <TextBlock Text="v4.0  ·  Classic Dark Design System"
+                        <TextBlock Text="v5.0  ·  Apex Design System"
                                    FontSize="10" Foreground="#FF2E3D58"
                                    HorizontalAlignment="Center"
                                    Margin="0 22 0 0" FontFamily="Segoe UI"/>
@@ -352,7 +352,7 @@
                                    FontFamily="Segoe UI"/>
                         <StackPanel Orientation="Horizontal" Margin="0 0 0 36">
                             <TextBlock Text="Sign in to " FontSize="13" Foreground="#FF7A8FAF" FontFamily="Segoe UI"/>
-                            <TextBlock Text="Maalouf Auto Parts" FontSize="13" Foreground="#FF00C9A7" FontFamily="Segoe UI"/>
+                            <TextBlock Text="Maalouf Auto Parts" FontSize="13" Foreground="#FF2E8CFF" FontFamily="Segoe UI"/>
                         </StackPanel>
 
                         <!-- Username field -->
@@ -363,9 +363,9 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
                                 <Border Width="16" Height="16" CornerRadius="3"
-                                        Background="#1400C9A7" Margin="0 0 7 0">
+                                        Background="#142E8CFF" Margin="0 0 7 0">
                                     <TextBlock Text="U" FontSize="8" FontWeight="Bold"
-                                               Foreground="#FF00C9A7"
+                                               Foreground="#FF2E8CFF"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
@@ -386,9 +386,9 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
                                 <Border Width="16" Height="16" CornerRadius="3"
-                                        Background="#1400C9A7" Margin="0 0 7 0">
+                                        Background="#142E8CFF" Margin="0 0 7 0">
                                     <TextBlock Text="P" FontSize="8" FontWeight="Bold"
-                                               Foreground="#FF00C9A7"
+                                               Foreground="#FF2E8CFF"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
@@ -430,12 +430,12 @@
                                                 <Border x:Name="Bd" CornerRadius="12">
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                            <GradientStop Color="#FF00C9A7" Offset="0"/>
-                                                            <GradientStop Color="#FF00A890" Offset="1"/>
+                                                            <GradientStop Color="#FF2E8CFF" Offset="0"/>
+                                                            <GradientStop Color="#FF1B63CC" Offset="1"/>
                                                         </LinearGradientBrush>
                                                     </Border.Background>
                                                     <Border.Effect>
-                                                        <DropShadowEffect Color="#FF00C9A7" BlurRadius="20"
+                                                        <DropShadowEffect Color="#FF2E8CFF" BlurRadius="20"
                                                                           ShadowDepth="0" Opacity="0.4"/>
                                                     </Border.Effect>
                                                     <TextBlock x:Name="Txt" Text="SIGN IN  →"
@@ -450,8 +450,8 @@
                                                         <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
                                                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                                    <GradientStop Color="#FF00E5BF" Offset="0"/>
-                                                                    <GradientStop Color="#FF00C9A7" Offset="1"/>
+                                                                    <GradientStop Color="#FF5BA8FF" Offset="0"/>
+                                                                    <GradientStop Color="#FF2E8CFF" Offset="1"/>
                                                                 </LinearGradientBrush>
                                                             </Setter.Value>
                                                         </Setter>
@@ -459,7 +459,7 @@
                                                     <Trigger Property="IsPressed" Value="True">
                                                         <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
-                                                                <SolidColorBrush Color="#FF007A65"/>
+                                                                <SolidColorBrush Color="#FF1B63CC"/>
                                                             </Setter.Value>
                                                         </Setter>
                                                         <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
@@ -481,7 +481,7 @@
                     <!-- API status bar -->
                     <Border VerticalAlignment="Bottom" Padding="22 12" CornerRadius="0 0 20 0">
                         <Border.BorderBrush>
-                            <SolidColorBrush Color="#0A00C9A7"/>
+                            <SolidColorBrush Color="#0A2E8CFF"/>
                         </Border.BorderBrush>
                         <Border.BorderThickness>0 1 0 0</Border.BorderThickness>
                         <StackPanel>

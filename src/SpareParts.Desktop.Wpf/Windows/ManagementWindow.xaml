@@ -27,9 +27,14 @@
 
         <Border Grid.Row="1"
                 Background="{DynamicResource CardBackgroundBrush}"
-                Padding="20 10"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                Padding="20 12"
                 Margin="16 6 16 16"
-                CornerRadius="8">
+                CornerRadius="14">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="16" ShadowDepth="4" Opacity="0.25"/>
+            </Border.Effect>
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="●"
@@ -48,10 +53,10 @@
                             <TextBlock Text="{Binding Text}" FontSize="12" Margin="0 2 0 0">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#FFE57373"/>
+                                        <Setter Property="Foreground" Value="#FFFF4757"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsSuccess}" Value="True">
-                                                <Setter Property="Foreground" Value="#FF81C784"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource AccentGreenBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

@@ -1,47 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
-   APEX DESIGN SYSTEM — Complete rebuild. Not Aurora.
-   Workspace: warm light | Sidebar: deep black | Accent: orange
+   APEX DESIGN SYSTEM — premium automotive SaaS, dark-first.
+   Workspace: graphite/black | Sidebar: near-black | Accent: electric blue
+   Secondary: neon green (success/live) · orange (highlight)
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* — Workspace backgrounds (LIGHT) — */
-  --bg:       #f0eeea;
-  --surface:  #ffffff;
-  --surface-2:#e8e6e1;
-  --sidebar:  #111110;
-  --input:    #f8f7f4;
+  /* — Workspace backgrounds (DARK) — */
+  --bg:       #0a0d12;
+  --surface:  #12161d;
+  --surface-2:#1b212b;
+  --sidebar:  #070809;
+  --input:    #0f1319;
 
   /* — Borders — */
-  --line:        #dedcd7;
-  --line-bright: #c8c6c0;
+  --line:        #232a36;
+  --line-bright: #313a4a;
 
   /* — Text — */
-  --text:  #1a1917;
-  --muted: #706d67;
-  --soft:  #a09d98;
+  --text:  #eef2f8;
+  --muted: #8b96a8;
+  --soft:  #59647a;
 
   /* — Brand accent — */
-  --accent:        #d4500c;
-  --accent-violet: #7c5cfc;
-  --accent-2:      #16a34a;
-  --amber:    #b45309;
-  --danger:   #dc2626;
-  --success:  #16a34a;
+  --accent:        #2e8cff;
+  --accent-violet: #ff7a1a;
+  --accent-2:      #22d67a;
+  --amber:    #f5a623;
+  --danger:   #ff4757;
+  --success:  #22d67a;
 
-  /* — Shadows (light-mode appropriate) — */
-  --shadow:      0 4px 24px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
-  --shadow-sm:   0 2px 12px rgba(0,0,0,.07);
-  --shadow-lg:   0 12px 48px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.08);
-  --glow:        0 0 0 3px rgba(212,80,12,.14);
-  --accent-glow: 0 4px 20px rgba(212,80,12,.26);
+  /* — Shadows (dark-mode elevation) — */
+  --shadow:      0 4px 24px rgba(0,0,0,.45), 0 1px 4px rgba(0,0,0,.3);
+  --shadow-sm:   0 2px 12px rgba(0,0,0,.35);
+  --shadow-lg:   0 20px 60px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.35);
+  --glow:        0 0 0 3px rgba(46,140,255,.18);
+  --accent-glow: 0 4px 24px rgba(46,140,255,.32);
 
   /* — Geometry — */
-  --r:   8px;
-  --r2:  5px;
-  --r3: 12px;
+  --r:   10px;
+  --r2:  7px;
+  --r3: 16px;
   --r-full: 999px;
 
   /* — Motion — */
