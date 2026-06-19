@@ -471,7 +471,9 @@ WITH Waiting AS
         LastRequestAt = MAX(pr.CreatedAt),
         RequestCount = COUNT(1)
     FROM dbo.PartRequests pr
+    INNER JOIN dbo.Parts p ON p.Id = pr.PartId
     WHERE pr.Status IN (N'Open', N'Contacted')
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
     GROUP BY pr.CustomerId, COALESCE(CONVERT(NVARCHAR(20), pr.CustomerId), UPPER(LTRIM(RTRIM(pr.CustomerName))) + N'|' + ISNULL(pr.CustomerPhone, N''))
 ),
 SaleSummary AS
