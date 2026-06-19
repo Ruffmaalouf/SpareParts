@@ -18,6 +18,7 @@ const iconPaths = {
   "used-car-wholesale": "M3 15h2l2-6h10l2 6h2v4h-2a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H3v-4Zm5-4-1.2 4h10.4L16 11H8Zm7-7h6v4h-6V4Zm1 1v2h4V5h-4Z",
   "stock-arrival": "M4 5h16v4H4V5Zm2 7h5v7H6v-7Zm7 0h5v7h-5v-7Zm-8-2 3-3 3 3m2 0 3-3 3 3",
   "used-cars": "M3 15h2l2-6h10l2 6h2v4h-2a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H3v-4Zm5-4-1.2 4h10.4L16 11H8Z",
+  "car-twin": "M7 15h2l1.5-4h3L15 15h2v3h-2a1.5 1.5 0 0 1-3 0h-2a1.5 1.5 0 0 1-3 0H5v-3Zm2-2 .9-3h2.2l.9 3H9Zm10-9v4h-2V6h-2V4h4ZM5 4h4v2H7v2H5V4Z",
   "repair-prep": "M5 6h5l2 3h7v9H5V6Zm2 2v8h10v-5h-6L9 8H7Zm4 5 2-2 1.5 1.5L12.5 14l2 2L13 17.5l-2-2-2 2L7.5 16l2-2-2-2L9 10.5 11 13Z",
   stock: "M4 8 12 4l8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4",
   "dead-stock": "M5 4h14v16H5V4Zm3 4h8M8 12h5m-5 4h7M17 11l2 2-2 2",
@@ -33,7 +34,7 @@ const iconPaths = {
 
 const navGroups = [
   { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
-  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
+  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
   { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
   { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar", "activity-log"] },
   { key: "platform", label: "Platform Admin", items: ["admin-billing"] }

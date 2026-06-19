@@ -13,15 +13,29 @@ namespace SpareParts.Api.Controllers
     {
         private readonly UsedCarsService _service;
         private readonly UsedCarImagesService _imagesService;
+        private readonly UsedCarTwinService _twinService;
 
-        public UsedCarsController(UsedCarsService service, UsedCarImagesService imagesService)
+        public UsedCarsController(UsedCarsService service, UsedCarImagesService imagesService, UsedCarTwinService twinService)
         {
             _service = service;
             _imagesService = imagesService;
+            _twinService = twinService;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<UsedCarDto>> GetAll() => Ok(_service.GetAll());
+
+        [HttpGet("{id:int}/twin")]
+        public ActionResult<UsedCarTwinDto> GetTwin(int id) => Ok(_twinService.GetTwin(id));
+
+        [HttpGet("{id:int}/state-events")]
+        public ActionResult<IEnumerable<UsedCarStateEventDto>> GetStateEvents(int id)
+            => Ok(_twinService.GetStateEvents(id));
+
+        [HttpPost("{id:int}/state-events")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOrManager)]
+        public ActionResult<UsedCarStateEventDto> CreateStateEvent(int id, [FromBody] CreateUsedCarStateEventRequest request)
+            => Ok(_twinService.AddStateEvent(id, request, CurrentUserId));
 
         [HttpGet("wholesale-sales")]
         public ActionResult<IEnumerable<UsedCarWholesaleSaleDto>> GetWholesaleSales()

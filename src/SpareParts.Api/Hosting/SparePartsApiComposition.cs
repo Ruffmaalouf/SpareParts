@@ -413,6 +413,7 @@ public static class SparePartsApiComposition
             services.AddScoped<LocationsService>();
             services.AddScoped<UsedCarsService>();
             services.AddScoped<UsedCarImagesService>();
+            services.AddScoped<UsedCarTwinService>();
             services.AddScoped<CurrenciesService>();
             services.AddScoped<AppConstantsService>();
             services.AddScoped<ExcelImportService>();
@@ -515,6 +516,7 @@ public static class SparePartsApiComposition
         CarModelsMigration.EnsureApplied(factory);
         LocationsMigration.EnsureApplied(factory);
         UsedCarsMigration.EnsureApplied(factory);
+        UsedCarStateEventsMigration.EnsureApplied(factory);
         UsedCarPartPricingMigration.EnsureApplied(factory);
         UsedCarPurchasesMigration.EnsureApplied(factory);
         UsedCarWholesaleSalesMigration.EnsureApplied(factory);

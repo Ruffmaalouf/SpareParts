@@ -3,6 +3,7 @@ import { ScreenRegistry } from "../core/screen-registry.js";
 import { ActivityLogView } from "./activity-log-view.js";
 import { AdminBillingView } from "./admin-billing-view.js";
 import { BillingView } from "./billing-view.js";
+import { CarTwinWorkspaceView } from "./car-twin-workspace-view.js";
 import { ContactsView } from "./contacts-view.js";
 import { CustomerAgingView } from "./customer-aging-view.js";
 import { SupplierAgingView } from "./supplier-aging-view.js";
@@ -89,6 +90,7 @@ export const screenRegistry = new ScreenRegistry([
   { key: "used-car-wholesale", label: "Used Car Wholesale", component: createModuleView(moduleByKey("used-car-wholesale")) },
   { key: "stock-arrival", label: "Stock Arrival", component: StockArrivalTheaterView },
   { key: "used-cars", label: "Used Cars", component: UsedCarsView },
+  { key: "car-twin", label: "Vehicle Digital Twin", component: CarTwinWorkspaceView },
   { key: "repair-prep", label: "Repair / Prep", component: RepairPrepBoardView },
   { key: "stock", label: "Stock", component: createModuleView(moduleByKey("stock")) },
   { key: "dead-stock", label: "Dead Stock", component: DeadStockView },
