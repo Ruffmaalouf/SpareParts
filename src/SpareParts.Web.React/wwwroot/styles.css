@@ -10926,6 +10926,30 @@ html[dir="rtl"] .report-hero-meta {
   gap: 16px;
 }
 
+.inventory-workspace-v2 {
+  grid-template-columns: 260px minmax(0, 1fr) minmax(320px, 380px);
+}
+
+.filter-panel-v2-price-row {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-panel-v2-price-row input {
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .inventory-workspace-v2 {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  }
+
+  .inventory-workspace-v2 .filter-panel-v2 {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
 .inventory-main {
   display: grid;
   min-width: 0;

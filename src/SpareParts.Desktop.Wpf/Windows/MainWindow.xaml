@@ -565,6 +565,14 @@
             </Setter>
         </Style>
 
+        <!-- ══ Content-host page wrapper — consistent margin/background for screens
+             hosted in the CONTENT HOST area. New screens should wrap their root Grid's
+             contents in a Border using this style instead of ad-hoc Margin="20" etc. ══ -->
+        <Style x:Key="ContentPageStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+            <Setter Property="Padding"     Value="20"/>
+        </Style>
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -1642,12 +1650,12 @@
             <!-- ══ CONTENT HOST — all screens overlap here ══════════════ -->
             <Grid Grid.Row="1">
 
-            <!-- ── Home Page ── -->
-            <Grid Margin="5,0,40,10"
-                  Background="{DynamicResource AppBackgroundBrush}"
-                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=HomePage}">
+            <!-- ── Home Page (uses ContentPageStyle page-wrapper pattern) ── -->
+            <Border Style="{StaticResource ContentPageStyle}"
+                    Padding="5,0,40,10"
+                    Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=HomePage}">
                 <local:OwnerCockpitDashboardControl DataContext="{Binding OwnerCockpitVm}"/>
-            </Grid>
+            </Border>
 
             <!-- ── Accounting ── -->
             <Grid Margin="20"

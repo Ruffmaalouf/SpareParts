@@ -289,7 +289,7 @@
             </Border>
 
             <Border Grid.Column="1"
-                    Style="{StaticResource WholesaleShellPanelStyle}"
+                    Style="{StaticResource CardStyle}"
                     Margin="0 0 10 0">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
@@ -301,200 +301,231 @@
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
 
-                        <Grid Margin="0 0 0 14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                <TextBlock Text="Loaded Cost" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBlock Text="{Binding LoadedCostLabel}" Style="{StaticResource WholesaleMetricTextStyle}"/>
+                        <Border Style="{StaticResource SectionPanelStyle}" Margin="0 0 0 14">
+                            <StackPanel>
+                                <TextBlock Text="DEAL SUMMARY" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                        <TextBlock Text="Loaded Cost" Style="{StaticResource WholesaleLabelStyle}"/>
+                                        <TextBlock Text="{Binding LoadedCostLabel}" Style="{StaticResource WholesaleMetricTextStyle}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="8 0 8 0">
+                                        <TextBlock Text="Repair Total" Style="{StaticResource WholesaleLabelStyle}"/>
+                                        <TextBlock Text="{Binding RepairTotalLabel}" Style="{StaticResource WholesaleMetricTextStyle}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="8 0 0 0">
+                                        <TextBlock Text="Result" Style="{StaticResource WholesaleLabelStyle}"/>
+                                        <TextBlock Text="{Binding ProjectedProfitLossLabel}" Style="{StaticResource WholesaleMetricTextStyle}"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8 0 8 0">
-                                <TextBlock Text="Repair Total" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBlock Text="{Binding RepairTotalLabel}" Style="{StaticResource WholesaleMetricTextStyle}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Margin="8 0 0 0">
-                                <TextBlock Text="Result" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBlock Text="{Binding ProjectedProfitLossLabel}" Style="{StaticResource WholesaleMetricTextStyle}"/>
-                            </StackPanel>
-                        </Grid>
+                        </Border>
 
-                        <Separator Margin="0 0 0 12"/>
-
-                        <TextBlock Text="Buyer" Style="{StaticResource WholesaleSectionLabelStyle}"/>
-                        <Grid Margin="0 0 0 12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.1*"/>
-                                <ColumnDefinition Width="0.8*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                <TextBlock Text="Customer" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <ComboBox ItemsSource="{Binding Customers}"
-                                          SelectedValuePath="Id"
-                                          DisplayMemberPath="Name"
-                                          SelectedValue="{Binding SelectedCustomerId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8 0 0 0">
-                                <TextBlock Text="Sale Date" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <DatePicker SelectedDate="{Binding SaleDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedDateFormat="Short"
-                                            Style="{StaticResource WholesaleDatePickerStyle}"
-                                            Height="38"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Margin="0 0 0 14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                <TextBlock Text="Buyer Name" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBox Text="{Binding BuyerName, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="38"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8 0 0 0">
-                                <TextBlock Text="Buyer Phone" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBox Text="{Binding BuyerPhone, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="38"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <TextBlock Text="Money" Style="{StaticResource WholesaleSectionLabelStyle}"/>
-                        <Grid Margin="0 0 0 14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.75*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                <TextBlock Text="Currency" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <ComboBox ItemsSource="{Binding CurrencyOptions}"
-                                          SelectedItem="{Binding CurrencyCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8 0 8 0">
-                                <TextBlock Text="Sale Price" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBox Text="{Binding SalePriceText, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="38"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Margin="8 0 0 0">
-                                <TextBlock Text="Paid Amount" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBox Text="{Binding PaidAmountText, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="38"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <TextBlock Text="Condition" Style="{StaticResource WholesaleSectionLabelStyle}"/>
-                        <Grid Margin="0 0 0 14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0"
-                                      IsChecked="{Binding IsForParts, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Content="For parts only"
-                                      FontWeight="SemiBold"
-                                      Margin="0 0 8 0"/>
-                            <CheckBox Grid.Column="1"
-                                      IsChecked="{Binding SoldAsIsAcknowledged, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Content="As-is acknowledged"
-                                      FontWeight="SemiBold"
-                                      Margin="8 0 0 0"/>
-                        </Grid>
-                        <TextBlock Text="{Binding SaleConditionLabel}"
-                                   Margin="0 -8 0 12"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-
-                        <TextBlock Text="Repair Items" Style="{StaticResource WholesaleSectionLabelStyle}"/>
-                        <StackPanel IsEnabled="{Binding IsRepairListEnabled}">
-                            <Grid Margin="0 0 0 8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="72"/>
-                                    <ColumnDefinition Width="72"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0"
-                                         Text="{Binding RepairDescription, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="36"
-                                         Margin="0 0 6 0"
-                                         ToolTip="Repair description"/>
-                                <TextBox Grid.Column="1"
-                                         Text="{Binding RepairPriceText, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="36"
-                                         Margin="6 0"
-                                         ToolTip="Repair price"/>
-                                <Button Grid.Column="2"
-                                        Content="Add"
-                                        Command="{Binding AddRepairItemCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        Height="36"
-                                        Margin="6 0"/>
-                                <Button Grid.Column="3"
-                                        Content="Clear"
-                                        Command="{Binding ClearRepairItemsCommand}"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        Height="36"
-                                        Margin="6 0 0 0"/>
-                            </Grid>
-
-                            <DataGrid ItemsSource="{Binding RepairItems}"
-                                      Style="{StaticResource WholesaleDataGridStyle}"
-                                      CellStyle="{StaticResource WholesaleDataGridCellStyle}"
-                                      RowStyle="{StaticResource WholesaleDataGridRowStyle}"
-                                      ColumnHeaderStyle="{StaticResource WholesaleDataGridHeaderStyle}"
-                                      AutoGenerateColumns="False"
-                                      CanUserAddRows="False"
-                                      CanUserDeleteRows="False"
-                                      HeadersVisibility="Column"
-                                      MaxHeight="136"
-                                      BorderThickness="1">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Description"
-                                                        Binding="{Binding Description, Mode=OneWay}"
-                                                        ElementStyle="{StaticResource WholesaleGridTextStyle}"
-                                                        Width="*"/>
-                                    <DataGridTextColumn Header="Price"
-                                                        Binding="{Binding Price, Mode=OneWay, StringFormat={}{0:N2}}"
-                                                        ElementStyle="{StaticResource WholesaleGridTextStyle}"
-                                                        Width="86"/>
-                                    <DataGridTemplateColumn Header="" Width="80">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Button Content="Remove"
-                                                        Command="{Binding DataContext.RemoveRepairItemCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                        CommandParameter="{Binding}"
-                                                        Style="{StaticResource SecondaryButtonStyle}"
-                                                        Padding="6 2"/>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </StackPanel>
-
-                        <TextBlock Text="Payment Notes"
-                                   Style="{StaticResource WholesaleSectionLabelStyle}"
-                                   Margin="0 14 0 8"/>
+                        <!-- Two-column grouped layout: Buyer/Money on the left, Condition/Repairs/Notes on the right -->
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.8*"/>
-                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                <TextBlock Text="Payment Method" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBox Text="{Binding PaymentMethod, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="38"/>
+
+                            <StackPanel Grid.Column="0">
+                                <Border Style="{StaticResource SectionPanelStyle}" Margin="0 0 0 14">
+                                    <StackPanel>
+                                        <TextBlock Text="BUYER" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                        <Grid Margin="0 0 0 12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.1*"/>
+                                                <ColumnDefinition Width="0.8*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                                <TextBlock Text="Customer" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <ComboBox ItemsSource="{Binding Customers}"
+                                                          SelectedValuePath="Id"
+                                                          DisplayMemberPath="Name"
+                                                          SelectedValue="{Binding SelectedCustomerId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="8 0 0 0">
+                                                <TextBlock Text="Sale Date" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <DatePicker SelectedDate="{Binding SaleDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                            SelectedDateFormat="Short"
+                                                            Style="{StaticResource WholesaleDatePickerStyle}"
+                                                            Height="38"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                                <TextBlock Text="Buyer Name" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <TextBox Text="{Binding BuyerName, UpdateSourceTrigger=PropertyChanged}"
+                                                         Height="38"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="8 0 0 0">
+                                                <TextBlock Text="Buyer Phone" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <TextBox Text="{Binding BuyerPhone, UpdateSourceTrigger=PropertyChanged}"
+                                                         Height="38"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource SectionPanelStyle}">
+                                    <StackPanel>
+                                        <TextBlock Text="MONEY" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="0.75*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                                <TextBlock Text="Currency" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <ComboBox ItemsSource="{Binding CurrencyOptions}"
+                                                          SelectedItem="{Binding CurrencyCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="8 0 8 0">
+                                                <TextBlock Text="Sale Price" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <TextBox Text="{Binding SalePriceText, UpdateSourceTrigger=PropertyChanged}"
+                                                         Height="38"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Margin="8 0 0 0">
+                                                <TextBlock Text="Paid Amount" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <TextBox Text="{Binding PaidAmountText, UpdateSourceTrigger=PropertyChanged}"
+                                                         Height="38"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="8 0 0 0">
-                                <TextBlock Text="Notes" Style="{StaticResource WholesaleLabelStyle}"/>
-                                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
-                                         MinHeight="68"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto"/>
+
+                            <StackPanel Grid.Column="2">
+                                <Border Style="{StaticResource SectionPanelStyle}" Margin="0 0 0 14">
+                                    <StackPanel>
+                                        <TextBlock Text="CONDITION" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                        <Grid Margin="0 0 0 8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding IsForParts, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      Content="For parts only"
+                                                      FontWeight="SemiBold"
+                                                      Margin="0 0 8 0"/>
+                                            <CheckBox Grid.Column="1"
+                                                      IsChecked="{Binding SoldAsIsAcknowledged, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      Content="As-is acknowledged"
+                                                      FontWeight="SemiBold"
+                                                      Margin="8 0 0 0"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding SaleConditionLabel}"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource SectionPanelStyle}" Margin="0 0 0 14">
+                                    <StackPanel IsEnabled="{Binding IsRepairListEnabled}">
+                                        <TextBlock Text="REPAIR ITEMS" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                        <Grid Margin="0 0 0 8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="110"/>
+                                                <ColumnDefinition Width="72"/>
+                                                <ColumnDefinition Width="72"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0"
+                                                     Text="{Binding RepairDescription, UpdateSourceTrigger=PropertyChanged}"
+                                                     Height="36"
+                                                     Margin="0 0 6 0"
+                                                     ToolTip="Repair description"/>
+                                            <TextBox Grid.Column="1"
+                                                     Text="{Binding RepairPriceText, UpdateSourceTrigger=PropertyChanged}"
+                                                     Height="36"
+                                                     Margin="6 0"
+                                                     ToolTip="Repair price"/>
+                                            <Button Grid.Column="2"
+                                                    Content="Add"
+                                                    Command="{Binding AddRepairItemCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Height="36"
+                                                    Margin="6 0"/>
+                                            <Button Grid.Column="3"
+                                                    Content="Clear"
+                                                    Command="{Binding ClearRepairItemsCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Height="36"
+                                                    Margin="6 0 0 0"/>
+                                        </Grid>
+
+                                        <DataGrid ItemsSource="{Binding RepairItems}"
+                                                  Style="{StaticResource WholesaleDataGridStyle}"
+                                                  CellStyle="{StaticResource WholesaleDataGridCellStyle}"
+                                                  RowStyle="{StaticResource WholesaleDataGridRowStyle}"
+                                                  ColumnHeaderStyle="{StaticResource WholesaleDataGridHeaderStyle}"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False"
+                                                  CanUserDeleteRows="False"
+                                                  HeadersVisibility="Column"
+                                                  MaxHeight="136"
+                                                  BorderThickness="1">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Description"
+                                                                    Binding="{Binding Description, Mode=OneWay}"
+                                                                    ElementStyle="{StaticResource WholesaleGridTextStyle}"
+                                                                    Width="*"/>
+                                                <DataGridTextColumn Header="Price"
+                                                                    Binding="{Binding Price, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                                    ElementStyle="{StaticResource WholesaleGridTextStyle}"
+                                                                    Width="86"/>
+                                                <DataGridTemplateColumn Header="" Width="80">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Button Content="Remove"
+                                                                    Command="{Binding DataContext.RemoveRepairItemCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                                    Padding="6 2"/>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource SectionPanelStyle}">
+                                    <StackPanel>
+                                        <TextBlock Text="PAYMENT NOTES" Style="{StaticResource SectionHeaderTextStyle}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="0.8*"/>
+                                                <ColumnDefinition Width="1.2*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                                                <TextBlock Text="Payment Method" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <TextBox Text="{Binding PaymentMethod, UpdateSourceTrigger=PropertyChanged}"
+                                                         Height="38"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="8 0 0 0">
+                                                <TextBlock Text="Notes" Style="{StaticResource WholesaleLabelStyle}"/>
+                                                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                                                         MinHeight="68"
+                                                         AcceptsReturn="True"
+                                                         TextWrapping="Wrap"
+                                                         VerticalScrollBarVisibility="Auto"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -502,7 +533,7 @@
             </Border>
 
             <Border Grid.Column="2"
-                    Style="{StaticResource WholesaleShellPanelStyle}">
+                    Style="{StaticResource CardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -510,9 +541,9 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Margin="0 0 0 10">
-                        <TextBlock Text="Recent Wholesale Sales"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="RECENT WHOLESALE SALES"
+                                   Style="{StaticResource SectionHeaderTextStyle}"
+                                   Margin="0 0 0 4"/>
                         <TextBlock Text="Posted sales, parts-only flags, payment status, and repair exposure."
                                    Margin="0 3 0 0"
                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
