@@ -5778,6 +5778,684 @@ function createStyles(palette) {
     flexDirection: "row",
     gap: 8,
     marginTop: 8
+  },
+
+  /* ---------------------------------------------------------------- */
+  /* New shared UI component library (src/components/ui/*)            */
+  /* ---------------------------------------------------------------- */
+
+  uiCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    gap: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4
+  },
+  uiCardPressed: {
+    borderColor: palette.accent,
+    opacity: 0.92
+  },
+  uiCardCompact: {
+    padding: 10,
+    gap: 6
+  },
+  uiCardRow: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center"
+  },
+  uiCardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+
+  uiSectionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginTop: 18,
+    marginBottom: 8,
+    gap: 10
+  },
+  uiSectionHeaderTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2
+  },
+  uiSectionHeaderTitle: {
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiSectionHeaderSubtitle: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "600"
+  },
+  uiSectionHeaderAction: {
+    minHeight: 32,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.accent,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiSectionHeaderActionText: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+
+  uiStatusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  uiStatusPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3
+  },
+  uiStatusPillText: {
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  uiStatusPillNeutral: {
+    borderColor: palette.line,
+    backgroundColor: palette.surface2
+  },
+  uiStatusPillNeutralText: { color: palette.muted },
+  uiStatusPillNeutralDot: { backgroundColor: palette.muted },
+  uiStatusPillAccent: {
+    borderColor: palette.accent,
+    backgroundColor: "rgba(255,255,255,0.04)"
+  },
+  uiStatusPillAccentText: { color: palette.accent },
+  uiStatusPillAccentDot: { backgroundColor: palette.accent },
+  uiStatusPillGood: {
+    borderColor: "#66bb6a",
+    backgroundColor: "rgba(102,187,106,0.14)"
+  },
+  uiStatusPillGoodText: { color: "#66bb6a" },
+  uiStatusPillGoodDot: { backgroundColor: "#66bb6a" },
+  uiStatusPillWarn: {
+    borderColor: "#ffb74d",
+    backgroundColor: "rgba(255,183,77,0.14)"
+  },
+  uiStatusPillWarnText: { color: "#ffb74d" },
+  uiStatusPillWarnDot: { backgroundColor: "#ffb74d" },
+  uiStatusPillBad: {
+    borderColor: "#e57373",
+    backgroundColor: "rgba(229,115,115,0.16)"
+  },
+  uiStatusPillBadText: { color: "#e57373" },
+  uiStatusPillBadDot: { backgroundColor: "#e57373" },
+
+  uiSearchBarRow: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input,
+    paddingHorizontal: 12
+  },
+  uiSearchBarIcon: {
+    color: palette.muted,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiSearchBarInput: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 40,
+    color: palette.text,
+    fontSize: 14,
+    paddingVertical: 0
+  },
+  uiSearchBarClear: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2
+  },
+  uiSearchBarClearText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+
+  uiFilterChipRail: {
+    gap: 8,
+    paddingVertical: 2,
+    paddingRight: 18
+  },
+  uiFilterChip: {
+    minHeight: 36,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6
+  },
+  uiFilterChipActive: {
+    borderColor: palette.accent,
+    backgroundColor: palette.accent
+  },
+  uiFilterChipText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  uiFilterChipTextActive: {
+    color: "#ffffff"
+  },
+  uiFilterChipCount: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  uiFilterChipCountActive: {
+    color: "rgba(255,255,255,0.85)"
+  },
+  uiFilterScrollWrap: {
+    position: "relative"
+  },
+  uiFilterScrollFadeRight: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 22
+  },
+
+  uiEmptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 30,
+    paddingHorizontal: 18
+  },
+  uiEmptyStateIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2,
+    marginBottom: 4
+  },
+  uiEmptyStateIconText: {
+    fontSize: 22
+  },
+  uiEmptyStateTitle: {
+    color: palette.text,
+    fontSize: 14,
+    fontWeight: "900",
+    textAlign: "center"
+  },
+  uiEmptyStateText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 17
+  },
+  uiEmptyStateAction: {
+    marginTop: 8,
+    minHeight: 38,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.accent,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiEmptyStateActionText: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+
+  uiSkeletonBlock: {
+    overflow: "hidden",
+    borderRadius: 8,
+    backgroundColor: palette.surface2
+  },
+  uiSkeletonShimmer: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.10)"
+  },
+  uiSkeletonCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    gap: 10
+  },
+  uiSkeletonRow: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center"
+  },
+
+  uiStickyBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: palette.line,
+    backgroundColor: palette.surface,
+    shadowColor: "#000000",
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12
+  },
+  uiStickyBarButton: {
+    flex: 1,
+    minHeight: 46,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.accent
+  },
+  uiStickyBarButtonSecondary: {
+    backgroundColor: palette.surface2,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+  uiStickyBarButtonDanger: {
+    backgroundColor: "#e57373"
+  },
+  uiStickyBarButtonText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "900"
+  },
+  uiStickyBarButtonSecondaryText: {
+    color: palette.text
+  },
+  uiStickyBarButtonDisabled: {
+    opacity: 0.5
+  },
+  uiStickyBarSpacer: {
+    height: 64
+  },
+
+  uiSheetBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end"
+  },
+  uiSheetCard: {
+    maxHeight: "88%",
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderWidth: 1,
+    borderColor: palette.line,
+    borderBottomWidth: 0,
+    backgroundColor: palette.surface,
+    paddingTop: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 20
+  },
+  uiSheetHandleRow: {
+    alignItems: "center",
+    paddingVertical: 8
+  },
+  uiSheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: palette.line
+  },
+  uiSheetHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.line
+  },
+  uiSheetTitle: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.text,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  uiSheetCloseButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2
+  },
+  uiSheetCloseText: {
+    color: palette.muted,
+    fontSize: 14,
+    fontWeight: "900"
+  },
+  uiSheetBody: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 24,
+    gap: 10
+  },
+
+  uiGalleryRoot: {
+    width: "100%",
+    backgroundColor: palette.input,
+    borderRadius: 12,
+    overflow: "hidden"
+  },
+  uiGalleryImageWrap: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.input,
+    overflow: "hidden"
+  },
+  uiGalleryImage: {
+    width: "100%",
+    height: "100%"
+  },
+  uiGalleryCounterBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  uiGalleryCounterText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  uiGalleryArrow: {
+    position: "absolute",
+    top: "50%",
+    width: 34,
+    height: 34,
+    marginTop: -17,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.45)"
+  },
+  uiGalleryArrowLeft: { left: 8 },
+  uiGalleryArrowRight: { right: 8 },
+  uiGalleryArrowText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  uiGalleryThumbRail: {
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4
+  },
+  uiGalleryThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "transparent",
+    backgroundColor: palette.input
+  },
+  uiGalleryThumbActive: {
+    borderColor: palette.accent
+  },
+  uiGalleryThumbImage: {
+    width: "100%",
+    height: "100%"
+  },
+  uiGalleryEmpty: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiGalleryEmptyText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  uiGalleryZoomHint: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    paddingHorizontal: 8,
+    paddingVertical: 3
+  },
+  uiGalleryZoomHintText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "700"
+  },
+
+  uiPartCard: {
+    flexDirection: "row",
+    gap: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 12
+  },
+  uiPartCardPressed: {
+    borderColor: palette.accent
+  },
+  uiPartCardThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.input
+  },
+  uiPartCardThumbImage: {
+    width: "100%",
+    height: "100%"
+  },
+  uiPartCardThumbText: {
+    color: palette.muted,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  uiPartCardBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4
+  },
+  uiPartCardTitle: {
+    color: palette.text,
+    fontSize: 14,
+    fontWeight: "900"
+  },
+  uiPartCardSubtitle: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "600"
+  },
+  uiPartCardBadgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 2
+  },
+  uiPartCardSide: {
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 6
+  },
+  uiPartCardPrice: {
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiPartCardActionsRow: {
+    flexDirection: "row",
+    gap: 6
+  },
+  uiPartCardIconButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+  uiPartCardIconButtonText: {
+    fontSize: 13
+  },
+  uiPartGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  uiPartCardGridItem: {
+    flexDirection: "column",
+    width: "48%"
+  },
+  uiPartCardGridThumb: {
+    width: "100%",
+    height: 110,
+    borderRadius: 10,
+    marginBottom: 8
+  },
+
+  uiVehicleCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    overflow: "hidden"
+  },
+  uiVehicleCardImage: {
+    width: "100%",
+    height: 150,
+    backgroundColor: palette.input
+  },
+  uiVehicleCardImagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiVehicleCardBody: {
+    padding: 12,
+    gap: 6
+  },
+  uiVehicleCardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  uiVehicleCardTitle: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiVehicleCardPrice: {
+    color: palette.accent,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiVehicleCardMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  uiVehicleCardMetaItem: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  uiVehicleCardFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4
+  },
+
+  phoneHeaderBar: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.line,
+    backgroundColor: palette.bg
+  },
+  phoneHeaderMenuButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: palette.surface2
+  },
+  phoneHeaderMenuLine: {
+    width: 16,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: palette.text
+  },
+  phoneHeaderTitle: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
   }
 });
 }

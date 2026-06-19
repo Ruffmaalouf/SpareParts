@@ -2,6 +2,8 @@ import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/re
 import { facebookAppId, googleClientId } from "../core/config.js";
 import { ApiClient } from "../core/api-client.js";
 import { BrandMark, LanguagePicker } from "./layout.js";
+import { FormSection } from "./ui/FormSection.js";
+import { ActionBar } from "./ui/ActionBar.js";
 
 function useLoginApi(apiBaseUrl) {
   return useMemo(() => new ApiClient(apiBaseUrl, ""), [apiBaseUrl]);
@@ -72,32 +74,38 @@ export function LoginPanel({ initialApiBaseUrl, onLogin, t }) {
     }
   }, [api, apiBaseUrl, onLogin, t]);
 
-  return h("div", { className: "login-inline-panel" },
-    h("form", { className: "login-form", onSubmit: submit },
-      h("label", null, t("login.workshopApi", "Workshop API"),
-        h("input", {
-          value: apiBaseUrl,
-          onChange: (event) => setApiBaseUrl(event.target.value),
-          spellCheck: false
-        })
+  return h("div", { className: "login-inline-panel login-inline-panel-v2" },
+    h("form", { className: "login-form login-form-v2", onSubmit: submit },
+      h(FormSection, { title: t("login.connection", "Connection"), columns: 1 },
+        h("label", null, t("login.workshopApi", "Workshop API"),
+          h("input", {
+            value: apiBaseUrl,
+            onChange: (event) => setApiBaseUrl(event.target.value),
+            spellCheck: false
+          })
+        )
       ),
-      h("label", null, t("login.crewId", "Crew ID"),
-        h("input", {
-          value: username,
-          onChange: (event) => setUsername(event.target.value),
-          autoComplete: "username"
-        })
+      h(FormSection, { title: t("login.credentials", "Credentials"), columns: 1 },
+        h("label", null, t("login.crewId", "Crew ID"),
+          h("input", {
+            value: username,
+            onChange: (event) => setUsername(event.target.value),
+            autoComplete: "username"
+          })
+        ),
+        h("label", null, t("login.ignitionKey", "Ignition key"),
+          h("input", {
+            value: password,
+            onChange: (event) => setPassword(event.target.value),
+            type: "password",
+            autoComplete: "current-password"
+          })
+        )
       ),
-      h("label", null, t("login.ignitionKey", "Ignition key"),
-        h("input", {
-          value: password,
-          onChange: (event) => setPassword(event.target.value),
-          type: "password",
-          autoComplete: "current-password"
-        })
-      ),
-      h("button", { className: "primary-button", disabled: isLoading }, isLoading ? t("login.warmingUp", "Warming up") : t("login.startEngine", "Start engine")),
-      status && h("p", { className: "form-status" }, status)
+      status && h("p", { className: "form-status" }, status),
+      h(ActionBar, { sticky: false, summary: null },
+        h("button", { className: "primary-button", disabled: isLoading }, isLoading ? t("login.warmingUp", "Warming up") : t("login.startEngine", "Start engine"))
+      )
     ),
     h(ExternalLoginButtons, { disabled: isLoading, onExternalLogin: handleExternalLogin, t })
   );

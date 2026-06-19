@@ -17,6 +17,7 @@ const { normalizeBaseUrl, normalizeLanguageKey, normalizeThemeKey } = require(".
 const { AppSidebar } = require("./components/app-sidebar");
 const { BottomTabBar } = require("./components/bottom-tab-bar");
 const { LockedFeatureModal } = require("./components/locked-feature-modal");
+const { PhoneHeaderBar } = require("./components/phone-header-bar");
 const { SmartSearch } = require("./components/smart-search");
 const { LoginScreen } = require("./screens/login-screen");
 const { CustomerStorefrontScreen } = require("./screens/customer-storefront-screen");
@@ -212,6 +213,10 @@ function AppContent() {
           onTheme: changeTheme
         }),
         el(View, { style: styles.contentPane },
+          !isCustomerMode && !isWideLayout && el(PhoneHeaderBar, {
+            title: t(`screens.${activeScreen.key}`, activeScreen.label),
+            onMenuPress: toggleSidebar
+          }),
           !isCustomerMode && el(SmartSearch, {
             api,
             onNavigate: selectScreen

@@ -194,11 +194,7 @@
 
         <Border Grid.Row="0"
                 Margin="0 0 0 10"
-                Padding="10"
-                Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="1"
-                CornerRadius="4">
+                Style="{StaticResource SectionPanelStyle}">
             <DockPanel LastChildFill="True">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                     <Button Content="Refresh"
@@ -242,7 +238,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Style="{StaticResource WholesaleShellPanelStyle}"
+                    Style="{StaticResource CardStyle}"
                     Margin="0 0 10 0">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -251,9 +247,9 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Margin="0 0 0 10">
-                        <TextBlock Text="Available Cars"
-                                   FontSize="15"
-                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="AVAILABLE CARS"
+                                   Style="{StaticResource SectionHeaderTextStyle}"
+                                   Margin="0 0 0 4"/>
                         <TextBlock Text="Sold cars are removed from this list after posting."
                                    Margin="0 3 0 0"
                                    Foreground="{DynamicResource TextSecondaryBrush}"

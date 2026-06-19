@@ -1,6 +1,10 @@
 import { h, useCallback, useEffect, useState } from "../core/react-runtime.js";
 import { asRows, displayCurrencyContext, displayMoneyFromCounter } from "../core/formatters.js";
-import { PageHeader, StatusLine } from "../components/shared.js";
+import { StatusLine } from "../components/shared.js";
+import { PageHeader } from "../components/ui/PageHeader.js";
+import { StatsCard } from "../components/ui/StatsCard.js";
+import { EmptyState } from "../components/ui/EmptyState.js";
+import { DataTable } from "../components/ui/DataTable.js";
 
 function metricLevel(value) {
   const number = Math.abs(Number(value || 0));
@@ -333,7 +337,12 @@ export function DashboardView({ api, onView }) {
       title: "Operations Dashboard",
       kicker: "Admin console",
       subtitle: "Sales, cash, stock, communication, and report shortcuts in one scan.",
-      action: h("button", { className: "secondary-button", onClick: load, disabled: isLoading }, "Refresh")
+      action: h("button", { className: "secondary-button", onClick: load, disabled: isLoading }, "Refresh"),
+      stats: [
+        { key: "sales", label: "Sales today", value: formatDashboardMoney(dashboard?.todaySalesAmount) },
+        { key: "profit", label: "Profit today", value: formatDashboardMoney(dashboard?.todaySalesProfit) },
+        { key: "cash", label: "Cash balance", value: formatDashboardMoney(dashboard?.cashBalance) }
+      ]
     }),
     h(StatusLine, { status }),
     h("section", { className: "shop-floor-snapshot" },
@@ -344,18 +353,14 @@ export function DashboardView({ api, onView }) {
         ),
         h("button", { className: "secondary-button", type: "button", onClick: () => navigate("inventory") }, "Open inventory")
       ),
-      h("div", { className: "shop-floor-grid" },
+      h("div", { className: "shop-floor-grid stats-card-grid" },
         inventorySnapshotCards.map((card) =>
-          h("button", {
-            className: `shop-floor-card snapshot-${card.key}`,
+          h(StatsCard, {
             key: card.key,
-            type: "button",
+            label: card.label,
+            value: Number(card.value || 0).toLocaleString(),
             onClick: () => navigate(card.view)
-          },
-            h("span", null, card.label),
-            h("strong", null, Number(card.value || 0).toLocaleString()),
-            h("em", null, "Open")
-          )
+          })
         )
       )
     ),
@@ -374,33 +379,24 @@ export function DashboardView({ api, onView }) {
         )
       )
     ),
-    h("div", { className: "metric-grid" },
+    h("div", { className: "metric-grid stats-card-grid" },
       metrics.map((metric) =>
-        h("button", {
-          className: `metric clickable-metric metric-${metric.key}`,
+        h(StatsCard, {
           key: metric.key,
-          style: { "--metric-level": `${metricLevel(metric.value)}%` },
-          type: "button",
+          label: metric.label,
+          value: formatDashboardMoney(metric.value),
+          trend: { label: metric.action, delta: metricLevel(metric.value) },
           onClick: () => navigate(metric.view)
-        },
-          h("i", { className: "metric-visual", "aria-hidden": "true" }, h("span", null)),
-          h("span", null, metric.label),
-          h("strong", null, formatDashboardMoney(metric.value)),
-          h("em", null, metric.action)
-        )
+        })
       ),
-      overdueCard && h("button", {
-        className: "metric clickable-metric metric-overdue",
+      overdueCard && h(StatsCard, {
         key: "overdue",
-        style: { "--metric-level": `${metricLevel(overdueCard.value)}%` },
-        type: "button",
+        label: overdueCard.label,
+        value: formatDashboardMoney(overdueCard.value),
+        tone: overdueCard.value > 0 ? "danger" : "neutral",
+        trend: { label: overdueCard.action, delta: metricLevel(overdueCard.value) },
         onClick: () => navigate(overdueCard.view)
-      },
-        h("i", { className: "metric-visual", "aria-hidden": "true" }, h("span", null)),
-        h("span", null, overdueCard.label),
-        h("strong", { style: { color: overdueCard.value > 0 ? "red" : "inherit" } }, formatDashboardMoney(overdueCard.value)),
-        h("em", null, overdueCard.action)
-      )
+      })
     ),
     dailyProfitLoss && h("section", { className: `panel profit-loss-panel ${netProfitLoss < 0 ? "is-loss" : "is-profit"}` },
       h("div", { className: "panel-heading-row" },
@@ -533,46 +529,47 @@ export function DashboardView({ api, onView }) {
     h("div", { className: "two-column" },
       h("section", { className: "panel" },
         h("h3", null, "Unpaid Transactions"),
-        h("div", { className: "dense-list" },
-          unpaidTransactions.slice(0, 8).map((item, index) => {
-            const title = item.transactionNumber || item.referenceNumber || "Transaction";
-            const subtitle = item.counterparty || item.partnerName || item.partner || item.transactionType || "";
-            const amount = item.remainingAmount ?? item.balance ?? item.amount ?? item.totalAmount;
-
-            return h("button", {
-              className: "list-row action-row",
-              key: `${title}-${index}`,
-              type: "button",
-              onClick: () => navigate("accounting")
+        h(DataTable, {
+          columns: [
+            {
+              key: "title",
+              label: "Transaction",
+              render: (item) => h("div", null,
+                h("strong", null, item.transactionNumber || item.referenceNumber || "Transaction"),
+                h("span", null, item.counterparty || item.partnerName || item.partner || item.transactionType || "")
+              )
             },
-              h("i", { className: "row-marker", "aria-hidden": "true" }),
-              h("div", null, h("strong", null, title), h("span", null, subtitle)),
-              h("b", null, formatDashboardMoney(amount))
-            );
-          }),
-          unpaidTransactions.length === 0 && h("p", { className: "empty-state" }, "No unpaid transactions returned.")
-        )
+            { key: "amount", label: "Balance", render: (item) => h("b", null, formatDashboardMoney(transactionAmount(item))) }
+          ],
+          rows: unpaidTransactions.slice(0, 8),
+          getRowKey: (item, index) => item.id || `${item.transactionNumber || "txn"}-${index}`,
+          emptyText: "No unpaid transactions returned.",
+          onRowClick: () => navigate("accounting")
+        })
       ),
       h("section", { className: "panel" },
         h("h3", null, "Recent Communications"),
-        h("div", { className: "dense-list" },
-          recentMessages.map((message) =>
-            h("button", {
-              className: "list-row action-row",
-              key: message.id,
-              type: "button",
-              onClick: () => navigate("whatsapp")
-            },
-              h("i", { className: "row-marker success", "aria-hidden": "true" }),
-              h("div", null,
+        h(DataTable, {
+          columns: [
+            {
+              key: "recipient",
+              label: "Recipient",
+              render: (message) => h("div", null,
                 h("strong", null, message.recipientName || message.recipientPhone),
                 h("span", null, `${message.channel} · ${message.templateKey}`)
-              ),
-              h("b", { className: message.status === "Failed" ? "danger-text" : "success-text" }, message.status)
-            )
-          ),
-          recentMessages.length === 0 && h("p", { className: "empty-state" }, "No messages yet.")
-        )
+              )
+            },
+            {
+              key: "status",
+              label: "Status",
+              render: (message) => h("b", { className: message.status === "Failed" ? "danger-text" : "success-text" }, message.status)
+            }
+          ],
+          rows: recentMessages,
+          getRowKey: (message) => message.id,
+          emptyText: "No messages yet.",
+          onRowClick: () => navigate("whatsapp")
+        })
       )
     )
   );

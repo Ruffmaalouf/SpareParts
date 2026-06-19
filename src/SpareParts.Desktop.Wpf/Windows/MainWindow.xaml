@@ -19,6 +19,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <local:ScreenToVisibilityConverter x:Key="ScreenToVisibilityConverter"/>
+            <local:ScreenEqualsConverter        x:Key="ScreenEqualsConverter"/>
             <BooleanToVisibilityConverter      x:Key="BoolToVis"/>
 
         <Style x:Key="InvoiceIconButtonStyle" TargetType="Button">
@@ -360,7 +361,7 @@
                                 CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
                             <DockPanel>
-                                <!-- Accent left indicator bar -->
+                                <!-- Accent left indicator bar — persistent for the active screen, brighter on hover -->
                                 <Border x:Name="RedBar"
                                         DockPanel.Dock="Left"
                                         Width="3" CornerRadius="1"
@@ -380,6 +381,21 @@
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="NavRoot" Property="Background" Value="#1E2E8CFF"/>
                             </Trigger>
+                            <!-- Persistent active-screen state: left accent bar stays lit + bg tint + bright label,
+                                 independent of hover. Driven by comparing inherited ActiveScreen against this
+                                 button's Tag (set per nav item to its target screen name). -->
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource ScreenEqualsConverter}">
+                                        <Binding Path="DataContext.ActiveScreen" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                        <Binding Path="Tag" RelativeSource="{RelativeSource TemplatedParent}"/>
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#162E8CFF"/>
+                                <Setter TargetName="RedBar"  Property="Opacity"    Value="1"/>
+                                <Setter Property="Foreground" Value="#FFFFFFFF"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -391,7 +407,15 @@
             <Setter Property="FontSize"   Value="9"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
-            <Setter Property="Margin"     Value="12 14 0 4"/>
+            <Setter Property="Margin"     Value="2 0 0 0"/>
+        </Style>
+
+        <!-- ══ Nav group header wrapper — pill chip + trailing rule, sits above each sector ══ -->
+        <Style x:Key="NavGroupHeaderWrapperStyle" TargetType="Border">
+            <Setter Property="Margin"  Value="10 16 4 6"/>
+            <Setter Property="Padding" Value="8 3"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="#10FFFFFF"/>
         </Style>
 
         <!-- ══ Top command-bar pill button ══════════════════════ -->
@@ -722,33 +746,42 @@
                     <StackPanel Margin="0 4 0 4">
 
                         <!-- ─ CORE ─────────────────────────────────────── -->
-                        <TextBlock Text="CORE" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="CORE" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
                         <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToHomeCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="HomePage">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="⬡" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dashboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPosCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Pos">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="POS / Sales" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartPassportCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartPassport">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Passport" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCompatibilityCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartCompatibility">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="⬡" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Compatibility" FontSize="12"/>
@@ -765,96 +798,114 @@
                         </Border>
 
                         <!-- ─ OPERATIONS ──────────────────────────────── -->
-                        <TextBlock Text="OPERATIONS" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="OPERATIONS" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
                         <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToGrowthLabCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="GrowthLab">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Money Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPurchasesCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartPurchases">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToUsedCarPurchasesCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Purchases">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToUsedCarWholesaleCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="UsedCarWholesale">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Wholesale" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToStockArrivalCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="StockArrivalTheater">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock Arrival" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToRepairPrepCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="RepairPrepBoard">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Repair / Prep" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToStockManagementCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="StockManagement">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDeadStockCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="DeadStockResurrection">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dead Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReorderCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Reorder">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Reorder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToExpiryAlertsCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ExpiryAlerts">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Expiry Alerts" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToLoyaltyCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Loyalty">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Loyalty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWarrantyCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Warranty">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Warranty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToShipmentsCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Shipments">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Shipments" FontSize="12"/>
@@ -864,54 +915,66 @@
                         </Border>
 
                         <!-- ─ FINANCE ──────────────────────────────────── -->
-                        <TextBlock Text="FINANCE" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="FINANCE" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
                         <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToAccountingCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Accounting">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Accounting" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToManualJournalCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ManualJournal">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Manual Journal" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReportBuilderCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ReportBuilder">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Report Builder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToQuotesCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Quotes">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Quotes / Estimates" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCustomerAgingCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="CustomerAging">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Customer Aging" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSupplierAgingCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="SupplierAging">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Supplier Aging" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToBillingSubscriptionCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="BillingSubscription">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Billing &amp; Subscription" FontSize="12"/>
@@ -921,19 +984,26 @@
                         </Border>
 
                         <!-- ─ TOOLS ────────────────────────────────────── -->
-                        <TextBlock Text="TOOLS" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="TOOLS" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
                         <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToWhatsAppCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="WhatsAppInbox">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToBusinessAssistantCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="BusinessAssistant">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AI Assistant" FontSize="12"/>
@@ -947,7 +1017,8 @@
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToActivityLogCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ActivityLog">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activity Log" FontSize="12"/>
@@ -957,271 +1028,314 @@
                         </Border>
 
                         <!-- ─ MARKETPLACE ──────────────────────────────── -->
-                        <TextBlock Text="MARKETPLACE" Style="{StaticResource NavGroupHeaderStyle}"/>
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="MARKETPLACE" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
                         <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToSalesReturnsCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="SalesReturns">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Sales Returns" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToAdminBillingCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="AdminBilling">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Admin Billing" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToNeedboardCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Needboard">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Needboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWatchlistCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Watchlist">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Watchlist" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSellerReputationCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="SellerReputation">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Seller Reputation" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSellerVerificationCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="SellerVerification">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Seller Verification" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSymptomSearchCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="SymptomSearch">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Symptom Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMechanicDeskCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="MechanicDesk">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mechanic Desk" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToGarageStockCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="GarageStock">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Garage Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartReserveCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartReserve">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Reserve" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartReelCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartReel">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Reel" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWhatsAppSellingCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="WhatsAppSelling">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp Selling" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToHalfcutCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Halfcut">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Halfcut" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCarCrushCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="CarCrush">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Crush" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToEscrowCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Escrow">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Escrow" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMarketPriceCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="MarketPrice">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Market Price" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToListingBoostCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ListingBoost">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Listing Boost" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReferralCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Referral">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Referral" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToVoiceSearchCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="VoiceSearch">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Voice Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMyGarageCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="MyGarage">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="My Garage" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDoesItFitCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="DoesItFit">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Does It Fit" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPriceGeniusCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PriceGenius">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Genius" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToConditionScannerCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ConditionScanner">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Condition Scanner" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCommunityGuardCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="CommunityGuard">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Community Guard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToLiveInspectionCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="LiveInspection">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Live Inspection" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToQrTagCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="QrTag">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="QR Tag" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartGenealogyCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartGenealogy">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Genealogy" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDismantlerForecastCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="DismantlerForecast">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dismantler Forecast" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToRegionalDemandCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="RegionalDemand">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Regional Demand" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMechanicTrustCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="MechanicTrust">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mechanic Trust" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToNewVsUsedCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="NewVsUsed">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="New vs Used" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToNegotiationCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Negotiation">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Negotiation" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToYardTourCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="YardTour">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Yard Tour" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToInstantOfferCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="InstantOffer">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Instant Offer" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartInsuranceCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartInsurance">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Insurance" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToKareemCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Kareem">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Kareem AI" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToArFinderCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ArFinder">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AR Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPriceReportCommand}"
-                                        Style="{StaticResource NavItemStyle}">
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PriceReport">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Report" FontSize="12"/>
@@ -1442,41 +1556,59 @@
                     <!-- Accent hairline along the very top -->
                     <Border Grid.Row="0" Background="{DynamicResource RacingStripeBrush}"/>
 
-                    <DockPanel Grid.Row="1" Height="64" Margin="18 0" LastChildFill="False">
+                    <!-- ══ Three-zone command bar: breadcrumb/title | contextual actions | account/theme ══ -->
+                    <Grid Grid.Row="1" Height="64" Margin="18 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <!-- Contextual zone: home for per-screen contextual actions; empty today but the
+                                 structure exists so future screens have a clear place to surface them. -->
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                        <!-- Reveal-sidebar button (visible only when collapsed) -->
-                        <Button x:Name="ShowSidebarButton"
-                                DockPanel.Dock="Left"
-                                Click="ShowSidebarButton_Click"
-                                Style="{StaticResource SidebarToggleButtonStyle}"
-                                Width="40" Height="40"
-                                VerticalAlignment="Center"
-                                Margin="0 0 14 0"
-                                ToolTip="Show navigation panel"
-                                Visibility="Collapsed"
-                                Opacity="0">
-                            <TextBlock Text="☰"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </Button>
+                        <!-- ── Zone 1: sidebar reveal + breadcrumb/title ───────────────── -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
 
-                        <!-- Context label -->
-                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Width="5" Height="24" CornerRadius="2"
-                                    Background="{DynamicResource AccentBrush}" Margin="0 0 12 0"/>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="WORKSPACE"
-                                           FontSize="9" FontWeight="Bold"
-                                           Foreground="{DynamicResource AccentBrush}"/>
-                                <TextBlock Text="Maalouf Auto Parts"
-                                           FontSize="15" FontWeight="Bold"
-                                           Foreground="#FFEBEBEB"/>
+                            <!-- Reveal-sidebar button (visible only when collapsed) -->
+                            <Button x:Name="ShowSidebarButton"
+                                    Click="ShowSidebarButton_Click"
+                                    Style="{StaticResource SidebarToggleButtonStyle}"
+                                    Width="40" Height="40"
+                                    VerticalAlignment="Center"
+                                    Margin="0 0 14 0"
+                                    ToolTip="Show navigation panel"
+                                    Visibility="Collapsed"
+                                    Opacity="0">
+                                <TextBlock Text="☰"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+
+                            <!-- Context label -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="5" Height="24" CornerRadius="2"
+                                        Background="{DynamicResource AccentBrush}" Margin="0 0 12 0"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="WORKSPACE"
+                                               FontSize="9" FontWeight="Bold"
+                                               Foreground="{DynamicResource AccentBrush}"/>
+                                    <TextBlock Text="Maalouf Auto Parts"
+                                               FontSize="15" FontWeight="Bold"
+                                               Foreground="#FFEBEBEB"/>
+                                </StackPanel>
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Right-aligned global actions -->
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- ── Zone 2: contextual middle — reserved for future per-screen actions ── -->
+                        <StackPanel Grid.Column="1"
+                                     Orientation="Horizontal"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     x:Name="ContextualActionsZone"/>
+
+                        <!-- ── Zone 3: global actions + account/theme toggles ──────────── -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Command="{Binding CreateInvoiceCommand}"
                                     Style="{StaticResource TopBarPrimaryStyle}"
                                     Visibility="{Binding CanCreateInvoice, Converter={StaticResource BoolToVis}}"
@@ -1503,7 +1635,7 @@
                                           Margin="0"
                                           Content="◐  Theme"/>
                         </StackPanel>
-                    </DockPanel>
+                    </Grid>
                 </Grid>
             </Border>
 

@@ -1,7 +1,7 @@
 import { h } from "../core/react-runtime.js";
 import { languageOptions, wpfThemes } from "../core/config.js";
 
-const iconPaths = {
+export const iconPaths = {
   dashboard: "M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-5H4v5Zm10 0h6v-5h-6v5Z",
   invoices: "M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6M9 12h6M9 16h4",
   inventory: "M4 7h16v13H4V7Zm2-4h12v4H6V3Zm2 8h8M8 15h5",
@@ -32,7 +32,7 @@ const iconPaths = {
   default: "M5 5h14v14H5V5Zm4 4h6v6H9V9Z"
 };
 
-const navGroups = [
+export const navGroups = [
   { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
   { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
   { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
@@ -40,10 +40,10 @@ const navGroups = [
   { key: "platform", label: "Platform Admin", items: ["admin-billing"] }
 ];
 
-const SUPER_ADMIN_ROLE_ID = 5;
-const superAdminOnlyKeys = new Set(["admin-billing"]);
+export const SUPER_ADMIN_ROLE_ID = 5;
+export const superAdminOnlyKeys = new Set(["admin-billing"]);
 
-function NavIcon({ name }) {
+export function NavIcon({ name }) {
   return h("svg", {
     className: "nav-icon",
     viewBox: "0 0 24 24",
