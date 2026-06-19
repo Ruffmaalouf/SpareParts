@@ -9,7 +9,7 @@ export const storageKeys = {
 export const defaultApiBaseUrl = window.SparePartsWebConfig?.defaultApiBaseUrl || "http://localhost:5000";
 export const googleClientId = window.SparePartsWebConfig?.googleClientId || "";
 export const facebookAppId = window.SparePartsWebConfig?.facebookAppId || "";
-export const defaultThemeKey = "aurora";
+export const defaultThemeKey = "apex";
 export const defaultLanguageKey = "en";
 
 export const languageOptions = [
@@ -19,6 +19,25 @@ export const languageOptions = [
 ];
 
 export const wpfThemes = [
+  {
+    key: "apex",
+    name: "Apex",
+    colors: {
+      bg: "#0a0d12",
+      surface: "#12161d",
+      surface2: "#1b212b",
+      sidebar: "#070809",
+      input: "#0f1319",
+      line: "#232a36",
+      text: "#eef2f8",
+      muted: "#8b96a8",
+      soft: "#59647a",
+      accent: "#2e8cff",
+      accentViolet: "#ff7a1a",
+      accent2: "#22d67a",
+      danger: "#ff4757"
+    }
+  },
   {
     key: "aurora",
     name: "Aurora",

@@ -11,54 +11,59 @@
             <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="16"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="4" Opacity="0.28"/>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="HeatmapTileStyle" TargetType="Border">
             <Setter Property="Width" Value="276"/>
             <Setter Property="MinHeight" Value="188"/>
             <Setter Property="Margin" Value="0 12 12 0"/>
-            <Setter Property="Padding" Value="14"/>
-            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding OverallSignal}" Value="Green">
-                    <Setter Property="Background" Value="#1F66BB6A"/>
-                    <Setter Property="BorderBrush" Value="#9966BB6A"/>
+                    <Setter Property="Background" Value="#1F22D67A"/>
+                    <Setter Property="BorderBrush" Value="#9922D67A"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding OverallSignal}" Value="Yellow">
-                    <Setter Property="Background" Value="#24FFB74D"/>
-                    <Setter Property="BorderBrush" Value="#99FFB74D"/>
+                    <Setter Property="Background" Value="#24FF7A1A"/>
+                    <Setter Property="BorderBrush" Value="#99FF7A1A"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding OverallSignal}" Value="Red">
-                    <Setter Property="Background" Value="#24E57373"/>
-                    <Setter Property="BorderBrush" Value="#99E57373"/>
+                    <Setter Property="Background" Value="#24FF4757"/>
+                    <Setter Property="BorderBrush" Value="#99FF4757"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="HeatmapSignalPillStyle" TargetType="Border">
-            <Setter Property="Padding" Value="8 5"/>
+            <Setter Property="Padding" Value="9 5"/>
             <Setter Property="Margin" Value="0 0 6 6"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Background" Value="#33FFB74D"/>
-            <Setter Property="BorderBrush" Value="#66FFB74D"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background" Value="#33FF7A1A"/>
+            <Setter Property="BorderBrush" Value="#66FF7A1A"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Green">
-                    <Setter Property="Background" Value="#3366BB6A"/>
-                    <Setter Property="BorderBrush" Value="#8866BB6A"/>
+                    <Setter Property="Background" Value="#3322D67A"/>
+                    <Setter Property="BorderBrush" Value="#8822D67A"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Yellow">
-                    <Setter Property="Background" Value="#33FFB74D"/>
-                    <Setter Property="BorderBrush" Value="#88FFB74D"/>
+                    <Setter Property="Background" Value="#33FF7A1A"/>
+                    <Setter Property="BorderBrush" Value="#88FF7A1A"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Red">
-                    <Setter Property="Background" Value="#33E57373"/>
-                    <Setter Property="BorderBrush" Value="#88E57373"/>
+                    <Setter Property="Background" Value="#33FF4757"/>
+                    <Setter Property="BorderBrush" Value="#88FF4757"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -71,15 +76,18 @@
                 <Border Background="{DynamicResource CardBackgroundBrush}"
                         BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
-                        CornerRadius="4"
+                        CornerRadius="16"
                         ClipToBounds="True">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="22" ShadowDepth="6" Opacity="0.3"/>
+                    </Border.Effect>
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="3"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Racing top stripe -->
+                        <!-- Top accent stripe -->
                         <Border Grid.Row="0" Background="{DynamicResource AccentBrush}"/>
 
                         <Grid Grid.Row="1" Margin="18">
@@ -89,7 +97,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <!-- Red accent bar + logo plate -->
+                            <!-- Accent bar + logo plate -->
                             <Grid Grid.Column="0" Margin="0 0 16 0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
@@ -102,7 +110,7 @@
                                         Background="{DynamicResource AppBackgroundBrush}"
                                         BorderBrush="{DynamicResource BorderBrush}"
                                         BorderThickness="1"
-                                        CornerRadius="4">
+                                        CornerRadius="12">
                                     <Image Source="/Assets/MaaloufLogo.png"
                                            Stretch="Uniform"
                                            Margin="8"
@@ -170,8 +178,11 @@
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="4"
+                                    CornerRadius="14"
                                     ClipToBounds="True">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="14" ShadowDepth="3" Opacity="0.25"/>
+                                </Border.Effect>
                                 <Grid>
                                     <Border Width="5"
                                             HorizontalAlignment="Left"
@@ -447,7 +458,7 @@
                                         <Style TargetType="DataGridRow">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding CurrencyMovementEatsProfit}" Value="True">
-                                                    <Setter Property="Background" Value="#33E57373"/>
+                                                    <Setter Property="Background" Value="#33FF4757"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -561,11 +572,11 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Margin="0 0 0 10"
-                                                Padding="12"
+                                                Padding="14"
                                                 Background="{DynamicResource AppBackgroundBrush}"
                                                 BorderBrush="{DynamicResource BorderBrush}"
                                                 BorderThickness="1"
-                                                CornerRadius="8">
+                                                CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Severity}"
                                                            FontSize="11"
@@ -575,13 +586,13 @@
                                                             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Severity}" Value="Critical">
-                                                                    <Setter Property="Foreground" Value="#FFE57373"/>
+                                                                    <Setter Property="Foreground" Value="#FFFF4757"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Severity}" Value="Warning">
-                                                                    <Setter Property="Foreground" Value="#FFFFB74D"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource AccentOrangeBrush}"/>
                                                                 </DataTrigger>
                                                                 <DataTrigger Binding="{Binding Severity}" Value="Info">
-                                                                    <Setter Property="Foreground" Value="#FF90CAF9"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>

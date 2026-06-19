@@ -1776,12 +1776,12 @@ function createStyles(palette) {
     backgroundColor: "rgba(255,107,95,0.12)"
   },
   dashboardQueueRowWarning: {
-    borderColor: "#ffb74d",
-    backgroundColor: "rgba(255,183,77,0.12)"
+    borderColor: palette.accentViolet,
+    backgroundColor: `${palette.accentViolet}1f`
   },
   dashboardQueueRowSuccess: {
     borderColor: palette.whatsapp,
-    backgroundColor: "rgba(37,211,102,0.12)"
+    backgroundColor: `${palette.whatsapp}1f`
   },
   dashboardQueueRank: {
     width: 38,
@@ -3230,7 +3230,7 @@ function createStyles(palette) {
     borderColor: palette.whatsapp
   },
   usedCarMetricWarning: {
-    borderColor: "#f59e0b"
+    borderColor: palette.accentViolet
   },
   usedCarMetricDanger: {
     borderColor: palette.danger
@@ -3300,8 +3300,8 @@ function createStyles(palette) {
     color: palette.whatsapp
   },
   usedCarActionPill_warning: {
-    borderColor: "#f59e0b",
-    color: "#f59e0b"
+    borderColor: palette.accentViolet,
+    color: palette.accentViolet
   },
   usedCarActionPill_danger: {
     borderColor: palette.danger,
@@ -3723,7 +3723,7 @@ function createStyles(palette) {
     color: palette.whatsapp
   },
   usedCarInventoryAction_warning: {
-    color: "#f59e0b"
+    color: palette.accentViolet
   },
   usedCarInventoryAction_danger: {
     color: palette.danger

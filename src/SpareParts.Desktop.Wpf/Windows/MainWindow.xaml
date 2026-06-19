@@ -341,7 +341,7 @@
             </Setter>
         </Style>
 
-        <!-- ══ Sidebar nav item — red bar, clean ═══════════════ -->
+        <!-- ══ Sidebar nav item — accent bar, clean ═══════════════ -->
         <Style x:Key="NavItemStyle" TargetType="Button">
             <Setter Property="Background"                 Value="Transparent"/>
             <Setter Property="Foreground"                 Value="#FFA0A0A0"/>
@@ -357,10 +357,10 @@
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="NavRoot"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="2"
+                                CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
                             <DockPanel>
-                                <!-- Red left indicator bar -->
+                                <!-- Accent left indicator bar -->
                                 <Border x:Name="RedBar"
                                         DockPanel.Dock="Left"
                                         Width="3" CornerRadius="1"
@@ -373,12 +373,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavRoot" Property="Background" Value="#0ED40000"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#0E2E8CFF"/>
                                 <Setter TargetName="RedBar"  Property="Opacity"    Value="1"/>
                                 <Setter Property="Foreground" Value="#FFEBEBEB"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="NavRoot" Property="Background" Value="#1ED40000"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#1E2E8CFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -413,18 +413,18 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3"
+                                CornerRadius="10"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter VerticalAlignment="Center"
                                               HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Root" Property="Background"  Value="#160F0000"/>
+                                <Setter TargetName="Root" Property="Background"  Value="#16000000"/>
                                 <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Root" Property="Background" Value="#240F0000"/>
+                                <Setter TargetName="Root" Property="Background" Value="#24000000"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -432,23 +432,23 @@
             </Setter>
         </Style>
 
-        <!-- ══ Top command-bar primary (red) button ═════════════ -->
+        <!-- ══ Top command-bar primary (accent) button ═════════════ -->
         <Style x:Key="TopBarPrimaryStyle" TargetType="Button" BasedOn="{StaticResource TopBarButtonStyle}">
             <Setter Property="Foreground"  Value="White"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Root" CornerRadius="3"
-                                BorderBrush="#50FF2020" BorderThickness="1"
+                        <Border x:Name="Root" CornerRadius="10"
+                                BorderBrush="#502E8CFF" BorderThickness="1"
                                 Padding="{TemplateBinding Padding}">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFE01010" Offset="0"/>
-                                    <GradientStop Color="#FF9C0000" Offset="1"/>
+                                    <GradientStop Color="#FF3D97FF" Offset="0"/>
+                                    <GradientStop Color="#FF1B63CC" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.Effect>
-                                <DropShadowEffect Color="#FFD40000" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
+                                <DropShadowEffect Color="#FF2E8CFF" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
                             </Border.Effect>
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Border>
@@ -484,7 +484,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="3"
+                                CornerRadius="10"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter VerticalAlignment="Center"
                                               HorizontalAlignment="Center"/>
@@ -494,7 +494,7 @@
                                 <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Root" Property="Background"  Value="#1AD40000"/>
+                                <Setter TargetName="Root" Property="Background"  Value="#1A2E8CFF"/>
                                 <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground"                    Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
@@ -563,6 +563,9 @@
                 BorderBrush="#FF1A1A1A"
                 BorderThickness="0 0 1 0"
                 Panel.ZIndex="2">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="24" ShadowDepth="0" Opacity="0.35"/>
+            </Border.Effect>
             <Grid x:Name="SidebarContent" Margin="18 18 18 20">
                 <Grid.RenderTransform>
                     <TranslateTransform x:Name="SidebarContentTranslate"/>
@@ -578,7 +581,7 @@
                 <Border Grid.Row="0" Margin="0 0 0 10">
                     <StackPanel>
 
-                        <!-- Modern top accent — full-bleed red bar -->
+                        <!-- Modern top accent — full-bleed accent bar -->
                         <Border Height="3" Margin="-18 -18 -18 0"
                                 Background="{DynamicResource RacingStripeBrush}"/>
 
@@ -649,7 +652,7 @@
                             </Button>
                         </Grid>
 
-                        <!-- Bottom red line -->
+                        <!-- Bottom hairline -->
                         <Border Height="1" Margin="-18 10 -18 0" Background="#FF1E1E1E"/>
                     </StackPanel>
                 </Border>
@@ -720,41 +723,41 @@
 
                         <!-- ─ CORE ─────────────────────────────────────── -->
                         <TextBlock Text="CORE" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                        <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToHomeCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dashboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPosCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="POS / Sales" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartPassportCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Passport" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCompatibilityCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Compatibility" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding OpenManagementCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Management" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -763,97 +766,97 @@
 
                         <!-- ─ OPERATIONS ──────────────────────────────── -->
                         <TextBlock Text="OPERATIONS" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                        <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToGrowthLabCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Money Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPurchasesCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToUsedCarPurchasesCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToUsedCarWholesaleCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Wholesale" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToStockArrivalCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock Arrival" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToRepairPrepCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Repair / Prep" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToStockManagementCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDeadStockCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dead Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReorderCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Reorder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToExpiryAlertsCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Expiry Alerts" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToLoyaltyCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Loyalty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWarrantyCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Warranty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToShipmentsCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Shipments" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -862,55 +865,55 @@
 
                         <!-- ─ FINANCE ──────────────────────────────────── -->
                         <TextBlock Text="FINANCE" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                        <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToAccountingCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Accounting" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToManualJournalCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Manual Journal" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReportBuilderCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Report Builder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToQuotesCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Quotes / Estimates" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCustomerAgingCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Customer Aging" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSupplierAgingCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Supplier Aging" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToBillingSubscriptionCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Billing &amp; Subscription" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -919,34 +922,34 @@
 
                         <!-- ─ TOOLS ────────────────────────────────────── -->
                         <TextBlock Text="TOOLS" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                        <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToWhatsAppCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToBusinessAssistantCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AI Assistant" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToArCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AR Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToActivityLogCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activity Log" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -955,272 +958,272 @@
 
                         <!-- ─ MARKETPLACE ──────────────────────────────── -->
                         <TextBlock Text="MARKETPLACE" Style="{StaticResource NavGroupHeaderStyle}"/>
-                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                        <Border Background="#060D0000" CornerRadius="10" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToSalesReturnsCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Sales Returns" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToAdminBillingCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Admin Billing" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToNeedboardCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Needboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWatchlistCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Watchlist" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSellerReputationCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Seller Reputation" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSellerVerificationCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Seller Verification" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToSymptomSearchCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Symptom Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMechanicDeskCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mechanic Desk" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToGarageStockCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Garage Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartReserveCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Reserve" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartReelCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Reel" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToWhatsAppSellingCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp Selling" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToHalfcutCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Halfcut" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCarCrushCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Crush" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToEscrowCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Escrow" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMarketPriceCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Market Price" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToListingBoostCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Listing Boost" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToReferralCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Referral" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToVoiceSearchCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Voice Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMyGarageCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="My Garage" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDoesItFitCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Does It Fit" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPriceGeniusCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Genius" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToConditionScannerCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Condition Scanner" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToCommunityGuardCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Community Guard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToLiveInspectionCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Live Inspection" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToQrTagCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="QR Tag" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartGenealogyCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Genealogy" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToDismantlerForecastCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dismantler Forecast" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToRegionalDemandCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Regional Demand" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToMechanicTrustCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mechanic Trust" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToNewVsUsedCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="New vs Used" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToNegotiationCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Negotiation" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToYardTourCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Yard Tour" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToInstantOfferCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Instant Offer" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPartInsuranceCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Insurance" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToKareemCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Kareem AI" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToArFinderCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AR Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPriceReportCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF3A1010" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Report" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1239,7 +1242,7 @@
                 <!-- ══ Bottom footer ════════════════════════════════ -->
                 <StackPanel Grid.Row="3" Margin="0 10 0 0" VerticalAlignment="Bottom">
 
-                    <!-- Red racing separator -->
+                    <!-- Accent separator -->
                     <Border Height="1" Margin="0 0 0 10"
                             Background="{DynamicResource RacingStripeBrush}"/>
 
@@ -1247,7 +1250,7 @@
                     <TextBlock Text="ONLINE · READY"
                                FontSize="9"
                                FontWeight="Bold"
-                               Foreground="#FF1A8C3A"
+                               Foreground="{DynamicResource AccentGreenBrush}"
                                Margin="2 0 0 4"/>
 
                     <!-- Brand Browser Popup -->
@@ -1427,13 +1430,16 @@
                     BorderBrush="#FF1A1A1A"
                     BorderThickness="0 0 0 1"
                     Panel.ZIndex="15">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="16" ShadowDepth="3" Opacity="0.3"/>
+                </Border.Effect>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="3"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Red hairline along the very top -->
+                    <!-- Accent hairline along the very top -->
                     <Border Grid.Row="0" Background="{DynamicResource RacingStripeBrush}"/>
 
                     <DockPanel Grid.Row="1" Height="64" Margin="18 0" LastChildFill="False">
@@ -2335,12 +2341,12 @@
                                                     </Border>
                                                     <DataTemplate.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="Complete">
-                                                            <Setter TargetName="StepDot" Property="Background" Value="#FF4CAF50"/>
-                                                            <Setter TargetName="StatusText" Property="Foreground" Value="#FF81C784"/>
+                                                            <Setter TargetName="StepDot" Property="Background" Value="#FF22D67A"/>
+                                                            <Setter TargetName="StatusText" Property="Foreground" Value="#FF6FE3A8"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Partial">
-                                                            <Setter TargetName="StepDot" Property="Background" Value="#FFFFA000"/>
-                                                            <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFCC80"/>
+                                                            <Setter TargetName="StepDot" Property="Background" Value="#FFFF7A1A"/>
+                                                            <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFB270"/>
                                                         </DataTrigger>
                                                     </DataTemplate.Triggers>
                                                 </DataTemplate>
@@ -3304,7 +3310,7 @@
                                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding SaleModeTitle}"
                                                    FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
-                                        <Border Background="#22D40000" CornerRadius="3" Padding="6 2" Margin="10 0 0 0">
+                                        <Border Background="#222E8CFF" CornerRadius="6" Padding="6 2" Margin="10 0 0 0">
                                             <TextBlock Text="{Binding SaleModeSubtitle}" FontSize="10"
                                                        Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
                                         </Border>
@@ -3366,7 +3372,7 @@
                             </Grid>
 
                             <!-- ── Form card ─────────────────────────────────────────────── -->
-                            <Border Grid.Row="1" CornerRadius="4" Margin="12 8 12 8"
+                            <Border Grid.Row="1" CornerRadius="12" Margin="12 8 12 8"
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     IsEnabled="{Binding IsInvoiceContentEnabled}">
                                 <Grid>
@@ -3411,7 +3417,7 @@
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 5"/>
                                                 <Border Background="{DynamicResource AppBackgroundBrush}"
                                                         BorderBrush="{DynamicResource BorderBrush}"
-                                                        BorderThickness="1" CornerRadius="4" Height="44" Padding="12 0">
+                                                        BorderThickness="1" CornerRadius="12" Height="44" Padding="12 0">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding SelectedCounterRate, StringFormat={}{0:N6}}"
                                                                    FontSize="14" FontWeight="SemiBold"/>
@@ -3451,7 +3457,7 @@
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 5"/>
                                                 <Border Background="{DynamicResource AppBackgroundBrush}"
                                                         BorderBrush="{DynamicResource BorderBrush}"
-                                                        BorderThickness="1" CornerRadius="4" Height="44">
+                                                        BorderThickness="1" CornerRadius="12" Height="44">
                                                     <TextBox Text="{Binding NewQuantity, UpdateSourceTrigger=PropertyChanged}"
                                                              Background="Transparent" BorderThickness="0"
                                                              Foreground="White" FontSize="14"
@@ -3481,7 +3487,7 @@
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 5"/>
                                                 <Border Background="{DynamicResource AppBackgroundBrush}"
                                                         BorderBrush="{DynamicResource BorderBrush}"
-                                                        BorderThickness="1" CornerRadius="4" Height="44">
+                                                        BorderThickness="1" CornerRadius="12" Height="44">
                                                     <TextBox Text="{Binding NewUnitPrice, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N0}}"
                                                              Background="Transparent" BorderThickness="0"
                                                              Foreground="White" FontSize="14"
@@ -3529,7 +3535,7 @@
                             </Border>
 
                             <!-- ── Auto Posting Timeline ─────────────────────────────────── -->
-                            <Border Grid.Row="2" CornerRadius="4"
+                            <Border Grid.Row="2" CornerRadius="12"
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                                     Padding="14" Margin="12 0 12 8"
@@ -3552,7 +3558,7 @@
                                                 <Border Width="190" MinHeight="110" Margin="0 0 8 8" Padding="12"
                                                         Background="{DynamicResource AppBackgroundBrush}"
                                                         BorderBrush="{DynamicResource BorderBrush}"
-                                                        BorderThickness="1" CornerRadius="4">
+                                                        BorderThickness="1" CornerRadius="12">
                                                     <Grid>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto"/>
@@ -3586,14 +3592,14 @@
                                                 </Border>
                                                 <DataTemplate.Triggers>
                                                     <DataTrigger Binding="{Binding Status}" Value="Complete">
-                                                        <Setter TargetName="StepDot" Property="Background" Value="#FF4CAF50"/>
-                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#994CAF50"/>
-                                                        <Setter TargetName="StatusText" Property="Foreground" Value="#FF81C784"/>
+                                                        <Setter TargetName="StepDot" Property="Background" Value="#FF22D67A"/>
+                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#9922D67A"/>
+                                                        <Setter TargetName="StatusText" Property="Foreground" Value="#FF6FE3A8"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Status}" Value="Partial">
-                                                        <Setter TargetName="StepDot" Property="Background" Value="#FFFFA000"/>
-                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#99FFA000"/>
-                                                        <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFCC80"/>
+                                                        <Setter TargetName="StepDot" Property="Background" Value="#FFFF7A1A"/>
+                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#99FF7A1A"/>
+                                                        <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFB270"/>
                                                     </DataTrigger>
                                                 </DataTemplate.Triggers>
                                             </DataTemplate>
@@ -3603,7 +3609,7 @@
                             </Border>
 
                             <!-- ── Cart Items DataGrid ───────────────────────────────────── -->
-                            <Border Grid.Row="3" CornerRadius="4" Margin="12 0 12 0"
+                            <Border Grid.Row="3" CornerRadius="12" Margin="12 0 12 0"
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     IsEnabled="{Binding IsInvoiceContentEnabled}">
                                 <Grid>
@@ -3640,7 +3646,7 @@
 
                             <!-- ── Footer: financial totals + payment ────────────────────── -->
                             <Border Grid.Row="4" Background="{DynamicResource CardBackgroundBrush}"
-                                    Margin="12 8 12 12" CornerRadius="4" Padding="12 10">
+                                    Margin="12 8 12 12" CornerRadius="12" Padding="12 10">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -3649,7 +3655,7 @@
                                     <!-- Totals strip — uniform columns -->
                                     <UniformGrid Grid.Row="0" Rows="1" Margin="0 0 0 8">
                                         <Border Margin="0 0 4 0" Padding="12 8"
-                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding TotalCounterLabel}" FontSize="10" FontWeight="Bold"
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
@@ -3659,7 +3665,7 @@
                                             </StackPanel>
                                         </Border>
                                         <Border Margin="0 0 4 0" Padding="12 8"
-                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="BASE AMOUNT" FontSize="10" FontWeight="Bold"
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
@@ -3668,7 +3674,7 @@
                                             </StackPanel>
                                         </Border>
                                         <Border Margin="0 0 4 0" Padding="12 8"
-                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding PaidCounterLabel}" FontSize="10" FontWeight="Bold"
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
@@ -3681,7 +3687,7 @@
                                             </StackPanel>
                                         </Border>
                                         <Border Margin="0 0 4 0" Padding="12 8"
-                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="PAID (BASE)" FontSize="10" FontWeight="Bold"
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
@@ -3690,7 +3696,7 @@
                                             </StackPanel>
                                         </Border>
                                         <Border Margin="0 0 4 0" Padding="12 8"
-                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding RemainingCounterLabel}" FontSize="10" FontWeight="Bold"
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
@@ -3699,7 +3705,7 @@
                                             </StackPanel>
                                         </Border>
                                         <Border Padding="12 8"
-                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="4">
+                                                Background="{DynamicResource AppBackgroundBrush}" CornerRadius="12">
                                             <StackPanel>
                                                 <TextBlock Text="REMAINING (BASE)" FontSize="10" FontWeight="Bold"
                                                            Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 3"/>
@@ -3712,7 +3718,7 @@
                                     <Border Grid.Row="1" Padding="12 10"
                                             Background="{DynamicResource AppBackgroundBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="1" CornerRadius="4">
+                                            BorderThickness="1" CornerRadius="12">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -3810,10 +3816,10 @@
                                     <TextBlock Text="{Binding Text}" Margin="0 2 0 2" FontSize="12">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="#FFE57373"/>
+                                                <Setter Property="Foreground" Value="#FFFF4757"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsSuccess}" Value="True">
-                                                        <Setter Property="Foreground" Value="#FF81C784"/>
+                                                        <Setter Property="Foreground" Value="#FF6FE3A8"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
