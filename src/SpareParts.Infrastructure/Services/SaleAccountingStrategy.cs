@@ -10,17 +10,20 @@ namespace SpareParts.Infrastructure.Services
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
+        private readonly ITenantContext _tenantContext;
         private readonly ILogger<SaleAccountingStrategy>? _logger;
 
         public SaleAccountingStrategy(
             ISqlConnectionFactory factory,
             AccountingSettingsProvider settingsProvider,
             CustomerAccountResolver customerAccountResolver,
+            ITenantContext tenantContext,
             ILogger<SaleAccountingStrategy>? logger = null)
         {
             _factory = factory;
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
+            _tenantContext = tenantContext;
             _logger = logger;
         }
 
@@ -40,7 +43,7 @@ namespace SpareParts.Infrastructure.Services
                     "Configure posting settings to ensure correct journal entries.",
                     settings.SalesRevenueAccountId, settings.CogsAccountId, settings.InventoryAccountId);
             }
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var debitAccountId = _customerAccountResolver.ResolveAccountId(invoice.CustomerId) ?? settings.SalesCashAccountId;
             var lines = new List<JournalLine>

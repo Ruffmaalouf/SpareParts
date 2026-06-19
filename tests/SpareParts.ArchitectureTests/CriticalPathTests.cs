@@ -575,6 +575,6 @@ public class CriticalPathTests
         });
 
         var customerResolver = new CustomerAccountResolver(factory);
-        return new SaleAccountingStrategy(factory, settingsProvider, customerResolver);
+        return new SaleAccountingStrategy(factory, settingsProvider, customerResolver, TenantContext.Legacy);
     }
 }

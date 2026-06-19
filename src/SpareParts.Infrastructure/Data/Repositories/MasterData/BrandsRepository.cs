@@ -17,23 +17,24 @@ namespace SpareParts.Infrastructure.Data
 
         public IEnumerable<Brand> GetAll()
         {
-            const string sql = "SELECT * FROM Brands ORDER BY Name";
-            return _session.Connection.Query<Brand>(sql, transaction: _session.Transaction);
+            const string sql = "SELECT * FROM Brands WHERE (@TenantId = 0 OR TenantId = @TenantId) ORDER BY Name";
+            return _session.Connection.Query<Brand>(sql, new { _session.TenantId }, _session.Transaction);
         }
 
         public (IEnumerable<Brand> Items, int TotalCount) GetPaged(int page, int pageSize)
         {
             const string sql = @"
-SELECT COUNT(1) FROM Brands;
+SELECT COUNT(1) FROM Brands WHERE (@TenantId = 0 OR TenantId = @TenantId);
 
 SELECT *
 FROM Brands
+WHERE (@TenantId = 0 OR TenantId = @TenantId)
 ORDER BY Name
 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             using var multi = _session.Connection.QueryMultiple(
                 sql,
-                new { Offset = (page - 1) * pageSize, PageSize = pageSize },
+                new { Offset = (page - 1) * pageSize, PageSize = pageSize, _session.TenantId },
                 _session.Transaction);
 
             var totalCount = multi.ReadFirst<int>();
@@ -43,10 +44,18 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
         public int Insert(Brand brand)
         {
-            const string sql = @"INSERT INTO Brands (Name, IsActive, CreatedAt, CreatedByUserId)
-                                 VALUES (@Name, @IsActive, @CreatedAt, @CreatedByUserId);
+            const string sql = @"INSERT INTO Brands (Name, IsActive, CreatedAt, CreatedByUserId, TenantId)
+                                 VALUES (@Name, @IsActive, @CreatedAt, @CreatedByUserId, @TenantId);
                                  SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            return _session.Connection.ExecuteScalar<int>(sql, brand, _session.Transaction);
+            var tenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null;
+            return _session.Connection.ExecuteScalar<int>(sql, new
+            {
+                brand.Name,
+                brand.IsActive,
+                brand.CreatedAt,
+                brand.CreatedByUserId,
+                TenantId = tenantId
+            }, _session.Transaction);
         }
 
         public bool Update(int id, string name, bool isActive, int userId)
@@ -54,14 +63,15 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
             const string sql = @"UPDATE Brands
                                  SET Name = @Name, IsActive = @IsActive,
                                      ModifiedAt = @Now, ModifiedByUserId = @UserId
-                                 WHERE Id = @Id";
+                                 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)";
             var updated = _session.Connection.Execute(sql, new
             {
                 Id = id,
                 Name = name,
                 IsActive = isActive,
                 Now = DateTime.UtcNow,
-                UserId = userId
+                UserId = userId,
+                _session.TenantId
             }, _session.Transaction);
 
             return updated > 0;
@@ -69,8 +79,8 @@ OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
         public bool Delete(int id)
         {
-            const string sql = "DELETE FROM Brands WHERE Id = @Id";
-            var deleted = _session.Connection.Execute(sql, new { Id = id }, _session.Transaction);
+            const string sql = "DELETE FROM Brands WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)";
+            var deleted = _session.Connection.Execute(sql, new { Id = id, _session.TenantId }, _session.Transaction);
             return deleted > 0;
         }
     }

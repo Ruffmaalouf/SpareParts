@@ -19,26 +19,52 @@ namespace SpareParts.Infrastructure.Data
         public int InsertEntry(JournalEntry entry)
         {
             const string sql = @"INSERT INTO JournalEntries
-                (EntryDate, ReferenceType, ReferenceId, Description, CreatedAt, CreatedByUserId)
+                (EntryDate, ReferenceType, ReferenceId, Description, CreatedAt, CreatedByUserId, TenantId)
                 VALUES
-                (@EntryDate, @ReferenceType, @ReferenceId, @Description, @CreatedAt, @CreatedByUserId);
+                (@EntryDate, @ReferenceType, @ReferenceId, @Description, @CreatedAt, @CreatedByUserId, @TenantId);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
-            return _session.Connection.ExecuteScalar<int>(sql, entry, _session.Transaction);
+            var tenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null;
+            return _session.Connection.ExecuteScalar<int>(sql, new
+            {
+                entry.EntryDate,
+                entry.ReferenceType,
+                entry.ReferenceId,
+                entry.Description,
+                entry.CreatedAt,
+                entry.CreatedByUserId,
+                TenantId = tenantId
+            }, _session.Transaction);
         }
 
         public void InsertLines(int entryId, IList<JournalLine> lines)
         {
             const string sql = @"INSERT INTO JournalLines
-                (JournalEntryId, AccountId, Debit, Credit, CurrencyCode, OriginalAmount, RateToBase, CounterAmount, BaseCurrencyCode, CounterCurrencyCode, CreatedAt, CreatedByUserId)
+                (JournalEntryId, AccountId, Debit, Credit, CurrencyCode, OriginalAmount, RateToBase, CounterAmount, BaseCurrencyCode, CounterCurrencyCode, CreatedAt, CreatedByUserId, TenantId)
                 VALUES
-                (@JournalEntryId, @AccountId, @Debit, @Credit, @CurrencyCode, @OriginalAmount, @RateToBase, @CounterAmount, @BaseCurrencyCode, @CounterCurrencyCode, @CreatedAt, @CreatedByUserId);";
+                (@JournalEntryId, @AccountId, @Debit, @Credit, @CurrencyCode, @OriginalAmount, @RateToBase, @CounterAmount, @BaseCurrencyCode, @CounterCurrencyCode, @CreatedAt, @CreatedByUserId, @TenantId);";
 
             var currencyContext = ResolveCurrencyContext();
+            var tenantId = _session.TenantId > 0 ? (int?)_session.TenantId : null;
             foreach (var line in lines)
             {
                 line.JournalEntryId = entryId;
                 ApplyCurrencyContext(line, currencyContext);
-                _session.Connection.Execute(sql, line, _session.Transaction);
+                _session.Connection.Execute(sql, new
+                {
+                    line.JournalEntryId,
+                    line.AccountId,
+                    line.Debit,
+                    line.Credit,
+                    line.CurrencyCode,
+                    line.OriginalAmount,
+                    line.RateToBase,
+                    line.CounterAmount,
+                    line.BaseCurrencyCode,
+                    line.CounterCurrencyCode,
+                    line.CreatedAt,
+                    line.CreatedByUserId,
+                    TenantId = tenantId
+                }, _session.Transaction);
             }
         }
 
@@ -47,12 +73,14 @@ namespace SpareParts.Infrastructure.Data
             const string deleteLinesSql = @"DELETE jl
                 FROM JournalLines jl
                 INNER JOIN JournalEntries je ON je.Id = jl.JournalEntryId
-                WHERE je.ReferenceType = @ReferenceType AND je.ReferenceId = @ReferenceId;";
+                WHERE je.ReferenceType = @ReferenceType AND je.ReferenceId = @ReferenceId
+                  AND (@TenantId = 0 OR je.TenantId = @TenantId);";
 
             const string deleteEntriesSql = @"DELETE FROM JournalEntries
-                WHERE ReferenceType = @ReferenceType AND ReferenceId = @ReferenceId;";
+                WHERE ReferenceType = @ReferenceType AND ReferenceId = @ReferenceId
+                  AND (@TenantId = 0 OR TenantId = @TenantId);";
 
-            var args = new { ReferenceType = referenceType, ReferenceId = referenceId };
+            var args = new { ReferenceType = referenceType, ReferenceId = referenceId, _session.TenantId };
             _session.Connection.Execute(deleteLinesSql, args, _session.Transaction);
             _session.Connection.Execute(deleteEntriesSql, args, _session.Transaction);
         }
@@ -73,10 +101,11 @@ namespace SpareParts.Infrastructure.Data
                                  LEFT JOIN JournalLines jl ON jl.JournalEntryId = je.Id
                                  WHERE (@DateFrom IS NULL OR je.EntryDate >= @DateFrom)
                                    AND (@DateTo IS NULL OR je.EntryDate < DATEADD(DAY, 1, @DateTo))
+                                   AND (@TenantId = 0 OR je.TenantId = @TenantId)
                                  GROUP BY je.Id, je.EntryDate, je.ReferenceType, je.ReferenceId, je.Description, je.CreatedAt, je.CreatedByUserId
                                  ORDER BY je.EntryDate DESC, je.Id DESC;";
 
-            return _session.Connection.Query<JournalEntrySummaryDto>(sql, new { DateFrom = dateFrom, DateTo = dateTo }, _session.Transaction).ToList();
+            return _session.Connection.Query<JournalEntrySummaryDto>(sql, new { DateFrom = dateFrom, DateTo = dateTo, _session.TenantId }, _session.Transaction).ToList();
         }
 
         public JournalEntryDetailDto? GetEntryDetail(int id)
@@ -93,6 +122,7 @@ namespace SpareParts.Infrastructure.Data
                                        FROM JournalEntries je
                                        LEFT JOIN JournalLines jl ON jl.JournalEntryId = je.Id
                                        WHERE je.Id = @Id
+                                         AND (@TenantId = 0 OR je.TenantId = @TenantId)
                                        GROUP BY je.Id, je.EntryDate, je.ReferenceType, je.ReferenceId, je.Description, je.CreatedAt, je.CreatedByUserId;";
 
             const string linesSql = @"SELECT jl.AccountId,
@@ -103,15 +133,16 @@ namespace SpareParts.Infrastructure.Data
                                       FROM JournalLines jl
                                       INNER JOIN Accounts a ON a.Id = jl.AccountId
                                       WHERE jl.JournalEntryId = @Id
+                                        AND (@TenantId = 0 OR jl.TenantId = @TenantId)
                                       ORDER BY a.Code, a.Name;";
 
-            var detail = _session.Connection.QueryFirstOrDefault<JournalEntryDetailDto>(headerSql, new { Id = id }, _session.Transaction);
+            var detail = _session.Connection.QueryFirstOrDefault<JournalEntryDetailDto>(headerSql, new { Id = id, _session.TenantId }, _session.Transaction);
             if (detail == null)
             {
                 return null;
             }
 
-            detail.Lines = _session.Connection.Query<JournalEntryLineDto>(linesSql, new { Id = id }, _session.Transaction).ToList();
+            detail.Lines = _session.Connection.Query<JournalEntryLineDto>(linesSql, new { Id = id, _session.TenantId }, _session.Transaction).ToList();
             return detail;
         }
 
@@ -138,6 +169,7 @@ namespace SpareParts.Infrastructure.Data
                                  WHERE jl.AccountId = @AccountId
                                    AND (@DateFrom IS NULL OR je.EntryDate >= @DateFrom)
                                    AND (@DateTo IS NULL OR je.EntryDate < DATEADD(DAY, 1, @DateTo))
+                                   AND (@TenantId = 0 OR jl.TenantId = @TenantId)
                                  ORDER BY je.EntryDate, je.Id, jl.Id;";
 
             return _session.Connection.Query<LedgerRowDto>(sql, new
@@ -146,7 +178,8 @@ namespace SpareParts.Infrastructure.Data
                 DateFrom = dateFrom,
                 DateTo = dateTo,
                 BaseCurrencyCode = currencyContext.BaseCurrencyCode,
-                CounterCurrencyCode = currencyContext.CounterCurrencyCode
+                CounterCurrencyCode = currencyContext.CounterCurrencyCode,
+                _session.TenantId
             }, _session.Transaction).ToList();
         }
 
@@ -161,9 +194,10 @@ namespace SpareParts.Infrastructure.Data
                                  FROM JournalLines jl
                                  INNER JOIN JournalEntries je ON je.Id = jl.JournalEntryId
                                  WHERE jl.AccountId = @AccountId
-                                   AND je.EntryDate < @DateFrom;";
+                                   AND je.EntryDate < @DateFrom
+                                   AND (@TenantId = 0 OR jl.TenantId = @TenantId);";
 
-            return _session.Connection.ExecuteScalar<decimal>(sql, new { AccountId = accountId, DateFrom = dateFrom }, _session.Transaction);
+            return _session.Connection.ExecuteScalar<decimal>(sql, new { AccountId = accountId, DateFrom = dateFrom, _session.TenantId }, _session.Transaction);
         }
 
         public decimal GetOpeningCounterBalance(int accountId, DateTime? dateFrom)
@@ -180,9 +214,10 @@ namespace SpareParts.Infrastructure.Data
                                  FROM JournalLines jl
                                  INNER JOIN JournalEntries je ON je.Id = jl.JournalEntryId
                                  WHERE jl.AccountId = @AccountId
-                                   AND je.EntryDate < @DateFrom;";
+                                   AND je.EntryDate < @DateFrom
+                                   AND (@TenantId = 0 OR jl.TenantId = @TenantId);";
 
-            return _session.Connection.ExecuteScalar<decimal>(sql, new { AccountId = accountId, DateFrom = dateFrom }, _session.Transaction);
+            return _session.Connection.ExecuteScalar<decimal>(sql, new { AccountId = accountId, DateFrom = dateFrom, _session.TenantId }, _session.Transaction);
         }
 
         public IReadOnlyList<TrialBalanceRowDto> GetTrialBalanceRows(DateTime? dateFrom, DateTime? dateTo)
@@ -224,8 +259,9 @@ namespace SpareParts.Infrastructure.Data
                                         THEN ISNULL(jl.CounterAmount, 0) ELSE 0 END), 0) AS TotalCounterCredit
                              FROM Accounts a
                              {(hasAccountTypeLookup ? $"LEFT JOIN AccountingAccountTypes t ON t.TypeKey = {normalizedAccountTypeKey}" : string.Empty)}
-                             LEFT JOIN JournalLines jl ON jl.AccountId = a.Id
+                             LEFT JOIN JournalLines jl ON jl.AccountId = a.Id AND (@TenantId = 0 OR jl.TenantId = @TenantId)
                              LEFT JOIN JournalEntries je ON je.Id = jl.JournalEntryId
+                             WHERE (@TenantId = 0 OR a.TenantId = @TenantId)
                              GROUP BY a.Id, a.Code, a.Name, {normalizedAccountTypeKey}{(hasAccountTypeLookup ? ", t.Label" : string.Empty)}
                          )
                          SELECT AccountId,
@@ -252,14 +288,15 @@ namespace SpareParts.Infrastructure.Data
                 DateFrom = dateFrom,
                 DateTo = dateTo,
                 BaseCurrencyCode = currencyContext.BaseCurrencyCode,
-                CounterCurrencyCode = currencyContext.CounterCurrencyCode
+                CounterCurrencyCode = currencyContext.CounterCurrencyCode,
+                _session.TenantId
             }, _session.Transaction).ToList();
         }
 
         public bool HasEntriesForAccount(int accountId)
         {
-            const string sql = "SELECT COUNT(1) FROM JournalLines WHERE AccountId = @AccountId;";
-            return _session.Connection.ExecuteScalar<int>(sql, new { AccountId = accountId }, _session.Transaction) > 0;
+            const string sql = "SELECT COUNT(1) FROM JournalLines WHERE AccountId = @AccountId AND (@TenantId = 0 OR TenantId = @TenantId);";
+            return _session.Connection.ExecuteScalar<int>(sql, new { AccountId = accountId, _session.TenantId }, _session.Transaction) > 0;
         }
 
         private AccountingCurrencyContext ResolveCurrencyContext()

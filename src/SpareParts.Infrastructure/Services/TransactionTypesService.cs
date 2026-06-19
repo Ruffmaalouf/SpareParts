@@ -1,21 +1,24 @@
 using SpareParts.Domain.MasterData;
 using SpareParts.Domain.Transactions;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services
 {
     public sealed class TransactionTypesService
     {
         private readonly ISqlConnectionFactory _factory;
+        private readonly ITenantContext _tenantContext;
 
-        public TransactionTypesService(ISqlConnectionFactory factory)
+        public TransactionTypesService(ISqlConnectionFactory factory, ITenantContext tenantContext)
         {
             _factory = factory;
+            _tenantContext = tenantContext;
         }
 
         public IEnumerable<TransactionTypeDto> GetAll()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repository = new TransactionTypesRepository(session);
             return repository.GetAll().ToList();
         }
@@ -24,7 +27,7 @@ namespace SpareParts.Infrastructure.Services
         {
             var normalized = Normalize(request);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repository = new TransactionTypesRepository(session);
             var existingTypes = repository.GetAll().ToList();
             var typeKey = BuildUniqueTypeKey(normalized.Name, existingTypes.Select(item => item.TypeKey));
@@ -51,7 +54,7 @@ namespace SpareParts.Infrastructure.Services
 
             var normalized = Normalize(request);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repository = new TransactionTypesRepository(session);
             var existing = repository.GetById(id);
             if (existing == null)
@@ -86,7 +89,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void Delete(int id)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repository = new TransactionTypesRepository(session);
             var existing = repository.GetById(id);
             if (existing == null)

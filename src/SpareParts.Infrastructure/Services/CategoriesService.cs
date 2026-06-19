@@ -1,21 +1,24 @@
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class CategoriesService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public CategoriesService(ISqlConnectionFactory factory)
+    public CategoriesService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<CategoryDto> GetAll()
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new CategoriesRepository(session);
         return repository.GetAll().Select(c => new CategoryDto
         {
@@ -27,7 +30,7 @@ public sealed class CategoriesService
 
     public int Create(CreateCategoryRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new CategoriesRepository(session);
         var category = new Category
         {

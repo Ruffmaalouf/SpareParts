@@ -238,7 +238,7 @@ public class SecurityAndDataIntegrityTests
             InventoryAccountId = 301,
             CashOrApAccountId = 999
         });
-        var strategy = new SaleAccountingStrategy(factory, settingsProvider, new CustomerAccountResolver(factory));
+        var strategy = new SaleAccountingStrategy(factory, settingsProvider, new CustomerAccountResolver(factory), TenantContext.Legacy);
         var invoice = new SalesInvoice
         {
             CustomerId = null,

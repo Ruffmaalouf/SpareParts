@@ -80,8 +80,8 @@ public sealed class ExcelImportService
 
         _subscriptionLimitService.EnsureFeatureEnabled(_tenantContext.TenantId, FeatureCode.BulkImport, "Bulk Import");
 
-        using var session = new DbSession(_factory);
-        var metadata = new ExcelImportMetadataRepository(session.Connection, session.Transaction);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
+        var metadata = new ExcelImportMetadataRepository(session.Connection, session.Transaction, session.TenantId);
         var table = metadata.GetTable(request.TableKey)
             ?? throw new NotFoundException($"System table '{request.TableKey}' was not found.");
 

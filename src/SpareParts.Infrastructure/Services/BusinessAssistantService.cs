@@ -2,6 +2,7 @@ using Dapper;
 using SpareParts.Domain.Accounting;
 using SpareParts.Domain.BusinessAssistant;
 using SpareParts.Domain.Transactions;
+using SpareParts.Infrastructure.Interfaces;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,11 +47,13 @@ namespace SpareParts.Infrastructure.Services
 
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingService _accountingService;
+        private readonly ITenantContext _tenantContext;
 
-        public BusinessAssistantService(ISqlConnectionFactory factory, AccountingService accountingService)
+        public BusinessAssistantService(ISqlConnectionFactory factory, AccountingService accountingService, ITenantContext tenantContext)
         {
             _factory = factory;
             _accountingService = accountingService;
+            _tenantContext = tenantContext;
         }
 
         public BusinessAssistantResponseDto Ask(string? question)
@@ -248,7 +251,7 @@ namespace SpareParts.Infrastructure.Services
         private BusinessAssistantResponseDto BuildOpenCustomer(string question)
         {
             using var connection = _factory.CreateConnection();
-            var rows = LoadCustomerAssistantRows(connection, null, 250);
+            var rows = LoadCustomerAssistantRows(connection, null, 250, _tenantContext.TenantId);
             var customer = FindCustomer(question, rows) ?? rows
                 .OrderByDescending(row => row.OpenBalance)
                 .ThenByDescending(row => row.LastSaleAt)
@@ -275,7 +278,7 @@ namespace SpareParts.Infrastructure.Services
             }
 
             using var connection = _factory.CreateConnection();
-            var customer = LoadCustomerAssistantRows(connection, customerId, 1).FirstOrDefault();
+            var customer = LoadCustomerAssistantRows(connection, customerId, 1, _tenantContext.TenantId).FirstOrDefault();
             if (customer == null)
             {
                 return BuildResponse(
@@ -337,6 +340,7 @@ namespace SpareParts.Infrastructure.Services
                              SUM(ISNULL(Quantity, 0)) AS OnHand,
                              SUM(ISNULL(Quantity, 0) - ISNULL(ReservedQuantity, 0)) AS AvailableQuantity
                       FROM dbo.Stock
+                      WHERE (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   )
                   SELECT TOP (10)
@@ -358,10 +362,12 @@ namespace SpareParts.Infrastructure.Services
                   WHERE p.IsActive = 1
                     AND p.MinStock > 0
                     AND ISNULL(st.AvailableQuantity, 0) <= p.MinStock
+                    AND (@TenantId = 0 OR p.TenantId = @TenantId)
                   ORDER BY
                     p.MinStock - ISNULL(st.AvailableQuantity, 0) DESC,
                     ISNULL(st.AvailableQuantity, 0),
-                    p.Name;").ToList();
+                    p.Name;",
+                new { TenantId = _tenantContext.TenantId }).ToList();
 
             if (rows.Count == 0)
             {
@@ -403,6 +409,7 @@ namespace SpareParts.Infrastructure.Services
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                       WHERE tt.TypeKey = @SaleType
                         AND ti.PartId IS NOT NULL
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                       GROUP BY ti.PartId
                   ),
                   StockByPart AS
@@ -411,6 +418,7 @@ namespace SpareParts.Infrastructure.Services
                              SUM(ISNULL(Quantity, 0)) AS OnHand,
                              SUM(ISNULL(Quantity, 0) - ISNULL(ReservedQuantity, 0)) AS AvailableQuantity
                       FROM dbo.Stock
+                      WHERE (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   ),
                   ReceiptByPart AS
@@ -419,6 +427,7 @@ namespace SpareParts.Infrastructure.Services
                              MAX(CreatedAt) AS LastReceivedAt
                       FROM dbo.StockMovements
                       WHERE Quantity > 0
+                        AND (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   )
                   SELECT TOP (8)
@@ -441,12 +450,14 @@ namespace SpareParts.Infrastructure.Services
                   WHERE p.IsActive = 1
                     AND ISNULL(st.OnHand, 0) > 0
                     AND DATEDIFF(DAY, COALESCE(s.LastSoldAt, r.LastReceivedAt, p.CreatedAt), @Today) >= 90
+                    AND (@TenantId = 0 OR p.TenantId = @TenantId)
                   ORDER BY AgeDays DESC, ISNULL(st.OnHand, 0) DESC, p.Name;",
                 new
                 {
                     Today = DateTime.Today,
                     RecentCutoff = DateTime.Today.AddDays(-90),
-                    SaleType = TransactionTypeKeys.Sale
+                    SaleType = TransactionTypeKeys.Sale,
+                    TenantId = _tenantContext.TenantId
                 }).ToList();
 
             return BuildCampaignResponse(
@@ -469,6 +480,7 @@ namespace SpareParts.Infrastructure.Services
                              SUM(ISNULL(Quantity, 0)) AS OnHand,
                              SUM(ISNULL(Quantity, 0) - ISNULL(ReservedQuantity, 0)) AS AvailableQuantity
                       FROM dbo.Stock
+                      WHERE (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   ),
                   ReceiptByPart AS
@@ -477,6 +489,7 @@ namespace SpareParts.Infrastructure.Services
                              MAX(CreatedAt) AS LastReceivedAt
                       FROM dbo.StockMovements
                       WHERE Quantity > 0
+                        AND (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   )
                   SELECT TOP (8)
@@ -498,11 +511,13 @@ namespace SpareParts.Infrastructure.Services
                   WHERE p.IsActive = 1
                     AND ISNULL(st.AvailableQuantity, 0) > 0
                     AND r.LastReceivedAt >= @Since
+                    AND (@TenantId = 0 OR p.TenantId = @TenantId)
                   ORDER BY r.LastReceivedAt DESC, ISNULL(st.AvailableQuantity, 0) DESC, p.Name;",
                 new
                 {
                     Today = DateTime.Today,
-                    Since = DateTime.Today.AddDays(-30)
+                    Since = DateTime.Today.AddDays(-30),
+                    TenantId = _tenantContext.TenantId
                 }).ToList();
 
             return BuildCampaignResponse(
@@ -535,6 +550,7 @@ namespace SpareParts.Infrastructure.Services
                              SUM(ISNULL(Quantity, 0)) AS OnHand,
                              SUM(ISNULL(Quantity, 0) - ISNULL(ReservedQuantity, 0)) AS AvailableQuantity
                       FROM dbo.Stock
+                      WHERE (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   )
                   SELECT TOP (8)
@@ -551,10 +567,11 @@ namespace SpareParts.Infrastructure.Services
                          CAST(NULL AS DATETIME2) AS LastReceivedAt,
                          0 AS AgeDays
                   FROM dbo.Parts p
-                  LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId
+                  LEFT JOIN dbo.Categories c ON c.Id = p.CategoryId AND (@TenantId = 0 OR c.TenantId = @TenantId)
                   LEFT JOIN StockByPart st ON st.PartId = p.Id
                   WHERE p.IsActive = 1
                     AND ISNULL(st.AvailableQuantity, 0) > 0
+                    AND (@TenantId = 0 OR p.TenantId = @TenantId)
                     AND
                     (
                         LOWER(CONCAT(p.Name, N' ', p.OEMNumber, N' ', p.Notes, N' ', c.Name)) LIKE N'%oil%'
@@ -566,7 +583,8 @@ namespace SpareParts.Infrastructure.Services
                         OR LOWER(CONCAT(p.Name, N' ', p.OEMNumber, N' ', p.Notes, N' ', c.Name)) LIKE N'%coolant%'
                         OR LOWER(CONCAT(p.Name, N' ', p.OEMNumber, N' ', p.Notes, N' ', c.Name)) LIKE N'%ac%'
                     )
-                  ORDER BY ISNULL(st.AvailableQuantity, 0) DESC, p.Name;").ToList();
+                  ORDER BY ISNULL(st.AvailableQuantity, 0) DESC, p.Name;",
+                new { TenantId = _tenantContext.TenantId }).ToList();
 
             return BuildCampaignResponse(
                 "campaign_seasonal_service_parts",
@@ -629,8 +647,9 @@ namespace SpareParts.Infrastructure.Services
                           COALESCE(NULLIF(t.PaidCounterAmount, 0), t.PaidAmount, 0) AS DisplayPaidAmount
                       FROM dbo.Transactions t
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
-                      LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId
+                      LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId AND (@TenantId = 0 OR c.TenantId = @TenantId)
                       WHERE tt.TypeKey = @SaleType
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                   )
                   SELECT TOP (10)
                          CustomerId,
@@ -647,7 +666,7 @@ namespace SpareParts.Infrastructure.Services
                   WHERE DisplayTotalAmount > DisplayPaidAmount
                   GROUP BY CustomerId, CustomerName, Phone, CurrencyCode
                   ORDER BY RemainingAmount DESC, OldestInvoiceDate;",
-                new { SaleType = TransactionTypeKeys.Sale }).ToList();
+                new { SaleType = TransactionTypeKeys.Sale, TenantId = _tenantContext.TenantId }).ToList();
 
             if (rows.Count == 0)
             {
@@ -699,9 +718,10 @@ namespace SpareParts.Infrastructure.Services
                           COALESCE(NULLIF(t.PaidCounterAmount, 0), t.PaidAmount, 0) AS DisplayPaidAmount
                       FROM dbo.Transactions t
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
-                      LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId
+                      LEFT JOIN dbo.Customers c ON c.Id = t.CustomerId AND (@TenantId = 0 OR c.TenantId = @TenantId)
                       WHERE tt.TypeKey = @SaleType
                         AND (@CustomerId IS NULL OR c.Id = @CustomerId)
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                   )
                   SELECT TOP (6)
                          SalesInvoiceId,
@@ -717,7 +737,7 @@ namespace SpareParts.Infrastructure.Services
                   FROM OpenSales
                   WHERE DisplayTotalAmount > DisplayPaidAmount
                   ORDER BY TransactionDate, RemainingAmount DESC;",
-                new { SaleType = TransactionTypeKeys.Sale, CustomerId = customerId }).ToList();
+                new { SaleType = TransactionTypeKeys.Sale, CustomerId = customerId, TenantId = _tenantContext.TenantId }).ToList();
 
             if (rows.Count == 0)
             {
@@ -774,7 +794,7 @@ namespace SpareParts.Infrastructure.Services
                       FROM dbo.Transactions t
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = @SaleType
                       INNER JOIN dbo.TransactionItems ti ON ti.TransactionId = t.Id
-                      INNER JOIN dbo.Parts p ON p.Id = ti.PartId
+                      INNER JOIN dbo.Parts p ON p.Id = ti.PartId AND (@TenantId = 0 OR p.TenantId = @TenantId)
                       OUTER APPLY
                       (
                           SELECT SUM(ABS(CAST(sm.Quantity AS DECIMAL(19, 4))) * sm.UnitCost) AS MovementCost
@@ -782,8 +802,10 @@ namespace SpareParts.Infrastructure.Services
                           WHERE sm.ReferenceType = @SaleReferenceType
                             AND sm.ReferenceId = t.ReferenceId
                             AND sm.PartId = ti.PartId
+                            AND (@TenantId = 0 OR sm.TenantId = @TenantId)
                       ) m
                       WHERE ti.PartId IS NOT NULL
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                       GROUP BY p.Id, p.InternalCode, p.Name
                   )
                   SELECT TOP (10)
@@ -802,7 +824,8 @@ namespace SpareParts.Infrastructure.Services
                 new
                 {
                     SaleType = TransactionTypeKeys.Sale,
-                    SaleReferenceType = "Sale"
+                    SaleReferenceType = "Sale",
+                    TenantId = _tenantContext.TenantId
                 }).ToList();
 
             if (rows.Count == 0)
@@ -841,13 +864,15 @@ namespace SpareParts.Infrastructure.Services
                          a.Code AS AccountCode,
                          a.Name AS AccountName
                   FROM dbo.Suppliers s
-                  LEFT JOIN dbo.Accounts a ON a.Id = s.AccountId
-                  ORDER BY s.Name;").ToList();
+                  LEFT JOIN dbo.Accounts a ON a.Id = s.AccountId AND (@TenantId = 0 OR a.TenantId = @TenantId)
+                  WHERE (@TenantId = 0 OR s.TenantId = @TenantId)
+                  ORDER BY s.Name;",
+                new { TenantId = _tenantContext.TenantId }).ToList();
 
             var supplier = FindSupplier(question, suppliers);
             if (supplier == null)
             {
-                var openSuppliers = GetTopOpenSuppliers(connection);
+                var openSuppliers = GetTopOpenSuppliers(connection, _tenantContext.TenantId);
                 if (openSuppliers.Count == 0)
                 {
                     return BuildResponse(
@@ -870,8 +895,8 @@ namespace SpareParts.Infrastructure.Services
                     }));
             }
 
-            var ledger = GetSupplierLedgerBalance(connection, supplier.AccountId);
-            var invoiceBalance = GetSupplierOpenInvoiceBalance(connection, supplier.Id);
+            var ledger = GetSupplierLedgerBalance(connection, supplier.AccountId, _tenantContext.TenantId);
+            var invoiceBalance = GetSupplierOpenInvoiceBalance(connection, supplier.Id, _tenantContext.TenantId);
             var useLedger = ledger.LineCount > 0;
             var useOpeningBalance = !useLedger && invoiceBalance.InvoiceCount == 0 && supplier.OpeningBalance != 0;
             var balance = useLedger
@@ -932,10 +957,11 @@ namespace SpareParts.Infrastructure.Services
                          COUNT(1) AS TransactionCount
                   FROM dbo.Transactions t
                   INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
-                  INNER JOIN dbo.Suppliers s ON s.Id = t.SupplierId
+                  INNER JOIN dbo.Suppliers s ON s.Id = t.SupplierId AND (@TenantId = 0 OR s.TenantId = @TenantId)
                   WHERE tt.TypeKey IN @TypeKeys
                     AND (@DateFrom IS NULL OR t.TransactionDate >= @DateFrom)
                     AND (@DateTo IS NULL OR t.TransactionDate < DATEADD(DAY, 1, @DateTo))
+                    AND (@TenantId = 0 OR t.TenantId = @TenantId)
                   GROUP BY s.Id, s.Name
                   HAVING SUM(ISNULL(t.PaidAmount, 0)) > 0
                   ORDER BY PaidAmount DESC, SupplierName;",
@@ -943,7 +969,8 @@ namespace SpareParts.Infrastructure.Services
                 {
                     TypeKeys = new[] { TransactionTypeKeys.Purchase, TransactionTypeKeys.UsedCarPurchase },
                     range.DateFrom,
-                    range.DateTo
+                    range.DateTo,
+                    TenantId = _tenantContext.TenantId
                 }).ToList();
 
             if (rows.Count == 0)
@@ -983,9 +1010,11 @@ namespace SpareParts.Infrastructure.Services
                       FROM dbo.TransactionItems ti
                       INNER JOIN dbo.Transactions t ON t.Id = ti.TransactionId
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
-                      INNER JOIN dbo.Parts p ON p.Id = ti.PartId
+                      INNER JOIN dbo.Parts p ON p.Id = ti.PartId AND (@TenantId = 0 OR p.TenantId = @TenantId)
                       WHERE tt.TypeKey = @SaleType
                         AND p.UsedCarId IS NOT NULL
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
+                        AND (@TenantId = 0 OR ti.TenantId = @TenantId)
                       GROUP BY p.UsedCarId
                   )
                   SELECT TOP (8)
@@ -1010,12 +1039,13 @@ namespace SpareParts.Infrastructure.Services
                          s.LastSaleAt,
                          ISNULL(s.SalesRevenue, 0) - ISNULL(uc.GrandTotalBase, 0) AS RealizedMargin
                   FROM dbo.UsedCars uc
-                  INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
-                  INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+                  INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId AND (@TenantId = 0 OR cm.TenantId = @TenantId)
+                  INNER JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId AND (@TenantId = 0 OR cb.TenantId = @TenantId)
                   LEFT JOIN SalesByCar s ON s.UsedCarId = uc.Id
                   WHERE ISNULL(s.SalesRevenue, 0) - ISNULL(uc.GrandTotalBase, 0) < 0
+                    AND (@TenantId = 0 OR uc.TenantId = @TenantId)
                   ORDER BY RealizedMargin, uc.Id DESC;",
-                new { SaleType = TransactionTypeKeys.Sale }).ToList();
+                new { SaleType = TransactionTypeKeys.Sale, TenantId = _tenantContext.TenantId }).ToList();
 
             if (rows.Count == 0)
             {
@@ -1045,7 +1075,7 @@ namespace SpareParts.Infrastructure.Services
             var cutoff = today.AddDays(-90);
 
             using var connection = _factory.CreateConnection();
-            var filter = ExtractSlowMovingPartFilter(connection, question);
+            var filter = ExtractSlowMovingPartFilter(connection, question, _tenantContext.TenantId);
             var rows = connection.Query<SlowMovingPartRow>(
                 @"WITH SalesByPart AS
                   (
@@ -1058,6 +1088,7 @@ namespace SpareParts.Infrastructure.Services
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                       WHERE tt.TypeKey = @SaleType
                         AND ti.PartId IS NOT NULL
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                       GROUP BY ti.PartId
                   ),
                   StockByPart AS
@@ -1065,6 +1096,7 @@ namespace SpareParts.Infrastructure.Services
                       SELECT PartId,
                              SUM(ISNULL(Quantity, 0)) AS OnHand
                       FROM dbo.Stock
+                      WHERE (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   ),
                   ReceiptByPart AS
@@ -1073,6 +1105,7 @@ namespace SpareParts.Infrastructure.Services
                              MAX(CreatedAt) AS LastReceivedAt
                       FROM dbo.StockMovements
                       WHERE Quantity > 0
+                        AND (@TenantId = 0 OR TenantId = @TenantId)
                       GROUP BY PartId
                   )
                   SELECT TOP (8)
@@ -1090,15 +1123,16 @@ namespace SpareParts.Infrastructure.Services
                          r.LastReceivedAt,
                          CASE WHEN s.LastSoldAt IS NULL THEN NULL ELSE DATEDIFF(DAY, s.LastSoldAt, @Today) END AS DaysSinceLastSale
                   FROM dbo.Parts p
-                  LEFT JOIN dbo.Brands b ON b.Id = p.BrandId
-                  LEFT JOIN dbo.UsedCars uc ON uc.Id = p.UsedCarId
-                  LEFT JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
-                  LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
+                  LEFT JOIN dbo.Brands b ON b.Id = p.BrandId AND (@TenantId = 0 OR b.TenantId = @TenantId)
+                  LEFT JOIN dbo.UsedCars uc ON uc.Id = p.UsedCarId AND (@TenantId = 0 OR uc.TenantId = @TenantId)
+                  LEFT JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId AND (@TenantId = 0 OR cm.TenantId = @TenantId)
+                  LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId AND (@TenantId = 0 OR cb.TenantId = @TenantId)
                   LEFT JOIN StockByPart st ON st.PartId = p.Id
                   LEFT JOIN SalesByPart s ON s.PartId = p.Id
                   LEFT JOIN ReceiptByPart r ON r.PartId = p.Id
                   WHERE p.IsActive = 1
                     AND ISNULL(st.OnHand, 0) > 0
+                    AND (@TenantId = 0 OR p.TenantId = @TenantId)
                     AND (@BrandTerm = N''
                          OR UPPER(ISNULL(b.Name, N'')) LIKE @BrandLike
                          OR UPPER(ISNULL(cb.Name, N'')) LIKE @BrandLike
@@ -1123,7 +1157,8 @@ namespace SpareParts.Infrastructure.Services
                         ? string.Empty
                         : $"%{filter.BrandTerm.Trim().ToUpperInvariant()}%",
                     filter.MinSalePrice,
-                    filter.PurchasedBefore
+                    filter.PurchasedBefore,
+                    TenantId = _tenantContext.TenantId
                 }).ToList();
 
             if (rows.Count == 0)
@@ -1202,7 +1237,7 @@ namespace SpareParts.Infrastructure.Services
                 insights);
         }
 
-        private IReadOnlyList<OpenSupplierRow> GetTopOpenSuppliers(System.Data.IDbConnection connection)
+        private static IReadOnlyList<OpenSupplierRow> GetTopOpenSuppliers(System.Data.IDbConnection connection, int tenantId)
             => connection.Query<OpenSupplierRow>(
                 @"SELECT TOP (5)
                          s.Id AS SupplierId,
@@ -1211,14 +1246,19 @@ namespace SpareParts.Infrastructure.Services
                          COUNT(1) AS InvoiceCount
                   FROM dbo.Transactions t
                   INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
-                  INNER JOIN dbo.Suppliers s ON s.Id = t.SupplierId
+                  INNER JOIN dbo.Suppliers s ON s.Id = t.SupplierId AND (@TenantId = 0 OR s.TenantId = @TenantId)
                   WHERE tt.TypeKey IN @TypeKeys
+                    AND (@TenantId = 0 OR t.TenantId = @TenantId)
                   GROUP BY s.Id, s.Name
                   HAVING SUM(ISNULL(t.TotalBaseAmount, t.TotalAmount) - ISNULL(t.PaidAmount, 0)) <> 0
                   ORDER BY OpenBalance DESC, SupplierName;",
-                new { TypeKeys = new[] { TransactionTypeKeys.Purchase, TransactionTypeKeys.UsedCarPurchase } }).ToList();
+                new
+                {
+                    TypeKeys = new[] { TransactionTypeKeys.Purchase, TransactionTypeKeys.UsedCarPurchase },
+                    TenantId = tenantId
+                }).ToList();
 
-        private static SupplierBalanceRow GetSupplierLedgerBalance(System.Data.IDbConnection connection, int? accountId)
+        private static SupplierBalanceRow GetSupplierLedgerBalance(System.Data.IDbConnection connection, int? accountId, int tenantId)
         {
             if (accountId == null)
             {
@@ -1229,11 +1269,12 @@ namespace SpareParts.Infrastructure.Services
                 @"SELECT ISNULL(SUM(jl.Credit - jl.Debit), 0) AS Balance,
                          COUNT(jl.Id) AS LineCount
                   FROM dbo.JournalLines jl
-                  WHERE jl.AccountId = @AccountId;",
-                new { AccountId = accountId.Value });
+                  WHERE jl.AccountId = @AccountId
+                    AND (@TenantId = 0 OR jl.TenantId = @TenantId);",
+                new { AccountId = accountId.Value, TenantId = tenantId });
         }
 
-        private static OpenSupplierRow GetSupplierOpenInvoiceBalance(System.Data.IDbConnection connection, int supplierId)
+        private static OpenSupplierRow GetSupplierOpenInvoiceBalance(System.Data.IDbConnection connection, int supplierId, int tenantId)
             => connection.QuerySingle<OpenSupplierRow>(
                 @"SELECT @SupplierId AS SupplierId,
                          CAST(N'' AS NVARCHAR(255)) AS SupplierName,
@@ -1242,11 +1283,13 @@ namespace SpareParts.Infrastructure.Services
                   FROM dbo.Transactions t
                   INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
                   WHERE tt.TypeKey IN @TypeKeys
-                    AND t.SupplierId = @SupplierId;",
+                    AND t.SupplierId = @SupplierId
+                    AND (@TenantId = 0 OR t.TenantId = @TenantId);",
                 new
                 {
                     SupplierId = supplierId,
-                    TypeKeys = new[] { TransactionTypeKeys.Purchase, TransactionTypeKeys.UsedCarPurchase }
+                    TypeKeys = new[] { TransactionTypeKeys.Purchase, TransactionTypeKeys.UsedCarPurchase },
+                    TenantId = tenantId
                 });
 
         private static SupplierAssistantRow? FindSupplier(string question, IReadOnlyList<SupplierAssistantRow> suppliers)
@@ -1304,7 +1347,7 @@ namespace SpareParts.Infrastructure.Services
             return term.Trim(' ', '?', '.', ',', ':', ';', '"', '\'');
         }
 
-        private static IReadOnlyList<CustomerAssistantRow> LoadCustomerAssistantRows(System.Data.IDbConnection connection, int? customerId, int take)
+        private static IReadOnlyList<CustomerAssistantRow> LoadCustomerAssistantRows(System.Data.IDbConnection connection, int? customerId, int take, int tenantId)
             => connection.Query<CustomerAssistantRow>(
                 @"WITH SaleSummary AS
                   (
@@ -1323,6 +1366,7 @@ namespace SpareParts.Infrastructure.Services
                       FROM dbo.Transactions t
                       INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = @SaleType
                       WHERE t.CustomerId IS NOT NULL
+                        AND (@TenantId = 0 OR t.TenantId = @TenantId)
                       GROUP BY t.CustomerId
                   )
                   SELECT TOP (@Take)
@@ -1337,13 +1381,15 @@ namespace SpareParts.Infrastructure.Services
                          s.LastSaleAt
                   FROM dbo.Customers c
                   LEFT JOIN SaleSummary s ON s.CustomerId = c.Id
-                  WHERE @CustomerId IS NULL OR c.Id = @CustomerId
+                  WHERE (@CustomerId IS NULL OR c.Id = @CustomerId)
+                    AND (@TenantId = 0 OR c.TenantId = @TenantId)
                   ORDER BY OpenBalance DESC, s.LastSaleAt DESC, c.Name;",
                 new
                 {
                     Take = Math.Clamp(take, 1, 500),
                     CustomerId = customerId,
-                    SaleType = TransactionTypeKeys.Sale
+                    SaleType = TransactionTypeKeys.Sale,
+                    TenantId = tenantId
                 }).ToList();
 
         private static CustomerAssistantRow? FindCustomer(string question, IReadOnlyList<CustomerAssistantRow> customers)
@@ -1395,7 +1441,7 @@ namespace SpareParts.Infrastructure.Services
             return term.Trim(' ', '?', '.', ',', ':', ';', '"', '\'');
         }
 
-        private static SlowMovingPartFilter ExtractSlowMovingPartFilter(System.Data.IDbConnection connection, string question)
+        private static SlowMovingPartFilter ExtractSlowMovingPartFilter(System.Data.IDbConnection connection, string question, int tenantId)
         {
             if (string.IsNullOrWhiteSpace(question))
             {
@@ -1403,18 +1449,19 @@ namespace SpareParts.Infrastructure.Services
             }
 
             return new SlowMovingPartFilter(
-                ExtractKnownBrandTerm(connection, question),
+                ExtractKnownBrandTerm(connection, question, tenantId),
                 ExtractMinimumAmount(question),
                 ExtractBeforeMonthDate(question));
         }
 
-        private static string ExtractKnownBrandTerm(System.Data.IDbConnection connection, string question)
+        private static string ExtractKnownBrandTerm(System.Data.IDbConnection connection, string question, int tenantId)
         {
             var normalizedQuestion = NormalizeForMatch(question);
             var brands = connection.Query<string>(
-                    @"SELECT Name FROM dbo.Brands WHERE NULLIF(LTRIM(RTRIM(Name)), N'') IS NOT NULL
+                    @"SELECT Name FROM dbo.Brands WHERE NULLIF(LTRIM(RTRIM(Name)), N'') IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
                       UNION
-                      SELECT Name FROM dbo.CarBrands WHERE NULLIF(LTRIM(RTRIM(Name)), N'') IS NOT NULL;")
+                      SELECT Name FROM dbo.CarBrands WHERE NULLIF(LTRIM(RTRIM(Name)), N'') IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId);",
+                    new { TenantId = tenantId })
                 .Concat(CommonVehicleBrands)
                 .Where(brand => !string.IsNullOrWhiteSpace(brand))
                 .Distinct(StringComparer.OrdinalIgnoreCase)

@@ -1,6 +1,7 @@
 using SpareParts.Domain.Accounting;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Data.Repositories;
+using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Interfaces.Repositories;
 using System.Text;
 
@@ -10,34 +11,36 @@ namespace SpareParts.Infrastructure.Services
     {
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingSettingsProvider _settingsProvider;
+        private readonly ITenantContext _tenantContext;
 
-        public AccountingService(ISqlConnectionFactory factory, AccountingSettingsProvider settingsProvider)
+        public AccountingService(ISqlConnectionFactory factory, AccountingSettingsProvider settingsProvider, ITenantContext tenantContext)
         {
             _factory = factory;
             _settingsProvider = settingsProvider;
+            _tenantContext = tenantContext;
         }
 
         public IEnumerable<AccountDto> GetAccounts()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Accounting.Accounts.GetAll().ToList();
         }
 
         public IEnumerable<AccountTypeDefinitionDto> GetAccountTypes()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Accounting.Lookups.GetAccountTypes();
         }
 
         public IEnumerable<PostingRoleDefinitionDto> GetPostingRoles()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Accounting.Lookups.GetPostingRoles();
         }
 
         public string CreateAccountType(SaveAccountTypeRequest request)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var normalized = NormalizeAccountTypeRequest(request);
 
@@ -61,7 +64,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void UpdateAccountType(string typeKey, SaveAccountTypeRequest request)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var existing = repositories.Lookups.GetAccountType(typeKey) ?? throw new NotFoundException("Account type not found.");
             var normalized = NormalizeAccountTypeRequest(request, typeKey);
@@ -81,7 +84,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void DeleteAccountType(string typeKey)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             _ = repositories.Lookups.GetAccountType(typeKey) ?? throw new NotFoundException("Account type not found.");
 
@@ -100,7 +103,7 @@ namespace SpareParts.Infrastructure.Services
 
         public string CreatePostingRole(SavePostingRoleRequest request)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var normalized = NormalizePostingRoleRequest(request);
 
@@ -124,7 +127,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void UpdatePostingRole(string roleKey, SavePostingRoleRequest request)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var existing = repositories.Lookups.GetPostingRole(roleKey) ?? throw new NotFoundException("Posting role not found.");
             var normalized = NormalizePostingRoleRequest(request, roleKey);
@@ -144,7 +147,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void DeletePostingRole(string roleKey)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             _ = repositories.Lookups.GetPostingRole(roleKey) ?? throw new NotFoundException("Posting role not found.");
 
@@ -168,7 +171,7 @@ namespace SpareParts.Infrastructure.Services
 
         public int CreateAccount(CreateAccountRequest request, int userId)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var accountTypes = repositories.Lookups.GetAccountTypes();
             var normalized = NormalizeAccountRequest(request, accountTypes);
@@ -197,7 +200,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Invalid account id.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var accountTypes = repositories.Lookups.GetAccountTypes();
             var normalized = NormalizeAccountRequest(request, accountTypes);
@@ -220,7 +223,7 @@ namespace SpareParts.Infrastructure.Services
 
         public void DeleteAccount(int id)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var account = repositories.Accounts.GetById(id) ?? throw new NotFoundException("Account not found.");
 
@@ -259,7 +262,7 @@ namespace SpareParts.Infrastructure.Services
 
         public IEnumerable<PostingAccountSettingDto> GetPostingSettings()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var accounts = repositories.Accounts.GetAll().ToDictionary(account => account.Id);
             var rows = repositories.PostingSettings.GetAll().ToDictionary(item => item.SettingKey, item => item.AccountId, StringComparer.OrdinalIgnoreCase);
@@ -313,7 +316,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Posting settings are required.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var accounts = repositories.Accounts.GetAll().ToDictionary(account => account.Id);
             var validRoleKeys = repositories.Lookups.GetPostingRoles()
@@ -356,13 +359,13 @@ namespace SpareParts.Infrastructure.Services
         {
             ValidateDateRange(dateFrom, dateTo);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Accounting.Journal.GetEntries(dateFrom, dateTo);
         }
 
         public JournalEntryDetailDto GetJournalEntry(int id)
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             return RepositoryCatalog.For(session).Accounting.Journal.GetEntryDetail(id) ?? throw new NotFoundException("Journal entry not found.");
         }
 
@@ -384,7 +387,7 @@ namespace SpareParts.Infrastructure.Services
                 throw new ValidationException("Journal description is required.");
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var accounts = repositories.Accounts.GetAll().ToDictionary(account => account.Id);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
@@ -446,7 +449,7 @@ namespace SpareParts.Infrastructure.Services
 
             ValidateDateRange(dateFrom, dateTo);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var repositories = RepositoryCatalog.For(session).Accounting;
             var account = repositories.Accounts.GetAll().FirstOrDefault(item => item.Id == accountId)
                 ?? throw new NotFoundException("Account not found.");
@@ -487,7 +490,7 @@ namespace SpareParts.Infrastructure.Services
         {
             ValidateDateRange(dateFrom, dateTo);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var rows = RepositoryCatalog.For(session).Accounting.Journal.GetTrialBalanceRows(dateFrom, dateTo).ToList();
 
@@ -507,7 +510,7 @@ namespace SpareParts.Infrastructure.Services
 
         public IReadOnlyList<StatementPartyDto> GetStatementParties()
         {
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var customers = new CustomersRepository(session)
                 .GetAll()
                 .Select(customer => new StatementPartyDto
@@ -551,7 +554,7 @@ namespace SpareParts.Infrastructure.Services
             var normalizedPartyType = NormalizeStatementPartyType(partyType);
             ValidateDateRange(dateFrom, dateTo);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var party = ResolveStatementParty(session, normalizedPartyType, partyId);
             if (party.AccountId is not > 0)
             {

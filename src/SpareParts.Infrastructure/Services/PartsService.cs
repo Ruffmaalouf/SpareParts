@@ -146,7 +146,7 @@ WHERE p.IsActive = 1
 
     public IReadOnlyList<PartStockDto> GetStockByWarehouse(int partId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         EnsurePartExists(session, partId);
 
         var rows = session.Connection.Query<PartStockDto>(
@@ -177,7 +177,7 @@ ORDER BY w.IsMain DESC, w.Name;
         minDormantDays = Math.Clamp(minDormantDays, 30, 720);
         take = Math.Clamp(take, 1, 100);
 
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var today = DateTime.Today;
         var recentCutoff = today.AddDays(-90);
 
@@ -313,7 +313,7 @@ ORDER BY
 
     public int Create(CreatePartRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         ValidateUsedCar(session, request.UsedCarId);
 
         var activePartsCount = session.Connection.ExecuteScalar<int>(
@@ -366,7 +366,7 @@ ORDER BY
 
     public void Update(int id, CreatePartRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         ValidateUsedCar(session, request.UsedCarId);
         var previousUsedCarId = LoadPartUsedCarId(session, id);
 
@@ -397,7 +397,7 @@ ORDER BY
 
     public void Delete(int id)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new PartsRepository(session);
         if (!repository.Delete(id))
         {
@@ -409,7 +409,7 @@ ORDER BY
 
     public PartListingPackageDto BuildListingPackage(int partId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var row = session.Connection.QuerySingleOrDefault<PartListingQueryRow>(
             """
             SELECT
@@ -489,7 +489,7 @@ ORDER BY
 
     public void UpdateUsedCar(int id, int? usedCarId, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         ValidateUsedCar(session, usedCarId);
         var previousUsedCarId = LoadPartUsedCarId(session, id);
 
@@ -530,14 +530,14 @@ ORDER BY
             throw new ValidationException("Choose two different warehouses for a stock transfer.");
         }
 
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         EnsurePartExists(session, id);
         EnsureWarehouseExists(session, request.FromWarehouseId, "Source warehouse");
         EnsureWarehouseExists(session, request.ToWarehouseId, "Destination warehouse");
 
         var unitCost = session.Connection.ExecuteScalar<decimal?>(
-            "SELECT CostPrice FROM dbo.Parts WHERE Id = @Id;",
-            new { Id = id },
+            "SELECT CostPrice FROM dbo.Parts WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = id, session.TenantId },
             session.Transaction) ?? 0m;
 
         var inventoryRepository = new InventoryRepository(session);
@@ -578,8 +578,8 @@ ORDER BY
         }
 
         var exists = session.Connection.ExecuteScalar<int>(
-            "SELECT COUNT(1) FROM dbo.UsedCars WHERE Id = @Id;",
-            new { Id = validUsedCarId },
+            "SELECT COUNT(1) FROM dbo.UsedCars WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { Id = validUsedCarId, session.TenantId },
             session.Transaction);
         if (exists == 0)
         {
@@ -590,8 +590,8 @@ ORDER BY
     private static void EnsurePartExists(DbSession session, int partId)
     {
         var exists = session.Connection.ExecuteScalar<bool>(
-            "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Parts WHERE Id = @Id AND IsActive = 1) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;",
-            new { Id = partId },
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Parts WHERE Id = @Id AND IsActive = 1 AND (@TenantId = 0 OR TenantId = @TenantId)) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;",
+            new { Id = partId, session.TenantId },
             session.Transaction);
         if (!exists)
         {
@@ -602,16 +602,16 @@ ORDER BY
     private static int? LoadPartUsedCarId(DbSession session, int partId)
     {
         return session.Connection.ExecuteScalar<int?>(
-            "SELECT UsedCarId FROM dbo.Parts WHERE Id = @PartId;",
-            new { PartId = partId },
+            "SELECT UsedCarId FROM dbo.Parts WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { PartId = partId, session.TenantId },
             session.Transaction);
     }
 
     private static void EnsureWarehouseExists(DbSession session, int warehouseId, string label)
     {
         var exists = session.Connection.ExecuteScalar<bool>(
-            "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Warehouses WHERE Id = @Id) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;",
-            new { Id = warehouseId },
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Warehouses WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId)) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END;",
+            new { Id = warehouseId, session.TenantId },
             session.Transaction);
         if (!exists)
         {
@@ -622,8 +622,8 @@ ORDER BY
     private static void EnsureInitialUsedCarPartStock(DbSession session, int partId, int usedCarId, int userId)
     {
         var currentStock = session.Connection.ExecuteScalar<int>(
-            "SELECT ISNULL(SUM(Quantity), 0) FROM dbo.Stock WHERE PartId = @PartId;",
-            new { PartId = partId },
+            "SELECT ISNULL(SUM(Quantity), 0) FROM dbo.Stock WHERE PartId = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { PartId = partId, session.TenantId },
             session.Transaction);
 
         if (currentStock >= UsedCarPartInitialStockQuantity || HasSaleHistory(session, partId))
@@ -635,8 +635,8 @@ ORDER BY
         var quantityToAdd = UsedCarPartInitialStockQuantity - currentStock;
         var locationId = ResolveDefaultStockLocationId(session, warehouseId, usedCarId);
         var unitCost = session.Connection.ExecuteScalar<decimal?>(
-            "SELECT CostPrice FROM dbo.Parts WHERE Id = @PartId;",
-            new { PartId = partId },
+            "SELECT CostPrice FROM dbo.Parts WHERE Id = @PartId AND (@TenantId = 0 OR TenantId = @TenantId);",
+            new { PartId = partId, session.TenantId },
             session.Transaction) ?? 0m;
 
         var inventoryRepository = new InventoryRepository(session);
@@ -678,8 +678,10 @@ ORDER BY
         var warehouseId = session.Connection.ExecuteScalar<int?>(
             @"SELECT TOP (1) Id
               FROM dbo.Warehouses
+              WHERE (@TenantId = 0 OR TenantId = @TenantId)
               ORDER BY CASE WHEN IsMain = 1 THEN 0 ELSE 1 END, Id;",
-            transaction: session.Transaction);
+            new { session.TenantId },
+            session.Transaction);
 
         if (warehouseId is > 0)
         {
@@ -706,8 +708,10 @@ BEGIN
         SELECT TOP (1) Location
         FROM dbo.UsedCars
         WHERE Id = @UsedCarId
+          AND (@TenantId = 0 OR TenantId = @TenantId)
     ) usedCar
     WHERE stockLocation.WarehouseId = @WarehouseId
+      AND (@TenantId = 0 OR stockLocation.TenantId = @TenantId)
     ORDER BY
         CASE
             WHEN NULLIF(LTRIM(RTRIM(usedCar.Location)), N'') IS NOT NULL
@@ -721,7 +725,7 @@ BEGIN
         stockLocation.Id;
 END;
 """,
-            new { WarehouseId = warehouseId, UsedCarId = usedCarId },
+            new { WarehouseId = warehouseId, UsedCarId = usedCarId, session.TenantId },
             session.Transaction);
     }
 
@@ -734,6 +738,7 @@ END;
                   FROM dbo.StockMovements
                   WHERE PartId = @PartId
                     AND Quantity < 0
+                    AND (@TenantId = 0 OR TenantId = @TenantId)
                     AND (
                         UPPER(LTRIM(RTRIM(CONVERT(NVARCHAR(50), MovementType)))) = N'SALE'
                         OR TRY_CONVERT(INT, CONVERT(NVARCHAR(50), MovementType)) = 2
@@ -742,7 +747,7 @@ END;
               THEN CAST(1 AS BIT)
               ELSE CAST(0 AS BIT)
               END;",
-            new { PartId = partId },
+            new { PartId = partId, session.TenantId },
             session.Transaction);
     }
 

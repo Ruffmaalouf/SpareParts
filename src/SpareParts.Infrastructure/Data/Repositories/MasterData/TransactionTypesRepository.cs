@@ -25,9 +25,10 @@ namespace SpareParts.Infrastructure.Data
                                         SerialCurrentNumber AS CurrentNumber,
                                         IsActive
                                  FROM TransactionTypes
+                                 WHERE (@TenantId = 0 OR TenantId = @TenantId)
                                  ORDER BY SortOrder, Name;";
 
-            return _session.Connection.Query<TransactionTypeDto>(sql, transaction: _session.Transaction);
+            return _session.Connection.Query<TransactionTypeDto>(sql, new { _session.TenantId }, transaction: _session.Transaction);
         }
 
         public TransactionTypeDto? GetById(int id)
@@ -42,17 +43,17 @@ namespace SpareParts.Infrastructure.Data
                                         SerialCurrentNumber AS CurrentNumber,
                                         IsActive
                                  FROM TransactionTypes
-                                 WHERE Id = @Id;";
+                                 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);";
 
             return _session.Connection.QuerySingleOrDefault<TransactionTypeDto>(
                 sql,
-                new { Id = id },
+                new { Id = id, _session.TenantId },
                 _session.Transaction);
         }
 
         public void Insert(string typeKey, string name, string currencyCode, decimal counterRate, string serialNumberFormat, long startNumber, long currentNumber, bool isActive)
         {
-            const string sql = @"INSERT INTO TransactionTypes (TypeKey, Name, CurrencyCode, CounterRate, SerialNumberFormat, SerialStartNumber, SerialCurrentNumber, IsActive, SortOrder)
+            const string sql = @"INSERT INTO TransactionTypes (TypeKey, Name, CurrencyCode, CounterRate, SerialNumberFormat, SerialStartNumber, SerialCurrentNumber, IsActive, SortOrder, TenantId)
                                  VALUES (
                                      @TypeKey,
                                      @Name,
@@ -62,7 +63,8 @@ namespace SpareParts.Infrastructure.Data
                                      @StartNumber,
                                      @CurrentNumber,
                                      @IsActive,
-                                     ISNULL((SELECT MAX(SortOrder) + 10 FROM TransactionTypes), 10));";
+                                     ISNULL((SELECT MAX(SortOrder) + 10 FROM TransactionTypes WHERE (@TenantId = 0 OR TenantId = @TenantId)), 10),
+                                     @TenantId);";
 
             _session.Connection.Execute(sql, new
             {
@@ -73,7 +75,8 @@ namespace SpareParts.Infrastructure.Data
                 SerialNumberFormat = serialNumberFormat,
                 StartNumber = startNumber,
                 CurrentNumber = currentNumber,
-                IsActive = isActive
+                IsActive = isActive,
+                _session.TenantId
             }, _session.Transaction);
         }
 
@@ -88,7 +91,7 @@ namespace SpareParts.Infrastructure.Data
                                      SerialStartNumber = @StartNumber,
                                      SerialCurrentNumber = @CurrentNumber,
                                      IsActive = @IsActive
-                                 WHERE Id = @Id;";
+                                 WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);";
 
             var affected = _session.Connection.Execute(sql, new
             {
@@ -100,7 +103,8 @@ namespace SpareParts.Infrastructure.Data
                 SerialNumberFormat = serialNumberFormat,
                 StartNumber = startNumber,
                 CurrentNumber = currentNumber,
-                IsActive = isActive
+                IsActive = isActive,
+                _session.TenantId
             }, _session.Transaction);
 
             return affected > 0;
@@ -108,8 +112,8 @@ namespace SpareParts.Infrastructure.Data
 
         public bool Delete(int id)
         {
-            const string sql = "DELETE FROM TransactionTypes WHERE Id = @Id;";
-            return _session.Connection.Execute(sql, new { Id = id }, _session.Transaction) > 0;
+            const string sql = "DELETE FROM TransactionTypes WHERE Id = @Id AND (@TenantId = 0 OR TenantId = @TenantId);";
+            return _session.Connection.Execute(sql, new { Id = id, _session.TenantId }, _session.Transaction) > 0;
         }
     }
 }

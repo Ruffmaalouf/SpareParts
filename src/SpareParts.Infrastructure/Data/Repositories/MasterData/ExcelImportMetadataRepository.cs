@@ -8,11 +8,13 @@ public sealed class ExcelImportMetadataRepository
 {
     private readonly IDbConnection _connection;
     private readonly IDbTransaction? _transaction;
+    private readonly int _tenantId;
 
-    public ExcelImportMetadataRepository(IDbConnection connection, IDbTransaction? transaction = null)
+    public ExcelImportMetadataRepository(IDbConnection connection, IDbTransaction? transaction = null, int tenantId = 0)
     {
         _connection = connection;
         _transaction = transaction;
+        _tenantId = tenantId;
     }
 
     public IReadOnlyList<ExcelImportTableDto> GetTables()
@@ -145,13 +147,17 @@ public sealed class ExcelImportMetadataRepository
             .Select(name => $"{Quote(name)} = @LookupValue")
             .ToArray();
 
+        var tenantFilter = HasColumn(column.ReferencedSchemaName, column.ReferencedTableName, "TenantId")
+            ? " AND (@TenantId = 0 OR TenantId = @TenantId)"
+            : string.Empty;
+
         var sql = $@"
             SELECT TOP 1 {Quote(column.ReferencedColumnName)}
             FROM {Quote(column.ReferencedSchemaName)}.{Quote(column.ReferencedTableName)}
-            WHERE {string.Join(" OR ", predicates)}
+            WHERE ({string.Join(" OR ", predicates)}){tenantFilter}
             ORDER BY {Quote(column.ReferencedColumnName)};";
 
-        return _connection.ExecuteScalar(sql, new { LookupValue = rawValue.Trim() }, _transaction);
+        return _connection.ExecuteScalar(sql, new { LookupValue = rawValue.Trim(), TenantId = _tenantId }, _transaction);
     }
 
     public static (string SchemaName, string TableName) ParseTableKey(string tableKey)

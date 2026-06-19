@@ -134,7 +134,7 @@ public class CreateSaleSqlServerIntegrationTests : IAsyncLifetime
         var factory = new SqlConnectionFactory(connectionString);
         var settingsProvider = new AccountingSettingsProvider(factory, new AccountingOptions());
         var customerAccountResolver = new CustomerAccountResolver(factory);
-        var strategy = new SaleAccountingStrategy(factory, settingsProvider, customerAccountResolver);
+        var strategy = new SaleAccountingStrategy(factory, settingsProvider, customerAccountResolver, TenantContext.Legacy);
         return new CreateSaleHandler(
             factory,
             new InventoryService(),

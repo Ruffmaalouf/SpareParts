@@ -11,10 +11,12 @@ namespace SpareParts.Infrastructure.Services
     {
         private const string SaleReferenceType = "Sale";
         private readonly ISqlConnectionFactory _factory;
+        private readonly ITenantContext _tenantContext;
 
-        public OwnerCockpitService(ISqlConnectionFactory factory)
+        public OwnerCockpitService(ISqlConnectionFactory factory, ITenantContext tenantContext)
         {
             _factory = factory;
+            _tenantContext = tenantContext;
         }
 
         public OwnerCockpitDashboardDto GetDashboard(DateTime? businessDate)
@@ -22,7 +24,7 @@ namespace SpareParts.Infrastructure.Services
             var date = (businessDate ?? DateTime.Today).Date;
             var nextDate = date.AddDays(1);
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var summary = LoadSummary(session, date, nextDate, currencyContext);
             var dailyProfitLoss = LoadDailyProfitLoss(session, date, nextDate, summary, currencyContext);
@@ -80,6 +82,7 @@ WITH TransactionAmounts AS
         DisplayPaidAmount = COALESCE(NULLIF(t.PaidCounterAmount, 0), CASE WHEN @CounterRateToBase > 0 THEN COALESCE(NULLIF(t.PaidAmount, 0), 0) / @CounterRateToBase ELSE t.PaidAmount END),
         DisplayTotalCost = CASE WHEN @CounterRateToBase > 0 THEN ISNULL(t.TotalCost, 0) / @CounterRateToBase ELSE ISNULL(t.TotalCost, 0) END
     FROM dbo.Transactions t
+    WHERE (@TenantId = 0 OR t.TenantId = @TenantId)
 ),
 TransactionSummary AS
 (
@@ -134,9 +137,12 @@ TransactionSummary AS
         SELECT ISNULL(SUM(CAST(s.Quantity AS DECIMAL(19, 4)) * COALESCE(NULLIF(p.AllocatedCost, 0), NULLIF(p.CostPrice, 0), NULLIF(p.AveragePrice, 0), 0)), 0) / CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END
         FROM dbo.Stock s
         INNER JOIN dbo.Parts p ON p.Id = s.PartId
+        WHERE (@TenantId = 0 OR s.TenantId = @TenantId)
+          AND (@TenantId = 0 OR p.TenantId = @TenantId)
     )
     FROM TransactionAmounts t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+    WHERE (@TenantId = 0 OR tt.TenantId = @TenantId)
 ),
 WholesaleAmounts AS
 (
@@ -164,6 +170,8 @@ WholesaleAmounts AS
     ) cost
     WHERE w.SaleDate >= @BusinessDate
       AND w.SaleDate < @NextBusinessDate
+      AND (@TenantId = 0 OR w.TenantId = @TenantId)
+      AND (@TenantId = 0 OR uc.TenantId = @TenantId)
 ),
 WholesaleSummary AS
 (
@@ -198,7 +206,8 @@ CROSS JOIN WholesaleSummary wholesale;";
                     SaleTypeKey = TransactionTypeKeys.Sale,
                     PurchaseTypeKey = TransactionTypeKeys.Purchase,
                     UsedCarPurchaseTypeKey = TransactionTypeKeys.UsedCarPurchase,
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction);
         }
@@ -249,6 +258,8 @@ WHERE je.EntryDate >= @BusinessDate
   AND je.EntryDate < @NextBusinessDate
   AND {normalizedAccountTypeKey} = @ExpenseAccountTypeKey
   AND (cogsSetting.AccountId IS NULL OR a.Id <> cogsSetting.AccountId)
+  AND (@TenantId = 0 OR je.TenantId = @TenantId)
+  AND (@TenantId = 0 OR a.TenantId = @TenantId)
   AND NOT EXISTS
   (
       SELECT 1
@@ -273,7 +284,8 @@ WHERE je.EntryDate >= @BusinessDate
                         AccountingSettingKeys.UsedCarCustoms,
                         AccountingSettingKeys.UsedCarRepairs
                     },
-                    ExpenseAccountTypeKey = "expense"
+                    ExpenseAccountTypeKey = "expense",
+                    session.TenantId
                 },
                 session.Transaction);
 
@@ -314,7 +326,8 @@ IF @CashAccountId IS NULL
 BEGIN
     SELECT TOP (1) @CashAccountId = Id
     FROM dbo.Accounts
-    WHERE Code = N'1000';
+    WHERE Code = N'1000'
+      AND (@TenantId = 0 OR TenantId = @TenantId);
 END;
 
 ;WITH AccountTree AS
@@ -322,20 +335,22 @@ END;
     SELECT Id
     FROM dbo.Accounts
     WHERE Id = @CashAccountId
+      AND (@TenantId = 0 OR TenantId = @TenantId)
 
     UNION ALL
 
     SELECT child.Id
     FROM dbo.Accounts child
     INNER JOIN AccountTree parent ON parent.Id = child.ParentId
+    WHERE (@TenantId = 0 OR child.TenantId = @TenantId)
 )
 SELECT ISNULL(SUM(jl.Debit - jl.Credit), 0)
 FROM AccountTree tree
-LEFT JOIN dbo.JournalLines jl ON jl.AccountId = tree.Id;";
+LEFT JOIN dbo.JournalLines jl ON jl.AccountId = tree.Id AND (@TenantId = 0 OR jl.TenantId = @TenantId);";
 
             return session.Connection.ExecuteScalar<decimal>(
                 sql,
-                new { SalesCashKey = AccountingSettingKeys.SalesCash },
+                new { SalesCashKey = AccountingSettingKeys.SalesCash, session.TenantId },
                 session.Transaction);
         }
 
@@ -374,6 +389,7 @@ WITH PurchaseRates AS
     INNER JOIN dbo.TransactionItems ti ON ti.TransactionId = t.Id
     WHERE ti.PartId IS NOT NULL
       AND UPPER(LTRIM(RTRIM(ISNULL(NULLIF(t.CounterCurrencyCode, N''), @CounterCurrencyCode)))) = UPPER(LTRIM(RTRIM(@CounterCurrencyCode)))
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
     GROUP BY ti.PartId
 ),
 LineRows AS
@@ -414,10 +430,13 @@ LineRows AS
         WHERE sm.ReferenceType = @SaleReferenceType
           AND sm.ReferenceId = t.ReferenceId
           AND sm.PartId = ti.PartId
+          AND (@TenantId = 0 OR sm.TenantId = @TenantId)
     ) m
     WHERE t.TransactionDate >= @BusinessDate
       AND t.TransactionDate < @NextBusinessDate
       AND ti.PartId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
     GROUP BY p.Id, p.InternalCode, p.Name
 ),
 Margins AS
@@ -481,7 +500,8 @@ ORDER BY Profit DESC, Revenue DESC, Name;";
                     PurchaseTypeKey = TransactionTypeKeys.Purchase,
                     SaleReferenceType,
                     CounterRateToBase = ResolveCounterRateToBase(currencyContext),
-                    currencyContext.CounterCurrencyCode
+                    currencyContext.CounterCurrencyCode,
+                    session.TenantId
                 },
                 session.Transaction).ToList();
         }
@@ -509,6 +529,9 @@ WITH PartSaleRows AS
     INNER JOIN dbo.CarModels cm ON cm.Id = uc.CarModelId
     LEFT JOIN dbo.CarBrands cb ON cb.Id = cm.CarBrandId
     WHERE p.UsedCarId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
+      AND (@TenantId = 0 OR uc.TenantId = @TenantId)
     GROUP BY uc.Id, cb.Name, cm.Name, uc.ModelYear
 ),
 WholesaleRows AS
@@ -542,6 +565,8 @@ WholesaleRows AS
                 + ((ISNULL(uc.Transportation, 0) + ISNULL(uc.PartOutAmount, 0) + ISNULL(uc.Shipping, 0) + ISNULL(uc.Customs, 0) + ISNULL(uc.Repairs, 0)) * rate.EffectiveCounterRate)
         END
     ) cost
+    WHERE (@TenantId = 0 OR w.TenantId = @TenantId)
+      AND (@TenantId = 0 OR uc.TenantId = @TenantId)
     GROUP BY uc.Id, cb.Name, cm.Name, uc.ModelYear
 ),
 CarRows AS
@@ -580,7 +605,8 @@ ORDER BY Profit DESC, Revenue DESC, Name;";
                 new
                 {
                     SaleTypeKey = TransactionTypeKeys.Sale,
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction).ToList();
         }
@@ -627,6 +653,7 @@ WITH PartSegments AS
         SELECT SearchText = LOWER(CONCAT(N' ', ISNULL(c.Name, N''), N' ', ISNULL(p.Name, N''), N' ', ISNULL(p.OEMNumber, N''), N' '))
     ) search
     WHERE p.IsActive = 1
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
 ),
 StockBySegment AS
 (
@@ -645,7 +672,7 @@ StockBySegment AS
             THEN CAST(s.Quantity AS DECIMAL(19, 4)) * ps.UnitValueBase ELSE 0 END), 0)
             / CASE WHEN @CounterRateToBase > 0 THEN @CounterRateToBase ELSE 1 END, 4)
     FROM PartSegments ps
-    LEFT JOIN dbo.Stock s ON s.PartId = ps.PartId
+    LEFT JOIN dbo.Stock s ON s.PartId = ps.PartId AND (@TenantId = 0 OR s.TenantId = @TenantId)
     OUTER APPLY
     (
         SELECT LastSoldAt = MAX(t.TransactionDate)
@@ -654,6 +681,7 @@ StockBySegment AS
         INNER JOIN dbo.TransactionItems ti ON ti.TransactionId = t.Id
         WHERE ti.PartId = ps.PartId
           AND t.IsReturn = 0
+          AND (@TenantId = 0 OR t.TenantId = @TenantId)
     ) lastSale
     GROUP BY ps.SegmentKey
 ),
@@ -684,10 +712,12 @@ SalesBySegment AS
         WHERE sm.ReferenceType = @SaleReferenceType
           AND sm.ReferenceId = t.ReferenceId
           AND sm.PartId = ti.PartId
+          AND (@TenantId = 0 OR sm.TenantId = @TenantId)
     ) m
     WHERE t.TransactionDate >= @StartDate
       AND t.TransactionDate < @NextBusinessDate
       AND ti.PartId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
     GROUP BY ps.SegmentKey
 )
 SELECT
@@ -720,7 +750,8 @@ HAVING ISNULL(MAX(sales.Revenue), 0) <> 0
                     DeadStockCutoff = businessDate.AddDays(-90),
                     SaleTypeKey = TransactionTypeKeys.Sale,
                     SaleReferenceType,
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction).ToList();
 
@@ -768,6 +799,7 @@ OUTER APPLY
 ) amounts
 WHERE tt.TypeKey IN (@SaleTypeKey, @PurchaseTypeKey, @UsedCarPurchaseTypeKey)
   AND amounts.DisplayTotalAmount > amounts.DisplayPaidAmount
+  AND (@TenantId = 0 OR t.TenantId = @TenantId)
 ORDER BY t.TransactionDate, t.Id;";
 
             return session.Connection.Query<OwnerCockpitUnpaidTransactionDto>(
@@ -777,7 +809,8 @@ ORDER BY t.TransactionDate, t.Id;";
                     SaleTypeKey = TransactionTypeKeys.Sale,
                     PurchaseTypeKey = TransactionTypeKeys.Purchase,
                     UsedCarPurchaseTypeKey = TransactionTypeKeys.UsedCarPurchase,
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction).ToList();
         }
@@ -797,11 +830,13 @@ FROM
 (
     SELECT je.Id
     FROM dbo.JournalEntries je
-    LEFT JOIN dbo.JournalLines jl ON jl.JournalEntryId = je.Id
+    LEFT JOIN dbo.JournalLines jl ON jl.JournalEntryId = je.Id AND (@TenantId = 0 OR jl.TenantId = @TenantId)
+    WHERE (@TenantId = 0 OR je.TenantId = @TenantId)
     GROUP BY je.Id
     HAVING ABS(ISNULL(SUM(jl.Debit), 0) - ISNULL(SUM(jl.Credit), 0)) > 0.01
 ) entries;",
-                transaction: session.Transaction);
+                new { session.TenantId },
+                session.Transaction);
 
             if (unbalancedEntries > 0)
             {
@@ -901,10 +936,13 @@ OUTER APPLY
     SELECT SUM(CAST(stock.Quantity AS DECIMAL(19, 4))) AS OnHand
     FROM dbo.Stock stock
     WHERE stock.PartId = parts.Id
+      AND (@TenantId = 0 OR stock.TenantId = @TenantId)
 ) stockSummary
 WHERE parts.IsActive = 1
   AND parts.MinStock > 0
-  AND ISNULL(stockSummary.OnHand, 0) <= parts.MinStock;",
+  AND ISNULL(stockSummary.OnHand, 0) <= parts.MinStock
+  AND (@TenantId = 0 OR parts.TenantId = @TenantId);",
+                new { session.TenantId },
                 transaction: session.Transaction);
 
             if (lowStockParts > 0)
@@ -918,7 +956,8 @@ WHERE parts.IsActive = 1
             }
 
             var negativeStockRows = session.Connection.ExecuteScalar<int>(
-                "SELECT COUNT(1) FROM dbo.Stock WHERE Quantity < 0;",
+                "SELECT COUNT(1) FROM dbo.Stock WHERE Quantity < 0 AND (@TenantId = 0 OR TenantId = @TenantId);",
+                new { session.TenantId },
                 transaction: session.Transaction);
 
             if (negativeStockRows > 0)
@@ -939,10 +978,11 @@ WHERE parts.IsActive = 1
                 @"
 SELECT COUNT(1)
 FROM dbo.AccountingPostingRoles roles
-LEFT JOIN dbo.AccountingPostingSettings settings ON settings.SettingKey = roles.RoleKey
-LEFT JOIN dbo.Accounts accounts ON accounts.Id = settings.AccountId
+LEFT JOIN dbo.AccountingPostingSettings settings ON settings.SettingKey = roles.RoleKey AND (@TenantId = 0 OR settings.TenantId = @TenantId)
+LEFT JOIN dbo.Accounts accounts ON accounts.Id = settings.AccountId AND (@TenantId = 0 OR accounts.TenantId = @TenantId)
 WHERE roles.IsActive = 1
   AND (settings.AccountId IS NULL OR accounts.Id IS NULL);",
+                new { session.TenantId },
                 transaction: session.Transaction);
 
         private static int CountMissingCounterpartyAccounts(DbSession session)
@@ -951,12 +991,15 @@ WHERE roles.IsActive = 1
 SELECT
     (SELECT COUNT(1)
      FROM dbo.Customers customers
-     LEFT JOIN dbo.Accounts accounts ON accounts.Id = customers.AccountId
-     WHERE customers.AccountId IS NULL OR accounts.Id IS NULL)
+     LEFT JOIN dbo.Accounts accounts ON accounts.Id = customers.AccountId AND (@TenantId = 0 OR accounts.TenantId = @TenantId)
+     WHERE (customers.AccountId IS NULL OR accounts.Id IS NULL)
+       AND (@TenantId = 0 OR customers.TenantId = @TenantId))
   + (SELECT COUNT(1)
      FROM dbo.Suppliers suppliers
-     LEFT JOIN dbo.Accounts accounts ON accounts.Id = suppliers.AccountId
-     WHERE suppliers.AccountId IS NULL OR accounts.Id IS NULL);",
+     LEFT JOIN dbo.Accounts accounts ON accounts.Id = suppliers.AccountId AND (@TenantId = 0 OR accounts.TenantId = @TenantId)
+     WHERE (suppliers.AccountId IS NULL OR accounts.Id IS NULL)
+       AND (@TenantId = 0 OR suppliers.TenantId = @TenantId));",
+                new { session.TenantId },
                 transaction: session.Transaction);
 
         private static string BuildMissingAccountSetupMessage(int missingPostingSettings, int missingCounterpartyAccounts)
@@ -991,6 +1034,7 @@ SELECT
     FROM dbo.Transactions t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
     WHERE tt.TypeKey IN (@PurchaseTypeKey, @UsedCarPurchaseTypeKey)
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
 )
 SELECT
     Count = COUNT(1),
@@ -1003,7 +1047,8 @@ WHERE RemainingAmount > 0
                     PurchaseTypeKey = TransactionTypeKeys.Purchase,
                     UsedCarPurchaseTypeKey = TransactionTypeKeys.UsedCarPurchase,
                     OverdueDate = businessDate.AddDays(-30),
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction);
 
@@ -1022,6 +1067,7 @@ WHERE RemainingAmount > 0
     FROM dbo.Transactions t
     INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
     WHERE tt.TypeKey = @SaleTypeKey
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
 )
 SELECT
     Count = COUNT(1),
@@ -1033,7 +1079,8 @@ WHERE RemainingAmount > 0
                 {
                     SaleTypeKey = TransactionTypeKeys.Sale,
                     OverdueDate = businessDate.AddDays(-30),
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction);
 
@@ -1051,6 +1098,8 @@ WHERE RemainingAmount > 0
     INNER JOIN dbo.TransactionItems ti ON ti.TransactionId = t.Id
     INNER JOIN dbo.Parts p ON p.Id = ti.PartId
     WHERE p.UsedCarId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
     GROUP BY p.UsedCarId
 ),
 HighCostCars AS
@@ -1061,6 +1110,7 @@ HighCostCars AS
     INNER JOIN SalesByCar s ON s.UsedCarId = uc.Id
     WHERE s.SaleCount > 0
       AND ISNULL(uc.GrandTotalBase, 0) > ISNULL(s.SalesRevenue, 0)
+      AND (@TenantId = 0 OR uc.TenantId = @TenantId)
 )
 SELECT
     Count = COUNT(1),
@@ -1069,7 +1119,8 @@ FROM HighCostCars;",
                 new
                 {
                     SaleTypeKey = TransactionTypeKeys.Sale,
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction);
 
@@ -1082,23 +1133,23 @@ FROM HighCostCars;",
     UNION
     SELECT UPPER(LTRIM(RTRIM(@CounterCurrencyCode)))
     UNION
-    SELECT UPPER(LTRIM(RTRIM(CurrencyCode))) FROM dbo.TransactionTypes WHERE CurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(CurrencyCode))) FROM dbo.TransactionTypes WHERE CurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(BaseCurrencyCode))) FROM dbo.Transactions WHERE BaseCurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(BaseCurrencyCode))) FROM dbo.Transactions WHERE BaseCurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(CounterCurrencyCode))) FROM dbo.Transactions WHERE CounterCurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(CounterCurrencyCode))) FROM dbo.Transactions WHERE CounterCurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(CurrencyCode))) FROM dbo.TransactionItems WHERE CurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(CurrencyCode))) FROM dbo.TransactionItems WHERE CurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(Currency))) FROM dbo.Parts WHERE Currency IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(Currency))) FROM dbo.Parts WHERE Currency IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(PriceCurrency))) FROM dbo.UsedCars WHERE PriceCurrency IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(PriceCurrency))) FROM dbo.UsedCars WHERE PriceCurrency IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(BaseCurrencyCode))) FROM dbo.UsedCars WHERE BaseCurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(BaseCurrencyCode))) FROM dbo.UsedCars WHERE BaseCurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(CounterCurrencyCode))) FROM dbo.UsedCars WHERE CounterCurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(CounterCurrencyCode))) FROM dbo.UsedCars WHERE CounterCurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
     UNION
-    SELECT UPPER(LTRIM(RTRIM(ShippingFeesCurrencyCode))) FROM dbo.Location WHERE ShippingFeesCurrencyCode IS NOT NULL
+    SELECT UPPER(LTRIM(RTRIM(ShippingFeesCurrencyCode))) FROM dbo.Location WHERE ShippingFeesCurrencyCode IS NOT NULL AND (@TenantId = 0 OR TenantId = @TenantId)
 ),
 DistinctCurrencyCodes AS
 (
@@ -1110,13 +1161,14 @@ DistinctCurrencyCodes AS
 )
 SELECT COUNT(1)
 FROM DistinctCurrencyCodes codes
-LEFT JOIN dbo.CurrencyRates rates ON UPPER(LTRIM(RTRIM(rates.Code))) = codes.Code
+LEFT JOIN dbo.CurrencyRates rates ON UPPER(LTRIM(RTRIM(rates.Code))) = codes.Code AND (@TenantId = 0 OR rates.TenantId = @TenantId)
 WHERE rates.Code IS NULL
    OR rates.RateToUsd <= 0;",
                 new
                 {
                     currencyContext.BaseCurrencyCode,
-                    currencyContext.CounterCurrencyCode
+                    currencyContext.CounterCurrencyCode,
+                    session.TenantId
                 },
                 session.Transaction);
 
@@ -1155,6 +1207,7 @@ WITH PurchaseRates AS
     INNER JOIN dbo.TransactionItems ti ON ti.TransactionId = t.Id
     WHERE ti.PartId IS NOT NULL
       AND UPPER(LTRIM(RTRIM(ISNULL(NULLIF(t.CounterCurrencyCode, N''), @CounterCurrencyCode)))) = UPPER(LTRIM(RTRIM(@CounterCurrencyCode)))
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
     GROUP BY ti.PartId
 ),
 LineRows AS
@@ -1193,10 +1246,13 @@ LineRows AS
         WHERE sm.ReferenceType = @SaleReferenceType
           AND sm.ReferenceId = t.ReferenceId
           AND sm.PartId = ti.PartId
+          AND (@TenantId = 0 OR sm.TenantId = @TenantId)
     ) m
     WHERE t.TransactionDate >= @BusinessDate
       AND t.TransactionDate < @NextBusinessDate
       AND ti.PartId IS NOT NULL
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
+      AND (@TenantId = 0 OR p.TenantId = @TenantId)
     GROUP BY p.Id
 ),
 Margins AS
@@ -1232,7 +1288,8 @@ WHERE MarginAtPurchaseRate > 0
                     PurchaseTypeKey = TransactionTypeKeys.Purchase,
                     SaleReferenceType,
                     CounterRateToBase = ResolveCounterRateToBase(currencyContext),
-                    currencyContext.CounterCurrencyCode
+                    currencyContext.CounterCurrencyCode,
+                    session.TenantId
                 },
                 session.Transaction);
 
@@ -1248,6 +1305,7 @@ WHERE MarginAtPurchaseRate > 0
     WHERE tt.TypeKey IN (@SaleTypeKey, @PurchaseTypeKey, @UsedCarPurchaseTypeKey)
       AND NULLIF(LTRIM(RTRIM(t.PostingStatus)), N'') IS NOT NULL
       AND UPPER(LTRIM(RTRIM(t.PostingStatus))) <> N'POSTED'
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
 )
 SELECT
     Count = COUNT(1),
@@ -1258,7 +1316,8 @@ FROM DraftTransactions;",
                     SaleTypeKey = TransactionTypeKeys.Sale,
                     PurchaseTypeKey = TransactionTypeKeys.Purchase,
                     UsedCarPurchaseTypeKey = TransactionTypeKeys.UsedCarPurchase,
-                    CounterRateToBase = ResolveCounterRateToBase(currencyContext)
+                    CounterRateToBase = ResolveCounterRateToBase(currencyContext),
+                    session.TenantId
                 },
                 session.Transaction);
 

@@ -10,17 +10,20 @@ namespace SpareParts.Infrastructure.Services
         private readonly ISqlConnectionFactory _factory;
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
+        private readonly ITenantContext _tenantContext;
         private readonly ILogger<ReturnAccountingStrategy>? _logger;
 
         public ReturnAccountingStrategy(
             ISqlConnectionFactory factory,
             AccountingSettingsProvider settingsProvider,
             CustomerAccountResolver customerAccountResolver,
+            ITenantContext tenantContext,
             ILogger<ReturnAccountingStrategy>? logger = null)
         {
             _factory = factory;
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
+            _tenantContext = tenantContext;
             _logger = logger;
         }
 
@@ -41,7 +44,7 @@ namespace SpareParts.Infrastructure.Services
                     settings.SalesRevenueAccountId, settings.CogsAccountId, settings.InventoryAccountId);
             }
 
-            using var session = new DbSession(_factory);
+            using var session = new DbSession(_factory, _tenantContext.TenantId);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
 
             // Reverse of the original sale GL:

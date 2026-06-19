@@ -1,21 +1,24 @@
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
 public sealed class BrandsService
 {
     private readonly ISqlConnectionFactory _factory;
+    private readonly ITenantContext _tenantContext;
 
-    public BrandsService(ISqlConnectionFactory factory)
+    public BrandsService(ISqlConnectionFactory factory, ITenantContext tenantContext)
     {
         _factory = factory;
+        _tenantContext = tenantContext;
     }
 
     public (IEnumerable<BrandDto> Items, int TotalCount) GetAll(int page, int pageSize)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new BrandsRepository(session);
         var (brands, totalCount) = repository.GetPaged(page, pageSize);
         var items = brands.Select(b => new BrandDto
@@ -29,7 +32,7 @@ public sealed class BrandsService
 
     public int Create(CreateBrandRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new BrandsRepository(session);
         var brand = new Brand
         {
@@ -46,7 +49,7 @@ public sealed class BrandsService
 
     public void Update(int id, CreateBrandRequest request, int userId)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new BrandsRepository(session);
         if (!repository.Update(id, request.Name, request.IsActive, userId))
         {
@@ -58,7 +61,7 @@ public sealed class BrandsService
 
     public void Delete(int id)
     {
-        using var session = new DbSession(_factory);
+        using var session = new DbSession(_factory, _tenantContext.TenantId);
         var repository = new BrandsRepository(session);
         if (!repository.Delete(id))
         {
