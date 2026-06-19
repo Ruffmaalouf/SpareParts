@@ -3,6 +3,7 @@ using Dapper;
 using SpareParts.Domain.Inventory;
 using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Data;
+using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
 
@@ -17,11 +18,16 @@ public sealed class PartRequestsService
 
     private readonly ISqlConnectionFactory _factory;
     private readonly ISubscriptionLimitService _subscriptionLimitService;
+    private readonly ITenantContext _tenantContext;
 
-    public PartRequestsService(ISqlConnectionFactory factory, ISubscriptionLimitService subscriptionLimitService)
+    public PartRequestsService(
+        ISqlConnectionFactory factory,
+        ISubscriptionLimitService subscriptionLimitService,
+        ITenantContext tenantContext)
     {
         _factory = factory;
         _subscriptionLimitService = subscriptionLimitService;
+        _tenantContext = tenantContext;
     }
 
     public IEnumerable<PartRequestDto> GetAll(string? status = null, string? search = null)
@@ -121,6 +127,7 @@ OUTER APPLY
 ) waiting
 WHERE (@OnlyActive = 0 OR pr.Status IN (N'Open', N'Contacted', N'Reserved'))
   AND (@ExactStatus IS NULL OR pr.Status = @ExactStatus)
+  AND (@TenantId = 0 OR pr.TenantId = @TenantId)
   AND
   (
       @Search IS NULL
@@ -149,7 +156,8 @@ ORDER BY
             {
                 OnlyActive = onlyActive,
                 ExactStatus = exactStatus,
-                Search = normalizedSearch
+                Search = normalizedSearch,
+                TenantId = _tenantContext.TenantId
             }).ToList();
 
         foreach (var row in rows)
@@ -217,12 +225,14 @@ WHERE Id = @CustomerId;
             _subscriptionLimitService.EnsureAndIncrementMonthlyUsage(sellerTenantId, LimitCode.BuyerLeadsMonthly, "Monthly Buyer Leads");
         }
 
+        var ownerTenantId = part?.TenantId ?? (_tenantContext.TenantId > 0 ? _tenantContext.TenantId : (int?)null);
+
         return conn.ExecuteScalar<int>(
             """
 INSERT INTO dbo.PartRequests
-    (PartId, CustomerId, CustomerName, CustomerPhone, RequestedPartName, RequestedOemNumber, VehicleDetails, Quantity, Status, Notes, CreatedByUserId)
+    (PartId, CustomerId, CustomerName, CustomerPhone, RequestedPartName, RequestedOemNumber, VehicleDetails, Quantity, Status, Notes, CreatedByUserId, TenantId)
 VALUES
-    (@PartId, @CustomerId, @CustomerName, @CustomerPhone, @RequestedPartName, @RequestedOemNumber, @VehicleDetails, @Quantity, N'Open', @Notes, @UserId);
+    (@PartId, @CustomerId, @CustomerName, @CustomerPhone, @RequestedPartName, @RequestedOemNumber, @VehicleDetails, @Quantity, N'Open', @Notes, @UserId, @TenantId);
 SELECT CAST(SCOPE_IDENTITY() AS INT);
 """,
             new
@@ -236,7 +246,8 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
                 VehicleDetails = NormalizeOptional(request.VehicleDetails),
                 request.Quantity,
                 Notes = NormalizeOptional(request.Notes),
-                UserId = userId
+                UserId = userId,
+                TenantId = ownerTenantId
             });
     }
 
@@ -268,9 +279,10 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
                 """
 SELECT Id, PartId, Quantity, Status
 FROM dbo.PartRequests WITH (UPDLOCK, ROWLOCK)
-WHERE Id = @Id;
+WHERE Id = @Id
+  AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
-                new { Id = id },
+                new { Id = id, TenantId = _tenantContext.TenantId },
                 tx);
 
             if (target == null)
@@ -415,12 +427,12 @@ WHERE PartRequestId = @Id
 
         try
         {
+            EnsurePartRequestExists(conn, tx, id);
             ReleaseActiveReservations(conn, tx, id, null, ReservationStatusReleased, "Part request deleted");
-            var deleted = conn.Execute("DELETE FROM dbo.PartRequests WHERE Id = @Id;", new { Id = id }, tx);
-            if (deleted == 0)
-            {
-                throw new NotFoundException("Part request not found.");
-            }
+            conn.Execute(
+                "DELETE FROM dbo.PartRequests WHERE Id = @Id;",
+                new { Id = id },
+                tx);
 
             tx.Commit();
         }
@@ -680,15 +692,16 @@ WHERE Id = @Id;
         return lines.Sum(line => line.Quantity);
     }
 
-    private static void EnsurePartRequestExists(IDbConnection conn, IDbTransaction tx, int id)
+    private void EnsurePartRequestExists(IDbConnection conn, IDbTransaction tx, int id)
     {
         var exists = conn.ExecuteScalar<int>(
             """
 SELECT COUNT(1)
 FROM dbo.PartRequests WITH (UPDLOCK, ROWLOCK)
-WHERE Id = @Id;
+WHERE Id = @Id
+  AND (@TenantId = 0 OR TenantId = @TenantId);
 """,
-            new { Id = id },
+            new { Id = id, TenantId = _tenantContext.TenantId },
             tx);
 
         if (exists == 0)
