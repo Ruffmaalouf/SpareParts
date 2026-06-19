@@ -1,6 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { asRows, dateTime, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
 const selectedCarStorageKey = "spareparts.car-twin.selected-car-id";
 const eventTypes = ["Inspection", "MileageUpdate", "ConditionChange", "LocationMove", "Note"];
@@ -131,6 +132,125 @@ function SpinViewer({ images }) {
     h("div", { className: "spin-viewer-bar" },
       h("span", null, images.length > 1 ? "Drag to rotate" : "Add more photos for a smoother spin"),
       h("b", null, `${frame + 1} / ${images.length}`)
+    )
+  );
+}
+
+function buildCarGroup() {
+  const group = new THREE.Group();
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4a63, metalness: 0.3, roughness: 0.6 });
+  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x9fc6e0, metalness: 0.1, roughness: 0.2, transparent: true, opacity: 0.7 });
+  const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9 });
+
+  const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.9, 1.8), bodyMaterial);
+  lowerBody.position.set(0, 0.55, 0);
+  group.add(lowerBody);
+
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.8, 1.6), glassMaterial);
+  cabin.position.set(-0.2, 1.35, 0);
+  group.add(cabin);
+
+  const wheelGeometry = new THREE.CylinderGeometry(0.45, 0.45, 0.4, 20);
+  const wheelOffsets = [
+    [1.5, 0.45, 1],
+    [1.5, 0.45, -1],
+    [-1.5, 0.45, 1],
+    [-1.5, 0.45, -1]
+  ];
+  wheelOffsets.forEach(([x, y, z]) => {
+    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+    wheel.rotation.x = Math.PI / 2;
+    wheel.position.set(x, y, z);
+    group.add(wheel);
+  });
+
+  return group;
+}
+
+function partMarkerColor(part) {
+  return read(part, "isSold") ? 0x35c46a : 0xe0a830;
+}
+
+function Model3DViewer({ parts }) {
+  const containerRef = useRef(null);
+  const dragRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const width = container.clientWidth || 320;
+    const height = 260;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    camera.position.set(4.5, 3, 5.5);
+    camera.lookAt(0, 0.8, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const directional = new THREE.DirectionalLight(0xffffff, 0.8);
+    directional.position.set(3, 6, 4);
+    scene.add(directional);
+
+    const carGroup = buildCarGroup();
+    scene.add(carGroup);
+
+    const markerPositions = [
+      [1.4, 1.7, 0.9], [1.4, 1.7, -0.9], [-1.4, 1.7, 0.9], [-1.4, 1.7, -0.9],
+      [0.4, 1.9, 1.0], [0.4, 1.9, -1.0], [-0.6, 1.9, 1.0], [-0.6, 1.9, -1.0]
+    ];
+    const markerGeometry = new THREE.SphereGeometry(0.14, 12, 12);
+    parts.slice(0, markerPositions.length).forEach((part, index) => {
+      const marker = new THREE.Mesh(markerGeometry, new THREE.MeshStandardMaterial({ color: partMarkerColor(part) }));
+      marker.position.set(...markerPositions[index]);
+      carGroup.add(marker);
+    });
+
+    let autoRotate = true;
+    let frameId = null;
+    const animate = () => {
+      if (autoRotate) carGroup.rotation.y += 0.006;
+      renderer.render(scene, camera);
+      frameId = requestAnimationFrame(animate);
+    };
+    animate();
+
+    const onPointerDown = (event) => {
+      autoRotate = false;
+      dragRef.current = { startX: event.clientX, startRotation: carGroup.rotation.y };
+    };
+    const onPointerMove = (event) => {
+      if (!dragRef.current) return;
+      const deltaX = event.clientX - dragRef.current.startX;
+      carGroup.rotation.y = dragRef.current.startRotation + deltaX * 0.01;
+    };
+    const onPointerUp = () => { dragRef.current = null; };
+
+    renderer.domElement.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      renderer.dispose();
+      container.removeChild(renderer.domElement);
+    };
+  }, [parts]);
+
+  return h("div", { className: "model3d-viewer" },
+    h("div", { className: "model3d-canvas", ref: containerRef }),
+    h("div", { className: "spin-viewer-bar" },
+      h("span", null, "Drag to rotate - generic body, markers show removed parts"),
+      h("span", null,
+        h("i", { className: "model3d-legend-dot model3d-legend-sold" }), " Sold  ",
+        h("i", { className: "model3d-legend-dot model3d-legend-remaining" }), " Remaining"
+      )
     )
   );
 }
@@ -312,6 +432,7 @@ export function CarTwinWorkspaceView({ api }) {
                 h("b", null, wholesaleSale ? "Sold" : (car.isReceived ? "In stock" : "In transit"))
               ),
               h(SpinViewer, { images: spinImages }),
+              h(Model3DViewer, { parts }),
               h("div", { className: "passport-admin-proof-grid" },
                 h(DetailTile, { label: "Purchase price", value: money(car.priceBase) }),
                 h(DetailTile, { label: "Location", value: car.location }),
