@@ -1439,7 +1439,8 @@ function ModuleScreen({ api, module, onNavigate }) {
     return el(UsedCarWholesaleModuleScreen, { api, module });
   }
 
-  const canPreview = module.endpoint && !module.endpoint.endsWith("/ask") && !module.endpoint.endsWith("/resolve");
+  const previewEndpoint = module.previewEndpoint || module.endpoint;
+  const canPreview = Boolean(previewEndpoint) && !module.commandOnly && !previewEndpoint.endsWith("/ask") && !previewEndpoint.endsWith("/resolve");
   const moduleTitle = t(`screens.${module.key}`, module.title);
   const [rows, setRows] = useState([]);
   const [status, setStatus] = useState(canPreview ? "" : t("module.mappedCommand", "Mapped to a command endpoint."));
@@ -1450,7 +1451,7 @@ function ModuleScreen({ api, module, onNavigate }) {
     setIsLoading(true);
     setStatus(t("module.loading", "Loading {title}...", { title: moduleTitle.toLowerCase() }));
     try {
-      setRows(asRows(await loadModuleRows(api, module.endpoint)));
+      setRows(asRows(await loadModuleRows(api, previewEndpoint)));
       setStatus(t("module.loaded", "{title} loaded.", { title: moduleTitle }));
     } catch (error) {
       setRows([]);
@@ -1458,7 +1459,7 @@ function ModuleScreen({ api, module, onNavigate }) {
     } finally {
       setIsLoading(false);
     }
-  }, [api, canPreview, module.endpoint, moduleTitle, t]);
+  }, [api, canPreview, moduleTitle, previewEndpoint, t]);
 
   useEffect(() => {
     if (!canPreview) {
