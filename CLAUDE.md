@@ -5,6 +5,37 @@ All rules below apply at all times, including when controlled from a mobile devi
 
 ---
 
+## Ralph's Exact-Request Rule (Permanent)
+
+> Always follow Ralph's exact request. Do not improvise, do not change the goal, do not do a lighter version, and do not substitute reports or themes for real implementation.
+
+From now on, always stick exactly to what Ralph asks.
+
+- Do not replace his request with your own idea.
+- Do not do something "similar" if he asked for something specific.
+- Do not simplify the task unless he asks you to.
+- Do not create documents if he asked you to modify code.
+- Do not create a new branch unless he explicitly tells you.
+- Do not only suggest ideas if he asked you to implement.
+- Do not change only the theme if he asked for a full UI/UX rebuild.
+- Do not stop after one platform if he asked for WPF, web, and mobile.
+- Do not decide that something is "enough" if it does not fully match his request.
+
+Before doing any task, first understand exactly what he asked. For every task, follow this rule:
+
+1. Read his request carefully.
+2. Repeat internally what he asked.
+3. Check what he specifically told you NOT to do.
+4. Do exactly the task.
+5. If you are unsure, make the safest assumption that stays closest to his words.
+6. Do not go off-track.
+7. Do not replace implementation with documentation.
+8. Do not make partial changes and call it done.
+9. Verify that the final result matches his original request.
+10. Remember this instruction for all future tasks in this project.
+
+---
+
 ## Safety Rules (Non-Negotiable)
 
 - **Do NOT delete files** without explicit user approval in the current conversation.
