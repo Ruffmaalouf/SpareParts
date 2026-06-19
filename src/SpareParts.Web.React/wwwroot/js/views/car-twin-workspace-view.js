@@ -1,4 +1,4 @@
-import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
+import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { asRows, dateTime, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 
@@ -72,6 +72,69 @@ function TimelineView({ events }) {
   );
 }
 
+const pixelsPerSpinFrame = 18;
+
+function imageSrc(image) {
+  const data = read(image, "imageData");
+  if (!data) return "";
+  return `data:${read(image, "mimeType") || "image/jpeg"};base64,${data}`;
+}
+
+function SpinViewer({ images }) {
+  const [frame, setFrame] = useState(0);
+  const dragRef = useRef(null);
+
+  useEffect(() => { setFrame(0); }, [images]);
+
+  const stopDrag = useCallback(() => {
+    dragRef.current = null;
+    window.removeEventListener("mousemove", handleMoveRef.current);
+    window.removeEventListener("mouseup", stopDragRef.current);
+  }, []);
+  const stopDragRef = useRef(stopDrag);
+  stopDragRef.current = stopDrag;
+
+  const handleMove = useCallback((event) => {
+    if (!dragRef.current || images.length < 2) return;
+    const deltaX = event.clientX - dragRef.current.startX;
+    const frameDelta = Math.trunc(deltaX / pixelsPerSpinFrame);
+    const next = ((dragRef.current.startFrame + frameDelta) % images.length + images.length) % images.length;
+    setFrame(next);
+  }, [images.length]);
+  const handleMoveRef = useRef(handleMove);
+  handleMoveRef.current = handleMove;
+
+  const startDrag = useCallback((event) => {
+    if (images.length < 2) return;
+    dragRef.current = { startX: event.clientX, startFrame: frame };
+    window.addEventListener("mousemove", handleMoveRef.current);
+    window.addEventListener("mouseup", stopDragRef.current);
+  }, [frame, images.length]);
+
+  useEffect(() => () => {
+    window.removeEventListener("mousemove", handleMoveRef.current);
+    window.removeEventListener("mouseup", stopDragRef.current);
+  }, []);
+
+  if (images.length === 0) {
+    return h("p", { className: "empty-state" }, "Upload photos for this vehicle to build a 360 degree walk-around.");
+  }
+
+  return h("div", { className: "spin-viewer" },
+    h("img", {
+      className: "spin-viewer-image",
+      src: imageSrc(images[frame]),
+      draggable: false,
+      onMouseDown: startDrag,
+      alt: "Vehicle walk-around"
+    }),
+    h("div", { className: "spin-viewer-bar" },
+      h("span", null, images.length > 1 ? "Drag to rotate" : "Add more photos for a smoother spin"),
+      h("b", null, `${frame + 1} / ${images.length}`)
+    )
+  );
+}
+
 export function CarTwinWorkspaceView({ api }) {
   const [usedCars, setUsedCars] = useState([]);
   const [filter, setFilter] = useState("");
@@ -82,6 +145,7 @@ export function CarTwinWorkspaceView({ api }) {
   const [isTwinLoading, setIsTwinLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [eventForm, setEventForm] = useState({ eventType: "Note", mileage: "", condition: "", location: "", note: "" });
+  const [spinImages, setSpinImages] = useState([]);
 
   const loadCars = useCallback(async () => {
     setIsLoading(true);
@@ -123,6 +187,23 @@ export function CarTwinWorkspaceView({ api }) {
   }, [api, selectedCarId]);
 
   useEffect(() => { loadTwin(); }, [loadTwin]);
+
+  useEffect(() => {
+    if (!selectedCarId) {
+      setSpinImages([]);
+      return;
+    }
+    let cancelled = false;
+    api.get(`/api/usedcars/${selectedCarId}/images`)
+      .then((result) => {
+        if (cancelled) return;
+        const rows = asRows(result);
+        const uploadOrder = [...rows].sort((a, b) => new Date(read(a, "createdAt")) - new Date(read(b, "createdAt")));
+        setSpinImages(uploadOrder);
+      })
+      .catch(() => { if (!cancelled) setSpinImages([]); });
+    return () => { cancelled = true; };
+  }, [api, selectedCarId]);
 
   const visibleCars = useMemo(() => {
     const query = filter.trim().toLowerCase();
@@ -230,6 +311,7 @@ export function CarTwinWorkspaceView({ api }) {
                 ),
                 h("b", null, wholesaleSale ? "Sold" : (car.isReceived ? "In stock" : "In transit"))
               ),
+              h(SpinViewer, { images: spinImages }),
               h("div", { className: "passport-admin-proof-grid" },
                 h(DetailTile, { label: "Purchase price", value: money(car.priceBase) }),
                 h(DetailTile, { label: "Location", value: car.location }),
