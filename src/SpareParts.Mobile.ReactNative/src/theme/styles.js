@@ -107,7 +107,7 @@ function createStyles(palette) {
   smartSearchEmptyTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   smartSearchEmptyText: {
     color: palette.muted,
@@ -143,8 +143,8 @@ function createStyles(palette) {
   smartSearchGroupTitle: {
     color: palette.soft,
     fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_500Medium"
   },
   smartSearchResult: {
     minHeight: 54,
@@ -163,7 +163,7 @@ function createStyles(palette) {
   },
   smartSearchResultTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   smartSearchResultSubtitle: {
     color: palette.muted,
@@ -217,7 +217,7 @@ function createStyles(palette) {
   topBarTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   topBarSubtitle: {
     color: palette.muted,
@@ -291,7 +291,7 @@ function createStyles(palette) {
   sideBrandTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_700Bold"
   },
   sideBrandSubtitle: {
     color: palette.muted,
@@ -327,8 +327,8 @@ function createStyles(palette) {
   navGroupTitle: {
     color: palette.soft,
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   sideNavItem: {
     minHeight: 42,
@@ -620,14 +620,14 @@ function createStyles(palette) {
   loginPanelKicker: {
     color: "#f59e0b",
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   loginPanelTitle: {
     color: "#f8fafc",
     fontSize: 22,
-    fontWeight: "900",
-    marginTop: 2
+    marginTop: 2,
+    fontFamily: "Oswald_700Bold"
   },
   loginPanelBadge: {
     minWidth: 46,
@@ -654,7 +654,7 @@ function createStyles(palette) {
     color: "#ffffff",
     fontSize: 42,
     lineHeight: 44,
-    fontWeight: "900"
+    fontFamily: "Oswald_700Bold"
   },
   loginSubtitle: {
     color: "#d8dbe2",
@@ -766,7 +766,7 @@ function createStyles(palette) {
   brandMarkLargeText: {
     color: "#ffffff",
     fontSize: 32,
-    fontWeight: "900"
+    fontFamily: "Oswald_700Bold"
   },
   header: {
     flexDirection: "row",
@@ -789,16 +789,16 @@ function createStyles(palette) {
   },
   brandMarkText: {
     color: palette.text,
-    fontWeight: "900",
-    fontSize: 20
+    fontSize: 20,
+    fontFamily: "Oswald_700Bold"
   },
   headerCopy: {
     flex: 1
   },
   headerTitle: {
     color: palette.text,
-    fontWeight: "800",
-    fontSize: 16
+    fontSize: 16,
+    fontFamily: "Oswald_600SemiBold"
   },
   headerSubtitle: {
     color: palette.muted,
@@ -1237,8 +1237,8 @@ function createStyles(palette) {
   screenTitle: {
     color: palette.text,
     fontSize: 26,
-    fontWeight: "900",
-    letterSpacing: -0.6
+    letterSpacing: -0.6,
+    fontFamily: "Oswald_600SemiBold"
   },
   headerAction: {
     minWidth: 86,
@@ -1376,7 +1376,7 @@ function createStyles(palette) {
   partsFocusTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   partsFocusSubtitle: {
     color: palette.muted,
@@ -1479,8 +1479,8 @@ function createStyles(palette) {
     color: palette.text,
     fontSize: 15,
     lineHeight: 19,
-    fontWeight: "900",
-    marginTop: 2
+    marginTop: 2,
+    fontFamily: "Oswald_500Medium"
   },
   partPrice: {
     maxWidth: 112,
@@ -1654,8 +1654,8 @@ function createStyles(palette) {
   dashboardActionTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: -0.2
+    letterSpacing: -0.2,
+    fontFamily: "Oswald_500Medium"
   },
   dashboardActionSubtitle: {
     color: palette.muted,
@@ -1678,8 +1678,8 @@ function createStyles(palette) {
   panelTitle: {
     color: palette.text,
     fontSize: 17,
-    fontWeight: "900",
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: "Oswald_600SemiBold"
   },
   listRow: {
     flexDirection: "row",
@@ -1859,7 +1859,7 @@ function createStyles(palette) {
     minWidth: 0,
     color: palette.text,
     fontSize: 17,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   heatmapScore: {
     color: palette.muted,
@@ -1929,7 +1929,7 @@ function createStyles(palette) {
   },
   listRowTitle: {
     color: palette.text,
-    fontWeight: "800"
+    fontFamily: "Oswald_500Medium"
   },
   listRowSubtitle: {
     color: palette.muted,
@@ -1970,7 +1970,7 @@ function createStyles(palette) {
   assistantActionTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   assistantActionDescription: {
     color: palette.muted,
@@ -2012,8 +2012,8 @@ function createStyles(palette) {
   visualPreviewEmptyTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_500Medium"
   },
   visualPreviewEmptyText: {
     color: palette.muted,
@@ -2110,7 +2110,7 @@ function createStyles(palette) {
     color: palette.text,
     fontSize: 24,
     lineHeight: 28,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   mechanicHeroMeta: {
     color: palette.muted,
@@ -2182,7 +2182,7 @@ function createStyles(palette) {
   mechanicPartTitle: {
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   mechanicPartMeta: {
     color: palette.muted,
@@ -2270,7 +2270,7 @@ function createStyles(palette) {
   mechanicPhotoEmptyTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   mechanicPhotoEmptyText: {
     color: palette.muted,
@@ -2387,7 +2387,7 @@ function createStyles(palette) {
   deadStockSelectedTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   deadStockSelectedMeta: {
     color: palette.muted,
@@ -2438,7 +2438,7 @@ function createStyles(palette) {
   deadStockActionTitle: {
     flex: 1,
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   deadStockActionTone: {
     color: palette.accent,
@@ -2509,8 +2509,8 @@ function createStyles(palette) {
   compatGraphOverlayTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_500Medium"
   },
   compatGraphOverlayText: {
     color: palette.muted,
@@ -2580,7 +2580,7 @@ function createStyles(palette) {
   },
   prepColumnTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   prepColumnCount: {
     minWidth: 26,
@@ -2631,7 +2631,7 @@ function createStyles(palette) {
   },
   prepCardTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   prepCardMeta: {
     color: palette.muted,
@@ -2678,7 +2678,7 @@ function createStyles(palette) {
   prepSelectedTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   prepSelectedMeta: {
     color: palette.muted,
@@ -2726,7 +2726,7 @@ function createStyles(palette) {
   },
   prepTaskTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   prepTaskMeta: {
     color: palette.muted,
@@ -2769,13 +2769,13 @@ function createStyles(palette) {
   reportKicker: {
     color: palette.accent,
     fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   reportHeroTitle: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   reportHeroSubtitle: {
     color: palette.muted,
@@ -3026,8 +3026,8 @@ function createStyles(palette) {
   adminGroupTitle: {
     color: palette.muted,
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   adminLaunchGrid: {
     flexDirection: "row",
@@ -3127,7 +3127,8 @@ function createStyles(palette) {
     minWidth: 0
   },
   adminCrudRowTitleActive: {
-    color: palette.accent
+    color: palette.accent,
+    fontFamily: "Oswald_500Medium"
   },
   usedCarHero: {
     gap: 12
@@ -3180,7 +3181,7 @@ function createStyles(palette) {
   usedCarHeroTitle: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   usedCarHeroSubtitle: {
     color: palette.muted,
@@ -3316,7 +3317,7 @@ function createStyles(palette) {
   usedCarFocusTitle: {
     color: palette.text,
     fontSize: 14,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   usedCarThumbRail: {
     gap: 8,
@@ -3381,7 +3382,7 @@ function createStyles(palette) {
   usedCarFullscreenTitle: {
     color: "#ffffff",
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   usedCarFullscreenMeta: {
     color: "rgba(255,255,255,0.62)",
@@ -3537,7 +3538,7 @@ function createStyles(palette) {
   usedCarCardTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   usedCarCardMeta: {
     color: palette.muted,
@@ -3771,8 +3772,8 @@ function createStyles(palette) {
   usedCarPartSectionTitle: {
     color: palette.muted,
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   usedCarPartRow: {
     minHeight: 58,
@@ -3793,7 +3794,7 @@ function createStyles(palette) {
   usedCarPartTitle: {
     color: palette.text,
     fontSize: 12,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   usedCarPartMeta: {
     color: palette.muted,
@@ -4037,8 +4038,8 @@ function createStyles(palette) {
   },
   storeBrandTitle: {
     color: "#f7f4ed",
-    fontWeight: "900",
-    fontSize: 15
+    fontSize: 15,
+    fontFamily: "Oswald_700Bold"
   },
   storeBrandSubtitle: {
     color: "#b6b0a5",
@@ -4084,7 +4085,7 @@ function createStyles(palette) {
     color: "#f7f4ed",
     fontSize: 48,
     lineHeight: 48,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   storeHeroBody: {
     color: "#d8d2c8",
@@ -4150,7 +4151,7 @@ function createStyles(palette) {
   storeActionTitle: {
     color: "#f7f4ed",
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeActionSubtitle: {
     color: "#b6b0a5",
@@ -4173,7 +4174,7 @@ function createStyles(palette) {
   storeFitmentTitle: {
     color: "#f7f4ed",
     fontSize: 20,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   storeBrandRail: {
     flexDirection: "row",
@@ -4203,8 +4204,8 @@ function createStyles(palette) {
     color: "#f7f4ed",
     fontSize: 34,
     lineHeight: 36,
-    fontWeight: "900",
-    marginTop: 7
+    marginTop: 7,
+    fontFamily: "Oswald_600SemiBold"
   },
   storeSearchRow: {
     gap: 10
@@ -4267,7 +4268,7 @@ function createStyles(palette) {
     color: "#f7f4ed",
     fontSize: 20,
     lineHeight: 24,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storePartFitment: {
     color: "#b6b0a5",
@@ -4342,7 +4343,7 @@ function createStyles(palette) {
   storeEmptyTitle: {
     color: "#f7f4ed",
     fontSize: 20,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeEmptyText: {
     color: "#b6b0a5",
@@ -4368,7 +4369,7 @@ function createStyles(palette) {
   storeCartTitleLarge: {
     color: "#f7f4ed",
     fontSize: 30,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeCartCount: {
     borderRadius: 2,
@@ -4399,7 +4400,7 @@ function createStyles(palette) {
   },
   storeCartTitle: {
     color: "#f7f4ed",
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeCartSubtitle: {
     color: "#b6b0a5",
@@ -4443,7 +4444,7 @@ function createStyles(palette) {
   storeCheckoutSectionTitle: {
     color: "#f7f4ed",
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storePaymentGrid: {
     flexDirection: "row",
@@ -4466,7 +4467,7 @@ function createStyles(palette) {
   storePaymentTitle: {
     color: "#f7f4ed",
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storePaymentSubtitle: {
     color: "#b6b0a5",
@@ -4835,10 +4836,10 @@ function createStyles(palette) {
   partDetailSectionTitle: {
     color: palette.muted,
     fontSize: 11,
-    fontWeight: "900",
     textTransform: "uppercase",
     letterSpacing: 0.6,
-    marginBottom: 8
+    marginBottom: 8,
+    fontFamily: "Oswald_600SemiBold"
   },
 
   /* Skeleton Loader */
@@ -4893,8 +4894,8 @@ function createStyles(palette) {
   emptyScreenTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_600SemiBold"
   },
   emptyScreenText: {
     color: palette.muted,
@@ -5051,7 +5052,7 @@ function createStyles(palette) {
   topBarV2Title: {
     color: palette.text,
     fontSize: 19,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   topBarV2Sub: {
     color: palette.muted,
@@ -5135,8 +5136,8 @@ function createStyles(palette) {
   topBarTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    fontFamily: "Oswald_600SemiBold"
   },
   topBarSubtitle: {
     color: palette.muted,
@@ -5167,8 +5168,8 @@ function createStyles(palette) {
   sideBrandTitle: {
     color: "#f5f3f0",
     fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: "Oswald_700Bold"
   },
   sideBrandSubtitle: {
     color: "rgba(255,255,255,0.35)",
@@ -5186,9 +5187,9 @@ function createStyles(palette) {
   navGroupTitle: {
     color: "rgba(255,255,255,0.28)",
     fontSize: 10,
-    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1
+    letterSpacing: 1,
+    fontFamily: "Oswald_600SemiBold"
   },
   sideNavItem: {
     minHeight: 40,
@@ -5322,8 +5323,8 @@ function createStyles(palette) {
   screenTitle: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: "900",
-    letterSpacing: -0.8
+    letterSpacing: -0.8,
+    fontFamily: "Oswald_600SemiBold"
   },
   screenContent: {
     padding: 16,
@@ -5348,8 +5349,8 @@ function createStyles(palette) {
   panelTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: -0.4
+    letterSpacing: -0.4,
+    fontFamily: "Oswald_600SemiBold"
   },
 
   /* Metric tiles */
@@ -5426,8 +5427,8 @@ function createStyles(palette) {
   dashboardActionTitle: {
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: "Oswald_500Medium"
   },
   dashboardActionSubtitle: {
     color: palette.muted,
@@ -5539,8 +5540,8 @@ function createStyles(palette) {
     color: "#f5f3f0",
     fontSize: 38,
     lineHeight: 40,
-    fontWeight: "900",
-    letterSpacing: -1.2
+    letterSpacing: -1.2,
+    fontFamily: "Oswald_700Bold"
   },
   loginSubtitle: {
     color: "#8a8580",
@@ -5557,16 +5558,16 @@ function createStyles(palette) {
   loginPanelTitle: {
     color: "#f5f3f0",
     fontSize: 22,
-    fontWeight: "900",
     marginTop: 2,
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    fontFamily: "Oswald_700Bold"
   },
   loginPanelKicker: {
     color: palette.accent,
     fontSize: 11,
-    fontWeight: "800",
     textTransform: "uppercase",
-    letterSpacing: 0.8
+    letterSpacing: 0.8,
+    fontFamily: "Oswald_600SemiBold"
   },
 
   /* Smart search */
@@ -5762,7 +5763,7 @@ function createStyles(palette) {
   lockModalTitle: {
     color: palette.text,
     fontSize: 17,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   lockModalMessage: {
     color: palette.text,
@@ -5833,7 +5834,7 @@ function createStyles(palette) {
   uiSectionHeaderTitle: {
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   uiSectionHeaderSubtitle: {
     color: palette.muted,
@@ -6013,8 +6014,8 @@ function createStyles(palette) {
   uiEmptyStateTitle: {
     color: palette.text,
     fontSize: 14,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_500Medium"
   },
   uiEmptyStateText: {
     color: palette.muted,
@@ -6159,7 +6160,7 @@ function createStyles(palette) {
     minWidth: 0,
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   uiSheetCloseButton: {
     width: 30,
@@ -6313,7 +6314,7 @@ function createStyles(palette) {
   uiPartCardTitle: {
     color: palette.text,
     fontSize: 14,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   uiPartCardSubtitle: {
     color: palette.muted,
@@ -6400,7 +6401,7 @@ function createStyles(palette) {
     minWidth: 0,
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   uiVehicleCardPrice: {
     color: palette.accent,
@@ -6455,7 +6456,7 @@ function createStyles(palette) {
     minWidth: 0,
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   }
 });
 }
