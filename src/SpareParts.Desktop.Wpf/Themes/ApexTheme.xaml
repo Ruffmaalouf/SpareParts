@@ -2,30 +2,30 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ═══════════════════════════════════════════════════════════
-         APEX  —  Premium automotive SaaS color system
-         Graphite/black workspace · electric blue primary
-         · neon green success/live · orange highlight
+         APEX  —  Premium automotive workshop color system
+         Carbon-black workspace · racing-red primary
+         · signal green success/live · hazard-amber highlight
     ═══════════════════════════════════════════════════════════ -->
 
-    <Color x:Key="ColorRaceBlack">#FF0A0D12</Color>
-    <Color x:Key="ColorPitLane">#FF12161D</Color>
-    <Color x:Key="ColorCabin">#FF1B212B</Color>
-    <Color x:Key="ColorCockpit">#FF1B212B</Color>
-    <Color x:Key="ColorRacingRed">#FF2E8CFF</Color><!-- legacy key → electric blue accent -->
-    <Color x:Key="ColorRedHot">#FF5BA8FF</Color>
-    <Color x:Key="ColorRedDeep">#FF1B63CC</Color>
-    <Color x:Key="ColorTextWhite">#FFEEF2F8</Color>
-    <Color x:Key="ColorTextDim">#FF59647A</Color>
-    <Color x:Key="ColorTextMid">#FF8B96A8</Color>
-    <Color x:Key="ColorMatteBlack">#FF0A0D12</Color>
-    <Color x:Key="ColorGunmetal">#FF12161D</Color>
-    <Color x:Key="ColorSlate">#FF1B212B</Color>
-    <Color x:Key="ColorSportOrange">#FFFF7A1A</Color>
-    <Color x:Key="ColorNeonGreen">#FF22D67A</Color>
-    <Color x:Key="ColorChrome">#FFEEF2F8</Color>
-    <Color x:Key="ColorMuted">#FF59647A</Color>
-    <Color x:Key="ColorSilverMid">#FF8B96A8</Color>
-    <Color x:Key="ColorCarbonLine">#FF232A36</Color>
+    <Color x:Key="ColorRaceBlack">#FF090909</Color>
+    <Color x:Key="ColorPitLane">#FF131313</Color>
+    <Color x:Key="ColorCabin">#FF1C1C1C</Color>
+    <Color x:Key="ColorCockpit">#FF1C1C1C</Color>
+    <Color x:Key="ColorRacingRed">#FFE2231A</Color>
+    <Color x:Key="ColorRedHot">#FFFF4B3E</Color>
+    <Color x:Key="ColorRedDeep">#FFA8160F</Color>
+    <Color x:Key="ColorTextWhite">#FFF2F1EE</Color>
+    <Color x:Key="ColorTextDim">#FF6B6B6B</Color>
+    <Color x:Key="ColorTextMid">#FF9B9B9B</Color>
+    <Color x:Key="ColorMatteBlack">#FF090909</Color>
+    <Color x:Key="ColorGunmetal">#FF131313</Color>
+    <Color x:Key="ColorSlate">#FF1C1C1C</Color>
+    <Color x:Key="ColorSportOrange">#FFFFB400</Color>
+    <Color x:Key="ColorNeonGreen">#FF2BD97E</Color>
+    <Color x:Key="ColorChrome">#FFF2F1EE</Color>
+    <Color x:Key="ColorMuted">#FF6B6B6B</Color>
+    <Color x:Key="ColorSilverMid">#FF9B9B9B</Color>
+    <Color x:Key="ColorCarbonLine">#FF2A2A2A</Color>
 
     <!-- Carbon fibre tile (sidebar, header backgrounds) -->
     <DrawingBrush x:Key="CarbonFiberBrush"
@@ -35,7 +35,7 @@
                   Stretch="None">
         <DrawingBrush.Drawing>
             <DrawingGroup>
-                <GeometryDrawing Brush="#FF090B0F">
+                <GeometryDrawing Brush="#FF090909">
                     <GeometryDrawing.Geometry>
                         <RectangleGeometry Rect="0,0,10,10"/>
                     </GeometryDrawing.Geometry>
@@ -43,8 +43,8 @@
                 <GeometryDrawing>
                     <GeometryDrawing.Brush>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#FF161B22" Offset="0"/>
-                            <GradientStop Color="#FF0A0D12" Offset="1"/>
+                            <GradientStop Color="#FF1C1C1C" Offset="0"/>
+                            <GradientStop Color="#FF090909" Offset="1"/>
                         </LinearGradientBrush>
                     </GeometryDrawing.Brush>
                     <GeometryDrawing.Geometry>
@@ -54,8 +54,8 @@
                 <GeometryDrawing>
                     <GeometryDrawing.Brush>
                         <LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
-                            <GradientStop Color="#FF131720" Offset="0"/>
-                            <GradientStop Color="#FF08090C" Offset="1"/>
+                            <GradientStop Color="#FF161616" Offset="0"/>
+                            <GradientStop Color="#FF050505" Offset="1"/>
                         </LinearGradientBrush>
                     </GeometryDrawing.Brush>
                     <GeometryDrawing.Geometry>
@@ -74,38 +74,38 @@
         </DrawingBrush.Drawing>
     </DrawingBrush>
 
-    <!-- Electric blue accent stripe — horizontal gradient fade -->
+    <!-- Racing red accent stripe — horizontal gradient fade -->
     <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
-        <GradientStop Color="#FF2E8CFF" Offset="0"/>
-        <GradientStop Color="#FF1B63CC" Offset="0.6"/>
+        <GradientStop Color="#FFE2231A" Offset="0"/>
+        <GradientStop Color="#FFA8160F" Offset="0.6"/>
         <GradientStop Color="Transparent" Offset="1"/>
     </LinearGradientBrush>
 
     <!-- Sidebar left accent line -->
     <LinearGradientBrush x:Key="SidebarAccentLineBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="Transparent"  Offset="0"/>
-        <GradientStop Color="#FF2E8CFF"    Offset="0.15"/>
-        <GradientStop Color="#FF2E8CFF"    Offset="0.85"/>
+        <GradientStop Color="#FFE2231A"    Offset="0.15"/>
+        <GradientStop Color="#FFE2231A"    Offset="0.85"/>
         <GradientStop Color="Transparent"  Offset="1"/>
     </LinearGradientBrush>
 
-    <!-- Electric blue glow drop shadow -->
+    <!-- Racing red glow drop shadow -->
     <DropShadowEffect x:Key="RedGlowEffect"
-                      Color="#FF2E8CFF"
+                      Color="#FFE2231A"
                       BlurRadius="20"
                       ShadowDepth="0"
                       Opacity="0.55"/>
 
-    <!-- Neon green glow — success / live state -->
+    <!-- Signal green glow — success / live state -->
     <DropShadowEffect x:Key="NeonGreenGlowEffect"
-                      Color="#FF22D67A"
+                      Color="#FF2BD97E"
                       BlurRadius="18"
                       ShadowDepth="0"
                       Opacity="0.5"/>
 
-    <!-- Orange glow — highlight / warning accent -->
+    <!-- Amber glow — highlight / warning accent -->
     <DropShadowEffect x:Key="OrangeGlowEffect"
-                      Color="#FFFF7A1A"
+                      Color="#FFFFB400"
                       BlurRadius="18"
                       ShadowDepth="0"
                       Opacity="0.45"/>
@@ -118,8 +118,8 @@
     <SolidColorBrush x:Key="TextPrimaryBrush"       Color="{DynamicResource ColorTextWhite}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush"     Color="{DynamicResource ColorTextMid}"/>
     <SolidColorBrush x:Key="BorderBrush"            Color="{DynamicResource ColorCarbonLine}"/>
-    <SolidColorBrush x:Key="PreloaderOverlayBrush">#CC0A0D12</SolidColorBrush>
-    <SolidColorBrush x:Key="PreloaderCardBrush">#FF12161D</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderOverlayBrush">#CC090909</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderCardBrush">#FF131313</SolidColorBrush>
     <SolidColorBrush x:Key="PreloaderBorderBrush"   Color="{DynamicResource ColorRacingRed}"/>
     <SolidColorBrush x:Key="CardBorderBrush"        Color="{DynamicResource ColorCarbonLine}"/>
     <SolidColorBrush x:Key="CardBgBrush"            Color="{DynamicResource ColorPitLane}"/>
@@ -138,7 +138,7 @@
     </Style>
 
     <!-- Focus-ring brush — used by Button/TextBox/ComboBox focused states -->
-    <SolidColorBrush x:Key="FocusRingBrush" Color="#FF5BA8FF"/>
+    <SolidColorBrush x:Key="FocusRingBrush" Color="#FFFF4B3E"/>
 
     <!-- Modern input chrome: full rounded border (not just underline), focus glow, hover lift -->
     <Style TargetType="TextBox">
@@ -155,7 +155,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="bdr"
-                            CornerRadius="9"
+                            CornerRadius="2"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -163,13 +163,13 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bdr" Property="BorderBrush" Value="#FF3A4456"/>
+                            <Setter TargetName="bdr" Property="BorderBrush" Value="#FF3A3A3A"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FF2E8CFF" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
+                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -197,7 +197,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="PasswordBox">
                     <Border x:Name="bdr"
-                            CornerRadius="9"
+                            CornerRadius="2"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -205,13 +205,13 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bdr" Property="BorderBrush" Value="#FF3A4456"/>
+                            <Setter TargetName="bdr" Property="BorderBrush" Value="#FF3A3A3A"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FF2E8CFF" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
+                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -224,7 +224,7 @@
         </Setter>
     </Style>
 
-    <!-- ══ Primary button — electric blue with glow + real visual states ══ -->
+    <!-- ══ Primary button — racing red with glow + real visual states ══ -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
         <Setter Property="Foreground"  Value="White"/>
         <Setter Property="FontWeight"  Value="Bold"/>
@@ -237,25 +237,25 @@
                     <Grid>
                         <!-- Focus ring sits behind the button, expands beyond its bounds -->
                         <Border x:Name="focusRing"
-                                CornerRadius="13"
+                                CornerRadius="3"
                                 Margin="-3"
                                 BorderBrush="{DynamicResource FocusRingBrush}"
                                 BorderThickness="2"
                                 Opacity="0"/>
-                        <Border x:Name="bdr" CornerRadius="10"
-                                BorderBrush="#402E8CFF" BorderThickness="1"
+                        <Border x:Name="bdr" CornerRadius="2"
+                                BorderBrush="#40E2231A" BorderThickness="1"
                                 RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>
                                 <ScaleTransform x:Name="bdrScale" ScaleX="1" ScaleY="1"/>
                             </Border.RenderTransform>
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FF3D97FF" Offset="0"/>
-                                    <GradientStop Color="#FF1B63CC" Offset="1"/>
+                                    <GradientStop Color="#FFFF4B3E" Offset="0"/>
+                                    <GradientStop Color="#FFE2231A" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.Effect>
-                                <DropShadowEffect Color="#FF2E8CFF" BlurRadius="14"
+                                <DropShadowEffect Color="#FFE2231A" BlurRadius="14"
                                                   ShadowDepth="0" Opacity="0.35"/>
                             </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -269,8 +269,8 @@
                             <Setter TargetName="bdr" Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="#FF5BA8FF" Offset="0"/>
-                                        <GradientStop Color="#FF2E8CFF" Offset="1"/>
+                                        <GradientStop Color="#FFFF4B3E" Offset="0"/>
+                                        <GradientStop Color="#FFE2231A" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -280,8 +280,8 @@
                             <Setter TargetName="bdr" Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="#FF1655B0" Offset="0"/>
-                                        <GradientStop Color="#FF0F4080" Offset="1"/>
+                                        <GradientStop Color="#FFA8160F" Offset="0"/>
+                                        <GradientStop Color="#FF7A0F0A" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -345,12 +345,12 @@
                 <ControlTemplate TargetType="Button">
                     <Grid>
                         <Border x:Name="focusRing"
-                                CornerRadius="13"
+                                CornerRadius="3"
                                 Margin="-3"
                                 BorderBrush="{DynamicResource FocusRingBrush}"
                                 BorderThickness="2"
                                 Opacity="0"/>
-                        <Border x:Name="bdr" CornerRadius="10"
+                        <Border x:Name="bdr" CornerRadius="2"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
@@ -360,11 +360,11 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bdr" Property="Background"  Value="#102E8CFF"/>
+                            <Setter TargetName="bdr" Property="Background"  Value="#10E2231A"/>
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bdr" Property="Background" Value="#1A2E8CFF"/>
+                            <Setter TargetName="bdr" Property="Background" Value="#1AE2231A"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="focusRing" Property="Opacity" Value="0.85"/>
@@ -392,12 +392,12 @@
                 <ControlTemplate TargetType="Button">
                     <Grid>
                         <Border x:Name="focusRing"
-                                CornerRadius="12"
+                                CornerRadius="2"
                                 Margin="-3"
                                 BorderBrush="{DynamicResource FocusRingBrush}"
                                 BorderThickness="2"
                                 Opacity="0"/>
-                        <Border x:Name="bdr" CornerRadius="9"
+                        <Border x:Name="bdr" CornerRadius="2"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
@@ -438,7 +438,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Container" Background="{TemplateBinding Background}"
-                            CornerRadius="14" BorderThickness="1" BorderBrush="#14FFFFFF">
+                            CornerRadius="3" BorderThickness="1" BorderBrush="#14FFFFFF">
                         <Border.Effect>
                             <DropShadowEffect Color="Black" BlurRadius="10"
                                               ShadowDepth="4" Opacity="0.5"/>
@@ -474,15 +474,15 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Container" Background="{TemplateBinding Background}"
-                            CornerRadius="14" BorderThickness="1" Padding="15" BorderBrush="#14FFFFFF">
+                            CornerRadius="3" BorderThickness="1" Padding="15" BorderBrush="#14FFFFFF">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Height="100" CornerRadius="10"
-                                    Background="#FF0F1319" Margin="0 0 0 10">
+                            <Border Grid.Row="0" Height="100" CornerRadius="2"
+                                    Background="#FF0E0E0E" Margin="0 0 0 10">
                                 <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
                                            HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"
                                            Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.5"/>
@@ -538,7 +538,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="12"
+                            CornerRadius="2"
                             Padding="0"
                             SnapsToDevicePixels="True">
                         <ScrollViewer x:Name="DG_ScrollViewer" Focusable="False">
@@ -608,10 +608,10 @@
                             <Setter TargetName="rowBdr" Property="Background" Value="#08FFFFFF"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="rowBdr" Property="Background" Value="#0F2E8CFF"/>
+                            <Setter TargetName="rowBdr" Property="Background" Value="#0FE2231A"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="rowBdr" Property="Background" Value="#1A2E8CFF"/>
+                            <Setter TargetName="rowBdr" Property="Background" Value="#1AE2231A"/>
                             <Setter TargetName="selectionBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             <Setter Property="Foreground" Value="White"/>
                         </Trigger>
@@ -623,7 +623,7 @@
 
     <!-- Column header: sortable-arrow affordance, hover state, crisp separator -->
     <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background"      Value="#FF0E1218"/>
+        <Setter Property="Background"      Value="#FF0E0E0E"/>
         <Setter Property="Foreground"      Value="{DynamicResource TextSecondaryBrush}"/>
         <Setter Property="FontSize"        Value="10"/>
         <Setter Property="FontWeight"      Value="Bold"/>
@@ -660,7 +660,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="headerBdr" Property="Background" Value="#FF161B22"/>
+                            <Setter TargetName="headerBdr" Property="Background" Value="#FF1C1C1C"/>
                             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                         </Trigger>
                         <Trigger Property="SortDirection" Value="Ascending">
@@ -749,7 +749,7 @@
                                        MinWidth="6" MinHeight="40">
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Border CornerRadius="3" Background="#662E8CFF"/>
+                                            <Border CornerRadius="3" Background="#66E2231A"/>
                                         </ControlTemplate>
                                     </Thumb.Template>
                                 </Thumb>
@@ -809,7 +809,7 @@
                     <Border Background="Transparent">
                         <Border x:Name="OuterBorder"
                                 Background="{DynamicResource CardBackgroundBrush}"
-                                CornerRadius="10"
+                                CornerRadius="2"
                                 BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1"
                                 Padding="6">
@@ -941,11 +941,11 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0A2E8CFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0AE2231A"/>
                             <Setter TargetName="ContentSite" Property="Opacity" Value="0.9"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background"  Value="#142E8CFF"/>
+                            <Setter TargetName="Bd" Property="Background"  Value="#14E2231A"/>
                             <Setter TargetName="ActiveBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="ContentSite" Property="Opacity" Value="1"/>
                             <Setter Property="Foreground"                  Value="{DynamicResource AccentBrush}"/>
@@ -972,13 +972,13 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver"   Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0A2E8CFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0AE2231A"/>
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0A2E8CFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0AE2231A"/>
                         </Trigger>
                         <Trigger Property="IsSelected"    Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#182E8CFF"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#18E2231A"/>
                             <Setter Property="Foreground"                 Value="{DynamicResource AccentBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -1028,7 +1028,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="9">
+                                CornerRadius="2">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -1063,7 +1063,7 @@
                                     Background="{DynamicResource CardBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrush}"
                                     BorderThickness="1"
-                                    CornerRadius="10"
+                                    CornerRadius="2"
                                     SnapsToDevicePixels="True">
                                 <Border.Effect>
                                     <DropShadowEffect Color="Black" BlurRadius="18" ShadowDepth="6" Opacity="0.28"/>
@@ -1078,7 +1078,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#FF3A4456"/>
+                            <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#FF3A3A3A"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="OuterBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -1109,7 +1109,7 @@
         <Setter Property="Background"      Value="{DynamicResource CardBackgroundBrush}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius"    Value="14"/>
+        <Setter Property="CornerRadius"    Value="3"/>
         <Setter Property="Padding"         Value="18"/>
         <Setter Property="Effect">
             <Setter.Value>
@@ -1121,13 +1121,15 @@
     <!-- SectionPanel: same card chrome, slightly tighter padding for nested use -->
     <Style x:Key="SectionPanelStyle" TargetType="Border" BasedOn="{StaticResource CardStyle}">
         <Setter Property="Padding"      Value="14"/>
-        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="CornerRadius" Value="2"/>
     </Style>
 
     <!-- SectionHeaderStyle: bold uppercase label with accent rule, for grouping fields inside a Card -->
     <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize"      Value="12"/>
         <Setter Property="FontWeight"    Value="Bold"/>
+        <Setter Property="FontFamily"    Value="Bahnschrift SemiBold"/>
+        <Setter Property="CharacterSpacing" Value="40"/>
         <Setter Property="Foreground"    Value="{DynamicResource AccentBrush}"/>
         <Setter Property="Margin"        Value="0 0 0 10"/>
     </Style>
