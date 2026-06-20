@@ -53,7 +53,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     backgroundColor: palette.surface,
@@ -67,7 +67,7 @@ function createStyles(palette) {
   smartSearchMark: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -93,7 +93,7 @@ function createStyles(palette) {
   },
   smartSearchPanel: {
     maxHeight: 360,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -119,7 +119,7 @@ function createStyles(palette) {
   },
   smartSearchChip: {
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -148,7 +148,7 @@ function createStyles(palette) {
   },
   smartSearchResult: {
     minHeight: 54,
-    borderRadius: 8,
+    borderRadius: 2,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -197,7 +197,7 @@ function createStyles(palette) {
   menuButton: {
     minWidth: 68,
     minHeight: 40,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -275,7 +275,7 @@ function createStyles(palette) {
   sideBrandMark: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -300,7 +300,7 @@ function createStyles(palette) {
   },
   sideCloseButton: {
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -335,7 +335,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 5,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "transparent",
     backgroundColor: "transparent",
@@ -348,7 +348,7 @@ function createStyles(palette) {
   navActiveMark: {
     width: 4,
     height: 22,
-    borderRadius: 4,
+    borderRadius: 2,
     backgroundColor: "transparent"
   },
   navActiveMarkOn: {
@@ -378,7 +378,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: "transparent",
@@ -403,7 +403,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -418,7 +418,7 @@ function createStyles(palette) {
     height: 28,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface
@@ -470,7 +470,7 @@ function createStyles(palette) {
     minHeight: 38,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2
@@ -511,7 +511,7 @@ function createStyles(palette) {
     right: 28,
     width: 32,
     height: 460,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "rgba(255,59,31,0.20)",
     transform: [{ rotate: "14deg" }]
   },
@@ -521,7 +521,7 @@ function createStyles(palette) {
     left: -28,
     width: 24,
     height: 340,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "rgba(70,170,210,0.13)",
     transform: [{ rotate: "-18deg" }]
   },
@@ -563,7 +563,7 @@ function createStyles(palette) {
     height: 5,
     flexDirection: "row",
     overflow: "hidden",
-    borderRadius: 5,
+    borderRadius: 2,
     backgroundColor: "rgba(255,255,255,0.18)"
   },
   loginFuelStripHot: {
@@ -589,7 +589,7 @@ function createStyles(palette) {
   },
   loginPanel: {
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.16)",
     borderTopColor: "rgba(255,255,255,0.22)",
@@ -634,7 +634,7 @@ function createStyles(palette) {
     minHeight: 34,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(245,158,11,0.44)",
     backgroundColor: "rgba(245,158,11,0.13)"
@@ -669,7 +669,7 @@ function createStyles(palette) {
     flex: 1,
     minHeight: 54,
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.16)",
     backgroundColor: "rgba(6,7,10,0.54)",
@@ -712,7 +712,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -725,7 +725,7 @@ function createStyles(palette) {
   socialBrandMark: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff"
@@ -738,7 +738,7 @@ function createStyles(palette) {
   facebookBrandMark: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff"
@@ -756,7 +756,7 @@ function createStyles(palette) {
   brandMarkLarge: {
     width: 62,
     height: 62,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.30)",
     backgroundColor: "#e85012",
@@ -782,7 +782,7 @@ function createStyles(palette) {
   brandMark: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent,
     alignItems: "center",
     justifyContent: "center"
@@ -808,7 +808,7 @@ function createStyles(palette) {
   headerButton: {
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2
@@ -833,7 +833,7 @@ function createStyles(palette) {
     minWidth: 96,
     paddingVertical: 9,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     backgroundColor: "transparent",
     borderWidth: 1,
@@ -876,7 +876,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 10,
+    borderRadius: 2,
     backgroundColor: "transparent",
     paddingHorizontal: 6,
     paddingVertical: 8,
@@ -891,7 +891,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
-    borderRadius: 8
+    borderRadius: 2
   },
   bottomTabMarkActive: {
     backgroundColor: "transparent"
@@ -1164,7 +1164,7 @@ function createStyles(palette) {
     top: 8,
     width: 13,
     height: 3,
-    borderRadius: 3,
+    borderRadius: 2,
     transform: [{ rotate: "-35deg" }]
   },
   iconWrenchGrip: {
@@ -1173,7 +1173,7 @@ function createStyles(palette) {
     top: 13,
     width: 6,
     height: 4,
-    borderRadius: 4,
+    borderRadius: 2,
     transform: [{ rotate: "-35deg" }]
   },
   themeRail: {
@@ -1190,7 +1190,7 @@ function createStyles(palette) {
     alignItems: "center",
     gap: 7,
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: "transparent",
@@ -1203,7 +1203,7 @@ function createStyles(palette) {
   themeDot: {
     width: 13,
     height: 13,
-    borderRadius: 4,
+    borderRadius: 2,
     borderWidth: 1
   },
   themeButtonText: {
@@ -1246,7 +1246,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2,
     borderWidth: 1,
     borderColor: palette.line
@@ -1265,7 +1265,7 @@ function createStyles(palette) {
   },
   input: {
     minHeight: 46,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -1281,7 +1281,7 @@ function createStyles(palette) {
     minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent,
     paddingHorizontal: 18,
     shadowColor: palette.accent,
@@ -1303,7 +1303,7 @@ function createStyles(palette) {
     minHeight: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1326,7 +1326,7 @@ function createStyles(palette) {
     width: "48%",
     minHeight: 68,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -1351,7 +1351,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1360,7 +1360,7 @@ function createStyles(palette) {
   partsFocusRank: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: 2,
     overflow: "hidden",
     color: palette.accent,
     backgroundColor: palette.input,
@@ -1398,7 +1398,7 @@ function createStyles(palette) {
   partsChip: {
     minHeight: 36,
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1427,7 +1427,7 @@ function createStyles(palette) {
   partCard: {
     flexDirection: "row",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1436,7 +1436,7 @@ function createStyles(palette) {
   partPhoto: {
     width: 74,
     minHeight: 106,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
     backgroundColor: palette.input,
@@ -1495,7 +1495,7 @@ function createStyles(palette) {
     gap: 6
   },
   partsStatus: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1513,7 +1513,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(255,107,95,0.18)"
   },
   partsPriority: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1534,7 +1534,7 @@ function createStyles(palette) {
     backgroundColor: palette.input
   },
   partsDemandBadge: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1544,7 +1544,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(214,169,79,0.18)"
   },
   partsCondition: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1554,7 +1554,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(255,255,255,0.07)"
   },
   partsDonorBadge: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1580,7 +1580,7 @@ function createStyles(palette) {
   metricTile: {
     width: "48%",
     minHeight: 92,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -1624,7 +1624,7 @@ function createStyles(palette) {
     minHeight: 120,
     justifyContent: "space-between",
     gap: 7,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1663,7 +1663,7 @@ function createStyles(palette) {
     lineHeight: 18
   },
   panel: {
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -1696,7 +1696,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.06)",
     backgroundColor: palette.surface2,
@@ -1707,7 +1707,7 @@ function createStyles(palette) {
     minHeight: 118,
     justifyContent: "center",
     gap: 6,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1739,7 +1739,7 @@ function createStyles(palette) {
     minHeight: 62,
     justifyContent: "space-between",
     gap: 6,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1765,7 +1765,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1786,7 +1786,7 @@ function createStyles(palette) {
   dashboardQueueRank: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     color: palette.accent,
@@ -1829,7 +1829,7 @@ function createStyles(palette) {
   },
   heatmapTile: {
     minHeight: 188,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1872,7 +1872,7 @@ function createStyles(palette) {
     gap: 7
   },
   heatmapSignal: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     paddingHorizontal: 8,
@@ -1953,7 +1953,7 @@ function createStyles(palette) {
     minHeight: 76,
     justifyContent: "center",
     gap: 5,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1992,7 +1992,7 @@ function createStyles(palette) {
     position: "relative",
     minHeight: 260,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2044,7 +2044,7 @@ function createStyles(palette) {
   },
   segmentButton: {
     minHeight: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2071,7 +2071,7 @@ function createStyles(palette) {
   screenListFrame: {
     height: 320,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2079,7 +2079,7 @@ function createStyles(palette) {
   screenListFrameLarge: {
     height: 460,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2095,7 +2095,7 @@ function createStyles(palette) {
     justifyContent: "space-between",
     gap: 12,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2123,7 +2123,7 @@ function createStyles(palette) {
     height: 82,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     backgroundColor: palette.input
@@ -2145,7 +2145,7 @@ function createStyles(palette) {
   mechanicPickerFrame: {
     height: 260,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2155,7 +2155,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2166,7 +2166,7 @@ function createStyles(palette) {
     height: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent
   },
   mechanicPartMarkText: {
@@ -2198,7 +2198,7 @@ function createStyles(palette) {
     minWidth: 0,
     minHeight: 72,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2224,7 +2224,7 @@ function createStyles(palette) {
     minHeight: 58,
     justifyContent: "center",
     gap: 4,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2250,7 +2250,7 @@ function createStyles(palette) {
   mechanicPhotoFrame: {
     height: 228,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2295,7 +2295,7 @@ function createStyles(palette) {
     minWidth: 0,
     minHeight: 86,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2319,13 +2319,13 @@ function createStyles(palette) {
   deadStockQueueFrame: {
     maxHeight: 430,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
   },
   deadStockQueueItem: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2408,7 +2408,7 @@ function createStyles(palette) {
   },
   deadStockFact: {
     minHeight: 30,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2422,7 +2422,7 @@ function createStyles(palette) {
     gap: 10
   },
   deadStockActionCard: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2459,7 +2459,7 @@ function createStyles(palette) {
     width: "48%",
     minHeight: 78,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2479,7 +2479,7 @@ function createStyles(palette) {
     position: "relative",
     minHeight: 260,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2488,7 +2488,7 @@ function createStyles(palette) {
     minHeight: 220,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2519,7 +2519,7 @@ function createStyles(palette) {
     textAlign: "center"
   },
   compatPartRow: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "transparent",
     backgroundColor: palette.surface
@@ -2537,7 +2537,7 @@ function createStyles(palette) {
     minWidth: 0,
     minHeight: 76,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2561,7 +2561,7 @@ function createStyles(palette) {
   prepColumn: {
     width: 248,
     height: 420,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2585,7 +2585,7 @@ function createStyles(palette) {
   prepColumnCount: {
     minWidth: 26,
     height: 26,
-    borderRadius: 13,
+    borderRadius: 3,
     overflow: "hidden",
     color: palette.muted,
     backgroundColor: palette.surface2,
@@ -2602,7 +2602,7 @@ function createStyles(palette) {
     paddingBottom: 4
   },
   prepCard: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2616,7 +2616,7 @@ function createStyles(palette) {
   prepCardAvatar: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -2640,12 +2640,12 @@ function createStyles(palette) {
   prepProgress: {
     height: 6,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2
   },
   prepProgressFill: {
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent
   },
   prepCardFooter: {
@@ -2661,7 +2661,7 @@ function createStyles(palette) {
   prepSelectedAvatar: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -2688,7 +2688,7 @@ function createStyles(palette) {
   prepProgressLarge: {
     height: 8,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.input
   },
   prepTaskRow: {
@@ -2696,7 +2696,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2709,7 +2709,7 @@ function createStyles(palette) {
   prepTaskToggle: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     alignItems: "center",
@@ -2736,7 +2736,7 @@ function createStyles(palette) {
   prepTaskDelete: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -2748,7 +2748,7 @@ function createStyles(palette) {
     fontWeight: "900"
   },
   reportHero: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2787,7 +2787,7 @@ function createStyles(palette) {
     minHeight: 54,
     alignItems: "flex-end",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2813,7 +2813,7 @@ function createStyles(palette) {
     color: palette.muted,
     fontSize: 11,
     fontWeight: "800",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2827,7 +2827,7 @@ function createStyles(palette) {
   reportSummaryCard: {
     width: 142,
     minHeight: 76,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2866,7 +2866,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 170,
     minHeight: 42,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2882,7 +2882,7 @@ function createStyles(palette) {
     minWidth: 78,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2903,7 +2903,7 @@ function createStyles(palette) {
   reportTableFrame: {
     height: 520,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2994,7 +2994,7 @@ function createStyles(palette) {
   reportDetailTile: {
     minWidth: 132,
     flex: 1,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -3013,7 +3013,7 @@ function createStyles(palette) {
     marginTop: 4
   },
   screenListItem: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3037,7 +3037,7 @@ function createStyles(palette) {
   adminLaunchButton: {
     width: "48%",
     minHeight: 58,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3067,7 +3067,7 @@ function createStyles(palette) {
   managementListFrame: {
     height: 360,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -3093,7 +3093,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 140,
     minHeight: 46,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3109,7 +3109,7 @@ function createStyles(palette) {
   },
   adminCrudRow: {
     minHeight: 58,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3154,7 +3154,7 @@ function createStyles(palette) {
   usedCarGalleryFrame: {
     height: 300,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2
@@ -3194,7 +3194,7 @@ function createStyles(palette) {
   },
   usedCarBadge: {
     minHeight: 28,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3219,7 +3219,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 148,
     minHeight: 92,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3263,7 +3263,7 @@ function createStyles(palette) {
     paddingTop: 10
   },
   usedCarFocusCard: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3279,7 +3279,7 @@ function createStyles(palette) {
   usedCarActionPill: {
     minHeight: 26,
     maxWidth: "70%",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -3326,7 +3326,7 @@ function createStyles(palette) {
     width: 66,
     height: 50,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3391,7 +3391,7 @@ function createStyles(palette) {
   },
   usedCarFullscreenClose: {
     minHeight: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -3425,7 +3425,7 @@ function createStyles(palette) {
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "rgba(255,255,255,0.08)"
   },
   usedCarFullscreenHint: {
@@ -3447,7 +3447,7 @@ function createStyles(palette) {
   usedCarZoomButton: {
     width: 42,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -3462,7 +3462,7 @@ function createStyles(palette) {
   usedCarZoomReadout: {
     minWidth: 72,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -3478,7 +3478,7 @@ function createStyles(palette) {
   usedCarZoomReset: {
     minWidth: 70,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -3501,7 +3501,7 @@ function createStyles(palette) {
     width: 58,
     height: 44,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -3518,7 +3518,7 @@ function createStyles(palette) {
   usedCarCard: {
     width: 154,
     gap: 8,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3531,7 +3531,7 @@ function createStyles(palette) {
     height: 82,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.input
   },
   usedCarCardTitle: {
@@ -3552,7 +3552,7 @@ function createStyles(palette) {
   usedCarDetailTile: {
     width: "48%",
     minHeight: 66,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3579,7 +3579,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 130,
     minHeight: 46,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3604,7 +3604,7 @@ function createStyles(palette) {
   usedCarSelectChip: {
     maxWidth: "100%",
     minHeight: 40,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3650,7 +3650,7 @@ function createStyles(palette) {
     minWidth: 58,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3666,14 +3666,14 @@ function createStyles(palette) {
   usedCarInventoryListFrame: {
     height: 370,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
   },
   usedCarInventoryRow: {
     minHeight: 68,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3689,7 +3689,7 @@ function createStyles(palette) {
   usedCarInventoryMark: {
     width: 42,
     height: 42,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.surface
@@ -3734,19 +3734,19 @@ function createStyles(palette) {
   usedCarProgressTrack: {
     height: 10,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.input
   },
   usedCarProgressFill: {
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent
   },
   usedCarPushParts: {
     gap: 8
   },
   usedCarPushPart: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3759,7 +3759,7 @@ function createStyles(palette) {
   usedCarPartsListFrame: {
     height: 210,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -3776,7 +3776,7 @@ function createStyles(palette) {
   },
   usedCarPartRow: {
     minHeight: 58,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3803,7 +3803,7 @@ function createStyles(palette) {
   usedCarMiniButton: {
     minHeight: 32,
     minWidth: 70,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3817,7 +3817,7 @@ function createStyles(palette) {
     fontWeight: "900"
   },
   newChatPanel: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3830,7 +3830,7 @@ function createStyles(palette) {
   },
   conversationPill: {
     width: 180,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3863,7 +3863,7 @@ function createStyles(palette) {
   },
   threadList: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface
@@ -3874,7 +3874,7 @@ function createStyles(palette) {
   },
   messageBubble: {
     maxWidth: "86%",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     padding: 10,
     gap: 7
@@ -3906,7 +3906,7 @@ function createStyles(palette) {
     flex: 1,
     minHeight: 48,
     maxHeight: 110,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -3920,7 +3920,7 @@ function createStyles(palette) {
   },
   whatsAppToggle: {
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3951,7 +3951,7 @@ function createStyles(palette) {
   whatsAppCampaignStat: {
     flex: 1,
     minHeight: 62,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3961,7 +3961,7 @@ function createStyles(palette) {
   },
   whatsAppCampaignAsset: {
     minHeight: 68,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3976,7 +3976,7 @@ function createStyles(palette) {
   },
   whatsAppCampaignMessage: {
     minHeight: 190,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -4021,7 +4021,7 @@ function createStyles(palette) {
   storeBrandMark: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#d71920"
@@ -4047,7 +4047,7 @@ function createStyles(palette) {
   },
   storeLogoutButton: {
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     alignItems: "center",
@@ -4095,7 +4095,7 @@ function createStyles(palette) {
     flexDirection: "row",
     gap: 1,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "rgba(247,244,237,0.13)"
@@ -4132,7 +4132,7 @@ function createStyles(palette) {
   storeActionButton: {
     minHeight: 88,
     gap: 5,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#111419",
@@ -4184,7 +4184,7 @@ function createStyles(palette) {
     minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     paddingHorizontal: 11
@@ -4220,7 +4220,7 @@ function createStyles(palette) {
   },
   storePartCard: {
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#111316"
@@ -4245,7 +4245,7 @@ function createStyles(palette) {
     height: 64,
     textAlign: "center",
     textAlignVertical: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.38)",
     backgroundColor: "rgba(8,9,11,0.58)",
@@ -4298,7 +4298,7 @@ function createStyles(palette) {
     marginHorizontal: 14,
     marginTop: 10,
     alignSelf: "flex-start",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(214,169,79,0.38)",
     backgroundColor: "rgba(214,169,79,0.1)",
@@ -4314,7 +4314,7 @@ function createStyles(palette) {
     minHeight: 46,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "#d71920",
     margin: 14,
     paddingHorizontal: 14
@@ -4354,7 +4354,7 @@ function createStyles(palette) {
     marginHorizontal: 16,
     marginTop: 24,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#0f1114"
@@ -4371,7 +4371,7 @@ function createStyles(palette) {
     fontWeight: "900"
   },
   storeCartCount: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     color: "#d6a94f",
@@ -4410,7 +4410,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)"
   },
@@ -4435,7 +4435,7 @@ function createStyles(palette) {
   storeCheckoutSection: {
     gap: 10,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "rgba(255,255,255,0.03)"
@@ -4454,7 +4454,7 @@ function createStyles(palette) {
     minHeight: 78,
     gap: 4,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#111419"
@@ -4497,7 +4497,7 @@ function createStyles(palette) {
   },
   storeSummaryBar: {
     marginHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(214,169,79,0.28)",
     backgroundColor: "rgba(214,169,79,0.08)",
@@ -4532,7 +4532,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "rgba(255,255,255,0.03)",
@@ -4545,7 +4545,7 @@ function createStyles(palette) {
   storeStepNumber: {
     width: 22,
     height: 22,
-    borderRadius: 8,
+    borderRadius: 2,
     color: "#b6b0a5",
     textAlign: "center",
     textAlignVertical: "center",
@@ -4596,7 +4596,7 @@ function createStyles(palette) {
     alignItems: "center",
     gap: 10,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)"
   },
@@ -4639,7 +4639,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 0,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -4768,7 +4768,7 @@ function createStyles(palette) {
   partListItemThumb: {
     width: 60,
     height: 48,
-    borderRadius: 6,
+    borderRadius: 2,
     backgroundColor: palette.surface2
   },
   partListItemInfo: {
@@ -4843,7 +4843,7 @@ function createStyles(palette) {
 
   /* Skeleton Loader */
   skeletonBase: {
-    borderRadius: 4,
+    borderRadius: 2,
     backgroundColor: palette.surface2,
     overflow: "hidden"
   },
@@ -4859,7 +4859,7 @@ function createStyles(palette) {
   skeletonThumb: {
     width: 60,
     height: 48,
-    borderRadius: 6
+    borderRadius: 2
   },
   skeletonTextLg: {
     height: 14,
@@ -4883,7 +4883,7 @@ function createStyles(palette) {
   emptyScreenIcon: {
     width: 64,
     height: 64,
-    borderRadius: 16,
+    borderRadius: 3,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.surface2,
@@ -4950,7 +4950,7 @@ function createStyles(palette) {
     gap: 8,
     minHeight: 48,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "#25d366",
     justifyContent: "center"
   },
@@ -5013,7 +5013,7 @@ function createStyles(palette) {
     alignItems: "center",
     gap: 8,
     minHeight: 46,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: `${palette.accent}48`,
     backgroundColor: palette.surface,
@@ -5087,7 +5087,7 @@ function createStyles(palette) {
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2,
     borderWidth: 1,
     borderColor: palette.line
@@ -5178,7 +5178,7 @@ function createStyles(palette) {
   sideBrandMark: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -5195,7 +5195,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 7,
+    borderRadius: 2,
     borderWidth: 0,
     backgroundColor: "transparent",
     paddingHorizontal: 10
@@ -5244,7 +5244,7 @@ function createStyles(palette) {
     minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 7,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
     backgroundColor: "rgba(255,255,255,0.06)"
@@ -5256,7 +5256,7 @@ function createStyles(palette) {
   },
   sideCloseButton: {
     minHeight: 32,
-    borderRadius: 7,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
     backgroundColor: "rgba(255,255,255,0.06)",
@@ -5289,7 +5289,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 9,
+    borderRadius: 2,
     backgroundColor: "transparent",
     paddingHorizontal: 4,
     paddingVertical: 6,
@@ -5333,7 +5333,7 @@ function createStyles(palette) {
 
   /* Cards & panels */
   panel: {
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5357,7 +5357,7 @@ function createStyles(palette) {
   metricTile: {
     width: "48%",
     minHeight: 88,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5398,7 +5398,7 @@ function createStyles(palette) {
     minHeight: 116,
     justifyContent: "space-between",
     gap: 8,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5438,7 +5438,7 @@ function createStyles(palette) {
   /* Inputs & buttons */
   input: {
     minHeight: 46,
-    borderRadius: 9,
+    borderRadius: 2,
     borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -5457,7 +5457,7 @@ function createStyles(palette) {
     minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 9,
+    borderRadius: 2,
     backgroundColor: palette.accent,
     paddingHorizontal: 20,
     elevation: 4,
@@ -5476,7 +5476,7 @@ function createStyles(palette) {
     minHeight: 42,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 9,
+    borderRadius: 2,
     borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5504,7 +5504,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5520,7 +5520,7 @@ function createStyles(palette) {
   /* Login */
   loginPanel: {
     padding: 22,
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1.5,
     borderTopColor: "rgba(255,255,255,0.18)",
     borderLeftColor: "rgba(255,255,255,0.10)",
@@ -5575,7 +5575,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5589,7 +5589,7 @@ function createStyles(palette) {
   smartSearchMark: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -5604,7 +5604,7 @@ function createStyles(palette) {
   },
   smartSearchResult: {
     minHeight: 52,
-    borderRadius: 9,
+    borderRadius: 2,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -5619,7 +5619,7 @@ function createStyles(palette) {
   /* Heatmap */
   heatmapTile: {
     minHeight: 170,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5640,7 +5640,7 @@ function createStyles(palette) {
     minHeight: 120,
     justifyContent: "center",
     gap: 6,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.text,
@@ -5670,7 +5670,7 @@ function createStyles(palette) {
     minHeight: 64,
     justifyContent: "space-between",
     gap: 6,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5692,7 +5692,7 @@ function createStyles(palette) {
 
   /* Billing & subscription */
   billingPlanCard: {
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5725,7 +5725,7 @@ function createStyles(palette) {
   },
   billingBadge: {
     alignSelf: "flex-start",
-    borderRadius: 6,
+    borderRadius: 2,
     paddingHorizontal: 8,
     paddingVertical: 3,
     fontSize: 10,
@@ -5752,7 +5752,7 @@ function createStyles(palette) {
   lockModalCard: {
     width: "100%",
     maxWidth: 380,
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5785,7 +5785,7 @@ function createStyles(palette) {
   /* ---------------------------------------------------------------- */
 
   uiCard: {
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5843,7 +5843,7 @@ function createStyles(palette) {
   uiSectionHeaderAction: {
     minHeight: 32,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     alignItems: "center",
@@ -5910,7 +5910,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -6027,7 +6027,7 @@ function createStyles(palette) {
     marginTop: 8,
     minHeight: 38,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     alignItems: "center",
@@ -6041,7 +6041,7 @@ function createStyles(palette) {
 
   uiSkeletonBlock: {
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2
   },
   uiSkeletonShimmer: {
@@ -6049,7 +6049,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(255,255,255,0.10)"
   },
   uiSkeletonCard: {
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -6083,7 +6083,7 @@ function createStyles(palette) {
   uiStickyBarButton: {
     flex: 1,
     minHeight: 46,
-    borderRadius: 10,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -6184,7 +6184,7 @@ function createStyles(palette) {
   uiGalleryRoot: {
     width: "100%",
     backgroundColor: palette.input,
-    borderRadius: 12,
+    borderRadius: 2,
     overflow: "hidden"
   },
   uiGalleryImageWrap: {
@@ -6238,7 +6238,7 @@ function createStyles(palette) {
   uiGalleryThumb: {
     width: 52,
     height: 52,
-    borderRadius: 8,
+    borderRadius: 2,
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "transparent",
@@ -6278,7 +6278,7 @@ function createStyles(palette) {
   uiPartCard: {
     flexDirection: "row",
     gap: 12,
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -6290,7 +6290,7 @@ function createStyles(palette) {
   uiPartCardThumb: {
     width: 64,
     height: 64,
-    borderRadius: 10,
+    borderRadius: 2,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
@@ -6343,7 +6343,7 @@ function createStyles(palette) {
   uiPartCardIconButton: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.surface2,
@@ -6365,12 +6365,12 @@ function createStyles(palette) {
   uiPartCardGridThumb: {
     width: "100%",
     height: 110,
-    borderRadius: 10,
+    borderRadius: 2,
     marginBottom: 8
   },
 
   uiVehicleCard: {
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -6438,7 +6438,7 @@ function createStyles(palette) {
   phoneHeaderMenuButton: {
     width: 38,
     height: 38,
-    borderRadius: 9,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
@@ -6447,7 +6447,7 @@ function createStyles(palette) {
   phoneHeaderMenuLine: {
     width: 16,
     height: 2,
-    borderRadius: 1,
+    borderRadius: 2,
     backgroundColor: palette.text
   },
   phoneHeaderTitle: {
