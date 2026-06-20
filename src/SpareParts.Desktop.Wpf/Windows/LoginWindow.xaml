@@ -209,8 +209,7 @@
                         <TextBlock Text="AUTO PARTS"
                                    FontSize="12" FontWeight="Light"
                                    HorizontalAlignment="Center"
-                                   Margin="0 3 0 0" FontFamily="Bahnschrift"
-                                   CharacterSpacing="60">
+                                   Margin="0 3 0 0" FontFamily="Bahnschrift">
                             <TextBlock.Foreground>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="#FFE2231A" Offset="0"/>

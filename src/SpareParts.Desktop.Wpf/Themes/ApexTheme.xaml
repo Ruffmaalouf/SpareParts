@@ -1129,7 +1129,6 @@
         <Setter Property="FontSize"      Value="12"/>
         <Setter Property="FontWeight"    Value="Bold"/>
         <Setter Property="FontFamily"    Value="Bahnschrift SemiBold"/>
-        <Setter Property="CharacterSpacing" Value="40"/>
         <Setter Property="Foreground"    Value="{DynamicResource AccentBrush}"/>
         <Setter Property="Margin"        Value="0 0 0 10"/>
     </Style>

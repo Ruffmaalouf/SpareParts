@@ -665,7 +665,6 @@
                                            FontSize="8"
                                            FontWeight="Bold"
                                            FontFamily="Bahnschrift"
-                                           CharacterSpacing="40"
                                            Foreground="{DynamicResource AccentBrush}"
                                            Margin="0 2 0 0"/>
                                 <StackPanel.InputBindings>
