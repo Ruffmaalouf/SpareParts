@@ -1,51 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
-   APEX DESIGN SYSTEM — premium automotive workshop, dark-first.
-   Workspace: carbon/matte black | Sidebar: pitch black | Accent: racing red
-   Secondary: hazard amber (highlight) · signal green (success/live)
-   Geometry: sharp, angular — no soft rounded SaaS cards.
-   Type: Oswald (condensed display/headings) + Inter (body) + IBM Plex Mono (data)
+   APEX DESIGN SYSTEM — professional parts-catalog, dark-first.
+   Workspace: graphite/slate-blue | Sidebar: deep graphite | Accent: muted brick red
+   Secondary: warm gold (highlight) · muted green (success/live)
+   Geometry: restrained, lightly rounded — calm B2B catalog, not motorsport HUD.
+   Type: Manrope (display/headings) + Inter (body) + IBM Plex Mono (data)
    ═══════════════════════════════════════════════════════════════ */
 :root {
   color-scheme: dark;
 
-  /* — Workspace backgrounds (DARK, true carbon) — */
-  --bg:       #090909;
-  --surface:  #131313;
-  --surface-2:#1c1c1c;
-  --sidebar:  #050505;
-  --input:    #0e0e0e;
+  /* — Workspace backgrounds (graphite-blue, not carbon black) — */
+  --bg:       #11161c;
+  --surface:  #171d25;
+  --surface-2:#1e2530;
+  --sidebar:  #0d1117;
+  --input:    #141a21;
 
   /* — Borders — */
-  --line:        #2a2a2a;
-  --line-bright: #3d3d3d;
+  --line:        #2b3340;
+  --line-bright: #3c4654;
 
   /* — Text — */
-  --text:  #f2f1ee;
-  --muted: #9b9b9b;
-  --soft:  #6b6b6b;
+  --text:  #eef1f5;
+  --muted: #8b96a3;
+  --soft:  #5d6773;
 
   /* — Brand accent — */
-  --accent:        #e2231a;
-  --accent-violet: #ffb400;
-  --accent-2:      #2bd97e;
-  --amber:    #ffb400;
-  --danger:   #ff3b30;
-  --success:  #2bd97e;
+  --accent:        #c23a32;
+  --accent-violet: #b8893f;
+  --accent-2:      #2f9461;
+  --amber:    #b8893f;
+  --danger:   #d6453b;
+  --success:  #2f9461;
 
-  /* — Shadows (dark-mode elevation, harder edges) — */
-  --shadow:      0 4px 18px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.4);
-  --shadow-sm:   0 2px 8px rgba(0,0,0,.5);
-  --shadow-lg:   0 16px 40px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.45);
-  --glow:        0 0 0 3px rgba(226,35,26,.22);
-  --accent-glow: 0 4px 18px rgba(226,35,26,.4);
+  /* — Shadows (soft, restrained elevation — no colored glow) — */
+  --shadow:      0 2px 10px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+  --shadow-sm:   0 1px 4px rgba(0,0,0,.28);
+  --shadow-lg:   0 10px 30px rgba(0,0,0,.4), 0 2px 6px rgba(0,0,0,.25);
+  --glow:        0 0 0 3px rgba(255,255,255,.08);
+  --accent-glow: 0 2px 12px rgba(0,0,0,.3);
 
-  /* — Geometry: sharp, angular — */
-  --r:   2px;
-  --r2:  1px;
-  --r3:  3px;
-  --r-full: 2px;
+  /* — Geometry: restrained, lightly rounded — */
+  --r:   6px;
+  --r2:  4px;
+  --r3:  10px;
+  --r-full: 999px;
 
   /* — Motion — */
   --ease: cubic-bezier(.4, 0, .2, 1);
@@ -53,7 +53,7 @@
 
   /* — Typography — */
   --font: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Oswald", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Manrope", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "DM Mono", "JetBrains Mono", monospace;
 
   /* Legacy aliases */
@@ -1027,7 +1027,7 @@ textarea:focus {
 
 .german-parts-site .part-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(214, 169, 79, .56);
+  border-color: rgba(184, 137, 63, .56);
   background: var(--store-panel-2);
 }
 
@@ -1037,7 +1037,7 @@ textarea:focus {
   min-height: 128px;
   margin: -16px -16px 0;
   background:
-    linear-gradient(135deg, rgba(215, 25, 32, .92), rgba(12, 14, 17, .7)),
+    linear-gradient(135deg, rgba(194, 58, 50, .92), rgba(12, 14, 17, .7)),
     url("https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=900&q=76") center/cover;
   border-bottom: 1px solid var(--store-line);
 }
@@ -1228,7 +1228,7 @@ textarea:focus {
 .payment-option.active,
 .payment-option:hover {
   border-color: var(--store-gold);
-  background: rgba(214, 169, 79, .11);
+  background: rgba(184, 137, 63, .11);
 }
 
 .payment-note {
@@ -7290,8 +7290,8 @@ tbody tr:hover {
 
 .store-tab.active {
   color: var(--store-gold);
-  border-color: rgba(214, 169, 79, .5);
-  background: rgba(214, 169, 79, .1);
+  border-color: rgba(184, 137, 63, .5);
+  background: rgba(184, 137, 63, .1);
 }
 
 .store-tab b {
@@ -7343,14 +7343,14 @@ tbody tr:hover {
   gap: 12px;
   border: 1px solid var(--store-line);
   border-radius: var(--r2);
-  background: rgba(214, 169, 79, .1);
+  background: rgba(184, 137, 63, .1);
   color: var(--store-ink);
   padding: 12px 14px;
 }
 
 .in-cart-pill {
   width: fit-content;
-  border: 1px solid rgba(214, 169, 79, .42);
+  border: 1px solid rgba(184, 137, 63, .42);
   border-radius: var(--r2);
   color: var(--store-gold);
   padding: 5px 9px;
@@ -8530,18 +8530,17 @@ html[dir="rtl"] .report-hero-meta {
 }
 
 .brand-logo-german {
-  border-color: rgba(214, 169, 79, .48);
+  border-color: rgba(184, 137, 63, .48);
   background:
-    linear-gradient(135deg, var(--store-accent, #d71920) 0 34%, #11141a 34% 62%, var(--store-gold, #d6a94f) 62% 100%),
-    #11141a;
+    linear-gradient(135deg, var(--store-accent, #c23a32) 0 34%, #161b22 34% 62%, var(--store-gold, #b8893f) 62% 100%),
+    #161b22;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, .14) inset,
-    0 16px 34px rgba(215, 25, 32, .2),
-    0 16px 42px rgba(0, 0, 0, .34);
+    0 8px 24px rgba(0, 0, 0, .3);
 }
 
 .brand-logo-german .brand-logo-core {
-  background: linear-gradient(180deg, #ffffff, #f7e3b2 58%, var(--store-gold, #d6a94f));
+  background: linear-gradient(180deg, #ffffff, #f7e3b2 58%, var(--store-gold, #b8893f));
 }
 
 /* Functional operations workspaces */
@@ -10587,7 +10586,7 @@ html[dir="rtl"] .report-hero-meta {
 
 .store-petrolhead-strip button:hover {
   background:
-    linear-gradient(135deg, rgba(0, 201, 167, .25), rgba(124, 92, 252, .1));
+    linear-gradient(135deg, rgba(47, 148, 97, .25), rgba(184, 137, 63, .1));
 }
 
 .store-petrolhead-strip strong {
@@ -10646,7 +10645,7 @@ html[dir="rtl"] .report-hero-meta {
 }
 
 .store-product-card:hover {
-  border-color: rgba(124, 92, 252, .52);
+  border-color: rgba(184, 137, 63, .52);
   box-shadow: 0 24px 78px rgba(0, 0, 0, .34);
 }
 
@@ -10654,7 +10653,7 @@ html[dir="rtl"] .report-hero-meta {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(8, 12, 20, .24), rgba(0, 201, 167, .48)),
+    linear-gradient(135deg, rgba(8, 12, 20, .24), rgba(194, 58, 50, .42)),
     url("https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=82") center/cover;
 }
 
@@ -10695,8 +10694,8 @@ html[dir="rtl"] .report-hero-meta {
 
 .store-payment-option.active,
 .store-payment-option:hover {
-  border-color: rgba(0, 201, 167, .72);
-  background: rgba(0, 201, 167, .12);
+  border-color: rgba(47, 148, 97, .72);
+  background: rgba(47, 148, 97, .12);
 }
 
 .store-redesign .secondary-button {
@@ -13466,7 +13465,7 @@ code, .mono, .part-code, .oem-code, .vin-code, .invoice-ref {
 
 /* ═══════════════════════════════════════════════════════════════
    APEX DESIGN SYSTEM — Full component override
-   Light workspace / Black sidebar / Orange accent
+   Graphite workspace / Deep graphite sidebar / Muted brick accent
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Design token refinements ───────────────────────────────── */
@@ -13475,10 +13474,10 @@ code, .mono, .part-code, .oem-code, .vin-code, .invoice-ref {
   --r2:  4px;
   --r3: 10px;
   --t:   .15s;
-  --shadow:    0 20px 64px rgba(0,0,0,.42);
-  --shadow-sm: 0 8px 32px rgba(0,0,0,.38);
-  --glow:        0 0 24px rgba(0,201,167,.28);
-  --accent-glow: 0 0 32px rgba(0,201,167,.38);
+  --shadow:    0 2px 10px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.28);
+  --glow:        0 0 0 3px rgba(255,255,255,.08);
+  --accent-glow: 0 2px 12px rgba(0,0,0,.3);
   --font-mono: "JetBrains Mono","Fira Code","Cascadia Code",monospace;
 }
 
@@ -13501,8 +13500,8 @@ code, .mono, .part-code, .oem-code, .vin-code, .invoice-ref {
   padding: 36px;
   box-shadow:
     var(--shadow),
-    0 0 0 1px rgba(0,201,167,.06) inset,
-    0 0 80px rgba(0,201,167,.07);
+    0 0 0 1px rgba(255,255,255,.06) inset,
+    0 0 80px rgba(0,0,0,.3);
   backdrop-filter: blur(28px) saturate(1.3);
 }
 
@@ -17347,10 +17346,9 @@ table.data-table-v2 tbody tr:hover {
 /* ═══════════════════════ End APEX Design ════════════════════════ */
 
 /* ═══════════════════════════════════════════════════════════════
-   GARAGE HUD — authoritative type pass (wins cascade by source order).
-   Condensed display face on headings/brand/kickers/stat numbers,
-   uppercase + wide tracking on labels — telemetry-panel feel
-   instead of soft rounded SaaS typography.
+   Authoritative type pass (wins cascade by source order).
+   Restrained display face on headings/brand/kickers/stat numbers,
+   uppercase + wide tracking on labels — calm B2B catalog feel.
    ═══════════════════════════════════════════════════════════════ */
 h1, h2, h3,
 .page-title h2,
@@ -17386,21 +17384,21 @@ code, .mono, .part-code, .oem-code, .vin-code, .invoice-ref, .barcode {
 
 /* ═══════════════════════ End APEX Design ════════════════════════ */
 
-/* ── Storefront — GARAGE HUD palette (authoritative; supersedes
+/* ── Storefront — professional catalog palette (authoritative; supersedes
    the several earlier storefront re-skins above, which left stale
    teal/violet/light-mode token blocks competing on equal specificity) ── */
 .storefront-shell.german-parts-site.store-redesign,
 .german-parts-site {
-  --store-bg:      #090909;
-  --store-ink:     #f2f1ee;
-  --store-muted:   #9b9b9b;
-  --store-soft:    #6b6b6b;
-  --store-panel:   #131313;
-  --store-panel-2: #1c1c1c;
-  --store-line:    rgba(255,255,255,.1);
-  --store-accent:  #e2231a;
-  --store-gold:    #ffb400;
-  --store-green:   #2bd97e;
+  --store-bg:      #11161c;
+  --store-ink:     #eef1f5;
+  --store-muted:   #8b96a3;
+  --store-soft:    #5d6773;
+  --store-panel:   #171d25;
+  --store-panel-2: #1e2530;
+  --store-line:    rgba(255,255,255,.08);
+  --store-accent:  #c23a32;
+  --store-gold:    #b8893f;
+  --store-green:   #2f9461;
   background: var(--store-bg);
   color: var(--store-ink);
   font-family: var(--font);

@@ -23,19 +23,19 @@ export const wpfThemes = [
     key: "apex",
     name: "Apex",
     colors: {
-      bg: "#090909",
-      surface: "#131313",
-      surface2: "#1c1c1c",
-      sidebar: "#050505",
-      input: "#0e0e0e",
-      line: "#2a2a2a",
-      text: "#f2f1ee",
-      muted: "#9b9b9b",
-      soft: "#6b6b6b",
-      accent: "#e2231a",
-      accentViolet: "#ffb400",
-      accent2: "#2bd97e",
-      danger: "#ff3b30"
+      bg: "#11161c",
+      surface: "#171d25",
+      surface2: "#1e2530",
+      sidebar: "#0d1117",
+      input: "#141a21",
+      line: "#2b3340",
+      text: "#eef1f5",
+      muted: "#8b96a3",
+      soft: "#5d6773",
+      accent: "#c23a32",
+      accentViolet: "#b8893f",
+      accent2: "#2f9461",
+      danger: "#d6453b"
     }
   },
   {
