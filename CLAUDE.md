@@ -36,6 +36,16 @@ Before doing any task, first understand exactly what he asked. For every task, f
 
 ---
 
+## Design Change Workflow (Permanent)
+
+Whenever Ralph asks for a design/UI/UX change (web, WPF, or mobile):
+
+1. **Before changing anything**: show him picture ideas of the design first (mockups/previews/swatches — e.g. a quick rendered preview or screenshot of the proposed look), not just a text description. Let him react/choose before implementing.
+2. **After making the change**: send screenshots of the actual updated app (not just a claim that it changed) proving the new design is live and different from before.
+3. Do not skip step 1 or step 2 even for small tweaks — always show before, then after.
+
+---
+
 ## Safety Rules (Non-Negotiable)
 
 - **Do NOT delete files** without explicit user approval in the current conversation.
