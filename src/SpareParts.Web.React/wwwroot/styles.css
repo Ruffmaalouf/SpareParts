@@ -9781,14 +9781,14 @@ html[dir="rtl"] .report-hero-meta {
 .store-page-title h1 {
   margin: 0;
   color: var(--store-ink);
-  font-weight: 950;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
 .store-hero-copy h1 {
-  max-width: 700px;
-  font-size: clamp(46px, 8vw, 92px);
-  line-height: .95;
+  max-width: 620px;
+  font-size: clamp(30px, 3.6vw, 44px);
+  line-height: 1.18;
 }
 
 .store-hero-copy p {
@@ -10182,8 +10182,8 @@ html[dir="rtl"] .report-hero-meta {
 }
 
 .store-page-title h1 {
-  font-size: clamp(34px, 5vw, 58px);
-  line-height: 1;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
 }
 
 .store-checkout-view {
@@ -10476,27 +10476,25 @@ html[dir="rtl"] .report-hero-meta {
 }
 
 .store-hero-redesign {
-  background:
-    linear-gradient(90deg, rgba(8, 12, 20, .96) 0%, rgba(8, 12, 20, .83) 42%, rgba(8, 12, 20, .38) 100%),
-    linear-gradient(180deg, rgba(8, 12, 20, .08), rgba(8, 12, 20, .94)),
-    url("https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=2200&q=84") center/cover;
+  background: var(--store-bg);
+  border-bottom: 1px solid var(--store-line);
 }
 
 .store-hero-copy h1 {
-  max-width: 780px;
-  color: #ffffff;
-  text-transform: uppercase;
+  max-width: 620px;
+  color: var(--store-ink);
+  text-transform: none;
 }
 
 .store-hero-copy p {
-  max-width: 620px;
+  max-width: 560px;
   color: var(--store-muted);
 }
 
 .store-hero-search {
-  border-color: rgba(255, 255, 255, .16);
-  background: rgba(14, 20, 32, .9);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, .46);
+  border-color: var(--store-line);
+  background: var(--store-panel);
+  box-shadow: var(--shadow-sm);
 }
 
 .store-hero-search input {
@@ -10517,40 +10515,39 @@ html[dir="rtl"] .report-hero-meta {
 .store-hero-specs span {
   display: inline-grid;
   place-items: center;
-  min-height: 32px;
-  border: 1px solid rgba(255, 255, 255, .15);
+  min-height: 30px;
+  border: 1px solid var(--store-line);
   border-radius: var(--r2);
-  background: rgba(255, 255, 255, .07);
-  color: #ffffff;
+  background: var(--store-panel);
+  color: var(--store-muted);
   padding: 0 11px;
-  font-size: 11px;
-  font-weight: 950;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
 }
 
 .store-brand-filters button {
-  border-color: rgba(255, 255, 255, .17);
-  background: rgba(255, 255, 255, .07);
-  color: #ffffff;
+  border-color: var(--store-line);
+  background: var(--store-panel);
+  color: var(--store-ink);
 }
 
 .store-brand-filters button:hover {
-  border-color: var(--store-gold);
-  color: var(--store-gold);
+  border-color: var(--store-accent);
+  color: var(--store-accent);
 }
 
 .store-hero-photo {
   background:
-    linear-gradient(180deg, rgba(8, 12, 20, .02), rgba(8, 12, 20, .44)),
+    linear-gradient(180deg, rgba(8, 12, 20, .02), rgba(8, 12, 20, .2)),
     url("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=1500&q=84") center/cover;
-  box-shadow: 0 24px 90px rgba(0, 0, 0, .56);
+  box-shadow: var(--shadow-sm);
 }
 
 .store-hero-proof {
-  border-color: rgba(255, 255, 255, .18);
-  background: rgba(10, 14, 20, .86);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, .42);
+  border-color: var(--store-line);
+  background: var(--store-panel);
+  box-shadow: var(--shadow-sm);
 }
 
 .store-hero-proof span,
@@ -10623,9 +10620,17 @@ html[dir="rtl"] .report-hero-meta {
   color: var(--store-ink);
 }
 
+.store-checkout-form,
+.store-form-section,
+.store-account-panel,
+.store-cart-rail,
+.store-empty-panel {
+  box-shadow: var(--shadow-sm);
+}
+
 .store-redesign input,
 .store-redesign textarea {
-  background: #0a111d;
+  background: var(--store-panel-2);
 }
 
 .store-product-card {
@@ -10689,7 +10694,7 @@ html[dir="rtl"] .report-hero-meta {
 
 .store-payment-option {
   border-color: var(--store-line);
-  background: #0a111d;
+  background: var(--store-panel-2);
 }
 
 .store-payment-option.active,
@@ -10705,7 +10710,7 @@ html[dir="rtl"] .report-hero-meta {
 
 .store-redesign .store-login-panel .social-button {
   border-color: var(--store-line);
-  background: #0a111d;
+  background: var(--store-panel-2);
   color: var(--store-ink);
 }
 
@@ -13481,28 +13486,19 @@ code, .mono, .part-code, .oem-code, .vin-code, .invoice-ref {
   --font-mono: "JetBrains Mono","Fira Code","Cascadia Code",monospace;
 }
 
-/* ── Login page — more dramatic ──────────────────────────────── */
+/* ── Login page — calm, flat catalog background ─────────────── */
 .login-page {
-  background:
-    linear-gradient(155deg,
-      rgba(4,5,10,.98) 0%,
-      rgba(6,8,14,.88) 44%,
-      rgba(4,5,10,.96) 100%),
-    url("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=1800&q=80") center/cover;
+  background: var(--bg);
 }
 
 .login-panel {
   width: min(480px, 100%);
-  background: rgba(9,11,18,.88);
-  border: 1px solid rgba(255,255,255,.11);
-  border-top-color: rgba(255,255,255,.19);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top-color: var(--line);
   border-radius: var(--r3);
   padding: 36px;
-  box-shadow:
-    var(--shadow),
-    0 0 0 1px rgba(255,255,255,.06) inset,
-    0 0 80px rgba(0,0,0,.3);
-  backdrop-filter: blur(28px) saturate(1.3);
+  box-shadow: var(--shadow);
 }
 
 .brand-lockup h1 {
@@ -14294,9 +14290,8 @@ body {
 
 .login-page::before {
   content: "";
-  background:
-    linear-gradient(160deg, rgba(18,16,14,.95) 0%, rgba(28,20,14,.88) 100%),
-    url("https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1400&q=80") center/cover;
+  background: var(--surface-2);
+  border-right: 1px solid var(--line);
   display: block;
 }
 
