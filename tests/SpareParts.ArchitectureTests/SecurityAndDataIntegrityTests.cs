@@ -72,7 +72,7 @@ public class SecurityAndDataIntegrityTests
     [Fact]
     public void ReportBuilderService_ShouldRejectManagerLinkMutationsBeforeOpeningConnection()
     {
-        var service = new ReportBuilderService(null!);
+        var service = new ReportBuilderService(null!, InMemorySqliteConnectionFactory.NoTenant);
 
         var exception = Assert.Throws<UnauthorizedAccessException>(() =>
             service.SaveLink(new SpareParts.Domain.Reports.SaveReportTableLinkRequest(), (int)UserRole.Manager));

@@ -127,10 +127,10 @@ public class DomainValidationTests
         var asOf = new DateTime(2026, 6, 15, 0, 0, 0, DateTimeKind.Utc);
         SalesProfitHistoryRawLine[] lines =
         [
-            new(new DateTime(2026, 5, 10), TransactionId: 1, Quantity: 2, UnitPrice: 100m, CostPrice: 60m),
-            new(new DateTime(2026, 5, 20), TransactionId: 1, Quantity: 1, UnitPrice: 50m, CostPrice: 20m),
-            new(new DateTime(2026, 6, 1), TransactionId: 2, Quantity: 3, UnitPrice: 10m, CostPrice: 4m),
-            new(new DateTime(2025, 1, 1), TransactionId: 99, Quantity: 5, UnitPrice: 1000m, CostPrice: 1m)
+            new(TransactionId: 1, TransactionDate: new DateTime(2026, 5, 10), Quantity: 2, UnitPrice: 100m, CostPrice: 60m),
+            new(TransactionId: 1, TransactionDate: new DateTime(2026, 5, 20), Quantity: 1, UnitPrice: 50m, CostPrice: 20m),
+            new(TransactionId: 2, TransactionDate: new DateTime(2026, 6, 1), Quantity: 3, UnitPrice: 10m, CostPrice: 4m),
+            new(TransactionId: 99, TransactionDate: new DateTime(2025, 1, 1), Quantity: 5, UnitPrice: 1000m, CostPrice: 1m)
         ];
 
         var points = SalesProfitHistoryBuilder.Build(lines, months: 2, asOf: asOf);
