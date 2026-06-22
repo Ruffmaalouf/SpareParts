@@ -25,8 +25,6 @@
             <Setter Property="GridLinesVisibility" Value="None"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-            <Setter Property="AlternationCount" Value="2"/>
-            <Setter Property="AlternatingRowBackground" Value="#0AFFFFFF"/>
             <Setter Property="ColumnHeaderHeight" Value="38"/>
             <Setter Property="RowHeight" Value="86"/>
         </Style>
@@ -308,8 +306,7 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Background="{DynamicResource CardBackgroundBrush}"
-                CornerRadius="18"
+                Style="{StaticResource CardStyle}"
                 Padding="22"
                 Margin="0 0 0 16">
             <DockPanel LastChildFill="False">
@@ -393,9 +390,7 @@
         </Border>
 
         <Border Grid.Row="1"
-                Background="{DynamicResource CardBackgroundBrush}"
-                CornerRadius="16"
-                Padding="18"
+                Style="{StaticResource SectionPanelStyle}"
                 Margin="0 0 0 16">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -433,9 +428,7 @@
         </Border>
 
         <Border Grid.Row="2"
-                Background="{DynamicResource CardBackgroundBrush}"
-                CornerRadius="16"
-                Padding="18"
+                Style="{StaticResource SectionPanelStyle}"
                 Margin="0 0 0 16">
             <Grid>
                 <Grid.RowDefinitions>
@@ -446,9 +439,8 @@
                 <DockPanel Grid.Row="0" Margin="0 0 0 14">
                     <StackPanel DockPanel.Dock="Left">
                         <TextBlock Text="BEST NEXT PARTS"
-                                   FontSize="10"
-                                   FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentBrush}"/>
+                                   Style="{StaticResource SectionHeaderTextStyle}"
+                                   Margin="0"/>
                         <TextBlock Text="Teardown Profit Map"
                                    FontSize="18"
                                    FontWeight="Bold"
@@ -500,9 +492,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    CornerRadius="18"
-                    Padding="18"
+                    Style="{StaticResource CardStyle}"
                     Margin="0 0 16 0">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -512,9 +502,8 @@
 
                     <StackPanel Grid.Row="0" Margin="0 0 0 14">
                         <TextBlock Text="UNASSIGNED INVENTORY"
-                                   FontSize="10"
-                                   FontWeight="Bold"
-                                   Foreground="{DynamicResource AccentBrush}"/>
+                                   Style="{StaticResource SectionHeaderTextStyle}"
+                                   Margin="0"/>
                         <TextBlock Text="Available Parts" FontSize="18" FontWeight="Bold" Margin="0 5 0 0"/>
                         <TextBlock Text="{Binding AvailableSummary}"
                                    FontSize="12"

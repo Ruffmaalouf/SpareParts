@@ -2,7 +2,16 @@ import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runt
 import { asRows, money } from "../core/formatters.js";
 import { CommunicationPayloadFactory } from "../services/communication-payload-factory.js";
 import { PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
-import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
+import { StatusLine } from "../components/shared.js";
+import { PageHeader } from "../components/ui/PageHeader.js";
+import { StatsCard } from "../components/ui/StatsCard.js";
+import { PartCard } from "../components/ui/PartCard.js";
+import { DataTable } from "../components/ui/DataTable.js";
+import { SearchBar } from "../components/ui/SearchBar.js";
+import { FilterPanel } from "../components/ui/FilterPanel.js";
+import { StatusPill } from "../components/ui/StatusPill.js";
+import { Badge } from "../components/ui/Badge.js";
+import { EmptyState } from "../components/ui/EmptyState.js";
 import { selectPartPassport } from "./part-passport-workspace-view.js";
 
 const conditionLabels = new Map([
@@ -673,16 +682,17 @@ export function InventoryView({ api, onView }) {
     }),
     h(PageHeader, {
       title: "Smart Parts Inventory",
+      kicker: "Catalog",
       subtitle: "Search stock, donor links, reservations, and quote-ready parts in one workspace.",
       action: h("button", { className: "secondary-button", onClick: load, disabled: isLoading }, "Refresh")
     }),
-    h("section", { className: "inventory-summary-grid" },
-      h("button", { type: "button", onClick: () => setAvailabilityFilter("All") }, h("span", null, "Total parts"), h("strong", null, stockSummary.total)),
-      h("button", { type: "button", onClick: () => setAvailabilityFilter("Available") }, h("span", null, "Available"), h("strong", null, stockSummary.available)),
-      h("button", { type: "button", onClick: () => setAvailabilityFilter("Reserved") }, h("span", null, "Reserved"), h("strong", null, stockSummary.reserved)),
-      h("button", { type: "button", onClick: () => setAvailabilityFilter("Sold") }, h("span", null, "Sold / out"), h("strong", null, stockSummary.sold)),
-      h("button", { type: "button", onClick: () => setAvailabilityFilter("Low stock") }, h("span", null, "Low stock"), h("strong", null, stockSummary.lowStock)),
-      h("button", { type: "button", onClick: () => setAvailabilityFilter("Donor parts") }, h("span", null, "Donor parts"), h("strong", null, stockSummary.donor))
+    h("section", { className: "inventory-summary-grid stats-card-grid" },
+      h(StatsCard, { label: "Total parts", value: stockSummary.total, onClick: () => setAvailabilityFilter("All") }),
+      h(StatsCard, { label: "Available", value: stockSummary.available, tone: "success", onClick: () => setAvailabilityFilter("Available") }),
+      h(StatsCard, { label: "Reserved", value: stockSummary.reserved, tone: "warning", onClick: () => setAvailabilityFilter("Reserved") }),
+      h(StatsCard, { label: "Sold / out", value: stockSummary.sold, onClick: () => setAvailabilityFilter("Sold") }),
+      h(StatsCard, { label: "Low stock", value: stockSummary.lowStock, tone: "danger", onClick: () => setAvailabilityFilter("Low stock") }),
+      h(StatsCard, { label: "Donor parts", value: stockSummary.donor, onClick: () => setAvailabilityFilter("Donor parts") })
     ),
     h("section", { className: "inventory-demand-panel" },
       h("div", { className: "panel-heading-row" },
@@ -736,41 +746,71 @@ export function InventoryView({ api, onView }) {
         procurementRadar.length === 0 && h("p", { className: "empty-state" }, "No demand, reorder, or margin actions right now.")
       )
     ),
-    h("section", { className: "inventory-workspace" },
+    h("section", { className: "inventory-workspace inventory-workspace-v2" },
+      h(FilterPanel, {
+        title: "Refine inventory",
+        groups: [
+          {
+            key: "condition",
+            label: "Condition",
+            activeCount: conditionFilter !== "All" ? 1 : 0,
+            control: h("select", { value: conditionFilter, onChange: (event) => setConditionFilter(event.target.value) },
+              conditionOptions.map((option) => h("option", { key: option, value: option }, option))
+            )
+          },
+          {
+            key: "availability",
+            label: "Availability",
+            activeCount: availabilityFilter !== "All" ? 1 : 0,
+            control: h("select", { value: availabilityFilter, onChange: (event) => setAvailabilityFilter(event.target.value) },
+              availabilityOptions.map((option) => h("option", { key: option, value: option }, option))
+            )
+          },
+          {
+            key: "location",
+            label: "Location / shelf",
+            activeCount: locationFilter ? 1 : 0,
+            control: h("input", { value: locationFilter, onChange: (event) => setLocationFilter(event.target.value), placeholder: "Donor location" })
+          },
+          {
+            key: "price",
+            label: "Price range",
+            activeCount: (minPrice ? 1 : 0) + (maxPrice ? 1 : 0),
+            control: h("div", { className: "filter-panel-v2-price-row" },
+              h("input", { type: "number", min: "0", value: minPrice, onChange: (event) => setMinPrice(event.target.value), placeholder: "Min" }),
+              h("input", { type: "number", min: "0", value: maxPrice, onChange: (event) => setMaxPrice(event.target.value), placeholder: "Max" })
+            )
+          },
+          {
+            key: "recipient",
+            label: "Recipient name",
+            activeCount: name ? 1 : 0,
+            control: h("input", { value: name, onChange: (event) => setName(event.target.value), placeholder: "Customer" })
+          },
+          {
+            key: "phone",
+            label: "WhatsApp phone",
+            activeCount: phone ? 1 : 0,
+            control: h("input", { value: phone, onChange: (event) => setPhone(event.target.value), placeholder: "+961..." })
+          }
+        ],
+        onReset: () => {
+          setConditionFilter("All");
+          setAvailabilityFilter("All");
+          setLocationFilter("");
+          setMinPrice("");
+          setMaxPrice("");
+          setName("");
+          setPhone("");
+        }
+      }),
       h("div", { className: "inventory-main" },
         h("section", { className: "inventory-search-panel" },
           h("div", { className: "inventory-search-topline" },
-            h("input", { value: filter, onChange: (event) => setFilter(event.target.value), placeholder: "Search part name, code, OEM, donor car, model year, VIN note" }),
+            h(SearchBar, { value: filter, onChange: setFilter, placeholder: "Search part name, code, OEM, donor car, model year, VIN note" }),
             h("div", { className: "segmented-control", role: "group", "aria-label": "Inventory view" },
               h("button", { className: viewMode === "cards" ? "active" : "", type: "button", onClick: () => setViewMode("cards") }, "Cards"),
               h("button", { className: viewMode === "table" ? "active" : "", type: "button", onClick: () => setViewMode("table") }, "Table")
-            )
-          ),
-          h("div", { className: "inventory-filter-grid" },
-            h("label", null, "Condition",
-              h("select", { value: conditionFilter, onChange: (event) => setConditionFilter(event.target.value) },
-                conditionOptions.map((option) => h("option", { key: option, value: option }, option))
-              )
-            ),
-            h("label", null, "Availability",
-              h("select", { value: availabilityFilter, onChange: (event) => setAvailabilityFilter(event.target.value) },
-                availabilityOptions.map((option) => h("option", { key: option, value: option }, option))
-              )
-            ),
-            h("label", null, "Location / shelf",
-              h("input", { value: locationFilter, onChange: (event) => setLocationFilter(event.target.value), placeholder: "Donor location" })
-            ),
-            h("label", null, "Min price",
-              h("input", { type: "number", min: "0", value: minPrice, onChange: (event) => setMinPrice(event.target.value) })
-            ),
-            h("label", null, "Max price",
-              h("input", { type: "number", min: "0", value: maxPrice, onChange: (event) => setMaxPrice(event.target.value) })
-            ),
-            h("label", null, "Recipient name",
-              h("input", { value: name, onChange: (event) => setName(event.target.value), placeholder: "Customer" })
-            ),
-            h("label", null, "WhatsApp phone",
-              h("input", { value: phone, onChange: (event) => setPhone(event.target.value), placeholder: "+961..." })
             )
           )
         ),
@@ -782,47 +822,37 @@ export function InventoryView({ api, onView }) {
               const waiting = waitingByPart.get(String(part.id)) || 0;
               const matchedRequests = demandByPart.get(String(part.id)) || [];
               const profile = demandProfiles.get(String(part.id)) || buildDemandProfile(part, matchedRequests, waiting);
-              return h("article", { className: "part-card", key: part.id },
-                h("div", { className: "part-card-photo", "aria-hidden": "true" },
-                  h("span", null, String(part.name || "P").slice(0, 2).toUpperCase()),
-                  part.usedCarId && h("b", null, "Donor")
-                ),
-                h("div", { className: "part-card-body" },
-                  h("div", { className: "part-card-heading" },
-                    h("div", null,
-                      h("span", { className: "part-code" }, part.internalCode || "No code"),
-                      h("h3", null, part.name)
-                    ),
-                    h("strong", null, money(part.salePrice, part.currency))
-                  ),
-                  h("div", { className: "badge-row" },
-                    h("span", { className: stockStatusClass(part) }, stockStatus(part)),
-                    h("span", { className: "inventory-badge condition" }, conditionLabel(part)),
-                    profile.score > 0 && h("span", { className: `inventory-badge action-${profile.tone}` }, profile.action),
-                    waiting > 0 && h("span", { className: "inventory-badge demand" }, `${waiting} waiting`),
-                    matchedRequests.length > 0 && h("span", { className: "inventory-badge demand" }, `${matchedRequests.length} match${matchedRequests.length === 1 ? "" : "es"}`),
-                    part.usedCarId && h("span", { className: "inventory-badge donor" }, `#${part.usedCarId}`)
-                  ),
-                  h("dl", { className: "part-card-details" },
-                    h("div", null, h("dt", null, "OEM"), h("dd", null, part.oemNumber || "Not set")),
-                    h("div", null, h("dt", null, "Stock"), h("dd", null, stockSubtitle(part))),
-                    h("div", null, h("dt", null, "Donor"), h("dd", null, donorLabel(part, donor) || "Standalone")),
-                    h("div", null, h("dt", null, "Location"), h("dd", null, donorLocation(donor) || "Not set")),
-                    h("div", null, h("dt", null, "Demand"), h("dd", null, matchedRequests[0] ? requestCustomerLabel(matchedRequests[0]) : "No active match")),
-                    h("div", null, h("dt", null, "Action"), h("dd", null, profile.detail))
-                  ),
-                  h("div", { className: "part-card-actions" },
-                    h("button", { type: "button", onClick: () => selectPartPassport(part, onView) }, "Passport"),
-                    h("button", { type: "button", onClick: () => addToQuote(part) }, "Quote"),
-                    h("button", { type: "button", onClick: () => openWhatsappShare(part) }, "WhatsApp"),
-                    h("button", { type: "button", onClick: () => sendAvailability(part) }, "Send"),
-                    h("button", { type: "button", onClick: () => copyPartDetails(part) }, "Copy"),
-                    h("button", { type: "button", disabled: generatingListingId === part.id, onClick: () => generateListing(part) }, generatingListingId === part.id ? "Generating..." : "Listing")
-                  )
-                )
-              );
+              return h(PartCard, {
+                key: part.id,
+                part: { ...part, priceText: money(part.salePrice, part.currency) },
+                onSelect: () => selectPartPassport(part, onView),
+                badges: [
+                  h(StatusPill, { key: "status", status: stockStatus(part) }),
+                  h(Badge, { key: "condition", tone: "neutral" }, conditionLabel(part)),
+                  profile.score > 0 && h(Badge, { key: "action", tone: profile.tone }, profile.action),
+                  waiting > 0 && h(Badge, { key: "waiting", tone: "warning" }, `${waiting} waiting`),
+                  matchedRequests.length > 0 && h(Badge, { key: "matches", tone: "info" }, `${matchedRequests.length} match${matchedRequests.length === 1 ? "" : "es"}`),
+                  part.usedCarId && h(Badge, { key: "donor", tone: "neutral" }, `#${part.usedCarId}`)
+                ].filter(Boolean),
+                details: [
+                  { key: "oem", label: "OEM", value: part.oemNumber || "Not set" },
+                  { key: "stock", label: "Stock", value: stockSubtitle(part) },
+                  { key: "donor", label: "Donor", value: donorLabel(part, donor) || "Standalone" },
+                  { key: "location", label: "Location", value: donorLocation(donor) || "Not set" },
+                  { key: "demand", label: "Demand", value: matchedRequests[0] ? requestCustomerLabel(matchedRequests[0]) : "No active match" },
+                  { key: "next", label: "Action", value: profile.detail }
+                ],
+                actions: [
+                  h("button", { key: "passport", type: "button", onClick: () => selectPartPassport(part, onView) }, "Passport"),
+                  h("button", { key: "quote", type: "button", onClick: () => addToQuote(part) }, "Quote"),
+                  h("button", { key: "whatsapp", type: "button", onClick: () => openWhatsappShare(part) }, "WhatsApp"),
+                  h("button", { key: "send", type: "button", onClick: () => sendAvailability(part) }, "Send"),
+                  h("button", { key: "copy", type: "button", onClick: () => copyPartDetails(part) }, "Copy"),
+                  h("button", { key: "listing", type: "button", disabled: generatingListingId === part.id, onClick: () => generateListing(part) }, generatingListingId === part.id ? "Generating..." : "Listing")
+                ]
+              });
             }),
-            displayedParts.length === 0 && h("p", { className: "empty-state" }, "No parts match this search.")
+            displayedParts.length === 0 && h(EmptyState, { title: "No parts match this search.", tone: "neutral" })
           )
           : h("section", { className: "table-panel" },
             h(DataTable, {
@@ -857,11 +887,11 @@ export function InventoryView({ api, onView }) {
                   render: (part) => {
                     const profile = demandProfiles.get(String(part.id)) || buildDemandProfile(part);
                     return profile.score > 0
-                      ? h("span", { className: `inventory-badge action-${profile.tone}` }, profile.action)
+                      ? h(Badge, { tone: profile.tone }, profile.action)
                       : "";
                   }
                 },
-                { key: "status", label: "Status", render: (part) => h("span", { className: stockStatusClass(part) }, stockStatus(part)) },
+                { key: "status", label: "Status", render: (part) => h(StatusPill, { status: stockStatus(part) }) },
                 {
                   key: "donor",
                   label: "Donor",

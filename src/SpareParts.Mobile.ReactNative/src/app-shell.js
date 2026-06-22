@@ -9,6 +9,12 @@ const {
 const AsyncStorage = require("@react-native-async-storage/async-storage").default;
 const { SafeAreaProvider, useSafeAreaInsets } = require("react-native-safe-area-context");
 const { StatusBar } = require("expo-status-bar");
+const { useFonts } = require("expo-font");
+const {
+  Oswald_500Medium,
+  Oswald_600SemiBold,
+  Oswald_700Bold
+} = require("@expo-google-fonts/oswald");
 const { defaultApiBaseUrl, defaultLanguageKey, defaultThemeKey, storageKeys } = require("./core/app-config");
 const { ApiClient } = require("./core/api-client");
 const { createTranslator, isRtlLanguage } = require("./core/i18n");
@@ -17,6 +23,7 @@ const { normalizeBaseUrl, normalizeLanguageKey, normalizeThemeKey } = require(".
 const { AppSidebar } = require("./components/app-sidebar");
 const { BottomTabBar } = require("./components/bottom-tab-bar");
 const { LockedFeatureModal } = require("./components/locked-feature-modal");
+const { PhoneHeaderBar } = require("./components/phone-header-bar");
 const { SmartSearch } = require("./components/smart-search");
 const { LoginScreen } = require("./screens/login-screen");
 const { CustomerStorefrontScreen } = require("./screens/customer-storefront-screen");
@@ -44,6 +51,11 @@ function AppContent() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const isWideLayout = width >= 820;
+  const [fontsLoaded] = useFonts({
+    Oswald_500Medium,
+    Oswald_600SemiBold,
+    Oswald_700Bold
+  });
   const [apiBaseUrl, setApiBaseUrl] = useState(defaultApiBaseUrl);
   const [token, setToken] = useState("");
   const [user, setUser] = useState(null);
@@ -184,7 +196,9 @@ function AppContent() {
   }, [clearSession]);
 
   let content;
-  if (isBooting) {
+  if (!fontsLoaded) {
+    content = null;
+  } else if (isBooting) {
     content = el(View, { style: [styles.bootScreen, { paddingTop: insets.top, paddingBottom: insets.bottom }] },
       el(StatusBar, { style: "light" }),
       el(ActivityIndicator, { color: palette.accent }),
@@ -212,6 +226,10 @@ function AppContent() {
           onTheme: changeTheme
         }),
         el(View, { style: styles.contentPane },
+          !isCustomerMode && !isWideLayout && el(PhoneHeaderBar, {
+            title: t(`screens.${activeScreen.key}`, activeScreen.label),
+            onMenuPress: toggleSidebar
+          }),
           !isCustomerMode && el(SmartSearch, {
             api,
             onNavigate: selectScreen

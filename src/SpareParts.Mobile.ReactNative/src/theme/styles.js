@@ -53,7 +53,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     backgroundColor: palette.surface,
@@ -67,7 +67,7 @@ function createStyles(palette) {
   smartSearchMark: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -93,7 +93,7 @@ function createStyles(palette) {
   },
   smartSearchPanel: {
     maxHeight: 360,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -107,7 +107,7 @@ function createStyles(palette) {
   smartSearchEmptyTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   smartSearchEmptyText: {
     color: palette.muted,
@@ -119,7 +119,7 @@ function createStyles(palette) {
   },
   smartSearchChip: {
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -143,12 +143,12 @@ function createStyles(palette) {
   smartSearchGroupTitle: {
     color: palette.soft,
     fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_500Medium"
   },
   smartSearchResult: {
     minHeight: 54,
-    borderRadius: 8,
+    borderRadius: 2,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -163,7 +163,7 @@ function createStyles(palette) {
   },
   smartSearchResultTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   smartSearchResultSubtitle: {
     color: palette.muted,
@@ -197,7 +197,7 @@ function createStyles(palette) {
   menuButton: {
     minWidth: 68,
     minHeight: 40,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -217,7 +217,7 @@ function createStyles(palette) {
   topBarTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   topBarSubtitle: {
     color: palette.muted,
@@ -275,7 +275,7 @@ function createStyles(palette) {
   sideBrandMark: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -291,7 +291,7 @@ function createStyles(palette) {
   sideBrandTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_700Bold"
   },
   sideBrandSubtitle: {
     color: palette.muted,
@@ -300,7 +300,7 @@ function createStyles(palette) {
   },
   sideCloseButton: {
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -327,15 +327,15 @@ function createStyles(palette) {
   navGroupTitle: {
     color: palette.soft,
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   sideNavItem: {
     minHeight: 42,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 5,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "transparent",
     backgroundColor: "transparent",
@@ -348,7 +348,7 @@ function createStyles(palette) {
   navActiveMark: {
     width: 4,
     height: 22,
-    borderRadius: 4,
+    borderRadius: 2,
     backgroundColor: "transparent"
   },
   navActiveMarkOn: {
@@ -378,7 +378,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: "transparent",
@@ -403,7 +403,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -418,7 +418,7 @@ function createStyles(palette) {
     height: 28,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface
@@ -470,7 +470,7 @@ function createStyles(palette) {
     minHeight: 38,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2
@@ -511,7 +511,7 @@ function createStyles(palette) {
     right: 28,
     width: 32,
     height: 460,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "rgba(255,59,31,0.20)",
     transform: [{ rotate: "14deg" }]
   },
@@ -521,7 +521,7 @@ function createStyles(palette) {
     left: -28,
     width: 24,
     height: 340,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "rgba(70,170,210,0.13)",
     transform: [{ rotate: "-18deg" }]
   },
@@ -563,7 +563,7 @@ function createStyles(palette) {
     height: 5,
     flexDirection: "row",
     overflow: "hidden",
-    borderRadius: 5,
+    borderRadius: 2,
     backgroundColor: "rgba(255,255,255,0.18)"
   },
   loginFuelStripHot: {
@@ -589,7 +589,7 @@ function createStyles(palette) {
   },
   loginPanel: {
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.16)",
     borderTopColor: "rgba(255,255,255,0.22)",
@@ -620,21 +620,21 @@ function createStyles(palette) {
   loginPanelKicker: {
     color: "#f59e0b",
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   loginPanelTitle: {
     color: "#f8fafc",
     fontSize: 22,
-    fontWeight: "900",
-    marginTop: 2
+    marginTop: 2,
+    fontFamily: "Oswald_700Bold"
   },
   loginPanelBadge: {
     minWidth: 46,
     minHeight: 34,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(245,158,11,0.44)",
     backgroundColor: "rgba(245,158,11,0.13)"
@@ -654,7 +654,7 @@ function createStyles(palette) {
     color: "#ffffff",
     fontSize: 42,
     lineHeight: 44,
-    fontWeight: "900"
+    fontFamily: "Oswald_700Bold"
   },
   loginSubtitle: {
     color: "#d8dbe2",
@@ -669,7 +669,7 @@ function createStyles(palette) {
     flex: 1,
     minHeight: 54,
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.16)",
     backgroundColor: "rgba(6,7,10,0.54)",
@@ -712,7 +712,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -725,7 +725,7 @@ function createStyles(palette) {
   socialBrandMark: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff"
@@ -738,7 +738,7 @@ function createStyles(palette) {
   facebookBrandMark: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff"
@@ -756,7 +756,7 @@ function createStyles(palette) {
   brandMarkLarge: {
     width: 62,
     height: 62,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.30)",
     backgroundColor: "#e85012",
@@ -766,7 +766,7 @@ function createStyles(palette) {
   brandMarkLargeText: {
     color: "#ffffff",
     fontSize: 32,
-    fontWeight: "900"
+    fontFamily: "Oswald_700Bold"
   },
   header: {
     flexDirection: "row",
@@ -782,23 +782,23 @@ function createStyles(palette) {
   brandMark: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent,
     alignItems: "center",
     justifyContent: "center"
   },
   brandMarkText: {
     color: palette.text,
-    fontWeight: "900",
-    fontSize: 20
+    fontSize: 20,
+    fontFamily: "Oswald_700Bold"
   },
   headerCopy: {
     flex: 1
   },
   headerTitle: {
     color: palette.text,
-    fontWeight: "800",
-    fontSize: 16
+    fontSize: 16,
+    fontFamily: "Oswald_600SemiBold"
   },
   headerSubtitle: {
     color: palette.muted,
@@ -808,7 +808,7 @@ function createStyles(palette) {
   headerButton: {
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2
@@ -833,7 +833,7 @@ function createStyles(palette) {
     minWidth: 96,
     paddingVertical: 9,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     backgroundColor: "transparent",
     borderWidth: 1,
@@ -876,7 +876,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 10,
+    borderRadius: 2,
     backgroundColor: "transparent",
     paddingHorizontal: 6,
     paddingVertical: 8,
@@ -891,7 +891,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
-    borderRadius: 8
+    borderRadius: 2
   },
   bottomTabMarkActive: {
     backgroundColor: "transparent"
@@ -1164,7 +1164,7 @@ function createStyles(palette) {
     top: 8,
     width: 13,
     height: 3,
-    borderRadius: 3,
+    borderRadius: 2,
     transform: [{ rotate: "-35deg" }]
   },
   iconWrenchGrip: {
@@ -1173,7 +1173,7 @@ function createStyles(palette) {
     top: 13,
     width: 6,
     height: 4,
-    borderRadius: 4,
+    borderRadius: 2,
     transform: [{ rotate: "-35deg" }]
   },
   themeRail: {
@@ -1190,7 +1190,7 @@ function createStyles(palette) {
     alignItems: "center",
     gap: 7,
     minHeight: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: "transparent",
@@ -1203,7 +1203,7 @@ function createStyles(palette) {
   themeDot: {
     width: 13,
     height: 13,
-    borderRadius: 4,
+    borderRadius: 2,
     borderWidth: 1
   },
   themeButtonText: {
@@ -1237,8 +1237,8 @@ function createStyles(palette) {
   screenTitle: {
     color: palette.text,
     fontSize: 26,
-    fontWeight: "900",
-    letterSpacing: -0.6
+    letterSpacing: -0.6,
+    fontFamily: "Oswald_600SemiBold"
   },
   headerAction: {
     minWidth: 86,
@@ -1246,7 +1246,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2,
     borderWidth: 1,
     borderColor: palette.line
@@ -1265,7 +1265,7 @@ function createStyles(palette) {
   },
   input: {
     minHeight: 46,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -1281,7 +1281,7 @@ function createStyles(palette) {
     minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent,
     paddingHorizontal: 18,
     shadowColor: palette.accent,
@@ -1303,7 +1303,7 @@ function createStyles(palette) {
     minHeight: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1326,7 +1326,7 @@ function createStyles(palette) {
     width: "48%",
     minHeight: 68,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -1351,7 +1351,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1360,7 +1360,7 @@ function createStyles(palette) {
   partsFocusRank: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: 2,
     overflow: "hidden",
     color: palette.accent,
     backgroundColor: palette.input,
@@ -1376,7 +1376,7 @@ function createStyles(palette) {
   partsFocusTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   partsFocusSubtitle: {
     color: palette.muted,
@@ -1398,7 +1398,7 @@ function createStyles(palette) {
   partsChip: {
     minHeight: 36,
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1427,7 +1427,7 @@ function createStyles(palette) {
   partCard: {
     flexDirection: "row",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1436,7 +1436,7 @@ function createStyles(palette) {
   partPhoto: {
     width: 74,
     minHeight: 106,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
     backgroundColor: palette.input,
@@ -1479,8 +1479,8 @@ function createStyles(palette) {
     color: palette.text,
     fontSize: 15,
     lineHeight: 19,
-    fontWeight: "900",
-    marginTop: 2
+    marginTop: 2,
+    fontFamily: "Oswald_500Medium"
   },
   partPrice: {
     maxWidth: 112,
@@ -1495,7 +1495,7 @@ function createStyles(palette) {
     gap: 6
   },
   partsStatus: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1513,7 +1513,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(255,107,95,0.18)"
   },
   partsPriority: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1534,7 +1534,7 @@ function createStyles(palette) {
     backgroundColor: palette.input
   },
   partsDemandBadge: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1544,7 +1544,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(214,169,79,0.18)"
   },
   partsCondition: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1554,7 +1554,7 @@ function createStyles(palette) {
     backgroundColor: "rgba(255,255,255,0.07)"
   },
   partsDonorBadge: {
-    borderRadius: 6,
+    borderRadius: 2,
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1580,7 +1580,7 @@ function createStyles(palette) {
   metricTile: {
     width: "48%",
     minHeight: 92,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -1624,7 +1624,7 @@ function createStyles(palette) {
     minHeight: 120,
     justifyContent: "space-between",
     gap: 7,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1654,8 +1654,8 @@ function createStyles(palette) {
   dashboardActionTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: -0.2
+    letterSpacing: -0.2,
+    fontFamily: "Oswald_500Medium"
   },
   dashboardActionSubtitle: {
     color: palette.muted,
@@ -1663,7 +1663,7 @@ function createStyles(palette) {
     lineHeight: 18
   },
   panel: {
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -1678,8 +1678,8 @@ function createStyles(palette) {
   panelTitle: {
     color: palette.text,
     fontSize: 17,
-    fontWeight: "900",
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: "Oswald_600SemiBold"
   },
   listRow: {
     flexDirection: "row",
@@ -1696,7 +1696,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.06)",
     backgroundColor: palette.surface2,
@@ -1707,7 +1707,7 @@ function createStyles(palette) {
     minHeight: 118,
     justifyContent: "center",
     gap: 6,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1739,7 +1739,7 @@ function createStyles(palette) {
     minHeight: 62,
     justifyContent: "space-between",
     gap: 6,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1765,7 +1765,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1786,7 +1786,7 @@ function createStyles(palette) {
   dashboardQueueRank: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     color: palette.accent,
@@ -1829,7 +1829,7 @@ function createStyles(palette) {
   },
   heatmapTile: {
     minHeight: 188,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1859,7 +1859,7 @@ function createStyles(palette) {
     minWidth: 0,
     color: palette.text,
     fontSize: 17,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   heatmapScore: {
     color: palette.muted,
@@ -1872,7 +1872,7 @@ function createStyles(palette) {
     gap: 7
   },
   heatmapSignal: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     paddingHorizontal: 8,
@@ -1929,7 +1929,7 @@ function createStyles(palette) {
   },
   listRowTitle: {
     color: palette.text,
-    fontWeight: "800"
+    fontFamily: "Oswald_500Medium"
   },
   listRowSubtitle: {
     color: palette.muted,
@@ -1953,7 +1953,7 @@ function createStyles(palette) {
     minHeight: 76,
     justifyContent: "center",
     gap: 5,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -1970,7 +1970,7 @@ function createStyles(palette) {
   assistantActionTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   assistantActionDescription: {
     color: palette.muted,
@@ -1992,7 +1992,7 @@ function createStyles(palette) {
     position: "relative",
     minHeight: 260,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2012,8 +2012,8 @@ function createStyles(palette) {
   visualPreviewEmptyTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_500Medium"
   },
   visualPreviewEmptyText: {
     color: palette.muted,
@@ -2044,7 +2044,7 @@ function createStyles(palette) {
   },
   segmentButton: {
     minHeight: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2071,7 +2071,7 @@ function createStyles(palette) {
   screenListFrame: {
     height: 320,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2079,7 +2079,7 @@ function createStyles(palette) {
   screenListFrameLarge: {
     height: 460,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2095,7 +2095,7 @@ function createStyles(palette) {
     justifyContent: "space-between",
     gap: 12,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2110,7 +2110,7 @@ function createStyles(palette) {
     color: palette.text,
     fontSize: 24,
     lineHeight: 28,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   mechanicHeroMeta: {
     color: palette.muted,
@@ -2123,7 +2123,7 @@ function createStyles(palette) {
     height: 82,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     backgroundColor: palette.input
@@ -2145,7 +2145,7 @@ function createStyles(palette) {
   mechanicPickerFrame: {
     height: 260,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2155,7 +2155,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2166,7 +2166,7 @@ function createStyles(palette) {
     height: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent
   },
   mechanicPartMarkText: {
@@ -2182,7 +2182,7 @@ function createStyles(palette) {
   mechanicPartTitle: {
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   mechanicPartMeta: {
     color: palette.muted,
@@ -2198,7 +2198,7 @@ function createStyles(palette) {
     minWidth: 0,
     minHeight: 72,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2224,7 +2224,7 @@ function createStyles(palette) {
     minHeight: 58,
     justifyContent: "center",
     gap: 4,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2250,7 +2250,7 @@ function createStyles(palette) {
   mechanicPhotoFrame: {
     height: 228,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2270,7 +2270,7 @@ function createStyles(palette) {
   mechanicPhotoEmptyTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   mechanicPhotoEmptyText: {
     color: palette.muted,
@@ -2295,7 +2295,7 @@ function createStyles(palette) {
     minWidth: 0,
     minHeight: 86,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2319,13 +2319,13 @@ function createStyles(palette) {
   deadStockQueueFrame: {
     maxHeight: 430,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
   },
   deadStockQueueItem: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2387,7 +2387,7 @@ function createStyles(palette) {
   deadStockSelectedTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   deadStockSelectedMeta: {
     color: palette.muted,
@@ -2408,7 +2408,7 @@ function createStyles(palette) {
   },
   deadStockFact: {
     minHeight: 30,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2422,7 +2422,7 @@ function createStyles(palette) {
     gap: 10
   },
   deadStockActionCard: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2438,7 +2438,7 @@ function createStyles(palette) {
   deadStockActionTitle: {
     flex: 1,
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   deadStockActionTone: {
     color: palette.accent,
@@ -2459,7 +2459,7 @@ function createStyles(palette) {
     width: "48%",
     minHeight: 78,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2479,7 +2479,7 @@ function createStyles(palette) {
     position: "relative",
     minHeight: 260,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2488,7 +2488,7 @@ function createStyles(palette) {
     minHeight: 220,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2509,8 +2509,8 @@ function createStyles(palette) {
   compatGraphOverlayTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_500Medium"
   },
   compatGraphOverlayText: {
     color: palette.muted,
@@ -2519,7 +2519,7 @@ function createStyles(palette) {
     textAlign: "center"
   },
   compatPartRow: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "transparent",
     backgroundColor: palette.surface
@@ -2537,7 +2537,7 @@ function createStyles(palette) {
     minWidth: 0,
     minHeight: 76,
     justifyContent: "space-between",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2561,7 +2561,7 @@ function createStyles(palette) {
   prepColumn: {
     width: 248,
     height: 420,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2580,12 +2580,12 @@ function createStyles(palette) {
   },
   prepColumnTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   prepColumnCount: {
     minWidth: 26,
     height: 26,
-    borderRadius: 13,
+    borderRadius: 3,
     overflow: "hidden",
     color: palette.muted,
     backgroundColor: palette.surface2,
@@ -2602,7 +2602,7 @@ function createStyles(palette) {
     paddingBottom: 4
   },
   prepCard: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2616,7 +2616,7 @@ function createStyles(palette) {
   prepCardAvatar: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -2631,7 +2631,7 @@ function createStyles(palette) {
   },
   prepCardTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   prepCardMeta: {
     color: palette.muted,
@@ -2640,12 +2640,12 @@ function createStyles(palette) {
   prepProgress: {
     height: 6,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2
   },
   prepProgressFill: {
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent
   },
   prepCardFooter: {
@@ -2661,7 +2661,7 @@ function createStyles(palette) {
   prepSelectedAvatar: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -2678,7 +2678,7 @@ function createStyles(palette) {
   prepSelectedTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   prepSelectedMeta: {
     color: palette.muted,
@@ -2688,7 +2688,7 @@ function createStyles(palette) {
   prepProgressLarge: {
     height: 8,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.input
   },
   prepTaskRow: {
@@ -2696,7 +2696,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2709,7 +2709,7 @@ function createStyles(palette) {
   prepTaskToggle: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.accent,
     alignItems: "center",
@@ -2726,7 +2726,7 @@ function createStyles(palette) {
   },
   prepTaskTitle: {
     color: palette.text,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   prepTaskMeta: {
     color: palette.muted,
@@ -2736,7 +2736,7 @@ function createStyles(palette) {
   prepTaskDelete: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -2748,7 +2748,7 @@ function createStyles(palette) {
     fontWeight: "900"
   },
   reportHero: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2769,13 +2769,13 @@ function createStyles(palette) {
   reportKicker: {
     color: palette.accent,
     fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   reportHeroTitle: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   reportHeroSubtitle: {
     color: palette.muted,
@@ -2787,7 +2787,7 @@ function createStyles(palette) {
     minHeight: 54,
     alignItems: "flex-end",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2813,7 +2813,7 @@ function createStyles(palette) {
     color: palette.muted,
     fontSize: 11,
     fontWeight: "800",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2827,7 +2827,7 @@ function createStyles(palette) {
   reportSummaryCard: {
     width: 142,
     minHeight: 76,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -2866,7 +2866,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 170,
     minHeight: 42,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -2882,7 +2882,7 @@ function createStyles(palette) {
     minWidth: 78,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -2903,7 +2903,7 @@ function createStyles(palette) {
   reportTableFrame: {
     height: 520,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -2994,7 +2994,7 @@ function createStyles(palette) {
   reportDetailTile: {
     minWidth: 132,
     flex: 1,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -3013,7 +3013,7 @@ function createStyles(palette) {
     marginTop: 4
   },
   screenListItem: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3026,8 +3026,8 @@ function createStyles(palette) {
   adminGroupTitle: {
     color: palette.muted,
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   adminLaunchGrid: {
     flexDirection: "row",
@@ -3037,7 +3037,7 @@ function createStyles(palette) {
   adminLaunchButton: {
     width: "48%",
     minHeight: 58,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3067,7 +3067,7 @@ function createStyles(palette) {
   managementListFrame: {
     height: 360,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -3093,7 +3093,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 140,
     minHeight: 46,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3109,7 +3109,7 @@ function createStyles(palette) {
   },
   adminCrudRow: {
     minHeight: 58,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3127,7 +3127,8 @@ function createStyles(palette) {
     minWidth: 0
   },
   adminCrudRowTitleActive: {
-    color: palette.accent
+    color: palette.accent,
+    fontFamily: "Oswald_500Medium"
   },
   usedCarHero: {
     gap: 12
@@ -3154,7 +3155,7 @@ function createStyles(palette) {
   usedCarGalleryFrame: {
     height: 300,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2
@@ -3180,7 +3181,7 @@ function createStyles(palette) {
   usedCarHeroTitle: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   usedCarHeroSubtitle: {
     color: palette.muted,
@@ -3194,7 +3195,7 @@ function createStyles(palette) {
   },
   usedCarBadge: {
     minHeight: 28,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3219,7 +3220,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 148,
     minHeight: 92,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3263,7 +3264,7 @@ function createStyles(palette) {
     paddingTop: 10
   },
   usedCarFocusCard: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3279,7 +3280,7 @@ function createStyles(palette) {
   usedCarActionPill: {
     minHeight: 26,
     maxWidth: "70%",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -3316,7 +3317,7 @@ function createStyles(palette) {
   usedCarFocusTitle: {
     color: palette.text,
     fontSize: 14,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   usedCarThumbRail: {
     gap: 8,
@@ -3326,7 +3327,7 @@ function createStyles(palette) {
     width: 66,
     height: 50,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3381,7 +3382,7 @@ function createStyles(palette) {
   usedCarFullscreenTitle: {
     color: "#ffffff",
     fontSize: 16,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   usedCarFullscreenMeta: {
     color: "rgba(255,255,255,0.62)",
@@ -3391,7 +3392,7 @@ function createStyles(palette) {
   },
   usedCarFullscreenClose: {
     minHeight: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -3425,7 +3426,7 @@ function createStyles(palette) {
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "rgba(255,255,255,0.08)"
   },
   usedCarFullscreenHint: {
@@ -3447,7 +3448,7 @@ function createStyles(palette) {
   usedCarZoomButton: {
     width: 42,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -3462,7 +3463,7 @@ function createStyles(palette) {
   usedCarZoomReadout: {
     minWidth: 72,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -3478,7 +3479,7 @@ function createStyles(palette) {
   usedCarZoomReset: {
     minWidth: 70,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.22)",
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -3501,7 +3502,7 @@ function createStyles(palette) {
     width: 58,
     height: 44,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -3518,7 +3519,7 @@ function createStyles(palette) {
   usedCarCard: {
     width: 154,
     gap: 8,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3531,13 +3532,13 @@ function createStyles(palette) {
     height: 82,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.input
   },
   usedCarCardTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   usedCarCardMeta: {
     color: palette.muted,
@@ -3552,7 +3553,7 @@ function createStyles(palette) {
   usedCarDetailTile: {
     width: "48%",
     minHeight: 66,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3579,7 +3580,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 130,
     minHeight: 46,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3604,7 +3605,7 @@ function createStyles(palette) {
   usedCarSelectChip: {
     maxWidth: "100%",
     minHeight: 40,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3650,7 +3651,7 @@ function createStyles(palette) {
     minWidth: 58,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3666,14 +3667,14 @@ function createStyles(palette) {
   usedCarInventoryListFrame: {
     height: 370,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
   },
   usedCarInventoryRow: {
     minHeight: 68,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3689,7 +3690,7 @@ function createStyles(palette) {
   usedCarInventoryMark: {
     width: 42,
     height: 42,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.surface
@@ -3734,19 +3735,19 @@ function createStyles(palette) {
   usedCarProgressTrack: {
     height: 10,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.input
   },
   usedCarProgressFill: {
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.accent
   },
   usedCarPushParts: {
     gap: 8
   },
   usedCarPushPart: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3759,7 +3760,7 @@ function createStyles(palette) {
   usedCarPartsListFrame: {
     height: 210,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input
@@ -3771,12 +3772,12 @@ function createStyles(palette) {
   usedCarPartSectionTitle: {
     color: palette.muted,
     fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    fontFamily: "Oswald_600SemiBold"
   },
   usedCarPartRow: {
     minHeight: 58,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3793,7 +3794,7 @@ function createStyles(palette) {
   usedCarPartTitle: {
     color: palette.text,
     fontSize: 12,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   usedCarPartMeta: {
     color: palette.muted,
@@ -3803,7 +3804,7 @@ function createStyles(palette) {
   usedCarMiniButton: {
     minHeight: 32,
     minWidth: 70,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3817,7 +3818,7 @@ function createStyles(palette) {
     fontWeight: "900"
   },
   newChatPanel: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3830,7 +3831,7 @@ function createStyles(palette) {
   },
   conversationPill: {
     width: 180,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3863,7 +3864,7 @@ function createStyles(palette) {
   },
   threadList: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface
@@ -3874,7 +3875,7 @@ function createStyles(palette) {
   },
   messageBubble: {
     maxWidth: "86%",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     padding: 10,
     gap: 7
@@ -3906,7 +3907,7 @@ function createStyles(palette) {
     flex: 1,
     minHeight: 48,
     maxHeight: 110,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -3920,7 +3921,7 @@ function createStyles(palette) {
   },
   whatsAppToggle: {
     minHeight: 44,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3951,7 +3952,7 @@ function createStyles(palette) {
   whatsAppCampaignStat: {
     flex: 1,
     minHeight: 62,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -3961,7 +3962,7 @@ function createStyles(palette) {
   },
   whatsAppCampaignAsset: {
     minHeight: 68,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface2,
@@ -3976,7 +3977,7 @@ function createStyles(palette) {
   },
   whatsAppCampaignMessage: {
     minHeight: 190,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -4021,7 +4022,7 @@ function createStyles(palette) {
   storeBrandMark: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#d71920"
@@ -4037,8 +4038,8 @@ function createStyles(palette) {
   },
   storeBrandTitle: {
     color: "#f7f4ed",
-    fontWeight: "900",
-    fontSize: 15
+    fontSize: 15,
+    fontFamily: "Oswald_700Bold"
   },
   storeBrandSubtitle: {
     color: "#b6b0a5",
@@ -4047,7 +4048,7 @@ function createStyles(palette) {
   },
   storeLogoutButton: {
     minHeight: 36,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     alignItems: "center",
@@ -4084,7 +4085,7 @@ function createStyles(palette) {
     color: "#f7f4ed",
     fontSize: 48,
     lineHeight: 48,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   storeHeroBody: {
     color: "#d8d2c8",
@@ -4095,7 +4096,7 @@ function createStyles(palette) {
     flexDirection: "row",
     gap: 1,
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "rgba(247,244,237,0.13)"
@@ -4132,7 +4133,7 @@ function createStyles(palette) {
   storeActionButton: {
     minHeight: 88,
     gap: 5,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#111419",
@@ -4150,7 +4151,7 @@ function createStyles(palette) {
   storeActionTitle: {
     color: "#f7f4ed",
     fontSize: 18,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeActionSubtitle: {
     color: "#b6b0a5",
@@ -4173,7 +4174,7 @@ function createStyles(palette) {
   storeFitmentTitle: {
     color: "#f7f4ed",
     fontSize: 20,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   storeBrandRail: {
     flexDirection: "row",
@@ -4184,7 +4185,7 @@ function createStyles(palette) {
     minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     paddingHorizontal: 11
@@ -4203,8 +4204,8 @@ function createStyles(palette) {
     color: "#f7f4ed",
     fontSize: 34,
     lineHeight: 36,
-    fontWeight: "900",
-    marginTop: 7
+    marginTop: 7,
+    fontFamily: "Oswald_600SemiBold"
   },
   storeSearchRow: {
     gap: 10
@@ -4220,7 +4221,7 @@ function createStyles(palette) {
   },
   storePartCard: {
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#111316"
@@ -4245,7 +4246,7 @@ function createStyles(palette) {
     height: 64,
     textAlign: "center",
     textAlignVertical: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.38)",
     backgroundColor: "rgba(8,9,11,0.58)",
@@ -4267,7 +4268,7 @@ function createStyles(palette) {
     color: "#f7f4ed",
     fontSize: 20,
     lineHeight: 24,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storePartFitment: {
     color: "#b6b0a5",
@@ -4298,7 +4299,7 @@ function createStyles(palette) {
     marginHorizontal: 14,
     marginTop: 10,
     alignSelf: "flex-start",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(214,169,79,0.38)",
     backgroundColor: "rgba(214,169,79,0.1)",
@@ -4314,7 +4315,7 @@ function createStyles(palette) {
     minHeight: 46,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "#d71920",
     margin: 14,
     paddingHorizontal: 14
@@ -4342,7 +4343,7 @@ function createStyles(palette) {
   storeEmptyTitle: {
     color: "#f7f4ed",
     fontSize: 20,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeEmptyText: {
     color: "#b6b0a5",
@@ -4354,7 +4355,7 @@ function createStyles(palette) {
     marginHorizontal: 16,
     marginTop: 24,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#0f1114"
@@ -4368,10 +4369,10 @@ function createStyles(palette) {
   storeCartTitleLarge: {
     color: "#f7f4ed",
     fontSize: 30,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeCartCount: {
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     color: "#d6a94f",
@@ -4399,7 +4400,7 @@ function createStyles(palette) {
   },
   storeCartTitle: {
     color: "#f7f4ed",
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storeCartSubtitle: {
     color: "#b6b0a5",
@@ -4410,7 +4411,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     overflow: "hidden",
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)"
   },
@@ -4435,7 +4436,7 @@ function createStyles(palette) {
   storeCheckoutSection: {
     gap: 10,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "rgba(255,255,255,0.03)"
@@ -4443,7 +4444,7 @@ function createStyles(palette) {
   storeCheckoutSectionTitle: {
     color: "#f7f4ed",
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storePaymentGrid: {
     flexDirection: "row",
@@ -4454,7 +4455,7 @@ function createStyles(palette) {
     minHeight: 78,
     gap: 4,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "#111419"
@@ -4466,7 +4467,7 @@ function createStyles(palette) {
   storePaymentTitle: {
     color: "#f7f4ed",
     fontSize: 15,
-    fontWeight: "900"
+    fontFamily: "Oswald_500Medium"
   },
   storePaymentSubtitle: {
     color: "#b6b0a5",
@@ -4497,7 +4498,7 @@ function createStyles(palette) {
   },
   storeSummaryBar: {
     marginHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(214,169,79,0.28)",
     backgroundColor: "rgba(214,169,79,0.08)",
@@ -4532,7 +4533,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)",
     backgroundColor: "rgba(255,255,255,0.03)",
@@ -4545,7 +4546,7 @@ function createStyles(palette) {
   storeStepNumber: {
     width: 22,
     height: 22,
-    borderRadius: 8,
+    borderRadius: 2,
     color: "#b6b0a5",
     textAlign: "center",
     textAlignVertical: "center",
@@ -4596,7 +4597,7 @@ function createStyles(palette) {
     alignItems: "center",
     gap: 10,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(247,244,237,0.13)"
   },
@@ -4639,7 +4640,7 @@ function createStyles(palette) {
     flex: 1,
     minWidth: 0,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -4768,7 +4769,7 @@ function createStyles(palette) {
   partListItemThumb: {
     width: 60,
     height: 48,
-    borderRadius: 6,
+    borderRadius: 2,
     backgroundColor: palette.surface2
   },
   partListItemInfo: {
@@ -4835,15 +4836,15 @@ function createStyles(palette) {
   partDetailSectionTitle: {
     color: palette.muted,
     fontSize: 11,
-    fontWeight: "900",
     textTransform: "uppercase",
     letterSpacing: 0.6,
-    marginBottom: 8
+    marginBottom: 8,
+    fontFamily: "Oswald_600SemiBold"
   },
 
   /* Skeleton Loader */
   skeletonBase: {
-    borderRadius: 4,
+    borderRadius: 2,
     backgroundColor: palette.surface2,
     overflow: "hidden"
   },
@@ -4859,7 +4860,7 @@ function createStyles(palette) {
   skeletonThumb: {
     width: 60,
     height: 48,
-    borderRadius: 6
+    borderRadius: 2
   },
   skeletonTextLg: {
     height: 14,
@@ -4883,7 +4884,7 @@ function createStyles(palette) {
   emptyScreenIcon: {
     width: 64,
     height: 64,
-    borderRadius: 16,
+    borderRadius: 3,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.surface2,
@@ -4893,8 +4894,8 @@ function createStyles(palette) {
   emptyScreenTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900",
-    textAlign: "center"
+    textAlign: "center",
+    fontFamily: "Oswald_600SemiBold"
   },
   emptyScreenText: {
     color: palette.muted,
@@ -4950,7 +4951,7 @@ function createStyles(palette) {
     gap: 8,
     minHeight: 48,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: "#25d366",
     justifyContent: "center"
   },
@@ -5013,7 +5014,7 @@ function createStyles(palette) {
     alignItems: "center",
     gap: 8,
     minHeight: 46,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: `${palette.accent}48`,
     backgroundColor: palette.surface,
@@ -5051,7 +5052,7 @@ function createStyles(palette) {
   topBarV2Title: {
     color: palette.text,
     fontSize: 19,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   topBarV2Sub: {
     color: palette.muted,
@@ -5087,7 +5088,7 @@ function createStyles(palette) {
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 2,
     backgroundColor: palette.surface2,
     borderWidth: 1,
     borderColor: palette.line
@@ -5135,8 +5136,8 @@ function createStyles(palette) {
   topBarTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    fontFamily: "Oswald_600SemiBold"
   },
   topBarSubtitle: {
     color: palette.muted,
@@ -5167,8 +5168,8 @@ function createStyles(palette) {
   sideBrandTitle: {
     color: "#f5f3f0",
     fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: "Oswald_700Bold"
   },
   sideBrandSubtitle: {
     color: "rgba(255,255,255,0.35)",
@@ -5178,7 +5179,7 @@ function createStyles(palette) {
   sideBrandMark: {
     width: 38,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -5186,16 +5187,16 @@ function createStyles(palette) {
   navGroupTitle: {
     color: "rgba(255,255,255,0.28)",
     fontSize: 10,
-    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1
+    letterSpacing: 1,
+    fontFamily: "Oswald_600SemiBold"
   },
   sideNavItem: {
     minHeight: 40,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 7,
+    borderRadius: 2,
     borderWidth: 0,
     backgroundColor: "transparent",
     paddingHorizontal: 10
@@ -5244,7 +5245,7 @@ function createStyles(palette) {
     minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 7,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
     backgroundColor: "rgba(255,255,255,0.06)"
@@ -5256,7 +5257,7 @@ function createStyles(palette) {
   },
   sideCloseButton: {
     minHeight: 32,
-    borderRadius: 7,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
     backgroundColor: "rgba(255,255,255,0.06)",
@@ -5289,7 +5290,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 9,
+    borderRadius: 2,
     backgroundColor: "transparent",
     paddingHorizontal: 4,
     paddingVertical: 6,
@@ -5322,8 +5323,8 @@ function createStyles(palette) {
   screenTitle: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: "900",
-    letterSpacing: -0.8
+    letterSpacing: -0.8,
+    fontFamily: "Oswald_600SemiBold"
   },
   screenContent: {
     padding: 16,
@@ -5333,7 +5334,7 @@ function createStyles(palette) {
 
   /* Cards & panels */
   panel: {
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5348,8 +5349,8 @@ function createStyles(palette) {
   panelTitle: {
     color: palette.text,
     fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: -0.4
+    letterSpacing: -0.4,
+    fontFamily: "Oswald_600SemiBold"
   },
 
   /* Metric tiles */
@@ -5357,7 +5358,7 @@ function createStyles(palette) {
   metricTile: {
     width: "48%",
     minHeight: 88,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5398,7 +5399,7 @@ function createStyles(palette) {
     minHeight: 116,
     justifyContent: "space-between",
     gap: 8,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5426,8 +5427,8 @@ function createStyles(palette) {
   dashboardActionTitle: {
     color: palette.text,
     fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: "Oswald_500Medium"
   },
   dashboardActionSubtitle: {
     color: palette.muted,
@@ -5438,7 +5439,7 @@ function createStyles(palette) {
   /* Inputs & buttons */
   input: {
     minHeight: 46,
-    borderRadius: 9,
+    borderRadius: 2,
     borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.input,
@@ -5457,7 +5458,7 @@ function createStyles(palette) {
     minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 9,
+    borderRadius: 2,
     backgroundColor: palette.accent,
     paddingHorizontal: 20,
     elevation: 4,
@@ -5476,7 +5477,7 @@ function createStyles(palette) {
     minHeight: 42,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 9,
+    borderRadius: 2,
     borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5504,7 +5505,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5520,7 +5521,7 @@ function createStyles(palette) {
   /* Login */
   loginPanel: {
     padding: 22,
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1.5,
     borderTopColor: "rgba(255,255,255,0.18)",
     borderLeftColor: "rgba(255,255,255,0.10)",
@@ -5539,8 +5540,8 @@ function createStyles(palette) {
     color: "#f5f3f0",
     fontSize: 38,
     lineHeight: 40,
-    fontWeight: "900",
-    letterSpacing: -1.2
+    letterSpacing: -1.2,
+    fontFamily: "Oswald_700Bold"
   },
   loginSubtitle: {
     color: "#8a8580",
@@ -5557,16 +5558,16 @@ function createStyles(palette) {
   loginPanelTitle: {
     color: "#f5f3f0",
     fontSize: 22,
-    fontWeight: "900",
     marginTop: 2,
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    fontFamily: "Oswald_700Bold"
   },
   loginPanelKicker: {
     color: palette.accent,
     fontSize: 11,
-    fontWeight: "800",
     textTransform: "uppercase",
-    letterSpacing: 0.8
+    letterSpacing: 0.8,
+    fontFamily: "Oswald_600SemiBold"
   },
 
   /* Smart search */
@@ -5575,7 +5576,7 @@ function createStyles(palette) {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1.5,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5589,7 +5590,7 @@ function createStyles(palette) {
   smartSearchMark: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: palette.accent
@@ -5604,7 +5605,7 @@ function createStyles(palette) {
   },
   smartSearchResult: {
     minHeight: 52,
-    borderRadius: 9,
+    borderRadius: 2,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -5619,7 +5620,7 @@ function createStyles(palette) {
   /* Heatmap */
   heatmapTile: {
     minHeight: 170,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5640,7 +5641,7 @@ function createStyles(palette) {
     minHeight: 120,
     justifyContent: "center",
     gap: 6,
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.text,
@@ -5670,7 +5671,7 @@ function createStyles(palette) {
     minHeight: 64,
     justifyContent: "space-between",
     gap: 6,
-    borderRadius: 10,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5692,7 +5693,7 @@ function createStyles(palette) {
 
   /* Billing & subscription */
   billingPlanCard: {
-    borderRadius: 12,
+    borderRadius: 2,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5725,7 +5726,7 @@ function createStyles(palette) {
   },
   billingBadge: {
     alignSelf: "flex-start",
-    borderRadius: 6,
+    borderRadius: 2,
     paddingHorizontal: 8,
     paddingVertical: 3,
     fontSize: 10,
@@ -5752,7 +5753,7 @@ function createStyles(palette) {
   lockModalCard: {
     width: "100%",
     maxWidth: 380,
-    borderRadius: 14,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: palette.line,
     backgroundColor: palette.surface,
@@ -5762,7 +5763,7 @@ function createStyles(palette) {
   lockModalTitle: {
     color: palette.text,
     fontSize: 17,
-    fontWeight: "900"
+    fontFamily: "Oswald_600SemiBold"
   },
   lockModalMessage: {
     color: palette.text,
@@ -5778,6 +5779,684 @@ function createStyles(palette) {
     flexDirection: "row",
     gap: 8,
     marginTop: 8
+  },
+
+  /* ---------------------------------------------------------------- */
+  /* New shared UI component library (src/components/ui/*)            */
+  /* ---------------------------------------------------------------- */
+
+  uiCard: {
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    gap: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4
+  },
+  uiCardPressed: {
+    borderColor: palette.accent,
+    opacity: 0.92
+  },
+  uiCardCompact: {
+    padding: 10,
+    gap: 6
+  },
+  uiCardRow: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center"
+  },
+  uiCardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+
+  uiSectionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginTop: 18,
+    marginBottom: 8,
+    gap: 10
+  },
+  uiSectionHeaderTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2
+  },
+  uiSectionHeaderTitle: {
+    color: palette.text,
+    fontSize: 15,
+    fontFamily: "Oswald_600SemiBold"
+  },
+  uiSectionHeaderSubtitle: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "600"
+  },
+  uiSectionHeaderAction: {
+    minHeight: 32,
+    paddingHorizontal: 12,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: palette.accent,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiSectionHeaderActionText: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+
+  uiStatusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  uiStatusPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3
+  },
+  uiStatusPillText: {
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  uiStatusPillNeutral: {
+    borderColor: palette.line,
+    backgroundColor: palette.surface2
+  },
+  uiStatusPillNeutralText: { color: palette.muted },
+  uiStatusPillNeutralDot: { backgroundColor: palette.muted },
+  uiStatusPillAccent: {
+    borderColor: palette.accent,
+    backgroundColor: "rgba(255,255,255,0.04)"
+  },
+  uiStatusPillAccentText: { color: palette.accent },
+  uiStatusPillAccentDot: { backgroundColor: palette.accent },
+  uiStatusPillGood: {
+    borderColor: "#66bb6a",
+    backgroundColor: "rgba(102,187,106,0.14)"
+  },
+  uiStatusPillGoodText: { color: "#66bb6a" },
+  uiStatusPillGoodDot: { backgroundColor: "#66bb6a" },
+  uiStatusPillWarn: {
+    borderColor: "#ffb74d",
+    backgroundColor: "rgba(255,183,77,0.14)"
+  },
+  uiStatusPillWarnText: { color: "#ffb74d" },
+  uiStatusPillWarnDot: { backgroundColor: "#ffb74d" },
+  uiStatusPillBad: {
+    borderColor: "#e57373",
+    backgroundColor: "rgba(229,115,115,0.16)"
+  },
+  uiStatusPillBadText: { color: "#e57373" },
+  uiStatusPillBadDot: { backgroundColor: "#e57373" },
+
+  uiSearchBarRow: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.input,
+    paddingHorizontal: 12
+  },
+  uiSearchBarIcon: {
+    color: palette.muted,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiSearchBarInput: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 40,
+    color: palette.text,
+    fontSize: 14,
+    paddingVertical: 0
+  },
+  uiSearchBarClear: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2
+  },
+  uiSearchBarClearText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "900"
+  },
+
+  uiFilterChipRail: {
+    gap: 8,
+    paddingVertical: 2,
+    paddingRight: 18
+  },
+  uiFilterChip: {
+    minHeight: 36,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 6
+  },
+  uiFilterChipActive: {
+    borderColor: palette.accent,
+    backgroundColor: palette.accent
+  },
+  uiFilterChipText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  uiFilterChipTextActive: {
+    color: "#ffffff"
+  },
+  uiFilterChipCount: {
+    color: palette.muted,
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  uiFilterChipCountActive: {
+    color: "rgba(255,255,255,0.85)"
+  },
+  uiFilterScrollWrap: {
+    position: "relative"
+  },
+  uiFilterScrollFadeRight: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 22
+  },
+
+  uiEmptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 30,
+    paddingHorizontal: 18
+  },
+  uiEmptyStateIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2,
+    marginBottom: 4
+  },
+  uiEmptyStateIconText: {
+    fontSize: 22
+  },
+  uiEmptyStateTitle: {
+    color: palette.text,
+    fontSize: 14,
+    textAlign: "center",
+    fontFamily: "Oswald_500Medium"
+  },
+  uiEmptyStateText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 17
+  },
+  uiEmptyStateAction: {
+    marginTop: 8,
+    minHeight: 38,
+    paddingHorizontal: 16,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: palette.accent,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiEmptyStateActionText: {
+    color: palette.accent,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+
+  uiSkeletonBlock: {
+    overflow: "hidden",
+    borderRadius: 2,
+    backgroundColor: palette.surface2
+  },
+  uiSkeletonShimmer: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.10)"
+  },
+  uiSkeletonCard: {
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 14,
+    gap: 10
+  },
+  uiSkeletonRow: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center"
+  },
+
+  uiStickyBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: palette.line,
+    backgroundColor: palette.surface,
+    shadowColor: "#000000",
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12
+  },
+  uiStickyBarButton: {
+    flex: 1,
+    minHeight: 46,
+    borderRadius: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.accent
+  },
+  uiStickyBarButtonSecondary: {
+    backgroundColor: palette.surface2,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+  uiStickyBarButtonDanger: {
+    backgroundColor: "#e57373"
+  },
+  uiStickyBarButtonText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "900"
+  },
+  uiStickyBarButtonSecondaryText: {
+    color: palette.text
+  },
+  uiStickyBarButtonDisabled: {
+    opacity: 0.5
+  },
+  uiStickyBarSpacer: {
+    height: 64
+  },
+
+  uiSheetBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end"
+  },
+  uiSheetCard: {
+    maxHeight: "88%",
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderWidth: 1,
+    borderColor: palette.line,
+    borderBottomWidth: 0,
+    backgroundColor: palette.surface,
+    paddingTop: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 20
+  },
+  uiSheetHandleRow: {
+    alignItems: "center",
+    paddingVertical: 8
+  },
+  uiSheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: palette.line
+  },
+  uiSheetHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.line
+  },
+  uiSheetTitle: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.text,
+    fontSize: 16,
+    fontFamily: "Oswald_600SemiBold"
+  },
+  uiSheetCloseButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2
+  },
+  uiSheetCloseText: {
+    color: palette.muted,
+    fontSize: 14,
+    fontWeight: "900"
+  },
+  uiSheetBody: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 24,
+    gap: 10
+  },
+
+  uiGalleryRoot: {
+    width: "100%",
+    backgroundColor: palette.input,
+    borderRadius: 2,
+    overflow: "hidden"
+  },
+  uiGalleryImageWrap: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.input,
+    overflow: "hidden"
+  },
+  uiGalleryImage: {
+    width: "100%",
+    height: "100%"
+  },
+  uiGalleryCounterBadge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  uiGalleryCounterText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "800"
+  },
+  uiGalleryArrow: {
+    position: "absolute",
+    top: "50%",
+    width: 34,
+    height: 34,
+    marginTop: -17,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.45)"
+  },
+  uiGalleryArrowLeft: { left: 8 },
+  uiGalleryArrowRight: { right: 8 },
+  uiGalleryArrowText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  uiGalleryThumbRail: {
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 4
+  },
+  uiGalleryThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 2,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "transparent",
+    backgroundColor: palette.input
+  },
+  uiGalleryThumbActive: {
+    borderColor: palette.accent
+  },
+  uiGalleryThumbImage: {
+    width: "100%",
+    height: "100%"
+  },
+  uiGalleryEmpty: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiGalleryEmptyText: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  uiGalleryZoomHint: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    paddingHorizontal: 8,
+    paddingVertical: 3
+  },
+  uiGalleryZoomHintText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "700"
+  },
+
+  uiPartCard: {
+    flexDirection: "row",
+    gap: 12,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    padding: 12
+  },
+  uiPartCardPressed: {
+    borderColor: palette.accent
+  },
+  uiPartCardThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 2,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.input
+  },
+  uiPartCardThumbImage: {
+    width: "100%",
+    height: "100%"
+  },
+  uiPartCardThumbText: {
+    color: palette.muted,
+    fontSize: 16,
+    fontWeight: "900"
+  },
+  uiPartCardBody: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4
+  },
+  uiPartCardTitle: {
+    color: palette.text,
+    fontSize: 14,
+    fontFamily: "Oswald_500Medium"
+  },
+  uiPartCardSubtitle: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "600"
+  },
+  uiPartCardBadgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 2
+  },
+  uiPartCardSide: {
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 6
+  },
+  uiPartCardPrice: {
+    color: palette.text,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiPartCardActionsRow: {
+    flexDirection: "row",
+    gap: 6
+  },
+  uiPartCardIconButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: palette.surface2,
+    borderWidth: 1,
+    borderColor: palette.line
+  },
+  uiPartCardIconButtonText: {
+    fontSize: 13
+  },
+  uiPartGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  uiPartCardGridItem: {
+    flexDirection: "column",
+    width: "48%"
+  },
+  uiPartCardGridThumb: {
+    width: "100%",
+    height: 110,
+    borderRadius: 2,
+    marginBottom: 8
+  },
+
+  uiVehicleCard: {
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: palette.line,
+    backgroundColor: palette.surface,
+    overflow: "hidden"
+  },
+  uiVehicleCardImage: {
+    width: "100%",
+    height: 150,
+    backgroundColor: palette.input
+  },
+  uiVehicleCardImagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  uiVehicleCardBody: {
+    padding: 12,
+    gap: 6
+  },
+  uiVehicleCardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  uiVehicleCardTitle: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.text,
+    fontSize: 15,
+    fontFamily: "Oswald_500Medium"
+  },
+  uiVehicleCardPrice: {
+    color: palette.accent,
+    fontSize: 15,
+    fontWeight: "900"
+  },
+  uiVehicleCardMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  uiVehicleCardMetaItem: {
+    color: palette.muted,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  uiVehicleCardFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4
+  },
+
+  phoneHeaderBar: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.line,
+    backgroundColor: palette.bg
+  },
+  phoneHeaderMenuButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    backgroundColor: palette.surface2
+  },
+  phoneHeaderMenuLine: {
+    width: 16,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: palette.text
+  },
+  phoneHeaderTitle: {
+    flex: 1,
+    minWidth: 0,
+    color: palette.text,
+    fontSize: 15,
+    fontFamily: "Oswald_600SemiBold"
   }
 });
 }

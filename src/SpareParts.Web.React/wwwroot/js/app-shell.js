@@ -4,7 +4,7 @@ import { ApiClient } from "./core/api-client.js";
 import { createTranslator, isRtlLanguage } from "./core/i18n.js";
 import { applyWebTheme, money, normalizeBaseUrl } from "./core/formatters.js";
 import { BrowserLanguageStore, BrowserSessionStore, BrowserThemeStore } from "./core/stores.js";
-import { LanguageSegment, Sidebar, ThemeRail } from "./components/layout.js";
+import { LanguageSegment, ThemeRail } from "./components/layout.js";
 import { NotificationCenter } from "./components/shared.js";
 import { LockedFeatureModal } from "./components/locked-feature-modal.js";
 import { SmartSearch } from "./components/smart-search.js";
@@ -12,6 +12,9 @@ import { createPartNotificationClient } from "./services/notification-service.js
 import { CustomerStorefrontView } from "./views/storefront-view.js";
 import { PartPassportView } from "./views/part-passport-view.js";
 import { screenRegistry } from "./views/screen-registry.js";
+import { AppShell } from "./components/ui/AppShell.js";
+import { Sidebar } from "./components/ui/Sidebar.js";
+import { Topbar } from "./components/ui/Topbar.js";
 
 const sessionStore = new BrowserSessionStore(window.localStorage, storageKeys);
 const themeStore = new BrowserThemeStore(window.localStorage, storageKeys.theme);
@@ -167,44 +170,44 @@ export function App() {
   }
 
   const ActiveScreen = screenRegistry.resolve(view);
+  const activeScreenMeta = screenRegistry.items.find((screen) => screen.key === view);
 
-  return h("div", { className: "app-shell" },
-    h(Sidebar, {
-      screens: screenRegistry.items,
-      user,
-      view,
-      onLogout: logout,
-      onView: switchView,
-      t
-    }),
-    h("main", { className: "workspace" },
-      h("header", { className: "admin-topbar" },
-        h("div", { className: "admin-search-zone" },
-          h(SmartSearch, {
-            api,
-            onNavigate: switchView,
-            t
-          })
-        ),
-        h("div", { className: "admin-topbar-controls" },
+  return h(React.Fragment, null,
+    h(AppShell, {
+      sidebar: ({ collapsed }) => h(Sidebar, {
+        screens: screenRegistry.items,
+        user,
+        view,
+        onLogout: logout,
+        onView: switchView,
+        collapsed,
+        t
+      }),
+      topbar: h(Topbar, {
+        breadcrumb: ["Admin", t(`screens.${view}`, activeScreenMeta?.label || view)],
+        search: h(SmartSearch, {
+          api,
+          onNavigate: switchView,
+          t
+        }),
+        actions: h(React.Fragment, null,
           h(ThemeRail, { value: themeKey, onChange: setThemeKey, t }),
           h(LanguageSegment, { value: languageKey, onChange: setLanguageKey, t })
         )
-      ),
-      h("section", { className: "workspace-content" },
-        h(ActiveScreen, {
-          api,
-          activeView: view,
-          languageKey,
-          themeKey,
-          user,
-          onLanguage: setLanguageKey,
-          onLogout: logout,
-          onTheme: setThemeKey,
-          onView: switchView,
-          t
-        })
-      )
+      })
+    },
+      h(ActiveScreen, {
+        api,
+        activeView: view,
+        languageKey,
+        themeKey,
+        user,
+        onLanguage: setLanguageKey,
+        onLogout: logout,
+        onTheme: setThemeKey,
+        onView: switchView,
+        t
+      })
     ),
     h(NotificationCenter, { notifications, onDismiss: dismissNotification }),
     h(LockedFeatureModal, { lock: planLock, onClose: dismissPlanLock, onUpgrade: goToBilling, t })

@@ -1,11 +1,14 @@
 const React = require("react");
-const { Pressable, Text, View } = require("react-native");
+const { Animated, Pressable, Text, View } = require("react-native");
 const SvgModule = require("react-native-svg");
+const { useSafeAreaInsets } = require("react-native-safe-area-context");
 const Svg = SvgModule.default;
 const { Circle, Ellipse, G, Line, Path, Polygon, Polyline, Rect } = SvgModule;
 const { useTheme } = require("../theme/theme-context");
 
+const { useEffect, useRef } = React;
 const el = React.createElement;
+const MIN_TAP_TARGET = 44;
 
 const tabIcons = {
   contacts: "spark",
@@ -132,10 +135,30 @@ function TabIcon({ name, isActive, palette }) {
   ]);
 }
 
+function TabIndicator({ isActive }) {
+  const { styles } = useTheme();
+  const scale = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: isActive ? 1 : 0,
+      useNativeDriver: true,
+      bounciness: 6,
+      speed: 18
+    }).start();
+  }, [isActive, scale]);
+
+  return el(Animated.View, {
+    style: [styles.bottomTabIndicator, { transform: [{ scaleX: scale }] }]
+  });
+}
+
 function BottomTabBar({ activeKey, tabs, onSelect }) {
   const { palette, styles, t } = useTheme();
+  const insets = useSafeAreaInsets();
+  const extraBottomInset = Math.max((insets.bottom || 0) - 10, 0);
 
-  return el(View, { style: styles.bottomTabBar },
+  return el(View, { style: [styles.bottomTabBar, extraBottomInset ? { height: undefined, paddingBottom: 10 + extraBottomInset } : null] },
     tabs.map((item) => {
       const isActive = item.key === activeKey;
       const label = t(`screens.${item.key}`, item.label);
@@ -147,10 +170,16 @@ function BottomTabBar({ activeKey, tabs, onSelect }) {
         key: item.key,
         accessibilityLabel: `${label}${description ? `, ${description}` : ""}`,
         accessibilityRole: "button",
+        accessibilityState: { selected: isActive },
         hitSlop: 6,
-        style: [styles.bottomTabButton, isActive && styles.bottomTabButtonActive],
+        style: [
+          styles.bottomTabButton,
+          { minHeight: MIN_TAP_TARGET, minWidth: MIN_TAP_TARGET },
+          isActive && styles.bottomTabButtonActive
+        ],
         onPress: () => onSelect(item.key)
       },
+        el(TabIndicator, { isActive }),
         el(View, { style: [styles.bottomTabMark, isActive && styles.bottomTabMarkActive] },
           el(TabIcon, { name: item.icon || tabIcons[item.key] || "gauge", isActive, palette })
         ),

@@ -3,6 +3,7 @@ const { Image, Pressable, ScrollView, Text, View } = require("react-native");
 const ImagePicker = require("expo-image-picker");
 const { asRows, money, rowAmount, rowSubtitle, rowTitle, shortDateTime } = require("../core/formatters");
 const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
+const { BottomSheet, Card, SectionHeader, StatusPill, StickyActionBar, StickyActionBarSpacer } = require("../components/ui/index");
 const { useTheme } = require("../theme/theme-context");
 
 const { useCallback, useEffect, useMemo, useState } = React;
@@ -84,11 +85,28 @@ function visualMatchTitle(match) {
   return [read(match, "internalCode"), read(match, "partName")].filter(Boolean).join(" - ") || `Part #${read(match, "partId")}`;
 }
 
+function rowImageUri(row) {
+  const data = read(row, "imageData", "imageBase64", "primaryImageData", "photoData");
+  const mime = read(row, "mimeType", "imageMimeType", "contentType") || "image/jpeg";
+  if (data) return `data:${mime};base64,${data}`;
+  return read(row, "imageUrl", "imageUri", "photoUrl", "imageData") || "";
+}
+
+function rowStatusTone(row) {
+  const status = String(read(row, "status") || "").toLowerCase();
+  if (read(row, "isReservationOverdue") || status.includes("overdue") || status.includes("cancel") || status.includes("reject")) return "bad";
+  if (read(row, "isReservationReminderDue") || status.includes("pending") || status.includes("waiting") || status.includes("draft")) return "warn";
+  if (read(row, "isReserved") || status.includes("active") || status.includes("complete") || status.includes("paid") || status.includes("approved")) return "good";
+  return status ? "neutral" : "";
+}
+
 function ModuleSummary({ module, moduleTitle, t }) {
-  return el(Panel, { title: t("module.wpfWorkspace", "WPF workspace") },
-    el(ListRow, { title: t("module.api", "API"), subtitle: module.endpoint }),
+  return el(Card, { style: { marginBottom: 12 } },
+    el(SectionHeader, { title: t("module.wpfWorkspace", "WPF workspace"), subtitle: module.endpoint }),
     module.capabilities.map((capability) =>
-      el(ListRow, { key: capability, title: capability })
+      el(View, { key: capability, style: { flexDirection: "row", alignItems: "center", paddingVertical: 4 } },
+        el(StatusPill, { label: capability, tone: "neutral" })
+      )
     )
   );
 }
@@ -1445,6 +1463,8 @@ function ModuleScreen({ api, module, onNavigate }) {
   const [rows, setRows] = useState([]);
   const [status, setStatus] = useState(canPreview ? "" : t("module.mappedCommand", "Mapped to a command endpoint."));
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const load = useCallback(async () => {
     if (!canPreview) return;
@@ -1469,27 +1489,70 @@ function ModuleScreen({ api, module, onNavigate }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const openRow = useCallback((row, index) => {
+    setSelectedRow(row);
+    setSelectedIndex(index);
+  }, []);
+
+  const closeSheet = useCallback(() => {
+    setSelectedRow(null);
+    setSelectedIndex(-1);
+  }, []);
+
+  const detailFields = useMemo(() => {
+    if (!selectedRow) return [];
+    return Object.keys(selectedRow)
+      .filter((key) => {
+        const value = selectedRow[key];
+        if (value === null || value === undefined || value === "") return false;
+        if (typeof value === "object") return false;
+        const lowered = key.toLowerCase();
+        if (lowered.includes("image") || lowered.includes("photo") || lowered === "mimetype") return false;
+        return true;
+      })
+      .slice(0, 14)
+      .map((key) => ({ key, label: key, value: String(selectedRow[key]) }));
+  }, [selectedRow]);
+
+  const selectedImageUri = selectedRow ? rowImageUri(selectedRow) : "";
+
   return el(ScreenScroll, null,
     el(ScreenHeader, { title: moduleTitle, actionTitle: canPreview ? t("common.refresh", "Refresh") : null, onAction: load, loading: isLoading }),
     el(ModuleSummary, { module, moduleTitle, t }),
     el(StatusText, { value: status }),
-    canPreview && el(Panel, { title: t("module.preview", "Preview") },
-      el(View, { style: styles.screenListFrame },
-        el(ScrollView, {
-          nestedScrollEnabled: true,
-          showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          rows.map((row, index) => el(ListRow, {
-            key: `${module.key}-${row.id || row.invoiceId || row.purchaseId || index}`,
-            title: rowTitle(row),
-            subtitle: rowSubtitle(row),
-            value: rowAmount(row)
-          })),
-          rows.length === 0 && el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) })
-        )
+    canPreview && el(View, null,
+      el(SectionHeader, { title: t("module.preview", "Preview"), subtitle: `${rows.length}` }),
+      rows.map((row, index) => el(PartListCard, {
+        key: `${module.key}-${row.id || row.invoiceId || row.purchaseId || index}`,
+        title: rowTitle(row),
+        subtitle: rowSubtitle(row),
+        priceText: rowAmount(row),
+        imageUri: rowImageUri(row),
+        badges: rowStatusTone(row) ? [{ label: read(row, "status") || "", tone: rowStatusTone(row) }] : [],
+        onPress: () => openRow(row, index)
+      })),
+      rows.length === 0 && el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) }),
+      el(StickyActionBarSpacer)
+    ),
+    el(BottomSheet, {
+      visible: Boolean(selectedRow),
+      onClose: closeSheet,
+      title: selectedRow ? rowTitle(selectedRow) : ""
+    },
+      selectedRow && el(View, null,
+        Boolean(selectedImageUri) && el(Image, {
+          source: { uri: selectedImageUri },
+          style: { width: "100%", height: 180, borderRadius: 12, marginBottom: 12 },
+          resizeMode: "cover"
+        }),
+        detailFields.map((field) => el(ListRow, { key: field.key, title: field.label, subtitle: field.value }))
       )
-    )
+    ),
+    Boolean(selectedRow) && el(StickyActionBar, {
+      actions: [
+        { key: "close", title: t("common.close", "Close"), variant: "secondary", onPress: closeSheet }
+      ]
+    })
   );
 }
 

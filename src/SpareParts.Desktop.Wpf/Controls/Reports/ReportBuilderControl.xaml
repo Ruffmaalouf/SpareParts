@@ -1634,7 +1634,7 @@
 
         <Grid Grid.ColumnSpan="3"
               Panel.ZIndex="24"
-              Background="#700A1018"
+              Background="#700E0E0E"
               Visibility="{Binding IsRowDetailsOpen, Converter={StaticResource BoolToVis}}">
             <Border Background="{DynamicResource CardBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
@@ -1709,7 +1709,7 @@
 
         <Grid Grid.ColumnSpan="3"
               Panel.ZIndex="30"
-              Background="#800A1018"
+              Background="#800E0E0E"
               Visibility="{Binding IsDesignerPopupOpen, Converter={StaticResource BoolToVis}}">
             <Border Background="{DynamicResource CardBackgroundBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"

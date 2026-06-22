@@ -1,16 +1,22 @@
 const React = require("react");
-const { Pressable, ScrollView, Text, View } = require("react-native");
+const { Pressable, ScrollView, Text, TextInput, View } = require("react-native");
 const { navigationGroups, wpfThemes } = require("../core/app-config");
 const { initials } = require("../core/formatters");
 const { isSuperAdmin } = require("../core/role-policy");
 const { useTheme } = require("../theme/theme-context");
 
-const { useMemo } = React;
+const { useMemo, useState } = React;
 const el = React.createElement;
 const superAdminOnlyKeys = new Set(["admin-billing"]);
 
+function normalizeSearchText(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
 function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose, onLogout, onSelect, onTheme }) {
-  const { styles, t } = useTheme();
+  const { styles, palette, t } = useTheme();
+  const [search, setSearch] = useState("");
+  const [collapsedGroups, setCollapsedGroups] = useState({});
   const visibleScreens = useMemo(
     () => screens.filter((item) => !superAdminOnlyKeys.has(item.key) || isSuperAdmin(user)),
     [screens, user]
@@ -29,6 +35,23 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
     ].filter((group) => group && group.items.length > 0);
   }, [visibleScreens]);
 
+  const query = normalizeSearchText(search);
+  const filteredGroups = useMemo(() => {
+    if (!query) return groups;
+    return groups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          normalizeSearchText(t(`screens.${item.key}`, item.label)).includes(query)
+        )
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [groups, query, t]);
+
+  const toggleGroup = (title) => {
+    setCollapsedGroups((current) => ({ ...current, [title]: !current[title] }));
+  };
+
   return el(View, { style: [styles.sidePanel, !isWideLayout && styles.sidePanelOverlay] },
     el(View, { style: styles.sideHeader },
       el(View, { style: styles.sideBrandRow },
@@ -42,11 +65,32 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
         el(Text, { style: styles.sideCloseText }, t("common.hide", "Hide"))
       )
     ),
+    el(View, { style: styles.uiSearchBarRow },
+      el(Text, { style: styles.uiSearchBarIcon }, "⌕"),
+      el(TextInput, {
+        style: styles.uiSearchBarInput,
+        value: search,
+        onChangeText: setSearch,
+        placeholder: t("nav.searchPlaceholder", "Search screens"),
+        placeholderTextColor: palette.soft,
+        autoCapitalize: "none"
+      }),
+      Boolean(search) && el(Pressable, { style: styles.uiSearchBarClear, onPress: () => setSearch(""), hitSlop: 6 },
+        el(Text, { style: styles.uiSearchBarClearText }, "✕")
+      )
+    ),
     el(ScrollView, { style: styles.sideNav, contentContainerStyle: styles.sideNavContent, showsVerticalScrollIndicator: false },
-      groups.map((group) =>
-        el(View, { key: group.title, style: styles.navGroup },
-          el(Text, { style: styles.navGroupTitle }, t(`nav.groups.${group.title}`, group.title)),
-          group.items.map((item) => {
+      filteredGroups.map((group) => {
+        const isCollapsed = Boolean(collapsedGroups[group.title]) && !query;
+        return el(View, { key: group.title, style: styles.navGroup },
+          el(Pressable, {
+            onPress: () => toggleGroup(group.title),
+            style: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }
+          },
+            el(Text, { style: styles.navGroupTitle }, t(`nav.groups.${group.title}`, group.title)),
+            el(Text, { style: styles.navGroupTitle }, isCollapsed ? "+" : "–")
+          ),
+          !isCollapsed && group.items.map((item) => {
             const isActive = item.key === activeKey;
             return el(Pressable, {
               key: item.key,
@@ -57,8 +101,9 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
               el(Text, { style: [styles.sideNavText, isActive && styles.sideNavTextActive], numberOfLines: 1 }, t(`screens.${item.key}`, item.label))
             );
           })
-        )
-      ),
+        );
+      }),
+      filteredGroups.length === 0 && el(Text, { style: styles.uiEmptyStateText }, t("nav.noMatches", "No screens match that search.")),
       el(View, { style: styles.sideThemeBlock },
         el(Text, { style: styles.navGroupTitle }, t("common.theme", "Theme")),
         el(View, { style: styles.sideThemeGrid },

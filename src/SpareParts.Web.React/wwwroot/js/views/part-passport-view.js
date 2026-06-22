@@ -1,5 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
 import { BrandMark } from "../components/layout.js";
+import { Badge } from "../components/ui/Badge.js";
+import { ImageGallery } from "../components/ui/ImageGallery.js";
 
 const photoAsset = "/assets/passport-bmw-f30-headlight.png";
 const defaultPart = {
@@ -166,24 +168,18 @@ export function PartPassportView() {
             h("strong", null, "INSPECTION PHOTOS"),
             h("span", null, isCatalogPassport ? "Attach before sharing" : "Select a verified view")
           ),
-          h("div", { className: "passport-photo-rail" },
-            isCatalogPassport
-              ? inspectionPhotos.map((photo) =>
+          isCatalogPassport
+            ? h("div", { className: "passport-photo-rail" },
+              inspectionPhotos.map((photo) =>
                 h("div", { className: "passport-thumb passport-thumb-placeholder", key: photo.key },
                   h(PassportIcon, { name: "package", size: 22 })
                 )
               )
-              : inspectionPhotos.map((photo, index) =>
-                h("button", {
-                  key: photo.key,
-                  className: index === activePhoto ? "passport-thumb active" : "passport-thumb",
-                  type: "button",
-                  "aria-label": photo.label,
-                  "aria-pressed": index === activePhoto,
-                  onClick: () => setActivePhoto(index)
-                }, h("img", { className: photo.className, src: photoAsset, alt: "" }))
-              )
-          )
+            )
+            : h(ImageGallery, {
+              images: inspectionPhotos.map((photo) => ({ id: photo.key, url: photoAsset, alt: photo.label })),
+              fallbackLabel: part.code
+            })
         ),
         h("section", { className: "passport-detail-column" },
           h("span", { className: "passport-section-label" }, "PART PASSPORT"),
@@ -208,7 +204,8 @@ export function PartPassportView() {
             h("div", null,
               h("strong", null, part.verified ? "INSPECTED" : "DRAFT PASSPORT"),
               h("span", null, part.inspectedAt)
-            )
+            ),
+            h(Badge, { tone: part.verified ? "success" : "warning", size: "sm" }, part.verified ? "Verified" : "Pending")
           ),
           h("div", { className: "passport-actions" },
             h("button", {

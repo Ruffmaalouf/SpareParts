@@ -1,7 +1,14 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { asRows, dateTime, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+let threeModulePromise = null;
+function loadThree() {
+  if (!threeModulePromise) {
+    threeModulePromise = import("https://unpkg.com/three@0.160.0/build/three.module.js");
+  }
+  return threeModulePromise;
+}
 
 const selectedCarStorageKey = "spareparts.car-twin.selected-car-id";
 const eventTypes = ["Inspection", "MileageUpdate", "ConditionChange", "LocationMove", "Note"];
@@ -136,7 +143,7 @@ function SpinViewer({ images }) {
   );
 }
 
-function buildCarGroup() {
+function buildCarGroup(THREE) {
   const group = new THREE.Group();
   const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x3a4a63, metalness: 0.3, roughness: 0.6 });
   const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x9fc6e0, metalness: 0.1, roughness: 0.2, transparent: true, opacity: 0.7 });
@@ -174,74 +181,95 @@ function partMarkerColor(part) {
 function Model3DViewer({ parts }) {
   const containerRef = useRef(null);
   const dragRef = useRef(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) return undefined;
 
-    const width = container.clientWidth || 320;
-    const height = 260;
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(4.5, 3, 5.5);
-    camera.lookAt(0, 0.8, 0);
+    let cancelled = false;
+    let cleanup = () => {};
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    container.appendChild(renderer.domElement);
+    loadThree().then((THREE) => {
+      if (cancelled) return;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const directional = new THREE.DirectionalLight(0xffffff, 0.8);
-    directional.position.set(3, 6, 4);
-    scene.add(directional);
+      const width = container.clientWidth || 320;
+      const height = 260;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+      camera.position.set(4.5, 3, 5.5);
+      camera.lookAt(0, 0.8, 0);
 
-    const carGroup = buildCarGroup();
-    scene.add(carGroup);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      container.appendChild(renderer.domElement);
 
-    const markerPositions = [
-      [1.4, 1.7, 0.9], [1.4, 1.7, -0.9], [-1.4, 1.7, 0.9], [-1.4, 1.7, -0.9],
-      [0.4, 1.9, 1.0], [0.4, 1.9, -1.0], [-0.6, 1.9, 1.0], [-0.6, 1.9, -1.0]
-    ];
-    const markerGeometry = new THREE.SphereGeometry(0.14, 12, 12);
-    parts.slice(0, markerPositions.length).forEach((part, index) => {
-      const marker = new THREE.Mesh(markerGeometry, new THREE.MeshStandardMaterial({ color: partMarkerColor(part) }));
-      marker.position.set(...markerPositions[index]);
-      carGroup.add(marker);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+      const directional = new THREE.DirectionalLight(0xffffff, 0.8);
+      directional.position.set(3, 6, 4);
+      scene.add(directional);
+
+      const carGroup = buildCarGroup(THREE);
+      scene.add(carGroup);
+
+      const markerPositions = [
+        [1.4, 1.7, 0.9], [1.4, 1.7, -0.9], [-1.4, 1.7, 0.9], [-1.4, 1.7, -0.9],
+        [0.4, 1.9, 1.0], [0.4, 1.9, -1.0], [-0.6, 1.9, 1.0], [-0.6, 1.9, -1.0]
+      ];
+      const markerGeometry = new THREE.SphereGeometry(0.14, 12, 12);
+      parts.slice(0, markerPositions.length).forEach((part, index) => {
+        const marker = new THREE.Mesh(markerGeometry, new THREE.MeshStandardMaterial({ color: partMarkerColor(part) }));
+        marker.position.set(...markerPositions[index]);
+        carGroup.add(marker);
+      });
+
+      let autoRotate = true;
+      let frameId = null;
+      const animate = () => {
+        if (autoRotate) carGroup.rotation.y += 0.006;
+        renderer.render(scene, camera);
+        frameId = requestAnimationFrame(animate);
+      };
+      animate();
+
+      const onPointerDown = (event) => {
+        autoRotate = false;
+        dragRef.current = { startX: event.clientX, startRotation: carGroup.rotation.y };
+      };
+      const onPointerMove = (event) => {
+        if (!dragRef.current) return;
+        const deltaX = event.clientX - dragRef.current.startX;
+        carGroup.rotation.y = dragRef.current.startRotation + deltaX * 0.01;
+      };
+      const onPointerUp = () => { dragRef.current = null; };
+
+      renderer.domElement.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+
+      cleanup = () => {
+        cancelAnimationFrame(frameId);
+        renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+        renderer.dispose();
+        container.removeChild(renderer.domElement);
+      };
+    }).catch(() => {
+      if (!cancelled) setLoadError(true);
     });
 
-    let autoRotate = true;
-    let frameId = null;
-    const animate = () => {
-      if (autoRotate) carGroup.rotation.y += 0.006;
-      renderer.render(scene, camera);
-      frameId = requestAnimationFrame(animate);
-    };
-    animate();
-
-    const onPointerDown = (event) => {
-      autoRotate = false;
-      dragRef.current = { startX: event.clientX, startRotation: carGroup.rotation.y };
-    };
-    const onPointerMove = (event) => {
-      if (!dragRef.current) return;
-      const deltaX = event.clientX - dragRef.current.startX;
-      carGroup.rotation.y = dragRef.current.startRotation + deltaX * 0.01;
-    };
-    const onPointerUp = () => { dragRef.current = null; };
-
-    renderer.domElement.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-
     return () => {
-      cancelAnimationFrame(frameId);
-      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      renderer.dispose();
-      container.removeChild(renderer.domElement);
+      cancelled = true;
+      cleanup();
     };
   }, [parts]);
+
+  if (loadError) {
+    return h("div", { className: "model3d-viewer" },
+      h("p", { className: "empty-state" }, "The 3D viewer could not be loaded. Photos are still available above.")
+    );
+  }
 
   return h("div", { className: "model3d-viewer" },
     h("div", { className: "model3d-canvas", ref: containerRef }),

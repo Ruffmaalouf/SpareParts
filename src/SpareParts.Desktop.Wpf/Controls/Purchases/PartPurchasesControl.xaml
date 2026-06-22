@@ -18,11 +18,7 @@
 
         <Border Grid.Row="0"
                 Margin="0 0 0 16"
-                Padding="14"
-                Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="{DynamicResource BorderBrush}"
-                BorderThickness="1"
-                CornerRadius="10">
+                Style="{StaticResource SectionPanelStyle}">
             <DockPanel>
                 <TextBlock Text="{Binding Status}"
                            Foreground="{Binding StatusBrush}"
@@ -44,11 +40,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Padding="16"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12">
+                    Style="{StaticResource CardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -114,11 +106,7 @@
             </Border>
 
             <Border Grid.Column="2"
-                    Padding="18"
-                    Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12">
+                    Style="{StaticResource CardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -166,104 +154,116 @@
                         </StackPanel>
                     </DockPanel>
 
-                    <Grid Grid.Row="1"
-                          Margin="0 0 0 14"
-                          IsEnabled="{Binding IsEditorEnabled}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                    <Border Grid.Row="1"
+                            Margin="0 0 0 14"
+                            Style="{StaticResource SectionPanelStyle}"
+                            IsEnabled="{Binding IsEditorEnabled}">
+                        <StackPanel>
+                            <TextBlock Text="PURCHASE DETAILS" Style="{StaticResource SectionHeaderTextStyle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Supplier"
-                                       Margin="0 0 0 6"
-                                       FontSize="11"
-                                       FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <ComboBox ItemsSource="{Binding Suppliers}"
-                                      SelectedValuePath="Id"
-                                      DisplayMemberPath="Name"
-                                      SelectedValue="{Binding SupplierId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Supplier"
+                                               Margin="0 0 0 6"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <ComboBox ItemsSource="{Binding Suppliers}"
+                                              SelectedValuePath="Id"
+                                              DisplayMemberPath="Name"
+                                              SelectedValue="{Binding SupplierId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+
+                                <controls:WarehouseSearchControl Grid.Column="2"
+                                                                 SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"/>
+
+                                <controls:SaleDatePickerControl Grid.Column="4"
+                                                                Label="PURCHASE DATE"
+                                                                PlaceholderText="Pick purchase date"
+                                                                PopupTitle="SELECT PURCHASE DATE"
+                                                                DisplayFormat="dddd, dd MMM yyyy"
+                                                                SelectedDate="{Binding PurchaseDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </Grid>
                         </StackPanel>
+                    </Border>
 
-                        <controls:WarehouseSearchControl Grid.Column="2"
-                                                         SelectedWarehouseId="{Binding WarehouseId, Mode=TwoWay}"/>
+                    <Border Grid.Row="2"
+                            Margin="0 0 0 14"
+                            Style="{StaticResource SectionPanelStyle}"
+                            IsEnabled="{Binding IsEditorEnabled}">
+                        <StackPanel>
+                            <TextBlock Text="ADD ITEM" Style="{StaticResource SectionHeaderTextStyle}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                        <controls:SaleDatePickerControl Grid.Column="4"
-                                                        Label="PURCHASE DATE"
-                                                        PlaceholderText="Pick purchase date"
-                                                        PopupTitle="SELECT PURCHASE DATE"
-                                                        DisplayFormat="dddd, dd MMM yyyy"
-                                                        SelectedDate="{Binding PurchaseDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    </Grid>
+                                <controls:PartSearchControl Grid.Column="0"
+                                                            SelectedPartId="{Binding NewPartId, Mode=TwoWay}"
+                                                            SelectedPartDescription="{Binding NewPartDescription, Mode=TwoWay}"
+                                                            SelectedPartCostPrice="{Binding NewUnitCost, Mode=TwoWay}"/>
 
-                    <Grid Grid.Row="2"
-                          Margin="0 0 0 14"
-                          IsEnabled="{Binding IsEditorEnabled}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="14"/>
-                            <ColumnDefinition Width="90"/>
-                            <ColumnDefinition Width="14"/>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="14"/>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="14"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="QTY"
+                                               Margin="0 0 0 6"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding NewQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="52"
+                                             Padding="12 0"
+                                             VerticalContentAlignment="Center"/>
+                                </StackPanel>
 
-                        <controls:PartSearchControl Grid.Column="0"
-                                                    SelectedPartId="{Binding NewPartId, Mode=TwoWay}"
-                                                    SelectedPartDescription="{Binding NewPartDescription, Mode=TwoWay}"
-                                                    SelectedPartCostPrice="{Binding NewUnitCost, Mode=TwoWay}"/>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="UNIT COST"
+                                               Margin="0 0 0 6"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding NewUnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                             Height="52"
+                                             Padding="12 0"
+                                             VerticalContentAlignment="Center"/>
+                                </StackPanel>
 
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="QTY"
-                                       Margin="0 0 0 6"
-                                       FontSize="11"
-                                       FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBox Text="{Binding NewQuantity, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="52"
-                                     Padding="12 0"
-                                     VerticalContentAlignment="Center"/>
+                                <StackPanel Grid.Column="6">
+                                    <TextBlock Text="PAID"
+                                               Margin="0 0 0 6"
+                                               FontSize="11"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                             Height="52"
+                                             Padding="12 0"
+                                             VerticalContentAlignment="Center"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="8"
+                                        Content="Add Line"
+                                        Command="{Binding AddItemCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Width="110"
+                                        Height="42"
+                                        VerticalAlignment="Bottom"/>
+                            </Grid>
                         </StackPanel>
-
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Text="UNIT COST"
-                                       Margin="0 0 0 6"
-                                       FontSize="11"
-                                       FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBox Text="{Binding NewUnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
-                                     Height="52"
-                                     Padding="12 0"
-                                     VerticalContentAlignment="Center"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="6">
-                            <TextBlock Text="PAID"
-                                       Margin="0 0 0 6"
-                                       FontSize="11"
-                                       FontWeight="Bold"
-                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
-                                     Height="52"
-                                     Padding="12 0"
-                                     VerticalContentAlignment="Center"/>
-                        </StackPanel>
-
-                        <Button Grid.Column="8"
-                                Content="Add Line"
-                                Command="{Binding AddItemCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Width="110"
-                                Height="42"
-                                VerticalAlignment="Bottom"/>
-                    </Grid>
+                    </Border>
 
                     <Border Grid.Row="3"
                             Margin="0 0 0 14"
@@ -361,36 +361,43 @@
                         </StackPanel>
                     </Border>
 
-                    <DataGrid Grid.Row="4"
-                              ItemsSource="{Binding Items}"
-                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal"
-                              BorderThickness="0"
-                              IsReadOnly="{Binding IsItemsGridReadOnly}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Part #"
-                                                Binding="{Binding PartId, Mode=OneWay}"
-                                                Width="80"
-                                                IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Description"
-                                                Binding="{Binding Description, Mode=OneWay}"
-                                                Width="*"
-                                                IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Qty"
-                                                Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
-                                                Width="80"/>
-                            <DataGridTextColumn Header="Unit Cost"
-                                                Binding="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
-                                                Width="120"/>
-                            <DataGridTextColumn Header="Line Total"
-                                                Binding="{Binding LineTotal, Mode=OneWay, StringFormat={}{0:N2}}"
-                                                Width="120"
-                                                IsReadOnly="True"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
+                    <Grid Grid.Row="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="PURCHASE ITEMS" Style="{StaticResource SectionHeaderTextStyle}"/>
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Items}"
+                                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  IsReadOnly="{Binding IsItemsGridReadOnly}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Part #"
+                                                    Binding="{Binding PartId, Mode=OneWay}"
+                                                    Width="80"
+                                                    IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Description"
+                                                    Binding="{Binding Description, Mode=OneWay}"
+                                                    Width="*"
+                                                    IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Qty"
+                                                    Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                                                    Width="80"/>
+                                <DataGridTextColumn Header="Unit Cost"
+                                                    Binding="{Binding UnitCost, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Line Total"
+                                                    Binding="{Binding LineTotal, Mode=OneWay, StringFormat={}{0:N2}}"
+                                                    Width="120"
+                                                    IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
 
                     <DockPanel Grid.Row="5" Margin="0 14 0 0">
                         <Button Content="🗑 Remove Selected"
