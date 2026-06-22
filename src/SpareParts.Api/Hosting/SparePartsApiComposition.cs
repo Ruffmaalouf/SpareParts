@@ -582,7 +582,7 @@ public static class SparePartsApiComposition
 
         if (builder.Environment.IsDevelopment())
         {
-            return "Server=localhost;Database=SpareParts;Trusted_Connection=True;TrustServerCertificate=True;";
+            return "Server=localhost;Database=SparePartsDb;Trusted_Connection=True;TrustServerCertificate=True;";
         }
 
         throw new InvalidOperationException("Missing required connection string: ConnectionStrings:DefaultConnection");
