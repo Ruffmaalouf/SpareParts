@@ -32,7 +32,7 @@ const iconPaths = {
   default: "M5 5h14v14H5V5Zm4 4h6v6H9V9Z"
 };
 
-const navGroups = [
+export const navGroups = [
   { key: "core", label: "Core", items: ["dashboard", "invoices", "sales-returns", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
   { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments", "mechanic-desk", "garage-stock", "part-reserve", "part-reel", "halfcut", "escrow", "listing-boost", "live-inspection", "part-genealogy", "yard-tour", "instant-offer", "part-insurance"] },
   { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging", "market-price", "price-genius", "price-report", "new-vs-used"] },
@@ -42,10 +42,10 @@ const navGroups = [
   { key: "platform", label: "Platform Admin", items: ["admin-billing"] }
 ];
 
-const SUPER_ADMIN_ROLE_ID = 5;
-const superAdminOnlyKeys = new Set(["admin-billing"]);
+export const SUPER_ADMIN_ROLE_ID = 5;
+export const superAdminOnlyKeys = new Set(["admin-billing"]);
 
-function NavIcon({ name }) {
+export function NavIcon({ name }) {
   return h("svg", {
     className: "nav-icon",
     viewBox: "0 0 24 24",
