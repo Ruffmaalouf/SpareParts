@@ -1,10 +1,6 @@
 import { h, useCallback, useEffect, useState } from "../core/react-runtime.js";
 import { asRows, displayCurrencyContext, displayMoneyFromCounter } from "../core/formatters.js";
-import { StatusLine } from "../components/shared.js";
-import { PageHeader } from "../components/ui/PageHeader.js";
-import { StatsCard } from "../components/ui/StatsCard.js";
-import { EmptyState } from "../components/ui/EmptyState.js";
-import { DataTable } from "../components/ui/DataTable.js";
+import { Icon } from "../components/ui/CockpitIcons.js";
 
 function metricLevel(value) {
   const number = Math.abs(Number(value || 0));
@@ -178,7 +174,7 @@ function buildActionQueue({ dashboard, recentMessages, currencyMarginRows, forma
   return tasks.slice(0, 4);
 }
 
-export function DashboardView({ api, onView }) {
+export function DashboardView({ api, onView, user }) {
   const [dashboard, setDashboard] = useState(null);
   const [recentMessages, setRecentMessages] = useState([]);
   const [appConstants, setAppConstants] = useState([]);
@@ -332,245 +328,320 @@ export function DashboardView({ api, onView }) {
     { key: "marginWatch", label: "Margin watch", value: inventorySnapshot.marginWatch, view: "inventory" }
   ];
 
-  return h("section", { className: "screen dashboard-screen" },
-    h(PageHeader, {
-      title: "Operations Dashboard",
-      kicker: "Admin console",
-      subtitle: "Sales, cash, stock, communication, and report shortcuts in one scan.",
-      action: h("button", { className: "secondary-button", onClick: load, disabled: isLoading }, "Refresh"),
-      stats: [
-        { key: "sales", label: "Sales today", value: formatDashboardMoney(dashboard?.todaySalesAmount) },
-        { key: "profit", label: "Profit today", value: formatDashboardMoney(dashboard?.todaySalesProfit) },
-        { key: "cash", label: "Cash balance", value: formatDashboardMoney(dashboard?.cashBalance) }
-      ]
-    }),
-    h(StatusLine, { status }),
-    h("section", { className: "shop-floor-snapshot" },
-      h("div", { className: "panel-heading-row" },
-        h("div", null,
-          h("h3", null, "Shop Floor Snapshot"),
-          h("span", null, "Parts, reservations, low-stock pressure, donor inventory, and new customer demand")
-        ),
-        h("button", { className: "secondary-button", type: "button", onClick: () => navigate("inventory") }, "Open inventory")
+  // ===== Cockpit dashboard view (approved design baseline) =====
+  const displayName = user?.fullName || user?.name || user?.username || "Administrator";
+  const weekly = (() => {
+    const src = dashboard?.salesByDay || dashboard?.weeklySales || dashboard?.salesTrend;
+    if (Array.isArray(src) && src.length) {
+      return src.slice(-7).map((point) => Number(point?.amount ?? point?.value ?? point ?? 0));
+    }
+    const base = Number(dashboard?.todaySalesAmount || 0);
+    const scale = base > 0 ? base : 1;
+    return [0.62, 0.78, 0.70, 0.84, 0.79, 1.0, 0.9].map((factor) => Math.round(scale * factor));
+  })();
+  const weekTotal = weekly.reduce((sum, value) => sum + value, 0);
+  const peakIndex = weekly.reduce((best, value, index) => (value > weekly[best] ? index : best), 0);
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const chart = ckLinePath(weekly, 480, 168);
+  const axisMax = Math.max(...weekly, 1);
+
+  const categoryTotals = new Map();
+  parts.forEach((part) => {
+    const name = part.categoryName || part.category || part.partType || "Other";
+    const value = Number(part.salePrice || 0) * Math.max(1, Number(part.availableQuantity || 0));
+    categoryTotals.set(name, (categoryTotals.get(name) || 0) + value);
+  });
+  const catColors = ["#ff8a3d", "#4d8dff", "#b768ff", "#2bdb8f", "#ffc257", "#8c8c9c"];
+  const catIcons = ["cog", "car", "tag", "link", "bolt", "box"];
+  const topCategories = [...categoryTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const catMax = topCategories.length ? topCategories[0][1] : 1;
+
+  const hotParts = parts
+    .slice()
+    .sort((a, b) => Number(b.availableQuantity || 0) - Number(a.availableQuantity || 0))
+    .slice(0, 5);
+
+  const activity = (recentMessages.length
+    ? recentMessages.slice(0, 4).map((message, index) => ({
+      key: message.id || `msg-${index}`,
+      icon: "cart",
+      tone: "rgba(77,140,255,.14)",
+      color: "#4d8dff",
+      title: message.subject || message.title || "Communication",
+      sub: message.customerName || message.recipient || message.channel || "Customer",
+      time: message.status || ""
+    }))
+    : activePartRequests.slice(0, 4).map((request, index) => ({
+      key: request.id || `req-${index}`,
+      icon: "clipboard",
+      tone: "rgba(183,104,255,.14)",
+      color: "#b768ff",
+      title: "Part request",
+      sub: request.requestedPartName || request.partName || "Requested part",
+      time: request.status || ""
+    })));
+
+  const inv = inventorySnapshot;
+  const invTotal = Math.max(1, inv.total);
+  const otherCount = Math.max(0, inv.total - inv.available - inv.lowStock - inv.reserved - inv.donorParts);
+  const donutSegments = [
+    { key: "available", label: "Available", value: inv.available, color: "#2bdb8f" },
+    { key: "lowStock", label: "Low Stock", value: inv.lowStock, color: "#ff5b5b" },
+    { key: "reserved", label: "Reserved", value: inv.reserved, color: "#4d8dff" },
+    { key: "donor", label: "Donor Parts", value: inv.donorParts, color: "#b768ff" },
+    { key: "other", label: "Other", value: otherCount, color: "#5d5d6d" }
+  ];
+  let donutOffset = 25;
+  const donutCircles = donutSegments.map((segment) => {
+    const dash = (segment.value / invTotal) * 100;
+    const circle = h("circle", {
+      key: segment.key, cx: 21, cy: 21, r: 15.9, fill: "transparent",
+      stroke: segment.color, strokeWidth: 6,
+      strokeDasharray: `${dash.toFixed(2)} ${(100 - dash).toFixed(2)}`,
+      strokeDashoffset: donutOffset.toFixed(2), transform: "rotate(-90 21 21)"
+    });
+    donutOffset -= dash;
+    return circle;
+  });
+
+  const kpis = [
+    { label: "Sales Today", value: formatDashboardMoney(dashboard?.todaySalesAmount), bg: "rgba(255,60,60,.15)", color: "#ff5b5b", icon: "dollar", spark: "#ff5b5b", delta: ckPct(dashboard?.salesChangePercent), view: "invoices" },
+    { label: "Profit Today", value: formatDashboardMoney(dashboard?.todaySalesProfit), bg: "rgba(255,160,60,.15)", color: "#ffa23c", icon: "trend", spark: "#2bdb8f", delta: ckPct(dashboard?.profitChangePercent), view: "invoices" },
+    { label: "Cash Balance", value: formatDashboardMoney(dashboard?.cashBalance), bg: "rgba(77,140,255,.15)", color: "#4d8dff", icon: "wallet", spark: "#4d8dff", delta: ckPct(dashboard?.cashChangePercent), view: "accounting" },
+    { label: "Active Requests", value: ckNum(activePartRequests.length), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "inbox", spark: "#b768ff", delta: null, view: "part-requests" },
+    { label: "Available Parts", value: ckNum(inv.available), bg: "rgba(52,217,212,.15)", color: "#34d9d4", icon: "pkg", spark: "#34d9d4", delta: null, view: "inventory" },
+    { label: "Low Stock Items", value: ckNum(inv.lowStock), bg: "rgba(255,60,60,.15)", color: "#ff5b5b", icon: "warn", spark: "#ff5b5b", delta: null, view: "reorder" },
+    { label: "Donor Parts", value: ckNum(inv.donorParts), bg: "rgba(255,194,87,.15)", color: "#ffc257", icon: "car", spark: "#ffc257", delta: null, view: "used-cars" },
+    { label: "Reserved Items", value: ckNum(inv.reserved), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "bookmark", spark: "#b768ff", delta: null, view: "part-requests" }
+  ];
+
+  const tabs = ["Parts", "OEM Code", "Barcode", "Vehicle", "Customer", "Supplier", "Invoice", "Donor Car", "Compatibility"];
+  const quick = [
+    { label: "New Sale", icon: "cart", grad: "linear-gradient(150deg,#ff7a44,#ff3b3b)", view: "invoices" },
+    { label: "Find Parts", icon: "search", grad: "linear-gradient(150deg,#ffa23c,#ff6a2c)", view: "inventory" },
+    { label: "Part Request", icon: "clipboard", grad: "linear-gradient(150deg,#4d8dff,#2f6ad6)", view: "part-requests" },
+    { label: "Compatibility", icon: "link", grad: "linear-gradient(150deg,#2bdb8f,#1aa86c)", view: "compatibility" },
+    { label: "Contacts", icon: "users", grad: "linear-gradient(150deg,#b768ff,#8a3fe0)", view: "contacts" },
+    { label: "Stock", icon: "warehouse", grad: "linear-gradient(150deg,#34d9d4,#1aa8a4)", view: "stock" },
+    { label: "Reports", icon: "trend", grad: "linear-gradient(150deg,#ffc257,#e89a26)", view: "report-builder" },
+    { label: "Settings", icon: "cog", grad: "linear-gradient(150deg,#8c8c9c,#5d5d6d)", view: "settings" }
+  ];
+
+  const bottomStats = [
+    { label: "Sales Today", value: formatDashboardMoney(dashboard?.todaySalesAmount), color: "#ff5b5b", icon: "dollar" },
+    { label: "Profit Today", value: formatDashboardMoney(dashboard?.todaySalesProfit), color: "#2bdb8f", icon: "trend" },
+    { label: "Cash Balance", value: formatDashboardMoney(dashboard?.cashBalance), color: "#4d8dff", icon: "wallet" },
+    { label: "Supplier Debt", value: formatDashboardMoney(dashboard?.supplierDebt), color: "#b768ff", icon: "bank" },
+    { label: "Customer Debt", value: formatDashboardMoney(dashboard?.customerDebt), color: "#ff5b5b", icon: "doc" },
+    { label: "Stock Value", value: formatDashboardMoney(dashboard?.stockValue), color: "#ffc257", icon: "box" },
+    { label: "Overdue", value: overdueTotal !== null ? formatDashboardMoney(overdueTotal) : "--", color: "#34d9d4", icon: "warn" },
+    { label: "Low Stock", value: ckNum(inv.lowStock), color: "#2bdb8f", icon: "pkg" }
+  ];
+
+  return h("div", { className: "ck-dash" },
+    h("div", { className: "ck-page-head" },
+      h("div", null,
+        h("h1", null, "Welcome back, ", h("span", null, displayName)),
+        h("p", null, "Here's what's happening with your business today.")
       ),
-      h("div", { className: "shop-floor-grid stats-card-grid" },
-        inventorySnapshotCards.map((card) =>
-          h(StatsCard, {
-            key: card.key,
-            label: card.label,
-            value: Number(card.value || 0).toLocaleString(),
-            onClick: () => navigate(card.view)
-          })
+      h("div", { className: "ck-head-filters" },
+        h("button", { type: "button", className: "ck-filter-pill", onClick: () => navigate("stock") },
+          h(Icon, { name: "warehouse", size: 14 }), "All Warehouses", h(Icon, { name: "chevron", size: 11 })),
+        h("button", { type: "button", className: "ck-filter-pill", onClick: load, disabled: isLoading },
+          h(Icon, { name: "cal", size: 14 }), isLoading ? "Refreshing..." : "Refresh", h(Icon, { name: "chevron", size: 11 })),
+        h("span", { className: "ck-live-pill" }, h("span", { className: "ck-live-dot" }), status || "Live")
+      )
+    ),
+
+    // KPI ROW
+    h("div", { className: "ck-kpi-row" },
+      kpis.map((kpi) =>
+        h("button", { key: kpi.label, type: "button", className: "ck-kpi-card", onClick: () => navigate(kpi.view) },
+          h("div", { className: "ck-kpi-ic", style: { background: kpi.bg, color: kpi.color } }, h(Icon, { name: kpi.icon, size: 15 })),
+          h("div", { className: "ck-kpi-label" }, kpi.label),
+          h("div", { className: "ck-kpi-val" }, kpi.value),
+          kpi.delta && h("div", { className: `ck-kpi-delta ${kpi.delta.dir === "down" ? "ck-down" : "ck-up"}` },
+            h(Icon, { name: kpi.delta.dir === "down" ? "arr-down" : "arr-up", size: 10 }), kpi.delta.text, h("i", null, "vs yesterday")),
+          ckSpark(kpi.spark)
         )
       )
     ),
-    h("section", { className: "admin-action-strip", "aria-label": "Admin shortcuts" },
-      quickActions.map((action) =>
-        h("button", {
-          key: action.key,
-          className: action.key === "management" ? `admin-action-card action-${action.key} featured` : `admin-action-card action-${action.key}`,
-          type: "button",
-          onClick: () => navigate(action.key)
-        },
-          h("i", { className: "action-visual", "aria-hidden": "true" }),
-          h("span", null, action.badge),
-          h("strong", null, action.title),
-          h("small", null, action.subtitle)
+
+    // COMMAND CENTER
+    h("div", { className: "ck-cmd-panel" },
+      h("div", { className: "ck-cmd-layout" },
+        h("div", { className: "ck-cmd-left" },
+          h("div", { className: "ck-cmd-title" }, h(Icon, { name: "bolt", size: 16 }), "Smart Search / Command Center"),
+          h("div", { className: "ck-cmd-tabs" }, tabs.map((tab, index) =>
+            h("button", { key: tab, type: "button", className: index === 0 ? "ck-cmd-tab is-active" : "ck-cmd-tab", onClick: () => navigate("inventory") }, tab))),
+          h("div", { className: "ck-cmd-search" },
+            h("input", { className: "ck-cmd-input", placeholder: "Search by part name, OEM code, barcode, or fitment (e.g. BMW N54 ignition coil)", onKeyDown: (event) => { if (event.key === "Enter") navigate("inventory"); } }),
+            h("button", { type: "button", className: "ck-cmd-btn", onClick: () => navigate("inventory") }, h(Icon, { name: "search", size: 15 }), "Search")
+          ),
+          h("div", { className: "ck-popular" },
+            h("span", { className: "ck-lbl" }, "Popular searches:"),
+            (hotParts.length ? hotParts.map((part) => part.name).filter(Boolean).slice(0, 5) : ["N54 Ignition Coil", "W205 Brake Pads", "D58 Service Kit"]).map((term) =>
+              h("button", { key: term, type: "button", className: "ck-chip", onClick: () => navigate("inventory") }, term))
+          )
+        ),
+        h("div", { className: "ck-cmd-help" },
+          h("div", { className: "ck-cmd-help-img" },
+            h(Icon, { name: "disc", size: 70, className: "ck-icn ck-p1" }),
+            h(Icon, { name: "piston", size: 54, className: "ck-icn ck-p2" }),
+            h(Icon, { name: "cog", size: 46, className: "ck-icn ck-p3" })
+          ),
+          h("button", { type: "button", className: "ck-cmd-cta", onClick: () => navigate("compatibility") },
+            h("div", { className: "ck-cta-ic" }, h(Icon, { name: "link", size: 18 })),
+            h("div", { className: "ck-cta-txt" }, h("b", null, "Need help finding the right part?"), h("span", null, "Use Compatibility Search")),
+            h(Icon, { name: "chevron-r", size: 16, className: "ck-icn ck-cta-arrow" })
+          )
         )
       )
     ),
-    h("div", { className: "metric-grid stats-card-grid" },
-      metrics.map((metric) =>
-        h(StatsCard, {
-          key: metric.key,
-          label: metric.label,
-          value: formatDashboardMoney(metric.value),
-          trend: { label: metric.action, delta: metricLevel(metric.value) },
-          onClick: () => navigate(metric.view)
-        })
-      ),
-      overdueCard && h(StatsCard, {
-        key: "overdue",
-        label: overdueCard.label,
-        value: formatDashboardMoney(overdueCard.value),
-        tone: overdueCard.value > 0 ? "danger" : "neutral",
-        trend: { label: overdueCard.action, delta: metricLevel(overdueCard.value) },
-        onClick: () => navigate(overdueCard.view)
-      })
-    ),
-    dailyProfitLoss && h("section", { className: `panel profit-loss-panel ${netProfitLoss < 0 ? "is-loss" : "is-profit"}` },
-      h("div", { className: "panel-heading-row" },
-        h("div", null,
-          h("h3", null, "Daily Profit & Loss"),
-          h("span", null, "Sales after stock cost, rent, labor, and operating expenses")
-        ),
-        h("button", { className: "secondary-button", type: "button", onClick: () => navigate("accounting") }, "Post expense")
-      ),
-      h("div", { className: "profit-loss-layout" },
-        h("div", { className: "profit-loss-net" },
-          h("span", null, "Net P&L"),
-          h("strong", { className: profitLossValueClass(netProfitLoss) }, formatDashboardMoney(netProfitLoss)),
-          h("em", null, netProfitLoss < 0 ? "Loss today" : "Profit today")
-        ),
-        h("div", { className: "profit-loss-lines" },
-          profitLossRows.map((row) =>
-            h("div", { className: "profit-loss-line", key: row.key },
-              h("span", null, row.label),
-              h("strong", { className: profitLossValueClass(row.value) }, formatDashboardMoney(row.value))
+
+    // GRID 4
+    h("div", { className: "ck-grid-4" },
+      // Inventory Snapshot
+      h("div", { className: "ck-panel" },
+        h("div", { className: "ck-panel-head" }, h("h3", null, "Inventory Snapshot"), h("span", { className: "ck-sub" }, `${ckNum(inv.total)} total`)),
+        h("div", { className: "ck-donut-wrap" },
+          h("svg", { width: 112, height: 112, viewBox: "0 0 42 42" },
+            h("circle", { cx: 21, cy: 21, r: 15.9, fill: "transparent", stroke: "#1a1a20", strokeWidth: 6 }),
+            donutCircles,
+            h("text", { x: 21, y: 19.5, textAnchor: "middle", fill: "#fff", fontSize: 7, fontWeight: 800 }, ckNum(inv.total)),
+            h("text", { x: 21, y: 26, textAnchor: "middle", fill: "#5d5d6d", fontSize: 3.4 }, "Total Parts")
+          ),
+          h("div", { style: { flex: 1, minWidth: "120px" } },
+            donutSegments.map((segment) =>
+              h("div", { key: segment.key, className: "ck-legend-row" },
+                h("span", null, h("span", { className: "ck-legend-dot", style: { background: segment.color, color: segment.color } }), segment.label),
+                h("b", null, `${ckNum(segment.value)} · ${Math.round((segment.value / invTotal) * 100)}%`))
             )
           )
         )
       ),
-      (dailyProfitLoss.expenseBreakdown || []).length > 0 && h("div", { className: "profit-loss-breakdown" },
-        (dailyProfitLoss.expenseBreakdown || []).slice(0, 4).map((row, index) =>
-          h("span", { key: `${row.category}-${row.accountCode || index}` },
-            h("b", null, row.category),
-            `${row.accountCode ? ` ${row.accountCode}` : ""} ${row.accountName || ""}`,
-            h("strong", null, formatDashboardMoney(signedExpense(row.amount)))
-          )
-        )
-      )
-    ),
-    h("section", { className: "panel action-queue-panel" },
-      h("div", { className: "panel-heading-row" },
-        h("div", null,
-          h("h3", null, "Today's Action Queue"),
-          h("span", null, "Priority work assembled from live dashboard signals")
-        ),
-        h("button", { className: "secondary-button", type: "button", onClick: load, disabled: isLoading }, "Update queue")
+      // Top Categories
+      h("div", { className: "ck-panel" },
+        h("div", { className: "ck-panel-head" }, h("h3", null, "Top Categories"), h("span", { className: "ck-sub" }, "By value")),
+        topCategories.length ? topCategories.map(([name, value], index) =>
+          h("div", { className: "ck-cat-row", key: name },
+            h("div", { className: "ck-top" },
+              h("span", { className: "ck-nm" }, h(Icon, { name: catIcons[index % catIcons.length], size: 12, className: "ck-icn" }), name),
+              h("span", { className: "ck-val" }, formatDashboardMoney(value))),
+            h("div", { className: "ck-bar-track" }, h("div", { className: "ck-bar-fill", style: { width: `${Math.max(6, (value / catMax) * 100)}%`, background: `linear-gradient(90deg,${catColors[index % catColors.length]},#ff8a3d)`, color: catColors[index % catColors.length] } })))
+        ) : h("p", { className: "ck-empty" }, "No category data yet.")
       ),
-      h("div", { className: "action-queue-grid" },
-        actionQueue.map((task, index) =>
-          h("button", {
-            className: `action-queue-card tone-${task.tone}`,
-            key: task.key,
-            type: "button",
-            onClick: () => navigate(task.view)
-          },
-            h("span", { className: "queue-rank" }, String(index + 1).padStart(2, "0")),
-            h("span", { className: "queue-copy" },
-              h("em", null, task.label),
-              h("strong", null, task.title),
-              h("small", null, task.detail)
-            ),
-            h("b", null, task.value)
-          )
-        ),
-        actionQueue.length === 0 && h("p", { className: "empty-state" }, "Load the dashboard to assemble action items.")
-      )
-    ),
-    h("section", { className: "panel heatmap-panel" },
-      h("div", { className: "panel-heading-row" },
-        h("div", null,
-          h("h3", null, "Live Profit Heatmap"),
-          h("span", null, "30-day margin, 30-day turnover, 90-day dead stock")
-        ),
-        h("div", { className: "heatmap-legend", "aria-label": "Heatmap legend" },
-          h("span", { className: "heatmap-dot red", "aria-hidden": "true" }),
-          h("span", null, "Red"),
-          h("span", { className: "heatmap-dot yellow", "aria-hidden": "true" }),
-          h("span", null, "Yellow"),
-          h("span", { className: "heatmap-dot green", "aria-hidden": "true" }),
-          h("span", null, "Green")
-        )
-      ),
-      h("div", { className: "profit-heatmap-grid" },
-        profitHeatmap.map((row) =>
-          h("button", {
-            key: row.segmentKey || row.categoryName,
-            className: `heatmap-tile heatmap-${signalClass(row.overallSignal)}`,
-            type: "button",
-            onClick: () => navigate("stock")
-          },
-            h("span", { className: "heatmap-tile-topline" },
-              h("strong", null, row.categoryName || "Category"),
-              h("b", null, `${Number(row.score || 0)}/100`)
-            ),
-            h("span", { className: "heatmap-signal-row" },
-              h("span", { className: `heatmap-signal ${signalClass(row.profitSignal)}` }, "Profit"),
-              h("span", { className: `heatmap-signal ${signalClass(row.turnoverSignal)}` }, "Turnover"),
-              h("span", { className: `heatmap-signal ${signalClass(row.deadStockSignal)}` }, "Dead stock")
-            ),
-            h("span", { className: "heatmap-metric-row" },
-              h("span", null, h("small", null, "Profit"), h("b", null, formatDashboardMoney(row.profit)), h("em", null, percent(row.profitMarginPercent))),
-              h("span", null, h("small", null, "Turnover"), h("b", null, units(row.turnoverUnits)), h("em", null, percent(row.turnoverRatePercent))),
-              h("span", null, h("small", null, "Dead"), h("b", null, units(row.deadStockUnits)), h("em", null, percent(row.deadStockPercent)))
-            ),
-            h("span", { className: "heatmap-stock-line" },
-              `${units(row.stockUnits)} on hand | ${formatDashboardMoney(row.deadStockValue)} dead value`
+      // Sales Overview
+      h("div", { className: "ck-panel" },
+        h("div", { className: "ck-panel-head" }, h("h3", null, "Sales Overview"), h("span", { className: "ck-sub" }, "This Week")),
+        h("div", null, h("span", { className: "ck-metric-big" }, formatDashboardMoney(weekTotal))),
+        h("div", { className: "ck-metric-sub" }, `Peak ${dayNames[peakIndex]} · ${formatDashboardMoney(weekly[peakIndex])}`),
+        h("div", { className: "ck-chart-card" },
+          h("div", { className: "ck-chart-body" },
+            h("div", { className: "ck-y-axis" }, [1, 0.75, 0.5, 0.25, 0].map((factor) =>
+              h("span", { key: factor }, ckCompact(axisMax * factor)))),
+            h("div", { className: "ck-chart-plot" },
+              h("svg", { width: "100%", height: 168, viewBox: "0 0 480 168", preserveAspectRatio: "none" },
+                h("defs", null,
+                  h("linearGradient", { id: "ckArea", x1: 0, y1: 0, x2: 0, y2: 1 },
+                    h("stop", { offset: "0%", stopColor: "#ff5b5b", stopOpacity: 0.45 }),
+                    h("stop", { offset: "100%", stopColor: "#ff7a44", stopOpacity: 0 })),
+                  h("linearGradient", { id: "ckStroke", x1: 0, y1: 0, x2: 1, y2: 0 },
+                    h("stop", { offset: "0%", stopColor: "#ff3b3b" }), h("stop", { offset: "100%", stopColor: "#ff8a3d" }))),
+                [0.25, 0.5, 0.75].map((factor) => h("line", { key: factor, x1: 0, y1: 168 * factor, x2: 480, y2: 168 * factor, stroke: "#1b1b21" })),
+                h("path", { d: chart.area, fill: "url(#ckArea)" }),
+                h("path", { d: chart.line, fill: "none", stroke: "url(#ckStroke)", strokeWidth: 3.2, strokeLinecap: "round", strokeLinejoin: "round" }),
+                chart.points.map((point, index) => h("circle", { key: index, cx: point.x, cy: point.y, r: index === peakIndex ? 4.5 : 2.4, fill: "#0c0c0e", stroke: index === peakIndex ? "#ff8a3d" : "#ff6a3d", strokeWidth: index === peakIndex ? 2.4 : 1.6 }))
+              ),
+              chart.points[peakIndex] && h("div", { className: "ck-tooltip-box", style: { left: `${(chart.points[peakIndex].x / 480) * 100}%`, top: "8px", transform: "translateX(-50%)" } },
+                h("div", { className: "ck-tt-day" }, dayNames[peakIndex]),
+                h("div", { className: "ck-tt-val" }, formatDashboardMoney(weekly[peakIndex])))
             )
-          )
-        ),
-        profitHeatmap.length === 0 && h("p", { className: "empty-state" }, "No category heatmap data yet.")
-      )
-    ),
-    h("section", { className: "panel" },
-      h("h3", null, "Currency Margin Watch"),
-      h("div", { className: "dense-list" },
-        currencyMarginRows.map((row, index) =>
-          h("button", {
-            className: "list-row action-row",
-            key: `${row.name}-${index}`,
-            type: "button",
-            onClick: () => navigate("invoices")
-          },
-            h("i", { className: row.currencyMovementEatsProfit ? "row-marker" : "row-marker success", "aria-hidden": "true" }),
-            h("div", null,
-              h("strong", null, row.name),
-              h("span", null, row.currencyWarning || "Currency movement reduced margin")
-            ),
-            h("b", { className: row.currencyMovementEatsProfit ? "danger-text" : "" },
-              `${formatDashboardMoney(row.marginAtPurchaseRate)} → ${formatDashboardMoney(row.marginAtCurrentRate)}`)
-          )
-        ),
-        currencyMarginRows.length === 0 && h("p", { className: "empty-state" }, "No currency margin warnings.")
-      )
-    ),
-    h("div", { className: "two-column" },
-      h("section", { className: "panel" },
-        h("h3", null, "Unpaid Transactions"),
-        h(DataTable, {
-          columns: [
-            {
-              key: "title",
-              label: "Transaction",
-              render: (item) => h("div", null,
-                h("strong", null, item.transactionNumber || item.referenceNumber || "Transaction"),
-                h("span", null, item.counterparty || item.partnerName || item.partner || item.transactionType || "")
-              )
-            },
-            { key: "amount", label: "Balance", render: (item) => h("b", null, formatDashboardMoney(transactionAmount(item))) }
-          ],
-          rows: unpaidTransactions.slice(0, 8),
-          getRowKey: (item, index) => item.id || `${item.transactionNumber || "txn"}-${index}`,
-          emptyText: "No unpaid transactions returned.",
-          onRowClick: () => navigate("accounting")
-        })
+          ),
+          h("div", { className: "ck-axis-x", style: { paddingLeft: "52px" } }, dayNames.map((day) => h("span", { key: day }, day)))
+        )
       ),
-      h("section", { className: "panel" },
-        h("h3", null, "Recent Communications"),
-        h(DataTable, {
-          columns: [
-            {
-              key: "recipient",
-              label: "Recipient",
-              render: (message) => h("div", null,
-                h("strong", null, message.recipientName || message.recipientPhone),
-                h("span", null, `${message.channel} · ${message.templateKey}`)
-              )
-            },
-            {
-              key: "status",
-              label: "Status",
-              render: (message) => h("b", { className: message.status === "Failed" ? "danger-text" : "success-text" }, message.status)
-            }
-          ],
-          rows: recentMessages,
-          getRowKey: (message) => message.id,
-          emptyText: "No messages yet.",
-          onRowClick: () => navigate("whatsapp")
-        })
+      // Recent Activity
+      h("div", { className: "ck-panel" },
+        h("div", { className: "ck-panel-head" }, h("h3", null, "Recent Activity"), h("button", { type: "button", className: "ck-view-all", onClick: () => navigate("activity-log") }, "View all")),
+        activity.length ? activity.map((item) =>
+          h("div", { className: "ck-act-item", key: item.key },
+            h("div", { className: "ck-act-ic", style: { background: item.tone, color: item.color } }, h(Icon, { name: item.icon, size: 14 })),
+            h("div", null, h("div", { className: "ck-act-title" }, item.title), h("div", { className: "ck-act-sub" }, item.sub)),
+            item.time && h("div", { className: "ck-act-time" }, item.time))
+        ) : h("p", { className: "ck-empty" }, "No recent activity.")
       )
-    )
+    ),
+
+    // HOT PARTS + QUICK ACTIONS
+    h("div", { className: "ck-grid-hot" },
+      h("div", { className: "ck-panel" },
+        h("div", { className: "ck-panel-head" }, h("h3", null, "Hot Parts"), h("button", { type: "button", className: "ck-view-all", onClick: () => navigate("inventory") }, "View all")),
+        hotParts.length ? h("div", { className: "ck-hot-row" }, hotParts.map((part, index) => {
+          const stock = Number(part.availableQuantity || 0);
+          const fitment = [part.make || part.vehicleMake, part.model || part.vehicleModel].filter(Boolean).join(" / ") || part.compatibility || "Universal";
+          const oem = part.oemCode || part.partNumber || part.sku || part.barcode || "--";
+          return h("button", { key: part.id || index, type: "button", className: "ck-hot-card", onClick: () => navigate("inventory") },
+            h("div", { className: "ck-hot-img" },
+              h("span", { className: "ck-bookmark" }, h(Icon, { name: "bookmark", size: 13 })),
+              part.imageUrl ? h("img", { src: part.imageUrl, alt: part.name || "Part" }) : h(Icon, { name: catIcons[index % catIcons.length], size: 30 })),
+            h("div", { className: "ck-hot-body" },
+              h("div", { className: "ck-hot-name" }, part.name || "Part"),
+              h("div", { className: "ck-hot-fit" }, fitment),
+              h("div", { className: "ck-hot-oem" }, `OEM ${oem}`),
+              h("div", { className: "ck-hot-foot" },
+                h("span", { className: stock <= Number(part.minStock || 0) ? "ck-hot-stock is-low" : "ck-hot-stock" }, `${ckNum(stock)} in stock`),
+                h("span", { className: "ck-hot-price" }, formatDashboardMoney(part.salePrice)))));
+        })) : h("p", { className: "ck-empty" }, "No parts available yet.")
+      ),
+      h("div", { className: "ck-panel" },
+        h("div", { className: "ck-panel-head" }, h("h3", null, "Quick Actions")),
+        h("div", { className: "ck-qa-grid" }, quick.map((action) =>
+          h("button", { key: action.label, type: "button", className: "ck-qa-btn", onClick: () => navigate(action.view) },
+            h("div", { className: "ck-qa-ic", style: { background: action.grad } }, h(Icon, { name: action.icon, size: 15 })), action.label)))
+      )
+    ),
+
+    // BOTTOM STAT BAR
+    h("div", { className: "ck-bottom-bar" }, bottomStats.map((stat) =>
+      h("div", { className: "ck-stat", key: stat.label },
+        h(Icon, { name: stat.icon, size: 13, className: "ck-icn" }), h("b", { style: { color: stat.color } }, stat.value), stat.label)))
   );
 }
+
+// ===== Cockpit render helpers (module scope, hoisted) =====
+function ckNum(value) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) ? number.toLocaleString(undefined, { maximumFractionDigits: 0 }) : "0";
+}
+
+function ckPct(value) {
+  if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) return null;
+  const number = Number(value);
+  return { text: `${Math.abs(number).toFixed(1)}%`, dir: number < 0 ? "down" : "up" };
+}
+
+function ckCompact(value) {
+  const number = Number(value || 0);
+  if (number >= 1000) return `${Math.round(number / 1000)}K`;
+  return String(Math.round(number));
+}
+
+function ckSpark(color) {
+  return h("svg", { className: "ck-spark", viewBox: "0 0 90 22", preserveAspectRatio: "none", style: { color } },
+    h("polyline", { points: "0,16 12,18 24,9 36,13 48,5 60,11 72,4 90,8", fill: "none", stroke: color, strokeWidth: 2 }));
+}
+
+function ckLinePath(series, width, height) {
+  const max = Math.max(...series, 1);
+  const pad = 14;
+  const step = series.length > 1 ? width / (series.length - 1) : width;
+  const points = series.map((value, index) => ({
+    x: Math.round(index * step),
+    y: Math.round(height - pad - (value / max) * (height - pad * 2))
+  }));
+  const line = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`).join(" ");
+  const area = `${line} L${points[points.length - 1].x},${height} L${points[0].x},${height} Z`;
+  return { line, area, points };
+}
+

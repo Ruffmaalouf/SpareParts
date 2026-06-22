@@ -174,17 +174,21 @@ export function App() {
 
   return h(React.Fragment, null,
     h(AppShell, {
-      sidebar: ({ collapsed }) => h(Sidebar, {
+      sidebar: ({ closeNav }) => h(Sidebar, {
         screens: screenRegistry.items,
         user,
         view,
         onLogout: logout,
         onView: switchView,
-        collapsed,
+        closeNav,
         t
       }),
-      topbar: h(Topbar, {
-        breadcrumb: ["Admin", t(`screens.${view}`, activeScreenMeta?.label || view)],
+      topbar: ({ onMenuToggle }) => h(Topbar, {
+        onMenuToggle,
+        user,
+        onNewSale: () => switchView("invoices"),
+        notificationsCount: notifications.length,
+        languageKey,
         search: h(SmartSearch, {
           api,
           onNavigate: switchView,
