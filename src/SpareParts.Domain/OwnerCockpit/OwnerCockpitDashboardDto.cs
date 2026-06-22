@@ -20,6 +20,14 @@ namespace SpareParts.Domain.OwnerCockpit
         public decimal CustomerDebt { get; set; }
         public decimal StockValue { get; set; }
 
+        // Cockpit dashboard summary tiles (bottom stat bar + KPI deltas).
+        public decimal OpenInvoicesAmount { get; set; }
+        public decimal OpenPurchaseOrdersAmount { get; set; }
+        public decimal DuePaymentsAmount { get; set; }
+        public decimal? SalesChangePercent { get; set; }
+        public decimal? ProfitChangePercent { get; set; }
+        public int? ActiveUsers { get; set; }
+
         public decimal TotalCarProfit { get; set; }
         public decimal TotalPartProfit { get; set; }
         public int UnpaidTransactionCount { get; set; }
