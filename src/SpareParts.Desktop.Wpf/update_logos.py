@@ -36,7 +36,7 @@ NAME_MAP: dict[str, str] = {
 def parse_args() -> argparse.Namespace:
     script_dir = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(description="Generate SQL updates for car brand logos.")
-    parser.add_argument("--database-name", default="SparePartsDb", help="Target database name")
+    parser.add_argument("--database-name", default="SpareParts", help="Target database name")
     parser.add_argument(
         "--logos-folder",
         default=str(script_dir / "Assets" / "Logos"),

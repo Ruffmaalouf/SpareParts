@@ -10,7 +10,7 @@
 #
 #    # Custom DB name/output file
 #    pwsh -File src/SpareParts.Desktop.Wpf/UpdateLogos.ps1 \
-#      -DatabaseName SparePartsDb \
+#      -DatabaseName SpareParts \
 #      -OutputFile ./tmp/UpdateLogos.sql
 #
 #  Python alternative (if PowerShell is unavailable):
@@ -19,7 +19,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$DatabaseName = "SparePartsDb",
+    [string]$DatabaseName = "SpareParts",
     [string]$LogosFolder = (Join-Path $PSScriptRoot "Assets/Logos"),
     [string]$OutputFile = (Join-Path $PSScriptRoot "UpdateLogos.sql")
 )
