@@ -189,15 +189,12 @@ export function App() {
         onNewSale: () => switchView("invoices"),
         notificationsCount: notifications.length,
         languageKey,
+        onLanguage: setLanguageKey,
         search: h(SmartSearch, {
           api,
           onNavigate: switchView,
           t
-        }),
-        actions: h(React.Fragment, null,
-          h(ThemeRail, { value: themeKey, onChange: setThemeKey, t }),
-          h(LanguageSegment, { value: languageKey, onChange: setLanguageKey, t })
-        )
+        })
       })
     },
       h(ActiveScreen, {

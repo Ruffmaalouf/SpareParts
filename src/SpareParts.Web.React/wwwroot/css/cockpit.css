@@ -9,12 +9,18 @@
   --ck-red:#ff3b3b; --ck-orange:#ff8a3d; --ck-grad:linear-gradient(135deg,#ff3b3b 0%,#ff8a3d 100%);
   --ck-text:#f4f4f7; --ck-muted:#8c8c9c; --ck-muted2:#5d5d6d;
   --ck-green:#2bdb8f; --ck-blue:#4d8dff; --ck-purple:#b768ff; --ck-cyan:#34d9d4; --ck-gold:#ffc257;
-  position:fixed; inset:0; display:flex; height:100vh; overflow:hidden;
+  position:fixed; inset:0; display:flex; height:100vh; overflow:hidden; padding:11px;
   color:var(--ck-text); font-family:'Inter',system-ui,sans-serif;
   background:
     radial-gradient(circle at 6% -2%, rgba(255,59,59,.09), transparent 38%),
     radial-gradient(circle at 96% 0%, rgba(255,138,61,.05), transparent 34%),
-    var(--ck-bg);
+    #050506;
+}
+/* Outer device frame — the rounded gray border that wraps rail + sidebar + main
+   (matches the approved mockup's framed cockpit). */
+.ck-shell::after{
+  content:'';position:absolute;inset:11px;border:1px solid #2a2a33;border-radius:22px;pointer-events:none;z-index:30;
+  box-shadow:0 30px 80px -40px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.04);
 }
 .ck-shell *{box-sizing:border-box;}
 .ck-shell svg{display:block;}
@@ -27,6 +33,7 @@
 /* ===== RAIL ===== */
 .ck-rail{
   width:80px;position:relative;display:flex;flex-direction:column;align-items:center;padding:18px 0 16px;z-index:5;flex-shrink:0;
+  border-top-left-radius:22px;border-bottom-left-radius:22px;
   background:
     radial-gradient(120% 38% at 50% 0%, rgba(255,80,40,.12), transparent 60%),
     repeating-linear-gradient(45deg, rgba(255,255,255,.022) 0 1px, transparent 1px 3px),
@@ -128,7 +135,7 @@
 .ck-signout:hover{background:rgba(255,60,60,.12);color:#ff9090;box-shadow:inset 0 0 0 1px rgba(255,80,80,.3);}
 
 /* ===== MAIN ===== */
-.ck-main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;min-width:0;}
+.ck-main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;min-width:0;border-top-right-radius:22px;border-bottom-right-radius:22px;}
 .ck-topbar{
   display:flex;align-items:center;gap:13px;padding:15px 26px;position:relative;z-index:3;
   background:linear-gradient(180deg, rgba(18,18,23,.94), rgba(9,9,12,.86));
@@ -171,6 +178,14 @@
 .ck-profile-pill .ck-av{width:30px;height:30px;border-radius:9px;background:linear-gradient(150deg,#ff7a44,#ff3b3b);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;box-shadow:0 0 12px rgba(255,80,40,.45), inset 0 1px 1px rgba(255,255,255,.4);}
 .ck-profile-pill .ck-nm{font-size:12px;font-weight:700;}
 .ck-profile-pill .ck-rl{font-size:10px;color:var(--ck-muted2);}
+.ck-lang-pill{
+  position:relative;display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:12px;font-size:12px;font-weight:700;color:var(--ck-text);
+  background:linear-gradient(160deg,#16161b,#0c0c0f);border:1px solid var(--ck-border-soft);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), inset 0 -6px 10px -9px rgba(0,0,0,.7);
+}
+.ck-lang-pill:hover{border-color:#34343e;color:#fff;}
+.ck-lang-pill .ck-lang-arrow{color:var(--ck-muted2);}
+.ck-lang-select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;}
 
 .ck-content{flex:1;overflow-y:auto;padding:22px 26px 30px;}
 
@@ -343,7 +358,10 @@
   .ck-grid-hot{grid-template-columns:1fr;}
 }
 @media (max-width:900px){
-  .ck-rail{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);transition:transform .25s ease;z-index:50;}
+  .ck-shell{padding:0;}
+  .ck-shell::after{display:none;}
+  .ck-main{border-radius:0;}
+  .ck-rail{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);transition:transform .25s ease;z-index:50;border-radius:0;}
   .ck-sidebar{position:fixed;left:80px;top:0;height:100vh;width:240px;max-width:78vw;transform:translateX(-120%);transition:transform .25s ease;z-index:49;}
   .ck-shell.is-nav-open .ck-rail{transform:translateX(0);}
   .ck-shell.is-nav-open .ck-sidebar{transform:translateX(0);}

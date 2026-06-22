@@ -17,13 +17,13 @@ const railItems = [
 // real screen registry keys. Any registered screen not listed here is appended
 // to a "More" group so every existing route stays reachable.
 const cockpitGroups = [
-  { key: "control", label: "Control Center", items: ["dashboard"] },
-  { key: "sales", label: "Sales", items: ["invoices", "sales-returns"] },
-  { key: "parts", label: "Parts & Inventory", items: ["inventory", "part-requests"] },
-  { key: "compatibility", label: "Compatibility", items: ["compatibility", "does-it-fit"] },
-  { key: "donor", label: "Donor & Vehicles", items: ["used-cars", "stock", "stock-arrival"] },
-  { key: "finance", label: "Finance", items: ["billing", "report-builder", "accounting"] },
-  { key: "users", label: "Users & Settings", items: ["management", "settings"] }
+  { key: "control", label: "Control Center", items: [{ key: "dashboard", label: "Dashboard" }] },
+  { key: "sales", label: "Sales", items: [{ key: "invoices", label: "POS / Sales" }, { key: "sales-returns", label: "Sales Returns" }] },
+  { key: "parts", label: "Parts & Inventory", items: [{ key: "inventory", label: "Parts & Inventory" }, { key: "part-requests", label: "Part Requests" }] },
+  { key: "compatibility", label: "Compatibility", items: [{ key: "compatibility", label: "Compatibility Search" }, { key: "does-it-fit", label: "Vehicle Fitment" }] },
+  { key: "donor", label: "Donor & Vehicles", items: [{ key: "used-cars", label: "Donor Cars" }, { key: "stock", label: "Warehouse" }, { key: "stock-arrival", label: "Stock Arrival" }] },
+  { key: "finance", label: "Finance", items: [{ key: "billing", label: "Billing & Subscription" }, { key: "report-builder", label: "Reports" }, { key: "accounting", label: "Accounting" }] },
+  { key: "users", label: "Users & Settings", items: [{ key: "management", label: "Users & Roles" }, { key: "settings", label: "Settings" }] }
 ];
 
 const keyIcon = {
@@ -42,9 +42,17 @@ export function Sidebar({ screens, view, onView, onLogout, t, user, closeNav }) 
   const visible = (screens || []).filter((screen) => !superAdminOnlyKeys.has(screen.key) || roleId === SUPER_ADMIN_ROLE_ID);
   const screenMap = new Map(visible.map((screen) => [screen.key, screen]));
 
-  const usedKeys = new Set(cockpitGroups.flatMap((group) => group.items));
+  const usedKeys = new Set(cockpitGroups.flatMap((group) => group.items.map((item) => item.key)));
   const groups = cockpitGroups
-    .map((group) => ({ ...group, screens: group.items.map((key) => screenMap.get(key)).filter(Boolean) }))
+    .map((group) => ({
+      ...group,
+      screens: group.items
+        .map((item) => {
+          const screen = screenMap.get(item.key);
+          return screen ? { ...screen, label: item.label || screen.label } : null;
+        })
+        .filter(Boolean)
+    }))
     .filter((group) => group.screens.length > 0);
   const moreScreens = visible.filter((screen) => !usedKeys.has(screen.key));
   if (moreScreens.length) groups.push({ key: "more", label: "More Modules", screens: moreScreens });
@@ -97,7 +105,7 @@ export function Sidebar({ screens, view, onView, onLogout, t, user, closeNav }) 
                 onClick: () => select(key)
               },
                 h(Icon, { name: iconFor(key), className: "ck-icn ck-ic" }),
-                h("span", { className: "ck-nav-item-label" }, t(`screens.${key}`, label))
+                h("span", { className: "ck-nav-item-label" }, label)
               )
             )
           )
