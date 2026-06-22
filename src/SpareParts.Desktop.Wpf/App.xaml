@@ -5,6 +5,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/ApexTheme.xaml"/>
+                <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/CockpitTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <Style x:Key="AccountingComboOverlayButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Focusable" Value="False"/>
