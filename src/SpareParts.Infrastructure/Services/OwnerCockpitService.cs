@@ -27,6 +27,8 @@ namespace SpareParts.Infrastructure.Services
             using var session = new DbSession(_factory, _tenantContext.TenantId);
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
             var summary = LoadSummary(session, date, nextDate, currencyContext);
+            var previousSummary = LoadSummary(session, date.AddDays(-1), date, currencyContext);
+            var activeUsers = LoadActiveUsers(session);
             var dailyProfitLoss = LoadDailyProfitLoss(session, date, nextDate, summary, currencyContext);
             var cashBalance = ConvertBaseToCounter(LoadCashBalance(session), currencyContext);
             var profitPerPart = LoadProfitPerPart(session, date, nextDate, currencyContext);
@@ -57,6 +59,12 @@ namespace SpareParts.Infrastructure.Services
                 TotalPartProfit = profitPerPart.Sum(row => row.Profit),
                 UnpaidTransactionCount = unpaidTransactions.Count,
                 UnpaidTransactionAmount = unpaidTransactions.Sum(row => row.RemainingAmount),
+                OpenInvoicesAmount = summary.CustomerDebt,
+                OpenPurchaseOrdersAmount = summary.SupplierDebt,
+                DuePaymentsAmount = unpaidTransactions.Sum(row => row.RemainingAmount),
+                SalesChangePercent = PercentChange(summary.TodaySalesAmount, previousSummary.TodaySalesAmount),
+                ProfitChangePercent = PercentChange(summary.TodaySalesProfit, previousSummary.TodaySalesProfit),
+                ActiveUsers = activeUsers,
                 AccountingAlertCount = alerts.Count,
                 DailyProfitLoss = dailyProfitLoss,
                 ProfitPerCar = profitPerCar,
@@ -65,6 +73,35 @@ namespace SpareParts.Infrastructure.Services
                 UnpaidTransactions = unpaidTransactions,
                 AccountingAlerts = alerts
             };
+        }
+
+        private static decimal? PercentChange(decimal current, decimal previous)
+        {
+            if (previous == 0m)
+            {
+                return null;
+            }
+
+            return decimal.Round((current - previous) / Math.Abs(previous) * 100m, 1, MidpointRounding.AwayFromZero);
+        }
+
+        private static int? LoadActiveUsers(DbSession session)
+        {
+            try
+            {
+                return session.Connection.ExecuteScalar<int>(
+                    @"SELECT COUNT(1)
+FROM dbo.Users
+WHERE IsActive = 1
+  AND LastLoginAt IS NOT NULL
+  AND LastLoginAt >= @Since;",
+                    new { Since = DateTime.Now.AddMinutes(-15) },
+                    session.Transaction);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static OwnerCockpitSummaryRow LoadSummary(
