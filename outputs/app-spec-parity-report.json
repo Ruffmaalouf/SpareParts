@@ -1,0 +1,536 @@
+{
+  "generatedAtUtc": "2026-06-21T23:02:08.756Z",
+  "summary": {
+    "featureModuleCount": 72,
+    "managementSectionCount": 14,
+    "navigationGroupCount": 7,
+    "screenRegistryCount": 74,
+    "wpfEnumCount": 72,
+    "wpfXamlScreenCount": 71
+  },
+  "comparisons": {
+    "featureModuleKeys": {
+      "name": "featureModules",
+      "leftOnly": [],
+      "rightOnly": []
+    },
+    "featureModuleFields": [],
+    "managementSectionKeys": {
+      "name": "managementSections",
+      "leftOnly": [],
+      "rightOnly": []
+    },
+    "managementSectionFields": [],
+    "navigationGroupKeys": {
+      "name": "navigationGroups",
+      "leftOnly": [],
+      "rightOnly": []
+    },
+    "navigationGroupFields": [],
+    "screenRegistryKeys": {
+      "name": "screenRegistry",
+      "leftOnly": [],
+      "rightOnly": []
+    },
+    "screenRegistryFields": []
+  },
+  "mobileNavigationCoverage": {
+    "missingFeatureModules": []
+  },
+  "themes": {
+    "web": [
+      "apex",
+      "aurora",
+      "carbon",
+      "amg",
+      "bmw-m",
+      "lambo",
+      "neon-glow",
+      "porsche-rs"
+    ],
+    "mobile": [
+      "apex",
+      "aurora",
+      "carbon",
+      "amg",
+      "bmw-m",
+      "lambo",
+      "neon-glow",
+      "porsche-rs"
+    ],
+    "mismatches": []
+  },
+  "languages": {
+    "web": [
+      "en",
+      "ar",
+      "fr"
+    ],
+    "mobile": [
+      "en",
+      "ar",
+      "fr"
+    ],
+    "mismatches": []
+  },
+  "wpfCoverage": {
+    "coveredByDirect": [
+      {
+        "key": "dashboard",
+        "screens": [
+          "HomePage"
+        ]
+      },
+      {
+        "key": "invoices",
+        "screens": [
+          "Pos"
+        ]
+      },
+      {
+        "key": "sales-returns",
+        "screens": [
+          "SalesReturns"
+        ]
+      },
+      {
+        "key": "parts",
+        "screens": [
+          "StockManagement"
+        ]
+      },
+      {
+        "key": "part-passport",
+        "screens": [
+          "PartPassport"
+        ]
+      },
+      {
+        "key": "compatibility",
+        "screens": [
+          "PartCompatibility"
+        ]
+      },
+      {
+        "key": "purchase-parts",
+        "screens": [
+          "PartPurchases"
+        ]
+      },
+      {
+        "key": "used-car-purchases",
+        "screens": [
+          "Purchases"
+        ]
+      },
+      {
+        "key": "used-car-wholesale",
+        "screens": [
+          "UsedCarWholesale"
+        ]
+      },
+      {
+        "key": "stock-arrival",
+        "screens": [
+          "StockArrivalTheater"
+        ]
+      },
+      {
+        "key": "used-cars",
+        "screens": [
+          "PurchaseHistory"
+        ]
+      },
+      {
+        "key": "car-twin",
+        "screens": [
+          "CarTwin"
+        ]
+      },
+      {
+        "key": "repair-prep",
+        "screens": [
+          "RepairPrepBoard"
+        ]
+      },
+      {
+        "key": "stock",
+        "screens": [
+          "StockManagement"
+        ]
+      },
+      {
+        "key": "dead-stock",
+        "screens": [
+          "DeadStockResurrection"
+        ]
+      },
+      {
+        "key": "growth-lab",
+        "screens": [
+          "GrowthLab"
+        ]
+      },
+      {
+        "key": "accounting",
+        "screens": [
+          "Accounting"
+        ]
+      },
+      {
+        "key": "manual-journal",
+        "screens": [
+          "ManualJournal"
+        ]
+      },
+      {
+        "key": "report-builder",
+        "screens": [
+          "ReportBuilder"
+        ]
+      },
+      {
+        "key": "whatsapp",
+        "screens": [
+          "WhatsAppInbox"
+        ]
+      },
+      {
+        "key": "business-assistant",
+        "screens": [
+          "BusinessAssistant"
+        ]
+      },
+      {
+        "key": "ar",
+        "screens": [
+          "BarcodeMode"
+        ]
+      },
+      {
+        "key": "reorder",
+        "screens": [
+          "Reorder"
+        ]
+      },
+      {
+        "key": "expiry-alerts",
+        "screens": [
+          "ExpiryAlerts"
+        ]
+      },
+      {
+        "key": "loyalty",
+        "screens": [
+          "Loyalty"
+        ]
+      },
+      {
+        "key": "warranty",
+        "screens": [
+          "Warranty"
+        ]
+      },
+      {
+        "key": "shipments",
+        "screens": [
+          "Shipments"
+        ]
+      },
+      {
+        "key": "activity-log",
+        "screens": [
+          "ActivityLog"
+        ]
+      },
+      {
+        "key": "quotes",
+        "screens": [
+          "Quotes"
+        ]
+      },
+      {
+        "key": "customer-aging",
+        "screens": [
+          "CustomerAging"
+        ]
+      },
+      {
+        "key": "supplier-aging",
+        "screens": [
+          "SupplierAging"
+        ]
+      },
+      {
+        "key": "my-garage",
+        "screens": [
+          "MyGarage"
+        ]
+      },
+      {
+        "key": "needboard",
+        "screens": [
+          "Needboard"
+        ]
+      },
+      {
+        "key": "watchlist",
+        "screens": [
+          "Watchlist"
+        ]
+      },
+      {
+        "key": "seller-reputation",
+        "screens": [
+          "SellerReputation"
+        ]
+      },
+      {
+        "key": "seller-verification",
+        "screens": [
+          "SellerVerification"
+        ]
+      },
+      {
+        "key": "symptom-search",
+        "screens": [
+          "SymptomSearch"
+        ]
+      },
+      {
+        "key": "mechanic-desk",
+        "screens": [
+          "MechanicDesk"
+        ]
+      },
+      {
+        "key": "garage-stock",
+        "screens": [
+          "GarageStock"
+        ]
+      },
+      {
+        "key": "part-reserve",
+        "screens": [
+          "PartReserve"
+        ]
+      },
+      {
+        "key": "part-reel",
+        "screens": [
+          "PartReel"
+        ]
+      },
+      {
+        "key": "whatsapp-selling",
+        "screens": [
+          "WhatsAppSelling"
+        ]
+      },
+      {
+        "key": "halfcut",
+        "screens": [
+          "Halfcut"
+        ]
+      },
+      {
+        "key": "car-crush",
+        "screens": [
+          "CarCrush"
+        ]
+      },
+      {
+        "key": "escrow",
+        "screens": [
+          "Escrow"
+        ]
+      },
+      {
+        "key": "market-price",
+        "screens": [
+          "MarketPrice"
+        ]
+      },
+      {
+        "key": "listing-boost",
+        "screens": [
+          "ListingBoost"
+        ]
+      },
+      {
+        "key": "referral",
+        "screens": [
+          "Referral"
+        ]
+      },
+      {
+        "key": "voice-search",
+        "screens": [
+          "VoiceSearch"
+        ]
+      },
+      {
+        "key": "does-it-fit",
+        "screens": [
+          "DoesItFit"
+        ]
+      },
+      {
+        "key": "price-genius",
+        "screens": [
+          "PriceGenius"
+        ]
+      },
+      {
+        "key": "condition-scanner",
+        "screens": [
+          "ConditionScanner"
+        ]
+      },
+      {
+        "key": "community-guard",
+        "screens": [
+          "CommunityGuard"
+        ]
+      },
+      {
+        "key": "live-inspection",
+        "screens": [
+          "LiveInspection"
+        ]
+      },
+      {
+        "key": "qr-tag",
+        "screens": [
+          "QrTag"
+        ]
+      },
+      {
+        "key": "part-genealogy",
+        "screens": [
+          "PartGenealogy"
+        ]
+      },
+      {
+        "key": "dismantler-forecast",
+        "screens": [
+          "DismantlerForecast"
+        ]
+      },
+      {
+        "key": "regional-demand",
+        "screens": [
+          "RegionalDemand"
+        ]
+      },
+      {
+        "key": "mechanic-trust",
+        "screens": [
+          "MechanicTrust"
+        ]
+      },
+      {
+        "key": "new-vs-used",
+        "screens": [
+          "NewVsUsed"
+        ]
+      },
+      {
+        "key": "yard-tour",
+        "screens": [
+          "YardTour"
+        ]
+      },
+      {
+        "key": "negotiation",
+        "screens": [
+          "Negotiation"
+        ]
+      },
+      {
+        "key": "instant-offer",
+        "screens": [
+          "InstantOffer"
+        ]
+      },
+      {
+        "key": "part-insurance",
+        "screens": [
+          "PartInsurance"
+        ]
+      },
+      {
+        "key": "kareem",
+        "screens": [
+          "Kareem"
+        ]
+      },
+      {
+        "key": "ar-finder",
+        "screens": [
+          "ArFinder"
+        ]
+      },
+      {
+        "key": "price-report",
+        "screens": [
+          "PriceReport"
+        ]
+      },
+      {
+        "key": "api-platform",
+        "screens": [
+          "ApiPlatform"
+        ]
+      }
+    ],
+    "coveredByEmbedded": [
+      {
+        "key": "part-requests",
+        "evidence": [
+          {
+            "file": "src/SpareParts.Desktop.ViewModels/Management/PartRequestsManagementViewModel.cs",
+            "token": "class PartRequestsManagementViewModel"
+          }
+        ]
+      },
+      {
+        "key": "contacts",
+        "evidence": [
+          {
+            "file": "src/SpareParts.Desktop.ViewModels/Management/CustomerManagementViewModel.cs",
+            "token": "class CustomerManagementViewModel"
+          },
+          {
+            "file": "src/SpareParts.Desktop.ViewModels/Management/SupplierManagementViewModel.cs",
+            "token": "class SupplierManagementViewModel"
+          }
+        ]
+      },
+      {
+        "key": "management",
+        "evidence": [
+          {
+            "file": "src/SpareParts.Desktop.ViewModels/ViewModels/InvoiceTabsViewModel.cs",
+            "token": "ManagementVm"
+          },
+          {
+            "file": "src/SpareParts.Desktop.Wpf/Windows/MainWindow.xaml",
+            "token": "Management"
+          }
+        ]
+      },
+      {
+        "key": "settings",
+        "evidence": [
+          {
+            "file": "src/SpareParts.Desktop.Wpf/Windows/MainWindow.xaml.cs",
+            "token": "ThemeMenuItem_Click"
+          }
+        ]
+      }
+    ],
+    "missingDirect": [],
+    "missingEmbedded": []
+  }
+}

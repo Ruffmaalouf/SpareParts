@@ -98,8 +98,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public InstantOfferViewModel InstantOfferVm { get; }
         public PartInsuranceViewModel PartInsuranceVm { get; }
         public KareemViewModel KareemVm { get; }
+        public CarTwinViewModel CarTwinVm { get; }
         public ArFinderViewModel ArFinderVm { get; }
         public PriceReportViewModel PriceReportVm { get; }
+        public ApiPlatformViewModel ApiPlatformVm { get; }
 
         private bool _canViewInvoiceSearch;
         public bool CanViewInvoiceSearch
@@ -587,8 +589,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ICommand GoToInstantOfferCommand { get; }
         public ICommand GoToPartInsuranceCommand { get; }
         public ICommand GoToKareemCommand { get; }
+        public ICommand GoToCarTwinCommand { get; }
         public ICommand GoToArFinderCommand { get; }
         public ICommand GoToPriceReportCommand { get; }
+        public ICommand GoToApiPlatformCommand { get; }
         public ICommand StartArSessionCommand { get; }
         public ICommand StopArSessionCommand { get; }
         public ICommand ToggleFeedCommand { get; }
@@ -677,8 +681,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             InstantOfferVm = new InstantOfferViewModel(crudApi);
             PartInsuranceVm = new PartInsuranceViewModel(crudApi);
             KareemVm = new KareemViewModel(crudApi);
+            CarTwinVm = new CarTwinViewModel(crudApi);
             ArFinderVm = new ArFinderViewModel(crudApi);
             PriceReportVm = new PriceReportViewModel(crudApi);
+            ApiPlatformVm = new ApiPlatformViewModel(crudApi);
             ReportBuilderVm = new ReportBuilderViewModel(reportBuilderApi);
             ManagementVm.PropertyChanged += (_, args) =>
             {
@@ -1515,6 +1521,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             {
                 ActiveScreen = AppScreen.Kareem;
             });
+            GoToCarTwinCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.CarTwin;
+                CarTwinVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
+            });
             GoToArFinderCommand = new RelayCommand(_ =>
             {
                 ActiveScreen = AppScreen.ArFinder;
@@ -1522,6 +1533,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             GoToPriceReportCommand = new RelayCommand(_ =>
             {
                 ActiveScreen = AppScreen.PriceReport;
+            });
+            GoToApiPlatformCommand = new RelayCommand(_ =>
+            {
+                ActiveScreen = AppScreen.ApiPlatform;
+                ApiPlatformVm.LoadAsync().SafeFireAndForget(HandleBackgroundException);
             });
             StartArSessionCommand = new RelayCommand(_ => StartArSession());
             StopArSessionCommand = new RelayCommand(_ => StopArSession());

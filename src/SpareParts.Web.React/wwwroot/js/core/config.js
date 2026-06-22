@@ -224,7 +224,7 @@ export const featureModules = [
     title: "Parts Request Board",
     source: "ManagementWindow Part Requests tab",
     endpoint: "/api/partrequests",
-    capabilities: ["Capture unavailable-part demand", "Match requests to stock", "Follow up when parts arrive"]
+    capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"]
   },
   {
     key: "contacts",
@@ -291,6 +291,14 @@ export const featureModules = [
     capabilities: ["Used car records", "Vehicle image galleries", "Vehicle-linked parts"]
   },
   {
+    key: "car-twin",
+    label: "Vehicle Digital Twin",
+    title: "Vehicle Digital Twin",
+    source: "Web vehicle digital twin workspace",
+    endpoint: "/api/usedcars + /api/usedcars/{id}/twin + /api/usedcars/{id}/state-events",
+    capabilities: ["Track condition changes", "Review twin timeline and removed parts", "Record new state events"]
+  },
+  {
     key: "repair-prep",
     label: "Repair / Prep",
     title: "Repair / Prep Board",
@@ -303,7 +311,7 @@ export const featureModules = [
     label: "Stock",
     title: "Stock Management",
     source: "MainWindow Stock Management",
-    endpoint: "/api/parts",
+    endpoint: "/api/parts?page=1&pageSize=100",
     capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"]
   },
   {
@@ -383,7 +391,39 @@ export const featureModules = [
   { key: "needboard", label: "NeedBoard", title: "NeedBoard", source: "Marketplace demand board", endpoint: "/api/needboard", capabilities: ["Browse buyer requests", "Post new demand", "Respond with seller offers"] },
   { key: "watchlist", label: "WatchPart", title: "WatchPart", source: "Wanted parts watchlist", endpoint: "/api/watchlist", capabilities: ["Track wanted parts", "View incoming match counts", "Remove fulfilled watch items"] },
   { key: "seller-reputation", label: "Shop Reputation", title: "Shop Reputation", source: "Seller performance workspace", endpoint: "/api/seller-reputation", capabilities: ["Seller reputation score", "Leaderboard comparison", "Fulfillment and dispute signals"] },
-  { key: "seller-verification", label: "Seller Verification", title: "Seller Verification", source: "Seller onboarding workspace", endpoint: "/api/seller-verification", capabilities: ["Verification status", "Business document submission", "Admin review notes"] }
+  { key: "seller-verification", label: "Seller Verification", title: "Seller Verification", source: "Seller onboarding workspace", endpoint: "/api/seller-verification", capabilities: ["Verification status", "Business document submission", "Admin review notes"] },
+  { key: "symptom-search", label: "Symptom Finder", title: "Symptom Finder", source: "Mobile/web symptom diagnosis workspace", endpoint: "/api/symptom-search", commandOnly: true, capabilities: ["Translate reported symptoms into likely parts", "Prioritize repair leads", "Guide staff toward fitment checks"] },
+  { key: "mechanic-desk", label: "Mechanic Desk", title: "Mechanic Desk", source: "Garage mechanic workspace", endpoint: "/api/mechanic-desk", capabilities: ["Track mechanic orders", "Send quote-ready requests", "Accept winning mechanic quotes"] },
+  { key: "garage-stock", label: "Garage Stock", title: "Garage Stock", source: "Garage inventory workspace", endpoint: "/api/garage-stock", capabilities: ["Maintain garage-held stock", "Adjust reserved quantities", "Remove stale stock records"] },
+  { key: "part-reserve", label: "Part Reservations", title: "Part Reservations", source: "Reservation workflow workspace", endpoint: "/api/part-reservations", capabilities: ["Create customer reservations", "Review held inventory", "Release expired holds"] },
+  { key: "part-reel", label: "Part Reels", title: "Part Reels", source: "Short-form part media workspace", endpoint: "/api/part-reels", capabilities: ["Publish short-form part promos", "Track likes and traction", "Archive spent reels"] },
+  { key: "whatsapp-selling", label: "WhatsApp Selling", title: "WhatsApp Selling", source: "WhatsApp selling workflow", endpoint: "/api/marketplace/catalog-export", commandOnly: true, capabilities: ["Set seller WhatsApp contact", "Generate catalog export payloads", "Prepare marketplace-ready selling assets"] },
+  { key: "halfcut", label: "Half-Cut Showcase", title: "Half-Cut Showcase", source: "Half-cut inventory workspace", endpoint: "/api/half-cut", capabilities: ["List half-cut inventory", "Post new half-cut offers", "Manage buyer claims and confirmations"] },
+  { key: "car-crush", label: "CarCrush", title: "CarCrush", source: "Vehicle teardown checklist workspace", endpoint: "/api/car-crush/checklist", commandOnly: true, capabilities: ["Decode donor vehicles", "Generate dismantling checklists", "Create salvage listing packs"] },
+  { key: "escrow", label: "Escrow / Protection", title: "Escrow / Protection", source: "Escrow transaction workspace", endpoint: "/api/escrow", capabilities: ["Open protected transactions", "Track escrow status changes", "Release or cancel protected deals"] },
+  { key: "market-price", label: "Market Price Index", title: "Market Price Index", source: "Market pricing intelligence workspace", endpoint: "/api/market-price", capabilities: ["Review recent market pricing", "Filter by fitment signals", "Benchmark pricing decisions"] },
+  { key: "listing-boost", label: "Boost Listings", title: "Boost Listings", source: "Listing promotion workspace", endpoint: "/api/listing-boosts", capabilities: ["Create paid listing boosts", "Monitor campaign windows", "Cancel weak-performing boosts"] },
+  { key: "referral", label: "Referral Program", title: "Referral Program", source: "Referral rewards workspace", endpoint: "/api/referral/my-code + /api/referral/my-referrals", capabilities: ["Generate referral codes", "Review invited accounts", "Track referral outcomes"] },
+  { key: "voice-search", label: "Voice Search", title: "Voice Search", source: "Voice-driven search workspace", endpoint: "/api/voice-search", commandOnly: true, capabilities: ["Search inventory by spoken request", "Convert audio into part intent", "Reduce typing during counter sales"] },
+  { key: "does-it-fit", label: "Does It Fit?", title: "Does It Fit?", source: "Fitment decision workspace", endpoint: "/api/part-compatibility/check", commandOnly: true, capabilities: ["Check fitment for a chosen part", "Compare vehicle compatibility", "Create compatibility evidence"] },
+  { key: "price-genius", label: "PriceGenius AI", title: "PriceGenius AI", source: "Pricing recommendation workspace", endpoint: "/api/price-genius/suggest", commandOnly: true, capabilities: ["Suggest selling prices", "Blend stock and market signals", "Support fast counter pricing"] },
+  { key: "condition-scanner", label: "Condition Scanner", title: "Condition Scanner", source: "Condition scoring workspace", endpoint: "/api/condition-scanner/scan", commandOnly: true, capabilities: ["Assess condition from photos", "Summarize detected wear", "Support pricing and disclosure"] },
+  { key: "community-guard", label: "CommunityGuard", title: "CommunityGuard", source: "Marketplace moderation workspace", endpoint: "/api/community-guard", capabilities: ["Review community reports", "File abuse or trust incidents", "Monitor marketplace safety signals"] },
+  { key: "live-inspection", label: "Live Inspection", title: "Live Inspection", source: "Live inspection scheduling workspace", endpoint: "/api/live-inspection", capabilities: ["Queue live buyer inspections", "Track buyer contact details", "Manage inspection notes"] },
+  { key: "qr-tag", label: "QR Tag System", title: "QR Tag System", source: "Part QR workflow", endpoint: "/api/qr-tag", commandOnly: true, capabilities: ["Generate QR labels for parts", "Fetch printable QR data", "Support scan-driven retrieval"] },
+  { key: "part-genealogy", label: "Part Genealogy", title: "Part Genealogy", source: "Part lifecycle workspace", endpoint: "/api/part-genealogy", commandOnly: true, capabilities: ["Trace part lifecycle events", "Record chain-of-custody notes", "Explain donor and movement history"] },
+  { key: "dismantler-forecast", label: "Dismantler Forecast", title: "Dismantler Forecast", source: "Dismantling demand workspace", endpoint: "/api/dismantler-forecast", commandOnly: true, capabilities: ["Forecast teardown demand", "Prioritize profitable dismantles", "Support used-car buying decisions"] },
+  { key: "regional-demand", label: "Regional Demand Map", title: "Regional Demand Map", source: "Regional demand analytics workspace", endpoint: "/api/regional-demand/top", capabilities: ["Review region demand hotspots", "Compare top-demand parts", "Guide stocking by geography"] },
+  { key: "mechanic-trust", label: "MechanicTrust Network", title: "MechanicTrust Network", source: "Mechanic trust workspace", endpoint: "/api/mechanic-trust", capabilities: ["Manage mechanic trust profiles", "Verify network members", "Track specialties by brand and job type"] },
+  { key: "new-vs-used", label: "New vs Used", title: "New vs Used", source: "Replacement option workspace", endpoint: "/api/new-vs-used", commandOnly: true, capabilities: ["Compare new and used pricing", "Override indexed prices", "Support customer trade-off conversations"] },
+  { key: "yard-tour", label: "Live Yard Tour", title: "Live Yard Tour", source: "Remote yard tour workspace", endpoint: "/api/yard-tours", capabilities: ["Schedule yard livestreams", "Publish tour links", "Update tour status"] },
+  { key: "negotiation", label: "AI Negotiation Bot", title: "AI Negotiation Bot", source: "Negotiation workflow workspace", endpoint: "/api/negotiations", capabilities: ["Track offer sessions", "Post counter-offers", "Accept or reject deals"] },
+  { key: "instant-offer", label: "InstantOffer", title: "InstantOffer", source: "Instant offer workspace", endpoint: "/api/instant-offers", capabilities: ["Create instant offers", "Monitor offer queue", "Patch offer status"] },
+  { key: "part-insurance", label: "Part Insurance Add-On", title: "Part Insurance Add-On", source: "Part protection workspace", endpoint: "/api/part-insurance/options", capabilities: ["Review add-on options", "Attach protection to a sale", "Explain covered parts policies"] },
+  { key: "kareem", label: "AutoChat Kareem", title: "AutoChat Kareem", source: "Kareem AI workspace", endpoint: "/api/kareem/chat", commandOnly: true, capabilities: ["Chat with customers in natural language", "Maintain multilingual conversation history", "Support sales and support replies"] },
+  { key: "ar-finder", label: "AR Parts Finder", title: "AR Parts Finder", source: "AR Finder workspace", endpoint: "/api/ar-finder/scan", commandOnly: true, capabilities: ["Scan a scene for likely parts", "Filter by make and model", "Support visual search workflows"] },
+  { key: "price-report", label: "B2B Price Report", title: "B2B Price Report", source: "Price report workspace", endpoint: "/api/price-report", commandOnly: true, capabilities: ["Build wholesale price reports", "Summarize market recommendations", "Prepare buyer-facing pricing output"] },
+  { key: "api-platform", label: "API Platform", title: "API Platform", source: "API key administration workspace", endpoint: "/api/api-platform/keys", capabilities: ["Issue API keys", "Review integration access", "Revoke compromised credentials"] }
 ];
 
 export const managementSections = [

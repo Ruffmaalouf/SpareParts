@@ -33,10 +33,12 @@ const iconPaths = {
 };
 
 const navGroups = [
-  { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
-  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
-  { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
-  { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar", "activity-log"] },
+  { key: "core", label: "Core", items: ["dashboard", "invoices", "sales-returns", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
+  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments", "mechanic-desk", "garage-stock", "part-reserve", "part-reel", "halfcut", "escrow", "listing-boost", "live-inspection", "part-genealogy", "yard-tour", "instant-offer", "part-insurance"] },
+  { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging", "market-price", "price-genius", "price-report", "new-vs-used"] },
+  { key: "tools", label: "Tools", items: ["whatsapp", "whatsapp-selling", "business-assistant", "ar", "activity-log", "voice-search", "symptom-search", "does-it-fit", "condition-scanner", "qr-tag", "ar-finder", "api-platform", "kareem"] },
+  { key: "marketplace", label: "Marketplace", items: ["my-garage", "needboard", "watchlist", "seller-reputation", "seller-verification", "community-guard", "referral", "regional-demand", "mechanic-trust"] },
+  { key: "intelligence", label: "Intelligence", items: ["car-crush", "dismantler-forecast", "negotiation"] },
   { key: "platform", label: "Platform Admin", items: ["admin-billing"] }
 ];
 

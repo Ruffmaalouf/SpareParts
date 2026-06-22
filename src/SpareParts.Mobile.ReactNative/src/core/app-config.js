@@ -229,15 +229,22 @@ const managementSections = [
 ];
 
 const featureModules = [
+  { key: "dashboard", label: "Dashboard", title: "Owner Cockpit", endpoint: "/api/owner-cockpit", capabilities: ["Sales, profit, cash, debts, and stock value", "Unpaid transactions", "Recent communications"] },
+  { key: "invoices", label: "POS / Sales", title: "POS / Sales Invoices", endpoint: "/api/sales", capabilities: ["Create invoices", "Search invoices", "Send invoice by WhatsApp", "Send payment reminder"] },
   { key: "sales-returns", label: "Sales Returns", title: "Sales Returns", endpoint: "/api/sales-returns", capabilities: ["Browse return records", "Open return details", "Review credit and refund values"] },
+  { key: "parts", label: "Parts", title: "Parts Inventory", endpoint: "/api/parts", capabilities: ["Browse parts", "Filter by code, name, and OEM", "Send part availability"] },
   { key: "part-passport", label: "Part Passport", title: "Part Passport", endpoint: "/api/parts + /api/usedcars", capabilities: ["Select inventory part", "Review public proof card", "Prepare WhatsApp-ready passport link"] },
   { key: "compatibility", label: "Compatibility", title: "Part Compatibility", endpoint: "/api/parts + /api/usedcars", capabilities: ["Visual part-to-vehicle graph", "OEM and donor-car fitment evidence", "Model/year sales assist"] },
   { key: "part-requests", label: "Part Requests", title: "Parts Request Board", endpoint: "/api/partrequests", capabilities: ["Unavailable-part demand", "Ready-to-contact signals", "Customer follow-up list"] },
+  { key: "contacts", label: "Contacts", title: "Customers and Suppliers", endpoint: "/api/customers", capabilities: ["Customer list", "Supplier list", "Opening balances"] },
+  { key: "management", label: "Management", title: "Management", endpoint: "/api/customers", capabilities: ["Customers, suppliers, brands, parts", "Car brands and models", "Users, roles, warehouses, and setup data"] },
+  { key: "settings", label: "Settings", title: "Settings", endpoint: "", capabilities: ["Theme selection", "Language selection", "Account sign out"] },
   { key: "purchase-parts", label: "Part Purchases", title: "Part Purchases", endpoint: "/api/purchases", capabilities: ["Purchase invoice history", "Purchase invoice details", "Create and update purchase invoices"] },
   { key: "used-car-purchases", label: "Used Car Purchases", title: "Used Car Purchases", endpoint: "/api/purchases/used-cars", capabilities: ["Used car purchase history", "Post purchased vehicles", "Delete draft purchases"] },
   { key: "used-car-wholesale", label: "Used Car Wholesale", title: "Used Car Wholesale", endpoint: "/api/usedcars + /api/usedcars/wholesale-sales + /api/customers", capabilities: ["Sell complete used cars as-is", "Capture buyer and payment details", "Track wholesale margin against loaded cost"] },
   { key: "stock-arrival", label: "Stock Arrival", title: "Stock Arrival Theater", endpoint: "/api/parts + /api/partrequests + /api/communications/campaign-assets", capabilities: ["New opportunity board", "Photo and pricing queues", "Waiting customer and campaign signals"] },
   { key: "used-cars", label: "Used Cars", title: "Used Cars and Galleries", endpoint: "/api/usedcars", capabilities: ["Used car records", "Vehicle image galleries", "Vehicle-linked parts"] },
+  { key: "car-twin", label: "Vehicle Digital Twin", title: "Vehicle Digital Twin", endpoint: "/api/usedcars + /api/usedcars/{id}/twin + /api/usedcars/{id}/state-events", capabilities: ["Track condition changes", "Review twin timeline and removed parts", "Record new state events"] },
   { key: "repair-prep", label: "Repair / Prep", title: "Repair / Prep Board", endpoint: "/api/usedcars", capabilities: ["Repair prep lanes", "Per-car task checklist", "Prep cost tracking"] },
   { key: "stock", label: "Stock", title: "Stock Management", endpoint: "/api/parts?page=1&pageSize=100", capabilities: ["Stock list", "Used-car part assignment", "AI generated part notes"] },
   { key: "dead-stock", label: "Dead Stock", title: "Dead Stock Recovery", endpoint: "/api/parts/dead-stock", capabilities: ["Dormant stock candidates", "Recovery actions", "Shelf-value summary"] },
@@ -245,6 +252,7 @@ const featureModules = [
   { key: "accounting", label: "Accounting", title: "Accounting Review", endpoint: "/api/accounting/trial-balance", capabilities: ["Ledger", "Trial balance", "Statements of account"] },
   { key: "manual-journal", label: "Manual Journal", title: "Manual Journal", endpoint: "/api/accounting/journal-entries", capabilities: ["Journal entry history", "Manual journal posting", "Account configuration"] },
   { key: "report-builder", label: "Report Builder", title: "Report Builder", endpoint: "/api/reportbuilder/saved-reports", capabilities: ["Schema explorer", "Saved reports", "Background runs"] },
+  { key: "whatsapp", label: "WhatsApp", title: "WhatsApp Conversations", endpoint: "/api/communications/conversations", capabilities: ["Conversation list", "Thread history", "Free-text outbound messages"] },
   { key: "business-assistant", label: "AI Assistant", title: "AI Business Assistant", endpoint: "/api/business-assistant/ask", capabilities: ["Turn answers into actions", "Create reports and customer reminders", "Draft purchase orders and campaigns", "Build natural-language stock reports"] },
   { key: "ar", label: "AR Search", title: "AR Picture Search", endpoint: "/api/scans/resolve + /api/scans/visual-search", capabilities: ["Search parts by camera photo", "Overlay ranked matches on the captured image", "Generate printable labels and sell scanned parts"] },
   { key: "reorder", label: "Reorder Center", title: "Reorder Center", endpoint: "/api/reorder/suggestions", capabilities: ["Parts below reorder point", "Suggested order quantities", "Preferred supplier details"] },
@@ -297,7 +305,7 @@ const featureModules = [
 
 const navigationGroups = [
   { title: "Core", keys: ["dashboard", "invoices", "sales-returns", "parts", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
-  { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments", "mechanic-desk", "garage-stock", "part-reserve", "part-reel", "halfcut", "escrow", "listing-boost", "live-inspection", "part-genealogy", "yard-tour", "instant-offer", "part-insurance"] },
+  { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments", "mechanic-desk", "garage-stock", "part-reserve", "part-reel", "halfcut", "escrow", "listing-boost", "live-inspection", "part-genealogy", "yard-tour", "instant-offer", "part-insurance"] },
   { title: "Finance", keys: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging", "market-price", "price-genius", "price-report", "new-vs-used"] },
   { title: "Tools", keys: ["whatsapp", "whatsapp-selling", "business-assistant", "ar", "activity-log", "voice-search", "symptom-search", "does-it-fit", "condition-scanner", "qr-tag", "ar-finder", "api-platform", "kareem"] },
   { title: "Marketplace", keys: ["my-garage", "needboard", "watchlist", "seller-reputation", "seller-verification", "community-guard", "referral", "regional-demand", "mechanic-trust"] },
