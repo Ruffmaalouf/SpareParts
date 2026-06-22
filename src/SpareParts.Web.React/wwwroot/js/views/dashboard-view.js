@@ -409,11 +409,11 @@ export function DashboardView({ api, onView, user }) {
     { label: "Sales Today", value: formatDashboardMoney(dashboard?.todaySalesAmount), bg: "rgba(255,60,60,.15)", color: "#ff5b5b", icon: "dollar", spark: "#ff5b5b", delta: ckPct(dashboard?.salesChangePercent), view: "invoices" },
     { label: "Profit Today", value: formatDashboardMoney(dashboard?.todaySalesProfit), bg: "rgba(255,160,60,.15)", color: "#ffa23c", icon: "trend", spark: "#2bdb8f", delta: ckPct(dashboard?.profitChangePercent), view: "invoices" },
     { label: "Cash Balance", value: formatDashboardMoney(dashboard?.cashBalance), bg: "rgba(77,140,255,.15)", color: "#4d8dff", icon: "wallet", spark: "#4d8dff", delta: ckPct(dashboard?.cashChangePercent), view: "accounting" },
-    { label: "Active Requests", value: ckNum(activePartRequests.length), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "inbox", spark: "#b768ff", delta: null, view: "part-requests" },
-    { label: "Available Parts", value: ckNum(inv.available), bg: "rgba(52,217,212,.15)", color: "#34d9d4", icon: "pkg", spark: "#34d9d4", delta: null, view: "inventory" },
-    { label: "Low Stock Items", value: ckNum(inv.lowStock), bg: "rgba(255,60,60,.15)", color: "#ff5b5b", icon: "warn", spark: "#ff5b5b", delta: null, view: "reorder" },
-    { label: "Donor Cars", value: ckNum(inv.donorParts), bg: "rgba(255,194,87,.15)", color: "#ffc257", icon: "car", spark: "#ffc257", delta: null, view: "used-cars" },
-    { label: "Reserved Items", value: ckNum(inv.reserved), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "bookmark", spark: "#b768ff", delta: null, view: "part-requests" }
+    { label: "Active Requests", value: ckNum(activePartRequests.length), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "inbox", spark: "#b768ff", delta: ckDelta(dashboard?.activeRequestsChange), view: "part-requests" },
+    { label: "Available Parts", value: ckNum(inv.available), bg: "rgba(52,217,212,.15)", color: "#34d9d4", icon: "pkg", spark: "#34d9d4", delta: ckDelta(dashboard?.availablePartsChange), view: "inventory" },
+    { label: "Low Stock Items", value: ckNum(inv.lowStock), bg: "rgba(255,60,60,.15)", color: "#ff5b5b", icon: "warn", spark: "#ff5b5b", delta: ckDelta(dashboard?.lowStockChange), view: "reorder" },
+    { label: "Donor Cars", value: ckNum(inv.donorParts), bg: "rgba(255,194,87,.15)", color: "#ffc257", icon: "car", spark: "#ffc257", delta: ckDelta(dashboard?.donorCarsChange), view: "used-cars" },
+    { label: "Reserved Items", value: ckNum(inv.reserved), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "bookmark", spark: "#b768ff", delta: ckDelta(dashboard?.reservedChange), view: "part-requests" }
   ];
 
   const tabs = ["Parts", "OEM Code", "Barcode", "Vehicle", "Customer", "Supplier", "Invoice", "Donor Car", "Compatibility"];
@@ -428,15 +428,19 @@ export function DashboardView({ api, onView, user }) {
     { label: "Settings", icon: "cog", grad: "linear-gradient(150deg,#8c8c9c,#5d5d6d)", view: "settings" }
   ];
 
+  const openInvoicesTotal = Number(dashboard?.openInvoicesAmount ?? dashboard?.customerDebt ?? 0);
+  const openPosTotal = Number(dashboard?.openPurchaseOrdersAmount ?? dashboard?.supplierDebt ?? 0);
+  const duePaymentsTotal = Number(dashboard?.duePaymentsAmount ?? (dashboard?.unpaidTransactions || []).reduce((sum, item) => sum + transactionAmount(item), 0));
+  const activeUsers = dashboard?.activeUsers ?? dashboard?.onlineUsers;
   const bottomStats = [
     { label: "Sales Today", value: formatDashboardMoney(dashboard?.todaySalesAmount), color: "#ff5b5b", icon: "dollar" },
     { label: "Profit Today", value: formatDashboardMoney(dashboard?.todaySalesProfit), color: "#2bdb8f", icon: "trend" },
-    { label: "Cash Balance", value: formatDashboardMoney(dashboard?.cashBalance), color: "#4d8dff", icon: "wallet" },
-    { label: "Supplier Debt", value: formatDashboardMoney(dashboard?.supplierDebt), color: "#b768ff", icon: "bank" },
-    { label: "Customer Debt", value: formatDashboardMoney(dashboard?.customerDebt), color: "#ff5b5b", icon: "doc" },
-    { label: "Stock Value", value: formatDashboardMoney(dashboard?.stockValue), color: "#ffc257", icon: "box" },
-    { label: "Overdue", value: overdueTotal !== null ? formatDashboardMoney(overdueTotal) : "--", color: "#34d9d4", icon: "warn" },
-    { label: "Low Stock", value: ckNum(inv.lowStock), color: "#2bdb8f", icon: "pkg" }
+    { label: "Open Invoices", value: formatDashboardMoney(openInvoicesTotal), color: "#4d8dff", icon: "doc" },
+    { label: "Open POs", value: formatDashboardMoney(openPosTotal), color: "#b768ff", icon: "clipboard" },
+    { label: "Overdue Invoices", value: overdueTotal !== null ? formatDashboardMoney(overdueTotal) : "--", color: "#ff5b5b", icon: "warn" },
+    { label: "Low Stock Items", value: ckNum(inv.lowStock), color: "#ffc257", icon: "pkg" },
+    { label: "Due Payments", value: formatDashboardMoney(duePaymentsTotal), color: "#34d9d4", icon: "wallet" },
+    { label: "Active Users", value: activeUsers !== undefined && activeUsers !== null ? `${ckNum(activeUsers)} Online` : "--", color: "#2bdb8f", icon: "users" }
   ];
 
   return h("div", { className: "ck-dash" },
@@ -448,9 +452,9 @@ export function DashboardView({ api, onView, user }) {
       h("div", { className: "ck-head-filters" },
         h("button", { type: "button", className: "ck-filter-pill", onClick: () => navigate("stock") },
           h(Icon, { name: "warehouse", size: 14 }), "All Warehouses", h(Icon, { name: "chevron", size: 11 })),
-        h("button", { type: "button", className: "ck-filter-pill", onClick: load, disabled: isLoading },
-          h(Icon, { name: "cal", size: 14 }), isLoading ? "Refreshing..." : "Refresh", h(Icon, { name: "chevron", size: 11 })),
-        h("span", { className: "ck-live-pill" }, h("span", { className: "ck-live-dot" }), status || "Live")
+        h("button", { type: "button", className: "ck-filter-pill", onClick: load, disabled: isLoading, title: "Refresh" },
+          h(Icon, { name: "cal", size: 14 }), isLoading ? "Refreshing..." : new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }), h(Icon, { name: "chevron", size: 11 })),
+        h("span", { className: "ck-live-pill" }, h("span", { className: "ck-live-dot" }), isLoading ? "Updating..." : "Live updates: just now")
       )
     ),
 
@@ -486,11 +490,15 @@ export function DashboardView({ api, onView, user }) {
           )
         ),
         h("div", { className: "ck-cmd-help" },
-          h("div", { className: "ck-cmd-help-img" },
-            h(Icon, { name: "disc", size: 70, className: "ck-icn ck-p1" }),
-            h(Icon, { name: "piston", size: 54, className: "ck-icn ck-p2" }),
-            h(Icon, { name: "cog", size: 46, className: "ck-icn ck-p3" })
-          ),
+          (() => {
+            const heroImage = hotParts.find((part) => part.imageUrl)?.imageUrl;
+            return heroImage
+              ? h("img", { className: "ck-cmd-help-photo", src: heroImage, alt: "Featured part" })
+              : h("div", { className: "ck-cmd-help-img" },
+                h(Icon, { name: "disc", size: 70, className: "ck-icn ck-p1" }),
+                h(Icon, { name: "piston", size: 54, className: "ck-icn ck-p2" }),
+                h(Icon, { name: "cog", size: 46, className: "ck-icn ck-p3" }));
+          })(),
           h("button", { type: "button", className: "ck-cmd-cta", onClick: () => navigate("compatibility") },
             h("div", { className: "ck-cta-ic" }, h(Icon, { name: "link", size: 18 })),
             h("div", { className: "ck-cta-txt" }, h("b", null, "Need help finding the right part?"), h("span", null, "Use Compatibility Search")),
@@ -620,6 +628,12 @@ function ckPct(value) {
   if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) return null;
   const number = Number(value);
   return { text: `${Math.abs(number).toFixed(1)}%`, dir: number < 0 ? "down" : "up" };
+}
+
+function ckDelta(value) {
+  if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) return null;
+  const number = Number(value);
+  return { text: ckNum(Math.abs(number)), dir: number < 0 ? "down" : "up" };
 }
 
 function ckCompact(value) {
