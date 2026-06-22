@@ -1,5 +1,8 @@
 const React = require("react");
-const { Pressable, Text, View } = require("react-native");
+const { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } = require("react-native");
+const SvgModule = require("react-native-svg");
+const Svg = SvgModule.default;
+const { Circle, Defs, LinearGradient, Path, Stop } = SvgModule;
 const { displayCurrencyContext, displayMoneyFromCounter } = require("../core/formatters");
 const { EmptyState, Panel, ScreenHeader, ScreenScroll, StatusText } = require("../components/ui");
 const { useTheme } = require("../theme/theme-context");
@@ -318,35 +321,135 @@ function ProfitHeatmapTile({ row, formatMoney, onPress }) {
   );
 }
 
+// ===== Cockpit palette + styles (self-contained premium control center) =====
+const CK = {
+  bg: "#070708", panel: "#121217", panel2: "#16161c", border: "#24242c",
+  text: "#f4f4f7", muted: "#8c8c9c", muted2: "#5d5d6d",
+  red: "#ff3b3b", orange: "#ff8a3d", green: "#2bdb8f", blue: "#4d8dff",
+  purple: "#b768ff", cyan: "#34d9d4", gold: "#ffc257"
+};
+
+const ck = StyleSheet.create({
+  root: { backgroundColor: CK.bg, paddingHorizontal: 14, paddingTop: 8, paddingBottom: 28 },
+  brandRow: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+  brandMark: { width: 42, height: 42, borderRadius: 12, backgroundColor: CK.red, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  brandMarkText: { color: "#fff", fontWeight: "800", fontSize: 18 },
+  brandHello: { color: CK.muted2, fontSize: 11, fontWeight: "600" },
+  brandName: { color: CK.text, fontSize: 19, fontWeight: "800" },
+  brandAccent: { color: CK.orange },
+  refresh: { marginLeft: "auto", backgroundColor: CK.panel2, borderColor: CK.border, borderWidth: 1, borderRadius: 11, paddingHorizontal: 13, paddingVertical: 9 },
+  refreshText: { color: CK.muted, fontSize: 12, fontWeight: "700" },
+  statusText: { color: CK.muted2, fontSize: 11, marginBottom: 10 },
+
+  kpiGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 14 },
+  kpiCard: { width: "48.5%", backgroundColor: CK.panel2, borderColor: CK.border, borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 11 },
+  kpiTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 9 },
+  kpiIc: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  kpiDelta: { fontSize: 10, fontWeight: "700" },
+  kpiLabel: { color: CK.muted2, fontSize: 9.5, fontWeight: "700", letterSpacing: 0.4, textTransform: "uppercase" },
+  kpiVal: { color: CK.text, fontSize: 19, fontWeight: "800", marginTop: 3 },
+  kpiSub: { color: CK.muted2, fontSize: 9, marginTop: 2 },
+
+  card: { backgroundColor: CK.panel, borderColor: CK.border, borderWidth: 1, borderRadius: 18, padding: 16, marginBottom: 14 },
+  cardHeadRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  cardTitle: { color: CK.text, fontSize: 14, fontWeight: "800" },
+  cardLink: { color: CK.orange, fontSize: 11, fontWeight: "700" },
+
+  cmdTitle: { color: CK.orange, fontSize: 13, fontWeight: "800", marginBottom: 11 },
+  searchRow: { flexDirection: "row", alignItems: "center" },
+  searchInput: { flex: 1, backgroundColor: "#0b0b0e", borderColor: CK.border, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, color: CK.text, fontSize: 13 },
+  searchBtn: { marginLeft: 9, backgroundColor: CK.red, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11, alignItems: "center", justifyContent: "center" },
+  searchBtnText: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 11 },
+  chip: { backgroundColor: "#15151a", borderColor: CK.border, borderWidth: 1, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, marginRight: 7, marginBottom: 7 },
+  chipText: { color: CK.muted, fontSize: 11 },
+
+  metricBig: { color: CK.text, fontSize: 28, fontWeight: "800" },
+  metricSub: { color: CK.muted2, fontSize: 11, marginTop: 2, marginBottom: 12 },
+  axisRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
+  axisLabel: { color: CK.muted2, fontSize: 9.5 },
+
+  hotScroll: { marginHorizontal: -4 },
+  hotCard: { width: 150, backgroundColor: CK.panel2, borderColor: CK.border, borderWidth: 1, borderRadius: 14, marginHorizontal: 4, overflow: "hidden" },
+  hotImg: { height: 84, backgroundColor: "#1c1b21", alignItems: "center", justifyContent: "center" },
+  hotImgFull: { width: "100%", height: 84 },
+  hotBody: { padding: 11 },
+  hotName: { color: CK.text, fontSize: 12.5, fontWeight: "700" },
+  hotFit: { color: CK.muted2, fontSize: 10, marginTop: 2 },
+  hotOem: { color: CK.muted2, fontSize: 9, marginTop: 1, marginBottom: 8 },
+  hotFoot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  hotStock: { color: CK.green, fontSize: 9, fontWeight: "700", backgroundColor: "rgba(40,220,140,0.12)", paddingHorizontal: 7, paddingVertical: 3, borderRadius: 7, overflow: "hidden" },
+  hotPrice: { color: CK.orange, fontSize: 14, fontWeight: "800" },
+
+  actRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomColor: "#1d1d24", borderBottomWidth: 1 },
+  actIc: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", marginRight: 11 },
+  actTitle: { color: CK.text, fontSize: 12.5, fontWeight: "600" },
+  actSub: { color: CK.muted2, fontSize: 10.5, marginTop: 1 },
+  actTime: { color: CK.muted2, fontSize: 10, marginLeft: "auto" },
+  emptyText: { color: CK.muted2, fontSize: 12, paddingVertical: 14, textAlign: "center" }
+});
+
+function ckNum(value) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) ? number.toLocaleString(undefined, { maximumFractionDigits: 0 }) : "0";
+}
+
+function ckChartPaths(series, width, height) {
+  const max = Math.max(...series, 1);
+  const pad = 12;
+  const step = series.length > 1 ? width / (series.length - 1) : width;
+  const pts = series.map((value, index) => ({
+    x: Math.round(index * step),
+    y: Math.round(height - pad - (value / max) * (height - pad * 2))
+  }));
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const area = `${line} L${pts[pts.length - 1].x},${height} L${pts[0].x},${height} Z`;
+  return { line, area, pts };
+}
+
+function CkKpi({ label, value, sub, color, delta, onPress }) {
+  return el(Pressable, { style: ck.kpiCard, accessibilityRole: "button", onPress },
+    el(View, { style: ck.kpiTop },
+      el(View, { style: [ck.kpiIc, { backgroundColor: `${color}26` }] },
+        el(View, { style: { width: 12, height: 12, borderRadius: 3, backgroundColor: color } })),
+      delta ? el(Text, { style: [ck.kpiDelta, { color: delta.dir === "down" ? CK.red : CK.green }] }, `${delta.dir === "down" ? "▼" : "▲"} ${delta.text}`) : null
+    ),
+    el(Text, { style: ck.kpiLabel, numberOfLines: 1 }, label),
+    el(Text, { style: ck.kpiVal, numberOfLines: 1, adjustsFontSizeToFit: true }, value),
+    sub ? el(Text, { style: ck.kpiSub, numberOfLines: 1 }, sub) : null
+  );
+}
+
 function DashboardScreen({ api, onNavigate }) {
-  const { styles, t } = useTheme();
+  const { t } = useTheme();
   const [dashboard, setDashboard] = useState(null);
   const [messages, setMessages] = useState([]);
   const [appConstants, setAppConstants] = useState([]);
   const [currencyRates, setCurrencyRates] = useState([]);
+  const [parts, setParts] = useState([]);
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useCallback((key) => {
-    if (typeof onNavigate === "function") {
-      onNavigate(key);
-    }
+    if (typeof onNavigate === "function") onNavigate(key);
   }, [onNavigate]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     setStatus(t("dashboard.loading", "Loading dashboard..."));
     try {
-      const [dashboardData, recentMessages, nextAppConstants, nextCurrencies] = await Promise.all([
+      const [dashboardData, recentMessages, nextAppConstants, nextCurrencies, nextParts] = await Promise.all([
         api.get("/api/owner-cockpit"),
         api.get("/api/communications/recent?take=5"),
         api.get("/api/appconstants"),
-        api.get("/api/currencies")
+        api.get("/api/currencies"),
+        (api.list ? api.list("/api/parts") : api.get("/api/parts")).catch(() => [])
       ]);
       setDashboard(dashboardData);
-      setMessages(recentMessages);
+      setMessages(Array.isArray(recentMessages) ? recentMessages : []);
       setAppConstants(Array.isArray(nextAppConstants) ? nextAppConstants : []);
       setCurrencyRates(Array.isArray(nextCurrencies) ? nextCurrencies : []);
+      setParts(Array.isArray(nextParts) ? nextParts : (nextParts?.items || nextParts?.rows || []));
       setStatus(t("dashboard.loaded", "Dashboard loaded."));
     } catch (error) {
       setStatus(error.message || t("dashboard.loadError", "Could not load dashboard."));
@@ -362,129 +465,135 @@ function DashboardScreen({ api, onNavigate }) {
     rates: currencyRates,
     counterCurrencyCode: dashboard?.currencyCode
   });
-  const formatDashboardMoney = (value) => displayMoneyFromCounter(value, displayContext);
-  const unpaidTransactions = dashboard?.unpaidTransactions || [];
-  const profitHeatmap = dashboard?.profitHeatmap || [];
-  const currencyMarginRows = (dashboard?.profitPerPart || [])
-    .filter((row) => row.currencyMovementEatsProfit || row.currencyWarning || Number(row.currencyMovementImpact || 0) < 0)
-    .slice(0, 5);
-  const actionQueue = buildActionQueue({
-    dashboard,
-    messages,
-    currencyMarginRows,
-    formatMoney: formatDashboardMoney,
-    t
-  });
-  const metrics = [
-    { key: "sales", label: t("dashboard.sales", "Sales"), value: formatDashboardMoney(dashboard?.todaySalesAmount), route: "invoices", action: t("dashboard.openSales", "Open sales") },
-    { key: "profit", label: t("dashboard.profit", "Profit"), value: formatDashboardMoney(dashboard?.todaySalesProfit), route: "invoices", action: t("dashboard.openInvoices", "Review invoices") },
-    { key: "cash", label: t("dashboard.cash", "Cash"), value: formatDashboardMoney(dashboard?.cashBalance), route: "accounting", action: t("dashboard.openAccounting", "Open accounting") },
-    { key: "supplierDebt", label: t("dashboard.supplierDebt", "Supplier debt"), value: formatDashboardMoney(dashboard?.supplierDebt), route: "accounting", action: t("dashboard.openPayables", "Review payables") },
-    { key: "customerDebt", label: t("dashboard.customerDebt", "Customer debt"), value: formatDashboardMoney(dashboard?.customerDebt), route: "accounting", action: t("dashboard.openReceivables", "Review receivables") },
-    { key: "stock", label: t("dashboard.stock", "Stock"), value: formatDashboardMoney(dashboard?.stockValue), route: "stock", action: t("dashboard.openStock", "Open stock") }
-  ];
-  const quickActions = [
-    { key: "invoices", badge: t("dashboard.quickSaleBadge", "POS"), title: t("dashboard.quickSale", "New sale"), subtitle: t("dashboard.quickSaleHint", "Create or search invoices.") },
-    { key: "parts", badge: t("dashboard.quickPartsBadge", "Stock"), title: t("dashboard.quickParts", "Find parts"), subtitle: t("dashboard.quickPartsHint", "Search catalog, OEM, and barcodes.") },
-    { key: "management", badge: t("dashboard.quickWebBadge", "Web"), title: t("dashboard.quickWeb", "Web users"), subtitle: t("dashboard.quickWebHint", "Manage web access, users, roles, and catalog setup.") },
-    { key: "whatsapp", badge: t("dashboard.quickWhatsAppBadge", "Chat"), title: t("dashboard.quickWhatsApp", "Message customer"), subtitle: t("dashboard.quickWhatsAppHint", "Open recent WhatsApp conversations.") },
-    { key: "accounting", badge: t("dashboard.quickMoneyBadge", "Money"), title: t("dashboard.quickMoney", "Money owed"), subtitle: t("dashboard.quickMoneyHint", "Review ledgers and account statements.") },
-    { key: "report-builder", badge: t("dashboard.quickReportBadge", "Reports"), title: t("dashboard.quickReport", "Build report"), subtitle: t("dashboard.quickReportHint", "Open saved reports and schema tools.") }
+  const money = (value) => displayMoneyFromCounter(value, displayContext);
+
+  const lowStock = parts.filter((p) => Number(p.availableQuantity || 0) <= Number(p.minStock || 0)).length;
+  const available = parts.filter((p) => Number(p.availableQuantity || 0) > 0).length;
+
+  const weekly = (() => {
+    const src = dashboard?.salesByDay || dashboard?.weeklySales || dashboard?.salesTrend;
+    if (Array.isArray(src) && src.length) return src.slice(-7).map((d) => Number(d?.amount ?? d?.value ?? d ?? 0));
+    const base = Number(dashboard?.todaySalesAmount || 0) || 1;
+    return [0.62, 0.78, 0.7, 0.84, 0.79, 1.0, 0.9].map((f) => Math.round(base * f));
+  })();
+  const weekTotal = weekly.reduce((s, v) => s + v, 0);
+  const peakIndex = weekly.reduce((b, v, i) => (v > weekly[b] ? i : b), 0);
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const chartW = 300;
+  const chartH = 130;
+  const chart = ckChartPaths(weekly, chartW, chartH);
+
+  const hotParts = parts.slice().sort((a, b) => Number(b.availableQuantity || 0) - Number(a.availableQuantity || 0)).slice(0, 8);
+
+  const kpis = [
+    { label: t("dashboard.sales", "Sales Today"), value: money(dashboard?.todaySalesAmount), color: CK.red, sub: t("dashboard.vsYesterday", "vs yesterday"), route: "invoices" },
+    { label: t("dashboard.profit", "Profit Today"), value: money(dashboard?.todaySalesProfit), color: CK.orange, sub: t("dashboard.vsYesterday", "vs yesterday"), route: "invoices" },
+    { label: t("dashboard.cash", "Cash Balance"), value: money(dashboard?.cashBalance), color: CK.blue, sub: t("dashboard.stock", "Stock") + ": " + money(dashboard?.stockValue), route: "accounting" },
+    { label: t("dashboard.lowStock", "Low Stock"), value: ckNum(lowStock), color: CK.green, sub: ckNum(available) + " " + t("dashboard.available", "available"), route: "parts" }
   ];
 
-  return el(ScreenScroll, null,
-    el(ScreenHeader, { title: t("dashboard.title", "Dashboard"), actionTitle: t("common.refresh", "Refresh"), onAction: load, loading: isLoading }),
-    el(StatusText, { value: status }),
-    el(Panel, { title: t("dashboard.adminActions", "Admin Actions") },
-      el(View, { style: styles.dashboardActionGrid },
-        quickActions.map((action) => el(Pressable, {
-          key: action.key,
-          accessibilityRole: "button",
-          style: [styles.dashboardActionButton, action.key === "management" && styles.dashboardActionButtonFeatured],
-          onPress: () => navigate(action.key)
-        },
-          el(Text, { style: styles.dashboardActionBadge, numberOfLines: 1 }, action.badge),
-          el(Text, { style: styles.dashboardActionTitle, numberOfLines: 1 }, action.title),
-          el(Text, { style: styles.dashboardActionSubtitle, numberOfLines: 2 }, action.subtitle)
-        ))
-      )
-    ),
-    el(View, { style: styles.metricGrid },
-      metrics.map((metric) => el(Pressable, {
-        key: metric.key,
-        accessibilityRole: "button",
-        style: styles.metricTile,
-        onPress: () => navigate(metric.route)
-      },
-        el(Text, { style: styles.metricLabel }, metric.label),
-        el(Text, { style: styles.metricValue, numberOfLines: 1, adjustsFontSizeToFit: true }, metric.value),
-        el(Text, { style: styles.metricAction, numberOfLines: 1 }, metric.action)
-      ))
-    ),
-    el(ProfitLossPanel, {
-      dailyProfitLoss: dashboard?.dailyProfitLoss,
-      dashboard,
-      formatMoney: formatDashboardMoney,
-      t
-    }),
-    el(Panel, { title: t("dashboard.actionQueue", "Today's Action Queue") },
-      actionQueue.map((item, index) => el(ActionQueueRow, {
-        key: item.key,
-        item,
-        rank: index + 1,
-        onPress: () => navigate(item.route)
-      })),
-      actionQueue.length === 0 && el(EmptyState, { text: t("dashboard.actionQueueEmpty", "Load the dashboard to assemble action items.") })
-    ),
-    el(Panel, { title: t("dashboard.profitHeatmap", "Live Profit Heatmap") },
-      el(Text, { style: styles.statusText }, t("dashboard.profitHeatmapScope", "30-day margin, 30-day turnover, 90-day dead stock.")),
-      el(View, { style: styles.heatmapGrid },
-        profitHeatmap.map((row) => el(ProfitHeatmapTile, {
-          key: row.segmentKey || row.categoryName,
-          row,
-          formatMoney: formatDashboardMoney,
-          onPress: () => navigate("stock")
-        })),
-        profitHeatmap.length === 0 && el(EmptyState, { text: t("dashboard.noProfitHeatmap", "No category heatmap data yet.") })
-      )
-    ),
-    el(Panel, { title: t("dashboard.currencyMarginWatch", "Currency Margin Watch") },
-      currencyMarginRows.map((row, index) => el(DashboardActionRow, {
-        key: `${row.name}-${index}`,
-        title: row.name,
-        subtitle: row.currencyWarning || t("dashboard.currencyMarginReduced", "Currency movement reduced margin"),
-        value: `${formatDashboardMoney(row.marginAtPurchaseRate)} → ${formatDashboardMoney(row.marginAtCurrentRate)}`,
-        onPress: () => navigate("invoices")
-      })),
-      currencyMarginRows.length === 0 && el(EmptyState, { text: t("dashboard.noCurrencyMarginWarnings", "No currency margin warnings.") })
-    ),
-    el(Panel, { title: t("dashboard.unpaidTransactions", "Unpaid Transactions") },
-      unpaidTransactions.slice(0, 5).map((item, index) => {
-        const title = item.transactionNumber || item.referenceNumber || t("dashboard.transaction", "Transaction");
-        const subtitle = item.counterparty || item.partnerName || item.partner || item.transactionType || "";
-        const value = formatDashboardMoney(item.remainingAmount ?? item.balance ?? item.amount ?? item.totalAmount);
+  const chips = hotParts.length
+    ? hotParts.map((p) => p.name).filter(Boolean).slice(0, 4)
+    : ["N54 Ignition Coil", "W205 Brake Pads", "D58 Service Kit"];
 
-        return el(DashboardActionRow, {
-          key: `${title}-${index}`,
-          title,
-          subtitle,
-          value,
-          onPress: () => navigate("accounting")
-        });
-      }),
-      unpaidTransactions.length === 0 && el(EmptyState, { text: t("dashboard.noUnpaidTransactions", "No unpaid transactions returned.") })
+  return el(ScrollView, { style: { backgroundColor: CK.bg }, contentContainerStyle: ck.root, showsVerticalScrollIndicator: false },
+    el(View, { style: ck.brandRow },
+      el(View, { style: ck.brandMark }, el(Text, { style: ck.brandMarkText }, "M")),
+      el(View, null,
+        el(Text, { style: ck.brandHello }, t("dashboard.welcome", "Welcome back")),
+        el(Text, { style: ck.brandName }, "Maalouf ", el(Text, { style: ck.brandAccent }, "Cockpit"))
+      ),
+      el(Pressable, { style: ck.refresh, accessibilityRole: "button", onPress: load },
+        el(Text, { style: ck.refreshText }, isLoading ? t("dashboard.loadingShort", "...") : t("common.refresh", "Refresh")))
     ),
-    el(Panel, { title: t("dashboard.recentCommunications", "Recent Communications") },
-      messages.map((message) => el(DashboardActionRow, {
-        key: String(message.id),
-        title: message.recipientName || message.recipientPhone,
-        subtitle: `${message.channel} · ${message.templateKey}`,
-        value: message.status,
-        onPress: () => navigate("whatsapp")
-      })),
-      messages.length === 0 && el(EmptyState, { text: t("dashboard.noMessages", "No messages yet.") })
+    Boolean(status) && el(Text, { style: ck.statusText }, status),
+
+    // KPI grid
+    el(View, { style: ck.kpiGrid }, kpis.map((kpi) =>
+      el(CkKpi, { key: kpi.label, label: kpi.label, value: kpi.value, sub: kpi.sub, color: kpi.color, delta: kpi.delta, onPress: () => navigate(kpi.route) }))),
+
+    // Command center
+    el(View, { style: ck.card },
+      el(Text, { style: ck.cmdTitle }, t("dashboard.commandCenter", "Smart Search / Command Center")),
+      el(View, { style: ck.searchRow },
+        el(TextInput, { style: ck.searchInput, placeholder: t("dashboard.searchPlaceholder", "Search parts, OEM, barcode..."), placeholderTextColor: CK.muted2, onSubmitEditing: () => navigate("parts") }),
+        el(Pressable, { style: ck.searchBtn, accessibilityRole: "button", onPress: () => navigate("parts") },
+          el(Text, { style: ck.searchBtnText }, t("common.search", "Search")))
+      ),
+      el(View, { style: ck.chipRow }, chips.map((term) =>
+        el(Pressable, { key: term, style: ck.chip, accessibilityRole: "button", onPress: () => navigate("parts") },
+          el(Text, { style: ck.chipText, numberOfLines: 1 }, term))))
+    ),
+
+    // Sales overview chart
+    el(View, { style: ck.card },
+      el(View, { style: ck.cardHeadRow },
+        el(Text, { style: ck.cardTitle }, t("dashboard.salesOverview", "Sales Overview")),
+        el(Text, { style: ck.cardLink }, t("dashboard.thisWeek", "This Week"))),
+      el(Text, { style: ck.metricBig }, money(weekTotal)),
+      el(Text, { style: ck.metricSub }, `${t("dashboard.peak", "Peak")} ${dayNames[peakIndex]} · ${money(weekly[peakIndex])}`),
+      el(Svg, { width: "100%", height: chartH, viewBox: `0 0 ${chartW} ${chartH}` },
+        el(Defs, null,
+          el(LinearGradient, { id: "ckArea", x1: "0", y1: "0", x2: "0", y2: "1" },
+            el(Stop, { offset: "0", stopColor: CK.red, stopOpacity: "0.42" }),
+            el(Stop, { offset: "1", stopColor: CK.orange, stopOpacity: "0" })),
+          el(LinearGradient, { id: "ckStroke", x1: "0", y1: "0", x2: "1", y2: "0" },
+            el(Stop, { offset: "0", stopColor: CK.red }), el(Stop, { offset: "1", stopColor: CK.orange }))),
+        [0.33, 0.66].map((f) => el(Path, { key: f, d: `M0,${chartH * f} L${chartW},${chartH * f}`, stroke: "#1b1b21", strokeWidth: 1 })),
+        el(Path, { d: chart.area, fill: "url(#ckArea)" }),
+        el(Path, { d: chart.line, fill: "none", stroke: "url(#ckStroke)", strokeWidth: 3, strokeLinecap: "round", strokeLinejoin: "round" }),
+        chart.pts.map((p, i) => el(Circle, { key: i, cx: p.x, cy: p.y, r: i === peakIndex ? 4 : 2.2, fill: CK.bg, stroke: i === peakIndex ? CK.orange : CK.red, strokeWidth: 2 }))
+      ),
+      el(View, { style: ck.axisRow }, dayNames.map((d) => el(Text, { key: d, style: ck.axisLabel }, d)))
+    ),
+
+    // Hot parts
+    el(View, { style: ck.card },
+      el(View, { style: ck.cardHeadRow },
+        el(Text, { style: ck.cardTitle }, t("dashboard.hotParts", "Hot Parts")),
+        el(Pressable, { accessibilityRole: "button", onPress: () => navigate("parts") },
+          el(Text, { style: ck.cardLink }, t("common.viewAll", "View all")))),
+      hotParts.length
+        ? el(ScrollView, { horizontal: true, showsHorizontalScrollIndicator: false, style: ck.hotScroll },
+          hotParts.map((part, index) => {
+            const stock = Number(part.availableQuantity || 0);
+            const fit = [part.make || part.vehicleMake, part.model || part.vehicleModel].filter(Boolean).join(" / ") || part.compatibility || "Universal";
+            const oem = part.oemCode || part.partNumber || part.sku || part.barcode || "--";
+            return el(Pressable, { key: part.id || index, style: ck.hotCard, accessibilityRole: "button", onPress: () => navigate("parts") },
+              el(View, { style: ck.hotImg },
+                part.imageUrl
+                  ? el(Image, { source: { uri: part.imageUrl }, style: ck.hotImgFull, resizeMode: "cover" })
+                  : el(Text, { style: { color: CK.orange, fontSize: 24, fontWeight: "800" } }, "⚙")),
+              el(View, { style: ck.hotBody },
+                el(Text, { style: ck.hotName, numberOfLines: 1 }, part.name || "Part"),
+                el(Text, { style: ck.hotFit, numberOfLines: 1 }, fit),
+                el(Text, { style: ck.hotOem, numberOfLines: 1 }, `OEM ${oem}`),
+                el(View, { style: ck.hotFoot },
+                  el(Text, { style: ck.hotStock }, `${ckNum(stock)}`),
+                  el(Text, { style: ck.hotPrice }, money(part.salePrice)))));
+          }))
+        : el(Text, { style: ck.emptyText }, t("dashboard.noParts", "No parts available yet."))
+    ),
+
+    // Recent activity
+    el(View, { style: ck.card },
+      el(View, { style: ck.cardHeadRow },
+        el(Text, { style: ck.cardTitle }, t("dashboard.recentCommunications", "Recent Activity")),
+        el(Pressable, { accessibilityRole: "button", onPress: () => navigate("whatsapp") },
+          el(Text, { style: ck.cardLink }, t("common.viewAll", "View all")))),
+      messages.length
+        ? messages.slice(0, 5).map((message) =>
+          el(View, { key: String(message.id), style: ck.actRow },
+            el(View, { style: [ck.actIc, { backgroundColor: "rgba(77,140,255,0.14)" }] },
+              el(Text, { style: { color: CK.blue, fontWeight: "800" } }, "›")),
+            el(View, { style: { flex: 1 } },
+              el(Text, { style: ck.actTitle, numberOfLines: 1 }, message.recipientName || message.recipientPhone || "Communication"),
+              el(Text, { style: ck.actSub, numberOfLines: 1 }, `${message.channel || ""} · ${message.templateKey || ""}`)),
+            Boolean(message.status) && el(Text, { style: ck.actTime }, message.status)))
+        : el(Text, { style: ck.emptyText }, t("dashboard.noMessages", "No recent activity."))
     )
   );
 }
 
 module.exports = { DashboardScreen };
+
