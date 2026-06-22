@@ -1,121 +1,118 @@
-import { h, useMemo, useState } from "../../core/react-runtime.js";
-import { BrandMark, NavIcon, SUPER_ADMIN_ROLE_ID, navGroups, superAdminOnlyKeys } from "../layout.js";
+import { h } from "../../core/react-runtime.js";
+import { SUPER_ADMIN_ROLE_ID, superAdminOnlyKeys } from "../layout.js";
+import { Icon } from "./CockpitIcons.js";
 
-function normalize(value) {
-  return String(value || "").trim().toLowerCase();
+// Rail: illuminated cockpit shortcut buttons mapped to real screen keys.
+const railItems = [
+  { key: "dashboard", icon: "grid" },
+  { key: "invoices", icon: "cart" },
+  { key: "inventory", icon: "box" },
+  { key: "compatibility", icon: "link" },
+  { key: "used-cars", icon: "car" },
+  { key: "accounting", icon: "bank" },
+  { key: "contacts", icon: "users" }
+];
+
+// Curated cockpit navigation groups (match the approved mockup) mapped onto the
+// real screen registry keys. Any registered screen not listed here is appended
+// to a "More" group so every existing route stays reachable.
+const cockpitGroups = [
+  { key: "control", label: "Control Center", items: ["dashboard"] },
+  { key: "sales", label: "Sales", items: ["invoices", "sales-returns"] },
+  { key: "parts", label: "Parts & Inventory", items: ["inventory", "part-requests"] },
+  { key: "compatibility", label: "Compatibility", items: ["compatibility", "does-it-fit"] },
+  { key: "donor", label: "Donor & Vehicles", items: ["used-cars", "stock", "stock-arrival"] },
+  { key: "finance", label: "Finance", items: ["billing", "report-builder", "accounting"] },
+  { key: "users", label: "Users & Settings", items: ["management", "settings"] }
+];
+
+const keyIcon = {
+  dashboard: "grid", invoices: "cart", "sales-returns": "return", inventory: "box",
+  "part-requests": "clipboard", compatibility: "search", "does-it-fit": "car",
+  "used-cars": "car", stock: "warehouse", "stock-arrival": "pkg", billing: "doc",
+  "report-builder": "trend", accounting: "bank", management: "users", settings: "cog"
+};
+
+function iconFor(key) {
+  return keyIcon[key] || "box";
 }
 
-// Rebuilt navigation: collapsible grouped sections (expand state per group),
-// active-item marker element, and a search-within-nav filter so the large
-// "Other" bucket of ungrouped screens stays usable.
-export function Sidebar({ screens, view, onView, onLogout, t, user, collapsed = false }) {
+export function Sidebar({ screens, view, onView, onLogout, t, user, closeNav }) {
   const roleId = Number(user?.roleId ?? user?.RoleId);
-  const visibleScreens = screens.filter((screen) => !superAdminOnlyKeys.has(screen.key) || roleId === SUPER_ADMIN_ROLE_ID);
-  const screenMap = new Map(visibleScreens.map((screen) => [screen.key, screen]));
-  const groupedKeys = new Set(navGroups.flatMap((group) => group.items));
-  const extraScreens = visibleScreens.filter((screen) => !groupedKeys.has(screen.key));
-  const groups = useMemo(() => [
-    ...navGroups.map((group) => ({
-      ...group,
-      screens: group.items.map((key) => screenMap.get(key)).filter(Boolean)
-    })),
-    extraScreens.length ? { key: "extra", label: "Other", screens: extraScreens } : null
-  ].filter((group) => group && group.screens.length > 0), [extraScreens, screenMap]);
+  const visible = (screens || []).filter((screen) => !superAdminOnlyKeys.has(screen.key) || roleId === SUPER_ADMIN_ROLE_ID);
+  const screenMap = new Map(visible.map((screen) => [screen.key, screen]));
 
-  const [expanded, setExpanded] = useState(() => {
-    const initial = {};
-    groups.forEach((group) => { initial[group.key] = true; });
-    return initial;
-  });
-  const [navFilter, setNavFilter] = useState("");
+  const usedKeys = new Set(cockpitGroups.flatMap((group) => group.items));
+  const groups = cockpitGroups
+    .map((group) => ({ ...group, screens: group.items.map((key) => screenMap.get(key)).filter(Boolean) }))
+    .filter((group) => group.screens.length > 0);
+  const moreScreens = visible.filter((screen) => !usedKeys.has(screen.key));
+  if (moreScreens.length) groups.push({ key: "more", label: "More Modules", screens: moreScreens });
 
-  const toggleGroup = (key) => {
-    setExpanded((current) => ({ ...current, [key]: !current[key] }));
+  const select = (key) => {
+    onView(key);
+    if (typeof closeNav === "function") closeNav();
   };
 
-  const query = normalize(navFilter);
-  const filteredGroups = query
-    ? groups
-      .map((group) => ({
-        ...group,
-        screens: group.screens.filter((screen) => normalize(screen.label).includes(query) || normalize(screen.key).includes(query))
-      }))
-      .filter((group) => group.screens.length > 0)
-    : groups;
-
   const displayName = user?.fullName || user?.name || user?.username || "Administrator";
+  const roleLabel = roleId === SUPER_ADMIN_ROLE_ID ? "Super Admin" : roleId ? `Role ${roleId}` : "Operator";
+  const initials = String(displayName).slice(0, 2).toUpperCase();
 
-  return h("aside", { className: collapsed ? "sidebar sidebar-v2 is-collapsed" : "sidebar sidebar-v2" },
-    h("div", { className: "sidebar-brand" },
-      h(BrandMark, { size: "small", label: t("login.brand", "Maalouf Auto Parts") }),
-      !collapsed && h("div", null,
-        h("strong", null, t("app.brand", "Maalouf")),
-        h("span", null, t("app.subtitle", "Auto Parts"))
-      ),
-      !collapsed && h("b", { className: "sidebar-live" }, t("common.live", "Live"))
-    ),
-    !collapsed && h("div", { className: "sidebar-nav-search" },
-      h("svg", { className: "sidebar-nav-search-icon", viewBox: "0 0 24 24", "aria-hidden": "true" },
-        h("circle", { cx: "11", cy: "11", r: "7" }),
-        h("path", { d: "M21 21l-4.3-4.3" })
-      ),
-      h("input", {
-        type: "search",
-        value: navFilter,
-        placeholder: t("nav.filterPlaceholder", "Filter screens..."),
-        onChange: (event) => setNavFilter(event.target.value),
-        "aria-label": t("nav.filterPlaceholder", "Filter screens...")
-      }),
-      navFilter && h("button", {
+  return h("div", { className: "ck-sidebar-wrap", style: { display: "contents" } },
+    // ===== Rail =====
+    h("div", { className: "ck-rail" },
+      h("div", { className: "ck-logo-mark" }, "M"),
+      railItems.map((item) => screenMap.get(item.key) && h("button", {
+        key: item.key,
         type: "button",
-        className: "sidebar-nav-search-clear",
-        onClick: () => setNavFilter(""),
-        "aria-label": "Clear filter"
-      }, "x")
+        className: item.key === view ? "ck-rail-ico is-active" : "ck-rail-ico",
+        title: t(`screens.${item.key}`, screenMap.get(item.key)?.label || item.key),
+        onClick: () => select(item.key)
+      }, h(Icon, { name: item.icon }))),
+      h("div", { className: "ck-rail-spacer" }),
+      screenMap.get("settings") && h("button", {
+        type: "button",
+        className: "settings" === view ? "ck-rail-ico is-active" : "ck-rail-ico",
+        title: t("screens.settings", "Settings"),
+        onClick: () => select("settings")
+      }, h(Icon, { name: "cog" })),
+      h("div", { className: "ck-rail-divider" }),
+      h("div", { className: "ck-rail-avatar" }, initials)
     ),
-    h("nav", { className: "nav-list nav-list-v2", "aria-label": t("nav.admin", "Admin navigation") },
-      filteredGroups.map((group) => {
-        const isOpen = query ? true : expanded[group.key] !== false;
-        return h("section", { className: isOpen ? "nav-section nav-section-v2 is-open" : "nav-section nav-section-v2", key: group.key },
-          h("button", {
-            type: "button",
-            className: "nav-section-header",
-            onClick: () => toggleGroup(group.key),
-            "aria-expanded": isOpen
-          },
-            h("span", { className: "nav-section-title" }, t(`nav.${group.key}`, group.label)),
-            !collapsed && h("svg", { className: "nav-section-chevron", viewBox: "0 0 24 24", "aria-hidden": "true" },
-              h("path", { d: "M6 9l6 6 6-6" })
-            )
-          ),
-          isOpen && h("div", { className: "nav-section-items" },
-            group.screens.map(({ key, label }) => {
-              const isActive = key === view;
-              return h("button", {
+    // ===== Sidebar panel =====
+    h("aside", { className: "ck-sidebar" },
+      h("div", { className: "ck-brand" },
+        h("div", { className: "ck-brand-mark" }, "M"),
+        h("div", { className: "ck-brand-title" }, t("app.brand", "MAALOUF"), h("small", null, t("app.subtitle", "AUTO PARTS")))
+      ),
+      h("nav", { className: "ck-nav-scroll", "aria-label": t("nav.admin", "Admin navigation") },
+        groups.map((group) =>
+          h("div", { key: group.key },
+            h("div", { className: "ck-nav-group" }, t(`nav.${group.key}`, group.label)),
+            group.screens.map(({ key, label }) =>
+              h("button", {
                 key,
-                className: isActive ? "nav-item active" : "nav-item",
-                onClick: () => onView(key),
                 type: "button",
-                title: collapsed ? t(`screens.${key}`, label) : undefined
+                className: key === view ? "ck-nav-item is-active" : "ck-nav-item",
+                onClick: () => select(key)
               },
-                h("span", { className: isActive ? "nav-item-marker active" : "nav-item-marker", "aria-hidden": "true" }),
-                h(NavIcon, { name: key }),
-                !collapsed && h("span", { className: "nav-item-label" }, t(`screens.${key}`, label))
-              );
-            })
+                h(Icon, { name: iconFor(key), className: "ck-icn ck-ic" }),
+                h("span", { className: "ck-nav-item-label" }, t(`screens.${key}`, label))
+              )
+            )
           )
-        );
-      }),
-      filteredGroups.length === 0 && h("p", { className: "nav-empty-state" }, t("nav.noMatches", "No screens match that filter."))
-    ),
-    h("footer", { className: "sidebar-footer" },
-      h("div", { className: "user-panel" },
-        h("span", { className: "avatar" }, String(displayName).slice(0, 2).toUpperCase()),
-        !collapsed && h("div", null,
-          h("strong", null, displayName),
-          h("span", null, roleId ? `Role ID ${roleId}` : "Role ID")
+        )
+      ),
+      h("div", { className: "ck-sidebar-bottom" },
+        h("div", { className: "ck-user-card" },
+          h("span", { className: "ck-av" }, initials),
+          h("div", null,
+            h("div", { className: "ck-nm" }, displayName),
+            h("div", { className: "ck-rl" }, t("common.online", "Online"), h("span", { className: "ck-role-badge" }, roleLabel.toUpperCase()))
+          )
         ),
-        !collapsed && onLogout && h("button", { className: "ghost-button", type: "button", onClick: onLogout }, t("common.signOut", "Sign out"))
+        onLogout && h("button", { type: "button", className: "ck-signout", onClick: onLogout },
+          h(Icon, { name: "power", size: 14 }), t("common.signOut", "Sign out"))
       )
     )
   );
