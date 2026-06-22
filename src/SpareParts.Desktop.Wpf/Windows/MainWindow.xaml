@@ -1335,6 +1335,13 @@
                                         <TextBlock Text="Kareem AI" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
+                                <Button Command="{Binding GoToCarTwinCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Vehicle Digital Twin" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
                                 <Button Command="{Binding GoToArFinderCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ArFinder">
@@ -1349,6 +1356,13 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Report" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToApiPlatformCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF2A4A6E" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="API Platform" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -7044,6 +7058,147 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <TextBlock Text="{Binding PriceReportVm.ResultText}" TextWrapping="Wrap" FontFamily="Consolas"/>
                         </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- ── Vehicle Digital Twin ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=CarTwin}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
+                    <StackPanel DockPanel.Dock="Left" MaxWidth="720">
+                        <TextBlock Text="Vehicle Digital Twin" FontSize="19" FontWeight="Bold"/>
+                        <TextBlock Text="Track a used car's state, removed parts, and timeline as one workspace."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Refresh Cars" Command="{Binding CarTwinVm.LoadCarsCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Width="120" Margin="0 0 10 0"/>
+                        <Button Content="⟵ Home" Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Width="120"/>
+                    </StackPanel>
+                </DockPanel>
+                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                    <DockPanel>
+                        <TextBlock Text="Status" DockPanel.Dock="Left" FontWeight="SemiBold" Margin="0 0 12 0"/>
+                        <TextBlock Text="{Binding CarTwinVm.Status}" Foreground="{Binding CarTwinVm.StatusBrush}" TextWrapping="Wrap"/>
+                    </DockPanel>
+                </Border>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 16 0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="Vehicle Selection" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <TextBlock Text="Used Car ID" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding CarTwinVm.UsedCarId, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <StackPanel Orientation="Horizontal" Margin="0 0 0 10">
+                                    <Button Content="Load Twin" Command="{Binding CarTwinVm.LoadTwinCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0 0 8 0"/>
+                                    <Button Content="Use Selected Row" Command="{Binding CarTwinVm.LoadTwinCommand}" Style="{StaticResource SecondaryButtonStyle}"/>
+                                </StackPanel>
+                                <TextBlock Text="State Event" FontWeight="SemiBold" Margin="0 8 0 10"/>
+                                <TextBlock Text="Event Type" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding CarTwinVm.EventType, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <TextBlock Text="Mileage" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding CarTwinVm.Mileage, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <TextBlock Text="Condition" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding CarTwinVm.Condition, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <TextBlock Text="Location" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding CarTwinVm.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <TextBlock Text="Note" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding CarTwinVm.Note, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8" AcceptsReturn="True" Height="70" TextWrapping="Wrap"/>
+                                <Button Content="Add Event" Command="{Binding CarTwinVm.AddEventCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0 8 0 0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1.1*"/>
+                            <RowDefinition Height="0.9*"/>
+                            <RowDefinition Height="0.9*"/>
+                            <RowDefinition Height="1.1*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 12">
+                            <DataGrid ItemsSource="{Binding CarTwinVm.Table.DefaultView}" SelectedItem="{Binding CarTwinVm.SelectedRow, Mode=TwoWay}"
+                                      AutoGenerateColumns="True" CanUserAddRows="False" IsReadOnly="True"
+                                      HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0"/>
+                        </Border>
+                        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 12">
+                            <DataGrid ItemsSource="{Binding CarTwinVm.PartsTable.DefaultView}" AutoGenerateColumns="True" CanUserAddRows="False"
+                                      IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0"/>
+                        </Border>
+                        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 12">
+                            <DataGrid ItemsSource="{Binding CarTwinVm.TimelineTable.DefaultView}" AutoGenerateColumns="True" CanUserAddRows="False"
+                                      IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0"/>
+                        </Border>
+                        <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock Text="{Binding CarTwinVm.ResultText}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- ── API Platform ── -->
+            <Grid Margin="20"
+                  Visibility="{Binding ActiveScreen, Converter={StaticResource ScreenToVisibilityConverter}, ConverterParameter=ApiPlatform}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="0 0 0 12">
+                    <StackPanel DockPanel.Dock="Left" MaxWidth="720">
+                        <TextBlock Text="API Platform" FontSize="19" FontWeight="Bold"/>
+                        <TextBlock Text="Issue and revoke API keys for external integrations."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Refresh Keys" Command="{Binding ApiPlatformVm.LoadCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Width="120" Margin="0 0 10 0"/>
+                        <Button Content="⟵ Home" Command="{Binding GoToHomeCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Width="120"/>
+                    </StackPanel>
+                </DockPanel>
+                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 0 20">
+                    <DockPanel>
+                        <TextBlock Text="Status" DockPanel.Dock="Left" FontWeight="SemiBold" Margin="0 0 12 0"/>
+                        <TextBlock Text="{Binding ApiPlatformVm.Status}" Foreground="{Binding ApiPlatformVm.StatusBrush}" TextWrapping="Wrap"/>
+                    </DockPanel>
+                </Border>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14" Margin="0 0 16 0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="Create API Key" FontWeight="SemiBold" Margin="0 0 0 10"/>
+                                <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding ApiPlatformVm.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <TextBlock Text="Scopes (comma-separated)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Text="{Binding ApiPlatformVm.Scopes, UpdateSourceTrigger=PropertyChanged}" Margin="0 2 0 8"/>
+                                <Button Content="Create Key" Command="{Binding ApiPlatformVm.CreateCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0 8 0 12"/>
+                                <Button Content="Revoke Selected Key" Command="{Binding ApiPlatformVm.RevokeCommand}" Style="{StaticResource SecondaryButtonStyle}" Margin="0 0 0 12"/>
+                                <TextBlock Text="Plain Key" FontWeight="SemiBold" Margin="0 4 0 6"/>
+                                <TextBlock Text="{Binding ApiPlatformVm.PlainKey}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="14">
+                        <DataGrid ItemsSource="{Binding ApiPlatformVm.Table.DefaultView}" SelectedItem="{Binding ApiPlatformVm.SelectedRow, Mode=TwoWay}"
+                                  AutoGenerateColumns="True" CanUserAddRows="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0"/>
                     </Border>
                 </Grid>
             </Grid>

@@ -1,7 +1,7 @@
 import { h } from "../core/react-runtime.js";
 import { languageOptions, wpfThemes } from "../core/config.js";
 
-export const iconPaths = {
+const iconPaths = {
   dashboard: "M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-5H4v5Zm10 0h6v-5h-6v5Z",
   invoices: "M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6M9 12h6M9 16h4",
   inventory: "M4 7h16v13H4V7Zm2-4h12v4H6V3Zm2 8h8M8 15h5",
@@ -32,18 +32,20 @@ export const iconPaths = {
   default: "M5 5h14v14H5V5Zm4 4h6v6H9V9Z"
 };
 
-export const navGroups = [
-  { key: "core", label: "Core", items: ["dashboard", "invoices", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
-  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments"] },
-  { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging"] },
-  { key: "tools", label: "Tools", items: ["whatsapp", "business-assistant", "ar", "activity-log"] },
+const navGroups = [
+  { key: "core", label: "Core", items: ["dashboard", "invoices", "sales-returns", "inventory", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
+  { key: "operations", label: "Operations", items: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments", "mechanic-desk", "garage-stock", "part-reserve", "part-reel", "halfcut", "escrow", "listing-boost", "live-inspection", "part-genealogy", "yard-tour", "instant-offer", "part-insurance"] },
+  { key: "finance", label: "Finance", items: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging", "market-price", "price-genius", "price-report", "new-vs-used"] },
+  { key: "tools", label: "Tools", items: ["whatsapp", "whatsapp-selling", "business-assistant", "ar", "activity-log", "voice-search", "symptom-search", "does-it-fit", "condition-scanner", "qr-tag", "ar-finder", "api-platform", "kareem"] },
+  { key: "marketplace", label: "Marketplace", items: ["my-garage", "needboard", "watchlist", "seller-reputation", "seller-verification", "community-guard", "referral", "regional-demand", "mechanic-trust"] },
+  { key: "intelligence", label: "Intelligence", items: ["car-crush", "dismantler-forecast", "negotiation"] },
   { key: "platform", label: "Platform Admin", items: ["admin-billing"] }
 ];
 
-export const SUPER_ADMIN_ROLE_ID = 5;
-export const superAdminOnlyKeys = new Set(["admin-billing"]);
+const SUPER_ADMIN_ROLE_ID = 5;
+const superAdminOnlyKeys = new Set(["admin-billing"]);
 
-export function NavIcon({ name }) {
+function NavIcon({ name }) {
   return h("svg", {
     className: "nav-icon",
     viewBox: "0 0 24 24",

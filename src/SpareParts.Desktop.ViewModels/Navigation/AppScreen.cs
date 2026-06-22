@@ -14,6 +14,7 @@ namespace SpareParts.Desktop.Wpf
         PartPurchases,
         Purchases,
         UsedCarWholesale,
+        CarTwin,
         PurchaseHistory,
         StockArrivalTheater,
         RepairPrepBoard,
@@ -71,6 +72,7 @@ namespace SpareParts.Desktop.Wpf
         PartInsurance,
         Kareem,
         ArFinder,
-        PriceReport
+        PriceReport,
+        ApiPlatform
     }
 }
