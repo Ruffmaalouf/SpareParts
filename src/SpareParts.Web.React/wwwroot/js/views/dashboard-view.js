@@ -355,6 +355,7 @@ export function DashboardView({ api, onView, user }) {
   const catIcons = ["cog", "car", "tag", "link", "bolt", "box"];
   const topCategories = [...categoryTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
   const catMax = topCategories.length ? topCategories[0][1] : 1;
+  const catTotal = topCategories.reduce((sum, [, value]) => sum + value, 0) || 1;
 
   const hotParts = parts
     .slice()
@@ -411,7 +412,7 @@ export function DashboardView({ api, onView, user }) {
     { label: "Active Requests", value: ckNum(activePartRequests.length), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "inbox", spark: "#b768ff", delta: null, view: "part-requests" },
     { label: "Available Parts", value: ckNum(inv.available), bg: "rgba(52,217,212,.15)", color: "#34d9d4", icon: "pkg", spark: "#34d9d4", delta: null, view: "inventory" },
     { label: "Low Stock Items", value: ckNum(inv.lowStock), bg: "rgba(255,60,60,.15)", color: "#ff5b5b", icon: "warn", spark: "#ff5b5b", delta: null, view: "reorder" },
-    { label: "Donor Parts", value: ckNum(inv.donorParts), bg: "rgba(255,194,87,.15)", color: "#ffc257", icon: "car", spark: "#ffc257", delta: null, view: "used-cars" },
+    { label: "Donor Cars", value: ckNum(inv.donorParts), bg: "rgba(255,194,87,.15)", color: "#ffc257", icon: "car", spark: "#ffc257", delta: null, view: "used-cars" },
     { label: "Reserved Items", value: ckNum(inv.reserved), bg: "rgba(183,104,255,.15)", color: "#b768ff", icon: "bookmark", spark: "#b768ff", delta: null, view: "part-requests" }
   ];
 
@@ -421,8 +422,8 @@ export function DashboardView({ api, onView, user }) {
     { label: "Find Parts", icon: "search", grad: "linear-gradient(150deg,#ffa23c,#ff6a2c)", view: "inventory" },
     { label: "Part Request", icon: "clipboard", grad: "linear-gradient(150deg,#4d8dff,#2f6ad6)", view: "part-requests" },
     { label: "Compatibility", icon: "link", grad: "linear-gradient(150deg,#2bdb8f,#1aa86c)", view: "compatibility" },
-    { label: "Contacts", icon: "users", grad: "linear-gradient(150deg,#b768ff,#8a3fe0)", view: "contacts" },
-    { label: "Stock", icon: "warehouse", grad: "linear-gradient(150deg,#34d9d4,#1aa8a4)", view: "stock" },
+    { label: "New Customer", icon: "users", grad: "linear-gradient(150deg,#b768ff,#8a3fe0)", view: "contacts" },
+    { label: "New Supplier", icon: "warehouse", grad: "linear-gradient(150deg,#34d9d4,#1aa8a4)", view: "contacts" },
     { label: "Reports", icon: "trend", grad: "linear-gradient(150deg,#ffc257,#e89a26)", view: "report-builder" },
     { label: "Settings", icon: "cog", grad: "linear-gradient(150deg,#8c8c9c,#5d5d6d)", view: "settings" }
   ];
@@ -527,7 +528,7 @@ export function DashboardView({ api, onView, user }) {
           h("div", { className: "ck-cat-row", key: name },
             h("div", { className: "ck-top" },
               h("span", { className: "ck-nm" }, h(Icon, { name: catIcons[index % catIcons.length], size: 12, className: "ck-icn" }), name),
-              h("span", { className: "ck-val" }, formatDashboardMoney(value))),
+              h("span", { className: "ck-val" }, formatDashboardMoney(value), h("span", { style: { color: "#5d5d6d", marginLeft: "8px" } }, `${Math.round((value / catTotal) * 100)}%`))),
             h("div", { className: "ck-bar-track" }, h("div", { className: "ck-bar-fill", style: { width: `${Math.max(6, (value / catMax) * 100)}%`, background: `linear-gradient(90deg,${catColors[index % catColors.length]},#ff8a3d)`, color: catColors[index % catColors.length] } })))
         ) : h("p", { className: "ck-empty" }, "No category data yet.")
       ),

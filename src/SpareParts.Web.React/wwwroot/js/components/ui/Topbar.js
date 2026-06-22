@@ -26,7 +26,7 @@ export function Topbar({ onMenuToggle, search, user, onNewSale, notificationsCou
     h("div", { className: "ck-search-bar" },
       h(Icon, { name: "search", size: 16 }),
       h("div", { className: "ck-search-slot" }, search),
-      h("span", { className: "ck-kbd" }, "Ctrl K")
+      h("span", { className: "ck-kbd" }, "⌘K")
     ),
     h("div", { className: "ck-topbar-spacer" }),
     onNewSale && h("button", { type: "button", className: "ck-btn-primary", onClick: onNewSale },
