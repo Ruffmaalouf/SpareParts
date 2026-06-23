@@ -26,6 +26,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<CarPartModel> AvailableParts { get; } = new();
         public ObservableCollection<StatusMessage> Notifications { get; } = AppNotificationCenter.Instance.Messages;
 
+        public string CurrentUserDisplayName => string.IsNullOrWhiteSpace(SessionContext.CurrentUser?.FullName)
+            ? "Administrator"
+            : SessionContext.CurrentUser!.FullName;
+
+        public string CurrentUserInitials
+        {
+            get
+            {
+                var name = CurrentUserDisplayName.Trim();
+                return name.Length == 0 ? "AD" : name.Substring(0, Math.Min(2, name.Length)).ToUpperInvariant();
+            }
+        }
+
+        public string CurrentUserRoleLabel => SessionContext.CurrentUser?.RoleId switch
+        {
+            null => "Operator",
+            5 => "Super Admin",
+            var roleId => $"Role {roleId}"
+        };
+
         private readonly ICarCatalogApiClient _carCatalogApi;
         private readonly IPartsApiClient _partsApi;
         private readonly ISalesApiClient _salesApi;

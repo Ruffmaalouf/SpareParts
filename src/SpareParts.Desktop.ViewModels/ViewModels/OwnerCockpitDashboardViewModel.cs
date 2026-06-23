@@ -28,6 +28,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             LoadCommand = new RelayCommand(_ => LoadAsync().SafeFireAndForget(HandleBackgroundException));
         }
 
+        public ObservableCollection<OwnerCockpitMetricCard> KpiTiles { get; } = new();
+        public ObservableCollection<OwnerCockpitStatItem> BottomStats { get; } = new();
         public ObservableCollection<OwnerCockpitMetricCard> Metrics { get; } = new();
         public ObservableCollection<OwnerCockpitProfitRowDto> ProfitPerCar { get; } = new();
         public ObservableCollection<OwnerCockpitProfitRowDto> ProfitPerPart { get; } = new();
@@ -182,6 +184,26 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             BusinessDate = dashboard.BusinessDate.Date;
             LastRefreshedAt = dashboard.GeneratedAt == default ? DateTime.Now : dashboard.GeneratedAt;
 
+            KpiTiles.Clear();
+            KpiTiles.Add(Card("Sales today", Money(dashboard.TodaySalesAmount), "vs yesterday", "#FFFF5B5B", PercentDelta(dashboard.SalesChangePercent)));
+            KpiTiles.Add(Card("Profit today", Money(dashboard.DailyProfitLoss.NetProfitLoss), "vs yesterday", "#FFFFA23C", PercentDelta(dashboard.ProfitChangePercent)));
+            KpiTiles.Add(Card("Open invoices", Money(dashboard.OpenInvoicesAmount), "Unpaid invoices outstanding", "#FF4D8DFF"));
+            KpiTiles.Add(Card("Open purchase orders", Money(dashboard.OpenPurchaseOrdersAmount), "Unpaid supplier bills", "#FFB768FF"));
+            KpiTiles.Add(Card("Due payments", Money(dashboard.DuePaymentsAmount), $"{dashboard.UnpaidTransactionCount:N0} transactions", "#FF34D9D4"));
+            KpiTiles.Add(Card("Stock value", Money(dashboard.StockValue), "Current inventory valuation", "#FFFFC257"));
+            KpiTiles.Add(Card("Supplier debt", Money(dashboard.SupplierDebt), "Open supplier balances", "#FFFF8A65"));
+            KpiTiles.Add(Card("Active users", dashboard.ActiveUsers.HasValue ? $"{dashboard.ActiveUsers.Value:N0} online" : "--", "Currently signed in", "#FF2BDB8F"));
+
+            BottomStats.Clear();
+            BottomStats.Add(Stat("Sales today", Money(dashboard.TodaySalesAmount), "#FFFF5B5B"));
+            BottomStats.Add(Stat("Profit today", Money(dashboard.DailyProfitLoss.NetProfitLoss), "#FF2BDB8F"));
+            BottomStats.Add(Stat("Open invoices", Money(dashboard.OpenInvoicesAmount), "#FF4D8DFF"));
+            BottomStats.Add(Stat("Open POs", Money(dashboard.OpenPurchaseOrdersAmount), "#FFB768FF"));
+            BottomStats.Add(Stat("Customer debt", Money(dashboard.CustomerDebt), "#FFFF5B5B"));
+            BottomStats.Add(Stat("Low stock alerts", dashboard.AccountingAlertCount.ToString("N0"), "#FFFFC257"));
+            BottomStats.Add(Stat("Due payments", Money(dashboard.DuePaymentsAmount), "#FF34D9D4"));
+            BottomStats.Add(Stat("Active users", dashboard.ActiveUsers.HasValue ? $"{dashboard.ActiveUsers.Value:N0} online" : "--", "#FF2BDB8F"));
+
             Metrics.Clear();
             Metrics.Add(Card("Today's sales", Money(dashboard.TodaySalesAmount), $"{dashboard.TodaySalesCount:N0} invoices | paid {Money(dashboard.TodaySalesPaidAmount)}", "#FF42A5F5"));
             Metrics.Add(Card("Net P&L today", Money(dashboard.DailyProfitLoss.NetProfitLoss), $"Gross profit {Money(dashboard.DailyProfitLoss.GrossProfit)} | expenses {Money(dashboard.DailyProfitLoss.TotalOperatingExpenses)}", dashboard.DailyProfitLoss.NetProfitLoss < 0m ? "#FFE57373" : "#FF81C784"));
@@ -220,14 +242,36 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             }
         }
 
-        private OwnerCockpitMetricCard Card(string title, string value, string caption, string accentHex)
+        private OwnerCockpitMetricCard Card(string title, string value, string caption, string accentHex, string? delta = null)
             => new()
             {
                 Title = title,
                 Value = value,
                 Caption = caption,
+                AccentBrush = Accent(accentHex),
+                Delta = delta,
+                DeltaBrush = delta != null && delta.StartsWith("-") ? Accent("#FFE57373") : Accent("#FF81C784")
+            };
+
+        private OwnerCockpitStatItem Stat(string label, string value, string accentHex)
+            => new()
+            {
+                Label = label,
+                Value = value,
                 AccentBrush = Accent(accentHex)
             };
+
+        private static string? PercentDelta(decimal? value)
+        {
+            if (!value.HasValue)
+            {
+                return null;
+            }
+
+            return value.Value < 0
+                ? $"-{Math.Abs(value.Value):N1}%"
+                : $"+{value.Value:N1}%";
+        }
 
         private string Money(decimal value)
             => $"{CurrencyCode} {value:N2}";

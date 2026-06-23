@@ -21,6 +21,7 @@
             <local:ScreenToVisibilityConverter x:Key="ScreenToVisibilityConverter"/>
             <local:ScreenEqualsConverter        x:Key="ScreenEqualsConverter"/>
             <BooleanToVisibilityConverter      x:Key="BoolToVis"/>
+            <local:CountToVisibilityConverter  x:Key="CountToVisibilityConverter"/>
 
         <Style x:Key="InvoiceIconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -1648,27 +1649,54 @@
                                            Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
 
-                            <!-- Context label -->
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Width="5" Height="24" CornerRadius="2"
-                                        Background="{DynamicResource AccentBrush}" Margin="0 0 12 0"/>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="WORKSPACE"
-                                               FontSize="9" FontWeight="Bold"
-                                               Foreground="{DynamicResource AccentBrush}"/>
-                                    <TextBlock Text="Maalouf Auto Parts"
-                                               FontSize="15" FontWeight="Bold"
-                                               Foreground="#FFEBEBEB"/>
-                                </StackPanel>
-                            </StackPanel>
                         </StackPanel>
 
-                        <!-- ── Zone 2: contextual middle — reserved for future per-screen actions ── -->
-                        <StackPanel Grid.Column="1"
-                                     Orientation="Horizontal"
-                                     HorizontalAlignment="Center"
-                                     VerticalAlignment="Center"
-                                     x:Name="ContextualActionsZone"/>
+                        <!-- ── Zone 2: global search bar (cockpit mockup) ── -->
+                        <Border Grid.Column="1"
+                                Margin="14 0"
+                                MaxWidth="560"
+                                Height="40"
+                                CornerRadius="10"
+                                Background="{DynamicResource AppBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                x:Name="ContextualActionsZone">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="🔎"
+                                           FontSize="13"
+                                           Margin="14 0 8 0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBox Grid.Column="1"
+                                         x:Name="TopSearchBox"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         VerticalAlignment="Center"
+                                         FontSize="13"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         CaretBrush="{DynamicResource TextPrimaryBrush}"
+                                         Tag="Search invoices, parts, or customers..."
+                                         Text="{Binding InvoiceSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         KeyDown="TopSearchBox_KeyDown"/>
+                                <Border Grid.Column="2"
+                                        Margin="0 0 10 0"
+                                        Padding="6 2"
+                                        CornerRadius="5"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource CardBackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1">
+                                    <TextBlock Text="⌘K" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </Grid>
+                        </Border>
 
                         <!-- ── Zone 3: global actions + account/theme toggles ──────────── -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -1695,8 +1723,59 @@
                             <ToggleButton x:Name="ThemesToggle"
                                           Style="{StaticResource TopBarToggleStyle}"
                                           Checked="SidebarMenuToggle_Checked"
-                                          Margin="0"
                                           Content="◐  Theme"/>
+
+                            <Border Width="1" Height="24" Background="#FF242424"
+                                    Margin="4 0 12 0" VerticalAlignment="Center"/>
+
+                            <!-- Notification bell (real unread count) -->
+                            <Button Style="{StaticResource TopBarButtonStyle}"
+                                    Command="{Binding ToggleFeedCommand}"
+                                    ToolTip="Notifications"
+                                    Margin="0 0 8 0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔔" FontSize="14"/>
+                                    <Border Margin="6 0 0 0"
+                                            CornerRadius="8"
+                                            Padding="5 1"
+                                            VerticalAlignment="Center"
+                                            Background="{DynamicResource AccentBrush}"
+                                            Visibility="{Binding Notifications.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                                        <TextBlock Text="{Binding Notifications.Count}"
+                                                   FontSize="10" FontWeight="Bold"
+                                                   Foreground="White"/>
+                                    </Border>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Profile pill -->
+                            <Border CornerRadius="10"
+                                    Padding="8 5"
+                                    Background="{DynamicResource AppBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="28" Height="28" CornerRadius="14"
+                                            Background="{DynamicResource AccentBrush}"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CurrentUserInitials}"
+                                                   FontSize="11" FontWeight="Bold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="8 0 0 0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CurrentUserDisplayName}"
+                                                   FontSize="12" FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="120"/>
+                                        <TextBlock Text="{Binding CurrentUserRoleLabel}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Grid>
                 </Grid>

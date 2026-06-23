@@ -69,6 +69,21 @@ namespace SpareParts.Desktop.Wpf
             }
         }
 
+        private void TopSearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter || DataContext is not InvoiceTabsViewModel vm)
+            {
+                return;
+            }
+
+            if (!vm.IsInvoiceSearchOpen && vm.OpenInvoiceSearchCommand.CanExecute(null))
+            {
+                vm.OpenInvoiceSearchCommand.Execute(null);
+            }
+
+            e.Handled = true;
+        }
+
         private void SidebarMenuToggle_Checked(object sender, RoutedEventArgs e)
         {
             if (ReferenceEquals(sender, QuickActionsToggle))
