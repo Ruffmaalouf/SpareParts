@@ -54,6 +54,62 @@
         <GradientStop Color="#FF0C0C0F" Offset="0.65"/>
     </LinearGradientBrush>
 
+    <!-- ============================================================
+         Core semantic-brush OVERRIDES.
+         This dictionary is merged LAST in App.xaml, so re-defining the
+         shared semantic keys here repaints the entire existing desktop
+         UI (sidebar, header, cards, grids, inputs) with the cockpit
+         palette without touching the 7k-line MainWindow markup — every
+         consumer reads these via DynamicResource.
+         ============================================================ -->
+    <Color x:Key="ColorRaceBlack">#FF070708</Color>
+    <Color x:Key="ColorPitLane">#FF121217</Color>
+    <Color x:Key="ColorCabin">#FF16161C</Color>
+    <Color x:Key="ColorCockpit">#FF16161C</Color>
+    <Color x:Key="ColorRacingRed">#FFFF3B3B</Color>
+    <Color x:Key="ColorRedHot">#FFFF7A44</Color>
+    <Color x:Key="ColorRedDeep">#FFE02A30</Color>
+    <Color x:Key="ColorTextWhite">#FFF4F4F7</Color>
+    <Color x:Key="ColorTextDim">#FF5D5D6D</Color>
+    <Color x:Key="ColorTextMid">#FF8C8C9C</Color>
+    <Color x:Key="ColorSportOrange">#FFFF8A3D</Color>
+    <Color x:Key="ColorNeonGreen">#FF2BDB8F</Color>
+    <Color x:Key="ColorCarbonLine">#FF24242C</Color>
+
+    <SolidColorBrush x:Key="AppBackgroundBrush"  Color="#FF070708"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF121217"/>
+    <SolidColorBrush x:Key="CardHighlightBrush"  Color="#FF16161C"/>
+    <SolidColorBrush x:Key="AccentBrush"         Color="#FFFF3B3B"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush"    Color="#FFF4F4F7"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush"  Color="#FF8C8C9C"/>
+    <SolidColorBrush x:Key="BorderBrush"         Color="#FF24242C"/>
+    <SolidColorBrush x:Key="CardBorderBrush"     Color="#FF24242C"/>
+    <SolidColorBrush x:Key="CardBgBrush"         Color="#FF121217"/>
+    <SolidColorBrush x:Key="CardBgSoftBrush"     Color="#FF16161C"/>
+    <SolidColorBrush x:Key="AccentBlueBrush"     Color="#FFFF3B3B"/>
+    <SolidColorBrush x:Key="AccentGreenBrush"    Color="#FF2BDB8F"/>
+    <SolidColorBrush x:Key="AccentOrangeBrush"   Color="#FFFF8A3D"/>
+    <SolidColorBrush x:Key="FocusRingBrush"      Color="#FFFF7A44"/>
+
+    <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FFFF7A44" Offset="0"/>
+        <GradientStop Color="#FFFF3B3B" Offset="0.6"/>
+        <GradientStop Color="Transparent" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SidebarAccentLineBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="Transparent" Offset="0"/>
+        <GradientStop Color="#FFFF7A44"   Offset="0.15"/>
+        <GradientStop Color="#FFFF3B3B"   Offset="0.85"/>
+        <GradientStop Color="Transparent" Offset="1"/>
+    </LinearGradientBrush>
+
+    <DropShadowEffect x:Key="RedGlowEffect"
+                      Color="#FFFF4628"
+                      BlurRadius="22"
+                      ShadowDepth="0"
+                      Opacity="0.55"/>
+
     <!-- ===== Card / panel ===== -->
     <Style x:Key="CkPanelStyle" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource CkCardBrush}"/>
