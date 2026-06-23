@@ -755,10 +755,10 @@
                               HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0 4 0 4">
 
-                        <!-- ─ CORE ─────────────────────────────────────── -->
+                        <!-- ─ CONTROL CENTER ─────────────────────────── -->
                         <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
                             <DockPanel LastChildFill="True">
-                                <TextBlock Text="CORE" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <TextBlock Text="CONTROL CENTER" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                                 <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
                             </DockPanel>
                         </Border>
@@ -773,6 +773,19 @@
                                         <TextBlock Text="Dashboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ─ SALES ──────────────────────────────────── -->
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="SALES" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                            <StackPanel>
                                 <Button Command="{Binding GoToPosCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Pos">
@@ -781,48 +794,33 @@
                                         <TextBlock Text="POS / Sales" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
-                                <Button Command="{Binding GoToPartPassportCommand}"
+                                <Button Command="{Binding GoToSalesReturnsCommand}"
                                         Style="{StaticResource NavItemStyle}"
-                                        Tag="PartPassport">
+                                        Tag="SalesReturns">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Part Passport" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToCompatibilityCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="PartCompatibility">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Compatibility" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding OpenManagementCommand}"
-                                        Style="{StaticResource NavItemStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Management" FontSize="12"/>
+                                        <TextBlock Text="Sales Returns" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
                         </Border>
 
-                        <!-- ─ OPERATIONS ──────────────────────────────── -->
+                        <!-- ─ PARTS &amp; INVENTORY ──────────────────────── -->
                         <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
                             <DockPanel LastChildFill="True">
-                                <TextBlock Text="OPERATIONS" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <TextBlock Text="PARTS &amp; INVENTORY" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                                 <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
-                                <Button Command="{Binding GoToGrowthLabCommand}"
+                                <Button Command="{Binding GoToStockManagementCommand}"
                                         Style="{StaticResource NavItemStyle}"
-                                        Tag="GrowthLab">
+                                        Tag="StockManagement">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Money Finder" FontSize="12"/>
+                                        <TextBlock Text="Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPurchasesCommand}"
@@ -833,6 +831,72 @@
                                         <TextBlock Text="Part Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
+                                <Button Command="{Binding GoToReorderCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Reorder">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Reorder" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToDeadStockCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="DeadStockResurrection">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Dead Stock" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToExpiryAlertsCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="ExpiryAlerts">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Expiry Alerts" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ─ COMPATIBILITY ──────────────────────────── -->
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="COMPATIBILITY" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                            <StackPanel>
+                                <Button Command="{Binding GoToCompatibilityCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartCompatibility">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Compatibility" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToDoesItFitCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="DoesItFit">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Vehicle Fitment" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ─ DONOR &amp; VEHICLES ───────────────────────── -->
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="DONOR &amp; VEHICLES" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                            <StackPanel>
                                 <Button Command="{Binding GoToUsedCarPurchasesCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Purchases">
@@ -865,66 +929,10 @@
                                         <TextBlock Text="Repair / Prep" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
-                                <Button Command="{Binding GoToStockManagementCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="StockManagement">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Stock" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToDeadStockCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="DeadStockResurrection">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Dead Stock" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToReorderCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="Reorder">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Reorder" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToExpiryAlertsCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="ExpiryAlerts">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Expiry Alerts" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToLoyaltyCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="Loyalty">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Loyalty" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToWarrantyCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="Warranty">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Warranty" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToShipmentsCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="Shipments">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Shipments" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
                             </StackPanel>
                         </Border>
 
-                        <!-- ─ FINANCE ──────────────────────────────────── -->
+                        <!-- ─ FINANCE ────────────────────────────────── -->
                         <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
                             <DockPanel LastChildFill="True">
                                 <TextBlock Text="FINANCE" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
@@ -993,16 +1001,76 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- ─ TOOLS ────────────────────────────────────── -->
+                        <!-- ─ USERS &amp; SETTINGS ───────────────────────── -->
                         <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
                             <DockPanel LastChildFill="True">
-                                <TextBlock Text="TOOLS" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <TextBlock Text="USERS &amp; SETTINGS" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
                                 <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
                                 BorderBrush="#FF1C1C1C" BorderThickness="1">
                             <StackPanel>
+                                <Button Command="{Binding OpenManagementCommand}"
+                                        Style="{StaticResource NavItemStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Users &amp; Roles" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ─ MORE MODULES ───────────────────────────── -->
+                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="MORE MODULES" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
+                            </DockPanel>
+                        </Border>
+                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
+                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                            <StackPanel>
+                                <Button Command="{Binding GoToPartPassportCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="PartPassport">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Part Passport" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToGrowthLabCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="GrowthLab">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Money Finder" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToLoyaltyCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Loyalty">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Loyalty" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToWarrantyCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Warranty">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Warranty" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToShipmentsCommand}"
+                                        Style="{StaticResource NavItemStyle}"
+                                        Tag="Shipments">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Shipments" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
                                 <Button Command="{Binding GoToWhatsAppCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="WhatsAppInbox">
@@ -1032,27 +1100,6 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activity Log" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- ─ MARKETPLACE ──────────────────────────────── -->
-                        <Border Style="{StaticResource NavGroupHeaderWrapperStyle}">
-                            <DockPanel LastChildFill="True">
-                                <TextBlock Text="MARKETPLACE" Style="{StaticResource NavGroupHeaderStyle}" DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                <Border Height="1" Margin="8 0 0 0" VerticalAlignment="Center" Background="#FF1E1E1E"/>
-                            </DockPanel>
-                        </Border>
-                        <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
-                            <StackPanel>
-                                <Button Command="{Binding GoToSalesReturnsCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="SalesReturns">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Sales Returns" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToAdminBillingCommand}"
@@ -1205,14 +1252,6 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="My Garage" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding GoToDoesItFitCommand}"
-                                        Style="{StaticResource NavItemStyle}"
-                                        Tag="DoesItFit">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Does It Fit" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToPriceGeniusCommand}"
