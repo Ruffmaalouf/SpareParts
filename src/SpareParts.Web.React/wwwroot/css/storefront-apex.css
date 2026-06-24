@@ -1,0 +1,1138 @@
+/* ============================================================================
+   Maalouf German Parts — "Apex" motorsport-kinetic storefront
+   Implements Storefront.dc.html (Claude Design handoff).
+   All rules are scoped under .apex-store so the design is self-contained and
+   does not depend on (or leak into) the global workshop theme.
+   ========================================================================== */
+
+.apex-store {
+  /* palette — dark default, matching the design's computeTheme() defaults */
+  --apx-bg: #08090b;
+  --apx-ink: #f7f4ed;
+  --apx-muted: #b6b0a5;
+  --apx-soft: #7d7a72;
+  --apx-panel: #111316;
+  --apx-panel2: #191c20;
+  --apx-line: rgba(247, 244, 237, .13);
+  /* accent — Brick Red */
+  --apx-accent: #ff4b3a;
+  --apx-accent2: #ff8a3d;
+  --apx-on-accent: #ffffff;
+  --apx-glow: rgba(255, 75, 58, .45);
+  --apx-green: #34e08a;
+  --apx-display: "Oswald", system-ui, sans-serif;
+  --apx-card-min: 262px;
+
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--apx-bg);
+  color: var(--apx-ink);
+}
+
+.apex-store *,
+.apex-store *::before,
+.apex-store *::after { box-sizing: border-box; }
+
+/* ── keyframes ──────────────────────────────────────────────────────────── */
+@keyframes apxRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes apxMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes apxSweep { 0% { transform: translateX(-130%); } 100% { transform: translateX(260%); } }
+@keyframes apxPulse { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) {
+  .apex-store *, .apex-store *::before, .apex-store *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ── shared buttons ─────────────────────────────────────────────────────── */
+.apex-store .apx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--apx-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--apx-ink);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  transition: transform .15s ease, border-color .15s ease, color .15s ease, background .15s ease;
+}
+.apex-store .apx-btn:disabled { opacity: .5; cursor: not-allowed; }
+.apex-store .apx-btn-primary {
+  border: none;
+  background: linear-gradient(135deg, var(--apx-accent2), var(--apx-accent));
+  color: var(--apx-on-accent);
+  box-shadow: 0 14px 34px -12px var(--apx-glow);
+}
+.apex-store .apx-btn-primary:not(:disabled):hover { transform: translateY(-2px); }
+.apex-store .apx-btn-outline { background: color-mix(in srgb, var(--apx-ink) 6%, transparent); }
+.apex-store .apx-btn-outline:hover { border-color: var(--apx-accent); }
+.apex-store .apx-btn-ghost:hover { color: var(--apx-ink); border-color: var(--apx-accent2); }
+.apex-store .apx-btn-lg { min-height: 50px; padding: 0 26px; font-size: 15px; }
+.apex-store .apx-btn-block { width: 100%; }
+.apex-store .apx-btn-danger {
+  border: none;
+  background: linear-gradient(135deg, #ff6a5a, var(--apx-accent));
+  color: #fff;
+}
+
+/* ── kinetic ticker ─────────────────────────────────────────────────────── */
+.apex-store .apx-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--apx-accent);
+  color: var(--apx-on-accent);
+  border-bottom: 1px solid rgba(0, 0, 0, .25);
+}
+.apex-store .apx-ticker-track {
+  display: inline-flex;
+  gap: 0;
+  will-change: transform;
+  animation: apxMarquee 26s linear infinite;
+}
+.apex-store .apx-ticker-group {
+  display: inline-flex;
+  gap: 34px;
+  padding: 8px 34px 8px 0;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+/* ── header ─────────────────────────────────────────────────────────────── */
+.apex-store .apx-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 14px clamp(18px, 5vw, 64px);
+  border-bottom: 1px solid var(--apx-line);
+  background: color-mix(in srgb, var(--apx-bg) 82%, transparent);
+  backdrop-filter: blur(18px);
+}
+.apex-store .apx-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.apex-store .apx-logo {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--apx-accent2), var(--apx-accent));
+  clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: 23px;
+  color: var(--apx-on-accent);
+}
+.apex-store .apx-logo-sm { width: 38px; height: 38px; font-size: 20px; }
+.apex-store .apx-brand-text { line-height: 1.05; text-align: left; }
+.apex-store .apx-brand-text strong {
+  display: block;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: .04em;
+}
+.apex-store .apx-brand-text span {
+  display: block;
+  color: var(--apx-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+.apex-store .apx-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+.apex-store .apx-nav-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--apx-muted);
+  text-decoration: none;
+  font-family: var(--apx-display);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  transition: color .15s ease;
+}
+.apex-store .apx-nav-link:hover,
+.apex-store .apx-nav-link.active { color: var(--apx-ink); }
+.apex-store .apx-header-actions { display: flex; align-items: center; gap: 10px; }
+.apex-store .apx-cart-pill { gap: 10px; }
+.apex-store .apx-cart-pill b { color: var(--apx-accent); }
+.apex-store .apx-cart-pill .apx-dot { color: var(--apx-muted); }
+.apex-store .apx-cart-pill .apx-mono { font-family: "IBM Plex Mono", monospace; }
+
+/* ── hero ───────────────────────────────────────────────────────────────── */
+.apex-store .apx-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  min-height: clamp(520px, 72vh, 720px);
+  padding: clamp(48px, 7vw, 96px) clamp(18px, 5vw, 64px);
+  background:
+    linear-gradient(92deg, rgba(6, 7, 9, .94) 0%, rgba(6, 7, 9, .62) 46%, rgba(6, 7, 9, .22) 100%),
+    linear-gradient(0deg, rgba(6, 7, 9, .95), rgba(6, 7, 9, .05) 52%),
+    #08090b url("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=2400&q=80") center / cover;
+  border-bottom: 1px solid var(--apx-line);
+  overflow: hidden;
+}
+.apex-store .apx-hero-accent {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 6px;
+  background: linear-gradient(180deg, var(--apx-accent2), var(--apx-accent));
+}
+.apex-store .apx-hero-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.apex-store .apx-hero-sweep::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .05), transparent);
+  animation: apxSweep 7s ease-in-out infinite;
+}
+.apex-store .apx-hero-copy {
+  position: relative;
+  max-width: 760px;
+  color: #f7f4ed;
+  animation: apxRise .7s cubic-bezier(.2, .7, .2, 1) both;
+}
+.apex-store .apx-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--apx-accent2);
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.apex-store .apx-eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 2px;
+  background: var(--apx-accent);
+  display: inline-block;
+}
+.apex-store .apx-hero h1 {
+  margin: 18px 0;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: clamp(46px, 7.2vw, 96px);
+  line-height: .9;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.apex-store .apx-grad-text {
+  color: transparent;
+  background: linear-gradient(120deg, var(--apx-accent2), var(--apx-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.apex-store .apx-hero-lead {
+  max-width: 520px;
+  margin: 0;
+  color: rgba(247, 244, 237, .74);
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.55;
+}
+.apex-store .apx-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+.apex-store .apx-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 44px);
+  margin-top: 38px;
+}
+.apex-store .apx-stat strong {
+  display: block;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: 30px;
+  color: #f7f4ed;
+}
+.apex-store .apx-stat.accent strong { color: var(--apx-accent2); }
+.apex-store .apx-stat span {
+  color: rgba(247, 244, 237, .6);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.apex-store .apx-stat-div { width: 1px; align-self: stretch; background: rgba(247, 244, 237, .16); }
+
+/* hero featured card */
+.apex-store .apx-hero-card {
+  position: relative;
+  justify-self: end;
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid rgba(247, 244, 237, .16);
+  border-radius: 10px;
+  background: rgba(10, 11, 13, .62);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8);
+  animation: apxRise .7s .12s cubic-bezier(.2, .7, .2, 1) both;
+}
+.apex-store .apx-featured-badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(52, 224, 138, .16);
+  color: var(--apx-green);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.apex-store .apx-featured-badge::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--apx-green);
+  animation: apxPulse 1.6s ease-in-out infinite;
+}
+.apex-store .apx-featured-media {
+  height: 210px;
+  background: #0e0f12;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.apex-store .apx-featured-media img { width: 100%; height: 100%; object-fit: cover; }
+.apex-store .apx-featured-media .apx-ph {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 46px;
+  font-weight: 500;
+  color: var(--apx-soft);
+  opacity: .5;
+  letter-spacing: .04em;
+}
+.apex-store .apx-featured-body { padding: 16px 18px 18px; color: #f7f4ed; }
+.apex-store .apx-featured-code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--apx-accent2);
+}
+.apex-store .apx-featured-body h3 {
+  margin: 6px 0 2px;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 22px;
+}
+.apex-store .apx-featured-body p { margin: 0; color: rgba(247, 244, 237, .6); font-size: 13px; }
+.apex-store .apx-featured-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+.apex-store .apx-featured-row strong { font-family: var(--apx-display); font-weight: 700; font-size: 26px; }
+
+/* ── marque strip ───────────────────────────────────────────────────────── */
+.apex-store .apx-marques {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: clamp(16px, 4vw, 40px);
+  padding: 20px clamp(18px, 5vw, 64px);
+  border-bottom: 1px solid var(--apx-line);
+  background: var(--apx-panel);
+}
+.apex-store .apx-marques-head { line-height: 1.1; }
+.apex-store .apx-marques-head span {
+  display: block;
+  color: var(--apx-soft);
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.apex-store .apx-marques-head strong {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 18px;
+}
+.apex-store .apx-marque-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  justify-content: flex-end;
+}
+.apex-store .apx-marque {
+  position: relative;
+  min-height: 40px;
+  padding: 8px 16px 10px;
+  border: 1px solid var(--apx-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--apx-muted);
+  cursor: pointer;
+  font-family: var(--apx-display);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  transition: color .15s ease, border-color .15s ease;
+}
+.apex-store .apx-marque:hover { color: var(--apx-ink); border-color: var(--apx-accent2); }
+.apex-store .apx-marque.on { color: var(--apx-ink); }
+.apex-store .apx-marque.on::after {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px; bottom: 5px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--apx-accent2), var(--apx-accent));
+}
+
+/* ── section heads (shared) ─────────────────────────────────────────────── */
+.apex-store .apx-section-kicker {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--apx-accent2);
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.apex-store .apx-section-kicker::before {
+  content: "";
+  width: 22px; height: 2px;
+  background: var(--apx-accent);
+}
+.apex-store .apx-section-title {
+  margin: 10px 0 0;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: .95;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+}
+
+/* ── catalog ────────────────────────────────────────────────────────────── */
+.apex-store .apx-catalog {
+  padding: clamp(36px, 5vw, 72px) clamp(18px, 5vw, 64px) clamp(48px, 6vw, 88px);
+  background: var(--apx-bg);
+}
+.apex-store .apx-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.apex-store .apx-catalog-note {
+  color: var(--apx-muted);
+  font-size: 13px;
+  max-width: 320px;
+  text-align: right;
+}
+.apex-store .apx-search {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 440px;
+  margin: 18px 0 0;
+}
+.apex-store .apx-search input {
+  flex: 1;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--apx-line);
+  border-radius: 6px;
+  background: rgba(247, 244, 237, .05);
+  color: var(--apx-ink);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+.apex-store .apx-search input:focus { border-color: var(--apx-accent2); }
+.apex-store .apx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--apx-card-min), 1fr));
+  gap: 14px;
+}
+.apex-store .apx-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--apx-line);
+  border-radius: 8px;
+  background: var(--apx-panel);
+  overflow: hidden;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.apex-store .apx-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--apx-accent2);
+  box-shadow: 0 24px 50px -24px var(--apx-glow);
+}
+.apex-store .apx-card-media {
+  position: relative;
+  height: 158px;
+  background: var(--apx-panel2);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.apex-store .apx-card-media img { width: 100%; height: 100%; object-fit: cover; }
+.apex-store .apx-card-tag {
+  position: absolute;
+  top: 10px; left: 10px;
+  z-index: 2;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--apx-muted);
+  background: color-mix(in srgb, var(--apx-bg) 60%, transparent);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--apx-line);
+}
+.apex-store .apx-card-bench {
+  position: absolute;
+  top: 10px; right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--apx-green);
+  background: rgba(52, 224, 138, .14);
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+.apex-store .apx-card-bench::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--apx-green);
+}
+.apex-store .apx-card-ph {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 46px;
+  font-weight: 500;
+  color: var(--apx-soft);
+  opacity: .5;
+  letter-spacing: .04em;
+}
+.apex-store .apx-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 15px 15px 0;
+  flex: 1;
+}
+.apex-store .apx-card-code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--apx-accent2);
+}
+.apex-store .apx-card-title {
+  margin: 0;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.1;
+}
+.apex-store .apx-card-fit { margin: 0; color: var(--apx-muted); font-size: 13px; line-height: 1.4; }
+.apex-store .apx-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 13px;
+  margin-top: auto;
+  border-top: 1px solid var(--apx-line);
+}
+.apex-store .apx-card-price { font-family: var(--apx-display); font-weight: 700; font-size: 22px; }
+.apex-store .apx-card-stock { color: var(--apx-muted); font-size: 12px; font-weight: 600; }
+.apex-store .apx-card-actions { display: flex; gap: 8px; padding: 13px 15px 15px; }
+.apex-store .apx-card-actions .apx-btn { min-height: 42px; }
+.apex-store .apx-card-actions .apx-btn-primary { flex: 1; }
+.apex-store .apx-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 40px 24px;
+  border: 1px dashed var(--apx-line);
+  border-radius: 8px;
+  text-align: center;
+}
+.apex-store .apx-empty strong { font-family: var(--apx-display); font-weight: 600; font-size: 20px; text-transform: uppercase; }
+.apex-store .apx-empty span { color: var(--apx-muted); font-size: 14px; }
+
+/* ── part passport showcase ─────────────────────────────────────────────── */
+.apex-store .apx-passport {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(28px, 5vw, 64px);
+  padding: clamp(48px, 6vw, 96px) clamp(18px, 5vw, 64px);
+  background: var(--apx-panel);
+  border-top: 1px solid var(--apx-line);
+  border-bottom: 1px solid var(--apx-line);
+}
+.apex-store .apx-passport-visual {
+  position: relative;
+  border: 1px solid var(--apx-line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0e0f12;
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, .7);
+}
+.apex-store .apx-passport-visual img {
+  display: block;
+  width: 100%;
+  height: clamp(280px, 38vw, 440px);
+  object-fit: cover;
+}
+.apex-store .apx-passport-badge {
+  position: absolute;
+  top: 14px; left: 14px;
+  z-index: 2;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #f7f4ed;
+  background: color-mix(in srgb, var(--apx-accent) 88%, transparent);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+.apex-store .apx-passport-body p {
+  margin: 14px 0 22px;
+  color: var(--apx-muted);
+  font-size: 16px;
+  line-height: 1.55;
+  max-width: 440px;
+}
+.apex-store .apx-passport-table {
+  display: grid;
+  border: 1px solid var(--apx-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.apex-store .apx-passport-row {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--apx-line);
+}
+.apex-store .apx-passport-row:last-child { border-bottom: none; }
+.apex-store .apx-passport-row dt {
+  margin: 0;
+  color: var(--apx-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.apex-store .apx-passport-row dd { margin: 0; font-size: 14px; color: var(--apx-ink); }
+.apex-store .apx-passport-row dd.apx-mono { font-family: "IBM Plex Mono", monospace; }
+
+/* ── trust ──────────────────────────────────────────────────────────────── */
+.apex-store .apx-trust {
+  padding: clamp(44px, 5vw, 80px) clamp(18px, 5vw, 64px);
+  background: var(--apx-bg);
+}
+.apex-store .apx-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.apex-store .apx-trust-card {
+  border: 1px solid var(--apx-line);
+  border-radius: 10px;
+  background: var(--apx-panel);
+  padding: 26px 24px;
+}
+.apex-store .apx-trust-icon {
+  width: 46px; height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--apx-accent) 16%, transparent);
+  color: var(--apx-accent2);
+  margin-bottom: 16px;
+}
+.apex-store .apx-trust-card h3 {
+  margin: 0 0 6px;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 21px;
+  text-transform: uppercase;
+}
+.apex-store .apx-trust-card p { margin: 0; color: var(--apx-muted); font-size: 14px; line-height: 1.55; }
+
+/* ── footer ─────────────────────────────────────────────────────────────── */
+.apex-store .apx-footer {
+  padding: clamp(40px, 5vw, 72px) clamp(18px, 5vw, 64px) 40px;
+  background: var(--apx-panel);
+  border-top: 1px solid var(--apx-line);
+}
+.apex-store .apx-footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 32px;
+}
+.apex-store .apx-footer-brand-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.apex-store .apx-footer-brand p {
+  margin: 0;
+  max-width: 280px;
+  color: var(--apx-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.apex-store .apx-footer-col strong {
+  display: block;
+  margin-bottom: 13px;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--apx-soft);
+}
+.apex-store .apx-footer-link {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--apx-muted);
+  text-decoration: none;
+  font-size: 14px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.apex-store .apx-footer-link:hover { color: var(--apx-ink); }
+.apex-store .apx-footer-pay { display: flex; flex-direction: column; gap: 8px; }
+.apex-store .apx-footer-pay div { border: 1px solid var(--apx-line); border-radius: 6px; padding: 9px 12px; }
+.apex-store .apx-footer-pay b { display: block; font-size: 13px; }
+.apex-store .apx-footer-pay span { color: var(--apx-muted); font-size: 11px; }
+.apex-store .apx-footer-bottom {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px solid var(--apx-line);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--apx-soft);
+  font-size: 12px;
+}
+.apex-store .apx-footer-bottom .apx-mono { font-family: "IBM Plex Mono", monospace; }
+
+/* ── sticky cart bar ────────────────────────────────────────────────────── */
+.apex-store .apx-cartbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px clamp(18px, 5vw, 64px);
+  background: color-mix(in srgb, var(--apx-bg) 88%, transparent);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--apx-accent);
+  box-shadow: 0 -16px 40px -20px var(--apx-glow);
+}
+.apex-store .apx-cartbar-info { display: flex; align-items: center; gap: 14px; }
+.apex-store .apx-cartbar-info .apx-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.apex-store .apx-cartbar-info small { color: var(--apx-muted); font-size: 13px; }
+.apex-store .apx-cartbar-actions { display: flex; align-items: center; gap: 16px; }
+.apex-store .apx-cartbar-actions strong { font-family: "IBM Plex Mono", monospace; font-size: 20px; }
+
+/* ── login modal ────────────────────────────────────────────────────────── */
+.apex-store .apx-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 5, 7, .72);
+  backdrop-filter: blur(8px);
+  animation: apxRise .25s ease both;
+}
+.apex-store .apx-modal {
+  position: relative;
+  width: 100%;
+  max-width: 880px;
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  border: 1px solid rgba(247, 244, 237, .16);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(10, 11, 13, .92);
+  box-shadow: 0 50px 120px -40px rgba(0, 0, 0, .85);
+  max-height: calc(100vh - 48px);
+}
+.apex-store .apx-modal-visual {
+  position: relative;
+  min-height: 420px;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    linear-gradient(180deg, rgba(6, 7, 9, .35), rgba(6, 7, 9, .92)),
+    #08090b url("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=1400&q=80") center / cover;
+}
+.apex-store .apx-modal-visual .apx-hero-accent { width: 5px; }
+.apex-store .apx-modal-visual h2 {
+  margin: 12px 0 8px;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: 34px;
+  line-height: .95;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+  color: #f7f4ed;
+}
+.apex-store .apx-modal-visual p { margin: 0; max-width: 300px; color: rgba(247, 244, 237, .66); font-size: 13px; line-height: 1.55; }
+.apex-store .apx-modal-form {
+  position: relative;
+  padding: 30px 32px 32px;
+  color: #f7f4ed;
+  overflow-y: auto;
+}
+.apex-store .apx-modal-form h3 {
+  margin: 0 0 20px;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.apex-store .apx-modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(247, 244, 237, .16);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(247, 244, 237, .7);
+  cursor: pointer;
+  z-index: 3;
+}
+.apex-store .apx-modal-close:hover { border-color: var(--apx-accent2); color: #f7f4ed; }
+
+/* ── secondary pages (cart / checkout / request / account) ──────────────── */
+.apex-store .apx-page {
+  padding: clamp(28px, 5vw, 64px) clamp(18px, 5vw, 64px) clamp(48px, 6vw, 88px);
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.apex-store .apx-page-head { margin-bottom: 26px; }
+.apex-store .apx-page-head h1 {
+  margin: 10px 0 0;
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 60px);
+  line-height: .95;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+}
+.apex-store .apx-checkout-layout,
+.apex-store .apx-request-layout {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: clamp(20px, 3vw, 36px);
+  align-items: start;
+}
+.apex-store .apx-panel {
+  border: 1px solid var(--apx-line);
+  border-radius: 12px;
+  background: var(--apx-panel);
+  padding: clamp(20px, 3vw, 28px);
+}
+.apex-store .apx-panel + .apx-panel { margin-top: 16px; }
+.apex-store .apx-panel h2 {
+  margin: 0 0 16px;
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+.apex-store .apx-form-grid { display: grid; gap: 14px; }
+.apex-store .apx-form-grid.two { grid-template-columns: 1fr 1fr; }
+.apex-store .apx-field { display: flex; flex-direction: column; gap: 6px; }
+.apex-store .apx-field > span {
+  color: var(--apx-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.apex-store .apx-field input,
+.apex-store .apx-field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 13px;
+  border: 1px solid var(--apx-line);
+  border-radius: 6px;
+  background: rgba(247, 244, 237, .05);
+  color: var(--apx-ink);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+.apex-store .apx-field textarea { min-height: 92px; resize: vertical; }
+.apex-store .apx-field input:focus,
+.apex-store .apx-field textarea:focus { border-color: var(--apx-accent2); }
+
+/* cart rows + stepper */
+.apex-store .apx-cart-rows { display: flex; flex-direction: column; gap: 12px; }
+.apex-store .apx-cart-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--apx-line);
+  border-radius: 8px;
+  background: var(--apx-panel2);
+}
+.apex-store .apx-cart-row-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.apex-store .apx-cart-row-copy strong { font-family: var(--apx-display); font-weight: 600; font-size: 16px; }
+.apex-store .apx-cart-row-copy span { color: var(--apx-muted); font-size: 13px; font-family: "IBM Plex Mono", monospace; }
+.apex-store .apx-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--apx-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.apex-store .apx-stepper button {
+  width: 38px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--apx-ink);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.apex-store .apx-stepper button:hover { background: rgba(247, 244, 237, .07); }
+.apex-store .apx-stepper span { min-width: 34px; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 14px; }
+.apex-store .apx-empty-note { margin: 0; padding: 28px 8px; color: var(--apx-muted); text-align: center; font-size: 14px; }
+
+/* order summary */
+.apex-store .apx-summary { position: sticky; top: 92px; }
+.apex-store .apx-summary-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-top: 1px solid var(--apx-line);
+}
+.apex-store .apx-summary-line:first-of-type { border-top: none; }
+.apex-store .apx-summary-line span { color: var(--apx-muted); }
+.apex-store .apx-summary-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--apx-line);
+}
+.apex-store .apx-summary-total span { font-family: var(--apx-display); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.apex-store .apx-summary-total strong { font-family: var(--apx-display); font-weight: 700; font-size: 26px; }
+.apex-store .apx-summary-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+/* payment options */
+.apex-store .apx-pay-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.apex-store .apx-pay-option {
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--apx-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--apx-ink);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.apex-store .apx-pay-option:hover { border-color: var(--apx-accent2); }
+.apex-store .apx-pay-option.active { border-color: var(--apx-accent); background: color-mix(in srgb, var(--apx-accent) 10%, transparent); }
+.apex-store .apx-pay-option strong { display: block; font-family: var(--apx-display); font-weight: 600; font-size: 16px; }
+.apex-store .apx-pay-option span { color: var(--apx-muted); font-size: 12px; }
+.apex-store .apx-pay-note { margin: 4px 0 0; color: var(--apx-soft); font-size: 12px; }
+
+/* photo drop (find a part) */
+.apex-store .apx-photo-drop {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 20px;
+  border: 1px dashed var(--apx-line);
+  border-radius: 10px;
+  background: rgba(247, 244, 237, .03);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .15s ease;
+}
+.apex-store .apx-photo-drop:hover { border-color: var(--apx-accent2); }
+.apex-store .apx-photo-drop strong { font-family: var(--apx-display); font-weight: 600; font-size: 17px; }
+.apex-store .apx-photo-drop span { color: var(--apx-muted); font-size: 12px; }
+.apex-store .apx-photo-drop input { display: none; }
+.apex-store .apx-match {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--apx-line);
+  border-radius: 8px;
+  background: var(--apx-panel2);
+  color: var(--apx-ink);
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border-color .15s ease;
+}
+.apex-store .apx-match:hover,
+.apex-store .apx-match.active { border-color: var(--apx-accent); }
+.apex-store .apx-match strong { font-family: var(--apx-display); font-weight: 600; font-size: 15px; }
+.apex-store .apx-match span { color: var(--apx-muted); font-size: 13px; font-family: "IBM Plex Mono", monospace; }
+.apex-store .apx-match small { color: var(--apx-soft); font-size: 12px; }
+
+/* account */
+.apex-store .apx-account-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: start; }
+.apex-store .apx-account-card { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.apex-store .apx-avatar {
+  width: 54px; height: 54px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--apx-accent2), var(--apx-accent));
+  color: var(--apx-on-accent);
+  font-family: var(--apx-display);
+  font-weight: 700;
+  font-size: 20px;
+}
+.apex-store .apx-account-card div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.apex-store .apx-account-card small { color: var(--apx-soft); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.apex-store .apx-account-card strong { font-family: var(--apx-display); font-weight: 600; font-size: 19px; }
+.apex-store .apx-account-card span { color: var(--apx-muted); font-size: 13px; }
+
+/* status line tone inside apex */
+.apex-store .status-line { margin: 4px 0 0; color: var(--apx-muted); font-size: 13px; }
+
+/* ── responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .apex-store .apx-hero { grid-template-columns: 1fr; }
+  .apex-store .apx-hero-card { justify-self: start; max-width: 100%; }
+  .apex-store .apx-passport { grid-template-columns: 1fr; }
+  .apex-store .apx-checkout-layout,
+  .apex-store .apx-request-layout { grid-template-columns: 1fr; }
+  .apex-store .apx-summary { position: static; }
+  .apex-store .apx-modal { grid-template-columns: 1fr; }
+  .apex-store .apx-modal-visual { min-height: 180px; }
+  .apex-store .apx-footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 820px) {
+  .apex-store .apx-header { grid-template-columns: auto auto; }
+  .apex-store .apx-nav { display: none; }
+}
+@media (max-width: 640px) {
+  .apex-store .apx-brand-text span { letter-spacing: .18em; }
+  .apex-store .apx-header-actions .apx-btn-login span { display: none; }
+  .apex-store .apx-section-head { flex-direction: column; align-items: flex-start; }
+  .apex-store .apx-catalog-note { text-align: left; }
+  .apex-store .apx-marques { grid-template-columns: 1fr; }
+  .apex-store .apx-marque-list { justify-content: flex-start; }
+  .apex-store .apx-form-grid.two { grid-template-columns: 1fr; }
+  .apex-store .apx-pay-options { grid-template-columns: 1fr; }
+  .apex-store .apx-passport-row { grid-template-columns: 1fr; gap: 4px; }
+  .apex-store .apx-footer-grid { grid-template-columns: 1fr; }
+}
