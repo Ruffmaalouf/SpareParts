@@ -69,6 +69,15 @@ public sealed class CarCrushService
         _tenantContext = tenantContext;
     }
 
+    /// <summary>
+    /// Recovers the teardown-plan metadata (category, high-value/fast-moving flags) for a part
+    /// created from a suggestion, by matching its name back against the static suggestion list.
+    /// Used by the Pricing Agent, which only has the part's name to go on since that metadata
+    /// isn't persisted onto the <c>dbo.Parts</c> row itself.
+    /// </summary>
+    public static CarCrushPartSuggestion? FindSuggestionByName(string partName)
+        => StaticSuggestions.FirstOrDefault(s => string.Equals(s.PartName, partName, StringComparison.OrdinalIgnoreCase));
+
     public CarCrushResult Generate(CarCrushRequest request)
     {
         var parts = new List<string?> { request.VehicleYear?.ToString(), request.VehicleMake, request.VehicleModel };
@@ -85,10 +94,20 @@ public sealed class CarCrushService
         };
     }
 
-    public void CreateDraftListings(CarCrushRequest request, List<string> selectedPartNames, int createdByUserId)
+    /// <summary>
+    /// Creates draft part listings for the selected teardown suggestions. When <paramref name="usedCarId"/>
+    /// is provided, each created part is linked back to that used car (for genealogy/valuation tracking).
+    /// Returns the IDs of the parts created.
+    /// </summary>
+    public List<int> CreateDraftListings(
+        CarCrushRequest request,
+        List<string> selectedPartNames,
+        int createdByUserId,
+        int? usedCarId = null)
     {
+        var createdPartIds = new List<int>();
         if (selectedPartNames.Count == 0)
-            return;
+            return createdPartIds;
 
         var now = DateTime.UtcNow;
         var timestamp = now.Ticks;
@@ -124,6 +143,7 @@ INSERT INTO dbo.Parts
     MinStock,
     Currency,
     PricingStatus,
+    UsedCarId,
     CreatedAt,
     CreatedByUserId,
     TenantId
@@ -143,6 +163,7 @@ VALUES
     0,
     'USD',
     'Manual',
+    @UsedCarId,
     @CreatedAt,
     @CreatedByUserId,
     @TenantId
@@ -153,11 +174,14 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
                 {
                     Name = partName,
                     InternalCode = internalCode,
+                    UsedCarId = usedCarId,
                     CreatedAt = now,
                     CreatedByUserId = createdByUserId,
                     TenantId = _tenantContext.TenantId
                 },
                 session.Transaction);
+
+            createdPartIds.Add(partId);
 
             if (warehouseId.HasValue)
             {
@@ -172,5 +196,6 @@ VALUES (@PartId, @WarehouseId, 1, 0);
         }
 
         session.Commit();
+        return createdPartIds;
     }
 }

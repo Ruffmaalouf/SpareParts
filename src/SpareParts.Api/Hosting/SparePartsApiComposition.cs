@@ -447,6 +447,41 @@ public static class SparePartsApiComposition
             services.AddScoped<PriceReportService>();
             services.AddScoped<KareemConciergeService>();
         }
+
+        // The Intake & Teardown Agent needs UsedCarsService/CarCrushService (Catalog) together
+        // with GarageStockService/PartGenealogyService (Inventory), so it can only run where both
+        // capabilities are present together — i.e. the monolithic SpareParts.Api host.
+        if (distinctCapabilities.Contains(ServiceCapability.Catalog)
+            && distinctCapabilities.Contains(ServiceCapability.Inventory))
+        {
+            services.AddHostedService<IntakeTeardownAgentHostedService>();
+        }
+
+        // The Pricing Agent additionally needs MarketPriceIndexService, and the Marketing Agent
+        // needs CommunicationsService — both live under the Reporting capability, so both agents
+        // require Catalog + Inventory + Reporting together.
+        if (distinctCapabilities.Contains(ServiceCapability.Catalog)
+            && distinctCapabilities.Contains(ServiceCapability.Inventory)
+            && distinctCapabilities.Contains(ServiceCapability.Reporting))
+        {
+            services.AddScoped<PartAutoPricingService>();
+            services.AddHostedService<PricingAgentHostedService>();
+
+            services.AddScoped<DemandMatchingService>();
+            services.AddHostedService<MarketingAgentHostedService>();
+
+            services.AddScoped<DeadStockMarkdownService>();
+            services.AddHostedService<DeadStockMarkdownAgentHostedService>();
+
+            services.AddScoped<BuyingAdvisorService>();
+            services.AddHostedService<BuyingAdvisorAgentHostedService>();
+
+            services.AddScoped<ArCollectionsService>();
+            services.AddHostedService<ArCollectionsAgentHostedService>();
+
+            services.AddScoped<OwnerCockpitDigestService>();
+            services.AddHostedService<OwnerCockpitDigestAgentHostedService>();
+        }
     }
 
     public static IMvcBuilder AddCapabilityControllers(this IServiceCollection services, params ServiceCapability[] capabilities)
@@ -519,6 +554,10 @@ public static class SparePartsApiComposition
         UsedCarsMigration.EnsureApplied(factory);
         UsedCarStateEventsMigration.EnsureApplied(factory);
         UsedCarPartPricingMigration.EnsureApplied(factory);
+        UsedCarTeardownMigration.EnsureApplied(factory);
+        PartMarketingNotificationMigration.EnsureApplied(factory);
+        PartMarkdownMigration.EnsureApplied(factory);
+        TransactionsPaymentReminderMigration.EnsureApplied(factory);
         UsedCarPurchasesMigration.EnsureApplied(factory);
         UsedCarWholesaleSalesMigration.EnsureApplied(factory);
         TransactionsMigration.EnsureApplied(factory);

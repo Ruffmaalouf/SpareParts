@@ -1,4 +1,7 @@
 
+# Marketing profit/cost exports — contain real pricing data, never commit
+marketing/reports/*.csv
+
 src/SpareParts.Desktop.Wpf/obj/
 
 src/SpareParts.Api/obj/
