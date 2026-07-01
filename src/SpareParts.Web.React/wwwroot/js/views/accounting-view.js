@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { displayCurrencyContext, displayMoneyFromBase, money, shortDate } from "../core/formatters.js";
+import { displayCurrencyContext, displayMoneyFromBase, escapeHtml, money, shortDate } from "../core/formatters.js";
 import { AccountingService } from "../services/accounting-service.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
@@ -185,15 +185,6 @@ function columnsForReport(activeTab, report, t, displayContext) {
     { key: "counterDebit", label: `${counter} D`, render: (row) => amount(read(row, "counterDebitBalance"), counter) },
     { key: "counterCredit", label: `${counter} C`, render: (row) => amount(read(row, "counterCreditBalance"), counter) }
   ];
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 function buildPrintableHtml({ activeTab, report, rows, columns, dateFrom, dateTo, t, displayContext }) {

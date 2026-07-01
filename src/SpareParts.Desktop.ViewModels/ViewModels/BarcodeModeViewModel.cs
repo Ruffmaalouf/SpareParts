@@ -1,4 +1,3 @@
-using QRCoder;
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Domain.Cars;
@@ -11,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -20,7 +18,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace SpareParts.Desktop.Wpf.ViewModels;
@@ -911,127 +908,4 @@ public sealed class BarcodeModeViewModel : INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-}
-
-public sealed class BarcodeLabelItem
-{
-    public int PartId { get; init; }
-    public string PartCode { get; init; } = string.Empty;
-    public string PartName { get; init; } = string.Empty;
-    public string BarcodeText { get; init; } = string.Empty;
-    public string QrPayload { get; init; } = string.Empty;
-    public string PriceText { get; init; } = string.Empty;
-    public string StockText { get; init; } = string.Empty;
-    public BitmapImage? QrImage { get; init; }
-    public ObservableCollection<BarcodeModule> BarcodeModules { get; init; } = new();
-}
-
-public sealed class BarcodeModule
-{
-    public double Width { get; init; }
-    public bool IsBar { get; init; }
-    public string Fill => IsBar ? "#111111" : "Transparent";
-}
-
-public sealed class BarcodeStockRow
-{
-    public BarcodeStockRow(PartStockDto dto)
-    {
-        WarehouseName = dto.WarehouseName;
-        Quantity = dto.Quantity;
-        ReservedQuantity = dto.ReservedQuantity;
-        AvailableQuantity = dto.AvailableQuantity;
-    }
-
-    public string WarehouseName { get; }
-    public int Quantity { get; }
-    public int ReservedQuantity { get; }
-    public int AvailableQuantity { get; }
-    public string Status => AvailableQuantity <= 0 ? "Out" : "Available";
-}
-
-internal static class QrImageFactory
-{
-    public static BitmapImage Create(string payload)
-    {
-        using var generator = new QRCodeGenerator();
-        using var data = generator.CreateQrCode(payload, QRCodeGenerator.ECCLevel.Q);
-        var qrCode = new PngByteQRCode(data);
-        var bytes = qrCode.GetGraphic(8, System.Drawing.Color.FromArgb(17, 17, 17), System.Drawing.Color.White);
-
-        using var stream = new MemoryStream(bytes);
-        var image = new BitmapImage();
-        image.BeginInit();
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.StreamSource = stream;
-        image.EndInit();
-        image.Freeze();
-        return image;
-    }
-}
-
-internal static class Code128BarcodeEncoder
-{
-    private const int StartCodeB = 104;
-    private const int StopCode = 106;
-    private const double ModuleWidth = 1.25d;
-
-    private static readonly string[] Patterns =
-    {
-        "212222", "222122", "222221", "121223", "121322", "131222", "122213", "122312", "132212", "221213",
-        "221312", "231212", "112232", "122132", "122231", "113222", "123122", "123221", "223211", "221132",
-        "221231", "213212", "223112", "312131", "311222", "321122", "321221", "312212", "322112", "322211",
-        "212123", "212321", "232121", "111323", "131123", "131321", "112313", "132113", "132311", "211313",
-        "231113", "231311", "112133", "112331", "132131", "113123", "113321", "133121", "313121", "211331",
-        "231131", "213113", "213311", "213131", "311123", "311321", "331121", "312113", "312311", "332111",
-        "314111", "221411", "431111", "111224", "111422", "121124", "121421", "141122", "141221", "112214",
-        "112412", "122114", "122411", "142112", "142211", "241211", "221114", "413111", "241112", "134111",
-        "111242", "121142", "121241", "114212", "124112", "124211", "411212", "421112", "421211", "212141",
-        "214121", "412121", "111143", "111341", "131141", "114113", "114311", "411113", "411311", "113141",
-        "114131", "311141", "411131", "211412", "211214", "211232", "2331112"
-    };
-
-    public static IReadOnlyList<BarcodeModule> Encode(string value)
-    {
-        var text = Normalize(value);
-        var codes = new List<int> { StartCodeB };
-        codes.AddRange(text.Select(ch => ch - 32));
-
-        var checksum = StartCodeB;
-        for (var i = 1; i < codes.Count; i++)
-        {
-            checksum += codes[i] * i;
-        }
-
-        codes.Add(checksum % 103);
-        codes.Add(StopCode);
-
-        var modules = new List<BarcodeModule>();
-        foreach (var code in codes)
-        {
-            var pattern = Patterns[code];
-            var isBar = true;
-            foreach (var widthChar in pattern)
-            {
-                modules.Add(new BarcodeModule
-                {
-                    Width = (widthChar - '0') * ModuleWidth,
-                    IsBar = isBar
-                });
-                isBar = !isBar;
-            }
-        }
-
-        return modules;
-    }
-
-    private static string Normalize(string value)
-    {
-        var cleaned = new string((value ?? string.Empty)
-            .Where(ch => ch is >= ' ' and <= '~')
-            .Take(28)
-            .ToArray());
-
-        return string.IsNullOrWhiteSpace(cleaned) ? "PART:0" : cleaned;
-    }
 }

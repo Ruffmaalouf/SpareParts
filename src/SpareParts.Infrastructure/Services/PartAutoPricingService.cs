@@ -179,11 +179,4 @@ public sealed class PartAutoPricingService
             _ => BaseWeight
         };
     }
-
-    private sealed class CarCostRow
-    {
-        public decimal GrandTotalBase { get; set; }
-        public decimal ExpectedSellThroughRate { get; set; }
-        public int? CreatedByUserId { get; set; }
-    }
 }

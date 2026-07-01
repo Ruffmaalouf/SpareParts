@@ -17,7 +17,12 @@ export class BrowserSessionStore {
 
   loadUser() {
     const stored = this.storage.getItem(this.keys.user);
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
   }
 
   save(apiBaseUrl, session) {

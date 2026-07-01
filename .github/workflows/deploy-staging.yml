@@ -417,7 +417,7 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: provision
+    needs: [provision, deploy-api]
     continue-on-error: true
     steps:
       - name: Checkout
@@ -427,6 +427,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'npm'
+          cache-dependency-path: src/SpareParts.Mobile.ReactNative/package-lock.json
 
       - name: Install dependencies
         working-directory: src/SpareParts.Mobile.ReactNative
@@ -497,7 +499,7 @@ jobs:
           echo "OK: no localhost"
 
       - name: Install EAS CLI
-        run: npm install -g eas-cli
+        run: npm install -g eas-cli@16
 
       - name: Build Android APK via EAS
         working-directory: src/SpareParts.Mobile.ReactNative
@@ -508,7 +510,7 @@ jobs:
   summary:
     name: Deployment Summary
     runs-on: ubuntu-latest
-    needs: [provision, deploy-api, deploy-web]
+    needs: [provision, deploy-api, deploy-web, build-android]
     if: always()
     steps:
       - name: Print URLs
@@ -516,8 +518,9 @@ jobs:
           echo "============================================"
           echo "STAGING DEPLOYMENT COMPLETE"
           echo "============================================"
-          echo "API:     ${{ needs.provision.outputs.api_url }}"
-          echo "Web:     ${{ needs.provision.outputs.web_url }}"
-          echo "Health:  ${{ needs.provision.outputs.api_url }}/api/health"
-          echo "Swagger: ${{ needs.provision.outputs.api_url }}/swagger"
+          echo "API:      ${{ needs.provision.outputs.api_url }}"
+          echo "Web:      ${{ needs.provision.outputs.web_url }}"
+          echo "Health:   ${{ needs.provision.outputs.api_url }}/api/health"
+          echo "Swagger:  ${{ needs.provision.outputs.api_url }}/swagger"
+          echo "Android:  ${{ needs.build-android.result }}"
           echo "============================================"

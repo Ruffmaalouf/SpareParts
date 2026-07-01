@@ -91,6 +91,8 @@ export function WhatsAppSellingView({ api }) {
     navigator.clipboard.writeText(generatedLink).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      setStatus("Could not copy the link. Select and copy it manually.");
     });
   }, [generatedLink]);
 
@@ -98,11 +100,7 @@ export function WhatsAppSellingView({ api }) {
     setIsExporting(true);
     setStatus("Exporting catalog...");
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/marketplace/catalog-export", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+      const res = await api.requestResponse("/api/marketplace/catalog-export");
       const blob = await res.blob();
       const contentType = res.headers.get("content-type") || "";
       const ext = contentType.includes("csv") ? "csv" : "json";
@@ -118,7 +116,7 @@ export function WhatsAppSellingView({ api }) {
     } finally {
       setIsExporting(false);
     }
-  }, []);
+  }, [api]);
 
   return h("section", { className: "screen" },
     h(PageHeader, {

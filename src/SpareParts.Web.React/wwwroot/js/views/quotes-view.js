@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { money, dateTime } from "../core/formatters.js";
+import { money, dateTime, escapeHtml } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 
 const statusOptions = ["Draft", "Sent", "Accepted", "Declined", "Expired", "Converted", "All"];
@@ -252,10 +252,10 @@ export function QuotesView({ api }) {
     const expiryDate = quote.expiryDate ? new Date(quote.expiryDate).toLocaleDateString() : "N/A";
     const quoteDate = quote.quoteDate ? new Date(quote.quoteDate).toLocaleDateString() : "N/A";
     const rowsHtml = items.map((item) =>
-      `<tr><td>${item.description || ""}</td><td style="text-align:center">${item.quantity}</td><td style="text-align:right">${money(item.unitPrice, "USD")}</td><td style="text-align:right">${money(item.lineTotal || item.quantity * item.unitPrice, "USD")}</td></tr>`
+      `<tr><td>${escapeHtml(item.description || "")}</td><td style="text-align:center">${escapeHtml(item.quantity)}</td><td style="text-align:right">${escapeHtml(money(item.unitPrice, "USD"))}</td><td style="text-align:right">${escapeHtml(money(item.lineTotal || item.quantity * item.unitPrice, "USD"))}</td></tr>`
     ).join("");
     const win = window.open("", "_blank");
-    win.document.write(`<!DOCTYPE html><html><head><title>Quote ${quote.quoteNumber}</title>
+    win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(`Quote ${quote.quoteNumber}`)}</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 2rem; color: #111; }
   h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
@@ -266,19 +266,19 @@ export function QuotesView({ api }) {
   .total-row { font-weight: bold; font-size: 1.05rem; }
   @media print { body { margin: 1cm; } }
 </style></head><body>
-<h1>Quote ${quote.quoteNumber}</h1>
+<h1>${escapeHtml(`Quote ${quote.quoteNumber}`)}</h1>
 <div class="meta">
-  Customer: <strong>${quote.customerName || "N/A"}</strong> &nbsp;|&nbsp;
-  Phone: ${quote.customerPhone || "N/A"} &nbsp;|&nbsp;
-  Date: ${quoteDate} &nbsp;|&nbsp;
-  Expires: ${expiryDate}
+  Customer: <strong>${escapeHtml(quote.customerName || "N/A")}</strong> &nbsp;|&nbsp;
+  Phone: ${escapeHtml(quote.customerPhone || "N/A")} &nbsp;|&nbsp;
+  Date: ${escapeHtml(quoteDate)} &nbsp;|&nbsp;
+  Expires: ${escapeHtml(expiryDate)}
 </div>
 <table>
   <thead><tr><th>Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th></tr></thead>
   <tbody>${rowsHtml}</tbody>
-  <tfoot><tr class="total-row"><td colspan="3" style="text-align:right">Total</td><td style="text-align:right">${money(total, "USD")}</td></tr></tfoot>
+  <tfoot><tr class="total-row"><td colspan="3" style="text-align:right">Total</td><td style="text-align:right">${escapeHtml(money(total, "USD"))}</td></tr></tfoot>
 </table>
-${quote.notes ? `<p><strong>Notes:</strong> ${quote.notes}</p>` : ""}
+${quote.notes ? `<p><strong>Notes:</strong> ${escapeHtml(quote.notes)}</p>` : ""}
 <script>window.onload = function() { window.print(); }<\/script>
 </body></html>`);
     win.document.close();

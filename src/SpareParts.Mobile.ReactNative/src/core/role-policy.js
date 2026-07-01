@@ -1,5 +1,6 @@
 const { webAppRoleId } = require("./app-config");
 const SUPER_ADMIN_ROLE_ID = 5;
+const superAdminOnlyScreenKeys = new Set(["admin-billing"]);
 
 function isWebAppUser(user) {
   if (!user) return false;
@@ -18,4 +19,8 @@ function isSuperAdmin(user) {
   return roleId === SUPER_ADMIN_ROLE_ID;
 }
 
-module.exports = { isSuperAdmin, isWebAppUser, SUPER_ADMIN_ROLE_ID };
+function isScreenVisible(screenKey, user) {
+  return !superAdminOnlyScreenKeys.has(screenKey) || isSuperAdmin(user);
+}
+
+module.exports = { isScreenVisible, isSuperAdmin, isWebAppUser, superAdminOnlyScreenKeys, SUPER_ADMIN_ROLE_ID };

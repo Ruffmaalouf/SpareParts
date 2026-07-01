@@ -4326,3 +4326,175 @@ BEGIN
     );
 END;
 GO
+
+-- ════════════════════════════════════════════════════════════════════════════
+-- HotPathIndexMigration — adds missing FK/lookup indexes on high-traffic
+-- tables that were previously created without supporting non-clustered
+-- indexes. All statements are idempotent (guarded by sys.indexes lookups)
+-- and safe to re-run. PENDING: apply to any live database only after
+-- explicit approval per CLAUDE.md (no production schema changes without
+-- sign-off). Local/dev databases may apply this file directly.
+-- ════════════════════════════════════════════════════════════════════════════
+
+-- Stock: every stock-on-hand lookup filters by PartId and/or WarehouseId
+-- (see InventoryRepository.GetStock / UpdateStockQuantity call sites).
+IF OBJECT_ID('dbo.Stock', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Stock') AND name = 'IX_Stock_PartId_WarehouseId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Stock_PartId_WarehouseId ON dbo.Stock (PartId, WarehouseId) INCLUDE (Quantity, ReservedQuantity);
+END;
+
+IF OBJECT_ID('dbo.Stock', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Stock') AND name = 'IX_Stock_WarehouseId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Stock_WarehouseId ON dbo.Stock (WarehouseId);
+END;
+
+-- StockMovements: history views and cost/ledger rollups filter by PartId,
+-- WarehouseId, and ReferenceType/ReferenceId.
+IF OBJECT_ID('dbo.StockMovements', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.StockMovements') AND name = 'IX_StockMovements_PartId_CreatedAt')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_StockMovements_PartId_CreatedAt ON dbo.StockMovements (PartId, CreatedAt DESC);
+END;
+
+IF OBJECT_ID('dbo.StockMovements', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.StockMovements') AND name = 'IX_StockMovements_WarehouseId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_StockMovements_WarehouseId ON dbo.StockMovements (WarehouseId);
+END;
+
+IF OBJECT_ID('dbo.StockMovements', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.StockMovements') AND name = 'IX_StockMovements_ReferenceType_ReferenceId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_StockMovements_ReferenceType_ReferenceId ON dbo.StockMovements (ReferenceType, ReferenceId);
+END;
+
+-- JournalEntries / JournalLines: accounting drill-downs join back from a
+-- source document (ReferenceType/ReferenceId) and fan out to lines by
+-- JournalEntryId and AccountId (ledger/trial-balance queries).
+IF OBJECT_ID('dbo.JournalEntries', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.JournalEntries') AND name = 'IX_JournalEntries_ReferenceType_ReferenceId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_JournalEntries_ReferenceType_ReferenceId ON dbo.JournalEntries (ReferenceType, ReferenceId);
+END;
+
+IF OBJECT_ID('dbo.JournalLines', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.JournalLines') AND name = 'IX_JournalLines_JournalEntryId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_JournalLines_JournalEntryId ON dbo.JournalLines (JournalEntryId);
+END;
+
+IF OBJECT_ID('dbo.JournalLines', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.JournalLines') AND name = 'IX_JournalLines_AccountId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_JournalLines_AccountId ON dbo.JournalLines (AccountId);
+END;
+
+-- Transactions: customer statements, supplier statements, and
+-- warehouse-scoped reporting all filter on these FK columns.
+IF OBJECT_ID('dbo.Transactions', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Transactions') AND name = 'IX_Transactions_CustomerId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Transactions_CustomerId ON dbo.Transactions (CustomerId) WHERE CustomerId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.Transactions', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Transactions') AND name = 'IX_Transactions_SupplierId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Transactions_SupplierId ON dbo.Transactions (SupplierId) WHERE SupplierId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.Transactions', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Transactions') AND name = 'IX_Transactions_WarehouseId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Transactions_WarehouseId ON dbo.Transactions (WarehouseId) WHERE WarehouseId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.Transactions', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Transactions') AND name = 'IX_Transactions_UsedCarId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Transactions_UsedCarId ON dbo.Transactions (UsedCarId) WHERE UsedCarId IS NOT NULL;
+END;
+
+-- TransactionItems: invoice line rendering and part sales-history reports
+-- join back from PartId; account-based line items (fees/discounts) join
+-- from AccountId.
+IF OBJECT_ID('dbo.TransactionItems', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.TransactionItems') AND name = 'IX_TransactionItems_PartId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_TransactionItems_PartId ON dbo.TransactionItems (PartId) WHERE PartId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.TransactionItems', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.TransactionItems') AND name = 'IX_TransactionItems_AccountId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_TransactionItems_AccountId ON dbo.TransactionItems (AccountId) WHERE AccountId IS NOT NULL;
+END;
+
+-- Quotes / QuoteItems: quote detail screens join items back to their quote;
+-- quote lists filter by CustomerId/WarehouseId.
+IF OBJECT_ID('dbo.QuoteItems', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.QuoteItems') AND name = 'IX_QuoteItems_QuoteId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_QuoteItems_QuoteId ON dbo.QuoteItems (QuoteId, SortOrder, Id);
+END;
+
+IF OBJECT_ID('dbo.QuoteItems', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.QuoteItems') AND name = 'IX_QuoteItems_PartId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_QuoteItems_PartId ON dbo.QuoteItems (PartId) WHERE PartId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.Quotes', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Quotes') AND name = 'IX_Quotes_CustomerId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Quotes_CustomerId ON dbo.Quotes (CustomerId) WHERE CustomerId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.Quotes', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Quotes') AND name = 'IX_Quotes_WarehouseId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Quotes_WarehouseId ON dbo.Quotes (WarehouseId) WHERE WarehouseId IS NOT NULL;
+END;
+
+-- WarrantyClaims: claim lookups by customer and by part.
+IF OBJECT_ID('dbo.WarrantyClaims', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.WarrantyClaims') AND name = 'IX_WarrantyClaims_PartId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_WarrantyClaims_PartId ON dbo.WarrantyClaims (PartId);
+END;
+
+IF OBJECT_ID('dbo.WarrantyClaims', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.WarrantyClaims') AND name = 'IX_WarrantyClaims_CustomerId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_WarrantyClaims_CustomerId ON dbo.WarrantyClaims (CustomerId) WHERE CustomerId IS NOT NULL;
+END;
+
+-- Shipments / ShipmentEvents: tracking-history views join events back to
+-- their shipment; shipment lists filter by customer and source invoice.
+IF OBJECT_ID('dbo.Shipments', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Shipments') AND name = 'IX_Shipments_CustomerId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Shipments_CustomerId ON dbo.Shipments (CustomerId) WHERE CustomerId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.Shipments', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Shipments') AND name = 'IX_Shipments_SalesInvoiceId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Shipments_SalesInvoiceId ON dbo.Shipments (SalesInvoiceId) WHERE SalesInvoiceId IS NOT NULL;
+END;
+
+IF OBJECT_ID('dbo.ShipmentEvents', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.ShipmentEvents') AND name = 'IX_ShipmentEvents_ShipmentId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ShipmentEvents_ShipmentId ON dbo.ShipmentEvents (ShipmentId, EventAt DESC);
+END;
+
+-- LoyaltyTransactions: customer loyalty-history views filter by CustomerId.
+IF OBJECT_ID('dbo.LoyaltyTransactions', 'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.LoyaltyTransactions') AND name = 'IX_LoyaltyTransactions_CustomerId')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_LoyaltyTransactions_CustomerId ON dbo.LoyaltyTransactions (CustomerId, CreatedAt DESC);
+END;
+GO

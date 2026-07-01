@@ -57,7 +57,6 @@ SELECT
     cm.Name                                                         AS CarModel,
     cm.Year                                                         AS CarYear,
     cm.EngineType,
-    uc.ChassisNumber,
     cat.Name                                                        AS Category,
     br.Name                                                         AS Brand,
     p.ImageUrls,

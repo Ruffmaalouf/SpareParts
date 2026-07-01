@@ -20,9 +20,29 @@ function Assert-SqlCmd {
 }
 
 function Escape-SqlLiteral {
+    # Defense-in-depth: values embedded here can originate from an external,
+    # untrusted HTTP API (Openverse search results), not just from our own
+    # database. In addition to doubling single quotes (the normal T-SQL
+    # string-literal escape), strip control characters (CR/LF/NUL/tab) so an
+    # attacker-controlled title/URL cannot inject a standalone line (e.g. a
+    # bare "GO" batch separator, which sqlcmd recognizes at the start of a
+    # line even though it would otherwise sit inside a quoted string) into
+    # the generated .sql file that is later executed via sqlcmd.
     param([AllowNull()][string]$Value)
     if ($null -eq $Value) { return "" }
-    return $Value.Replace("'", "''")
+    $sanitized = $Value -replace "[\r\n\t\x00-\x08\x0B\x0C\x0E-\x1F]", " "
+    return $sanitized.Replace("'", "''")
+}
+
+function Test-SafeHttpUrl {
+    # Only allow well-formed http/https URLs through to SQL generation.
+    # Openverse results are external content; reject anything that isn't a
+    # simple absolute http(s) URL rather than trusting it blindly.
+    param([AllowNull()][string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
+    $uri = $null
+    if (-not [uri]::TryCreate($Value, [UriKind]::Absolute, [ref]$uri)) { return $false }
+    return ($uri.Scheme -eq "http" -or $uri.Scheme -eq "https")
 }
 
 function Normalize-Cell {
@@ -395,6 +415,11 @@ $sqlLines.Add("BEGIN TRANSACTION;")
 $sqlLines.Add("IF OBJECT_ID('dbo.PartPassportPhotos', 'U') IS NULL THROW 51000, 'dbo.PartPassportPhotos does not exist. Run API migrations first.', 1;")
 
 foreach ($row in $auditRows) {
+    if (-not (Test-SafeHttpUrl $row.ImageUrl)) {
+        Write-Warning "Skipping PartId $($row.PartId): image URL is not a well-formed http(s) URL ('$($row.ImageUrl)')."
+        continue
+    }
+
     $imageJson = "[" + (($row.ImageUrl | ConvertTo-Json -Compress)) + "]"
     $imageJsonSql = Escape-SqlLiteral $imageJson
     $imageUrlSql = Escape-SqlLiteral $row.ImageUrl

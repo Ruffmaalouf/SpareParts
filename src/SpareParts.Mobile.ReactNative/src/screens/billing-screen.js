@@ -216,12 +216,12 @@ function BillingScreen({ api }) {
     ),
 
     subscription && el(Panel, { title: t("billing.usageLimits", "Usage & Limits") },
-      subscription.limits.map((limit) => el(ListRow, {
+      (subscription.limits || []).map((limit) => el(ListRow, {
         key: limit.limitCode,
         title: LIMIT_LABELS[limit.limitCode] || limit.limitCode,
         value: formatLimit(limit.limitValue)
       })),
-      subscription.usage.map((counter) => el(ListRow, {
+      (subscription.usage || []).map((counter) => el(ListRow, {
         key: `usage-${counter.counterCode}`,
         title: LIMIT_LABELS[counter.counterCode] || counter.counterCode,
         value: `${Number(counter.currentValue || 0).toLocaleString()} / ${formatLimit(counter.limitValue)}`
@@ -229,7 +229,7 @@ function BillingScreen({ api }) {
     ),
 
     subscription && el(Panel, { title: t("billing.features", "Plan Features") },
-      subscription.features.map((feature) => el(ListRow, {
+      (subscription.features || []).map((feature) => el(ListRow, {
         key: feature.featureCode,
         title: FEATURE_LABELS[feature.featureCode] || feature.featureCode,
         value: feature.isEnabled ? t("billing.included", "Included") : t("billing.locked", "Locked")

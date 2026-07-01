@@ -67,7 +67,12 @@ public static class SparePartsApiComposition
         nameof(CarModelsMigration),
         nameof(LocationsMigration),
         nameof(UsedCarsMigration),
+        nameof(UsedCarStateEventsMigration),
         nameof(UsedCarPartPricingMigration),
+        nameof(UsedCarTeardownMigration),
+        nameof(PartMarketingNotificationMigration),
+        nameof(PartMarkdownMigration),
+        nameof(TransactionsPaymentReminderMigration),
         nameof(UsedCarPurchasesMigration),
         nameof(UsedCarWholesaleSalesMigration),
         nameof(TransactionsMigration),
@@ -524,6 +529,7 @@ public static class SparePartsApiComposition
         var factory = app.Services.GetRequiredService<ISqlConnectionFactory>();
         RunMigrations(factory);
 
+        app.UseMiddleware<SecurityHeadersMiddleware>();
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
         app.UseRateLimiter();

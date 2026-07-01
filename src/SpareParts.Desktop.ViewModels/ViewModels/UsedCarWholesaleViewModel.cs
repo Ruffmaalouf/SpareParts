@@ -724,10 +724,4 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private void OnPropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
-    public sealed class UsedCarWholesaleRepairItemViewModel
-    {
-        public string Description { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-    }
 }

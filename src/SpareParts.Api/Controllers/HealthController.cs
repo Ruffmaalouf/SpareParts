@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SpareParts.Api.Hosting;
 using SpareParts.Api.Notifications;
 using SpareParts.Domain.Health;
@@ -20,19 +21,22 @@ namespace SpareParts.Api.Controllers
         private readonly CommunicationOptions? _communicationOptions;
         private readonly IConfiguration? _configuration;
         private readonly IServiceProvider? _serviceProvider;
+        private readonly ILogger<HealthController>? _logger;
 
         public HealthController(
             ServiceProfile? serviceProfile = null,
             ISqlConnectionFactory? sqlConnectionFactory = null,
             CommunicationOptions? communicationOptions = null,
             IConfiguration? configuration = null,
-            IServiceProvider? serviceProvider = null)
+            IServiceProvider? serviceProvider = null,
+            ILogger<HealthController>? logger = null)
         {
             _serviceProfile = serviceProfile;
             _sqlConnectionFactory = sqlConnectionFactory;
             _communicationOptions = communicationOptions;
             _configuration = configuration;
             _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         [HttpGet("api/health")]
@@ -92,12 +96,14 @@ namespace SpareParts.Api.Controllers
             }
             catch (Exception ex)
             {
+                _logger?.LogWarning(ex, "Health check database connectivity probe failed.");
+
                 return new DatabaseHealthDto
                 {
                     Status = "degraded",
                     CanConnect = false,
                     Provider = "unknown",
-                    Error = ex.Message
+                    Error = "Database connectivity check failed."
                 };
             }
         }

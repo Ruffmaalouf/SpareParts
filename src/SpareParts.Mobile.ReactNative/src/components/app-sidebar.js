@@ -2,12 +2,11 @@ const React = require("react");
 const { Pressable, ScrollView, Text, TextInput, View } = require("react-native");
 const { navigationGroups, wpfThemes } = require("../core/app-config");
 const { initials } = require("../core/formatters");
-const { isSuperAdmin } = require("../core/role-policy");
+const { isScreenVisible } = require("../core/role-policy");
 const { useTheme } = require("../theme/theme-context");
 
 const { useMemo, useState } = React;
 const el = React.createElement;
-const superAdminOnlyKeys = new Set(["admin-billing"]);
 
 function normalizeSearchText(value) {
   return String(value || "").toLowerCase().trim();
@@ -18,7 +17,7 @@ function AppSidebar({ activeKey, isWideLayout, screens, themeKey, user, onClose,
   const [search, setSearch] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const visibleScreens = useMemo(
-    () => screens.filter((item) => !superAdminOnlyKeys.has(item.key) || isSuperAdmin(user)),
+    () => screens.filter((item) => isScreenVisible(item.key, user)),
     [screens, user]
   );
   const groups = useMemo(() => {

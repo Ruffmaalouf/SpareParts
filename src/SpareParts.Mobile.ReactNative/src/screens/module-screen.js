@@ -3,7 +3,7 @@ const { Image, Pressable, ScrollView, Text, View } = require("react-native");
 const ImagePicker = require("expo-image-picker");
 const { asRows, money, rowAmount, rowSubtitle, rowTitle, shortDateTime } = require("../core/formatters");
 const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
-const { BottomSheet, Card, SectionHeader, StatusPill, StickyActionBar, StickyActionBarSpacer } = require("../components/ui/index");
+const { BottomSheet, Card, PartListCard, SectionHeader, StatusPill, StickyActionBar, StickyActionBarSpacer } = require("../components/ui/index");
 const { useTheme } = require("../theme/theme-context");
 
 const { useCallback, useEffect, useMemo, useState } = React;

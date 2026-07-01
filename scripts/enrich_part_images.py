@@ -228,7 +228,6 @@ SELECT {top_clause}
     cm.Name                                                    AS CarModel,
     cm.Year                                                    AS CarYear,
     cm.EngineType,
-    uc.ChassisNumber,
     CASE WHEN ISJSON(p.ImageUrls) = 1
          THEN JSON_VALUE(p.ImageUrls, '$[0]')
          ELSE NULL END                                         AS CurrentImageUrl,

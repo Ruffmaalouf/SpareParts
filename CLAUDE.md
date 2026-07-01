@@ -115,6 +115,17 @@ When running a security scan:
 
 ---
 
+## Dev Team Visibility (Permanent)
+
+At the start of every conversation, and whenever agent work is dispatched or its status changes, show the dev team roster and who is currently working on what:
+
+- **Roster**: dev-backend-api, dev-database, dev-desktop-wpf, dev-mobile-rn, dev-web-react, dev-qa-security
+- For each agent currently dispatched: show its name, the task it's working on, and its status (running / completed / blocked).
+- If no agents are currently running, state that explicitly (e.g. "All dev agents idle") rather than omitting the roster.
+- This applies any time work is delegated via the Agent tool to one or more dev-* agents — not just multi-agent fan-outs.
+
+---
+
 ## Remote Control Notes
 
 - This workspace can be controlled remotely from a phone via claude.ai/code.

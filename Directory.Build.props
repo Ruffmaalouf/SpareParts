@@ -6,6 +6,18 @@
     <Deterministic>true</Deterministic>
   </PropertyGroup>
 
+  <!--
+    Single coordinated release version for all .NET-built platforms (API, Web host, WPF desktop).
+    Keep this in sync with the mobile app version in src/SpareParts.Mobile.ReactNative/app.json
+    and package.json whenever a cross-platform release ships. Without this, every project defaulted
+    to the implicit 1.0.0.0 assembly version with no shared source of truth.
+  -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
     <IsPackable>false</IsPackable>
   </PropertyGroup>

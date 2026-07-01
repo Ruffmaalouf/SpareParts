@@ -27,8 +27,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       - name: Restore
         run: dotnet restore solutions/SpareParts.Backend.sln
@@ -94,8 +94,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       - name: Cache SQL Server Docker image
         id: cache-docker

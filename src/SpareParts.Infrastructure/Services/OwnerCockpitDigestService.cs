@@ -1,6 +1,5 @@
 using System.Globalization;
 using SpareParts.Domain.Communications;
-using SpareParts.Domain.MasterData;
 using SpareParts.Domain.OwnerCockpit;
 
 namespace SpareParts.Infrastructure.Services;
@@ -40,27 +39,13 @@ public sealed class OwnerCockpitDigestService
     }
 
     public bool IsDigestDue()
-    {
-        var lastSent = _appConstantsService.GetAll()
-            .FirstOrDefault(c => string.Equals(c.Key, LastDigestSentConstantKey, StringComparison.OrdinalIgnoreCase))
-            ?.Value;
-
-        if (string.IsNullOrWhiteSpace(lastSent)) return true;
-
-        if (!DateTime.TryParse(lastSent, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var lastSentAt))
-        {
-            return true;
-        }
-
-        return (DateTime.UtcNow - lastSentAt.ToUniversalTime()).TotalHours >= MinHoursBetweenDigests;
-    }
+        => DailyDigestScheduler.IsDigestDue(_appConstantsService, LastDigestSentConstantKey, MinHoursBetweenDigests);
 
     public void RecordDigestSent()
-        => _appConstantsService.Upsert(LastDigestSentConstantKey, new UpsertAppConstantRequest
-        {
-            Value = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
-            Description = "Set automatically by the Owner Cockpit Agent."
-        });
+        => DailyDigestScheduler.RecordDigestSent(
+            _appConstantsService,
+            LastDigestSentConstantKey,
+            "Set automatically by the Owner Cockpit Agent.");
 
     public OwnerCockpitDashboardDto GetDashboard()
         => _ownerCockpitService.GetDashboard(DateTime.UtcNow.Date);

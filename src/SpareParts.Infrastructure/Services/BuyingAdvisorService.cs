@@ -1,8 +1,6 @@
-using System.Globalization;
 using Dapper;
 using SpareParts.Domain.Communications;
 using SpareParts.Domain.Inventory;
-using SpareParts.Domain.MasterData;
 using SpareParts.Infrastructure.Interfaces;
 
 namespace SpareParts.Infrastructure.Services;
@@ -49,27 +47,13 @@ public sealed class BuyingAdvisorService
     }
 
     public bool IsDigestDue()
-    {
-        var lastSent = _appConstantsService.GetAll()
-            .FirstOrDefault(c => string.Equals(c.Key, LastDigestSentConstantKey, StringComparison.OrdinalIgnoreCase))
-            ?.Value;
-
-        if (string.IsNullOrWhiteSpace(lastSent)) return true;
-
-        if (!DateTime.TryParse(lastSent, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var lastSentAt))
-        {
-            return true;
-        }
-
-        return (DateTime.UtcNow - lastSentAt.ToUniversalTime()).TotalHours >= MinHoursBetweenDigests;
-    }
+        => DailyDigestScheduler.IsDigestDue(_appConstantsService, LastDigestSentConstantKey, MinHoursBetweenDigests);
 
     public void RecordDigestSent()
-        => _appConstantsService.Upsert(LastDigestSentConstantKey, new UpsertAppConstantRequest
-        {
-            Value = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
-            Description = "Set automatically by the Buying Advisor Agent."
-        });
+        => DailyDigestScheduler.RecordDigestSent(
+            _appConstantsService,
+            LastDigestSentConstantKey,
+            "Set automatically by the Buying Advisor Agent.");
 
     public IReadOnlyList<DonorVehiclePerformanceDto> GetDonorVehiclePerformance()
     {
@@ -125,7 +109,7 @@ public sealed class BuyingAdvisorService
 
         var lines = new List<string>
         {
-            "Weekly buying advisor update from your SpareParts shop:",
+            "Daily buying advisor update from your SpareParts shop:",
             topSellers.Count > 0
                 ? "Selling fast, consider buying more: " + string.Join(", ", topSellers.Select(p => $"{p.Make} {p.Model} ({p.SoldQty90d} parts sold in 90 days)"))
                 : "No strong sellers yet in the last 90 days.",

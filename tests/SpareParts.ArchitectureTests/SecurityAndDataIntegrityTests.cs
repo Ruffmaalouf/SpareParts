@@ -19,6 +19,67 @@ namespace SpareParts.ArchitectureTests;
 
 public class SecurityAndDataIntegrityTests
 {
+    // Controllers intentionally exposed without authentication. Any controller not listed here
+    // must carry [Authorize] (class-level, or on every public action) — this is a defense-in-depth
+    // guard against a new controller accidentally shipping unauthenticated.
+    private static readonly HashSet<string> AnonymousControllerAllowList = new(StringComparer.Ordinal)
+    {
+        nameof(HealthController),   // read-only service/DB status, no sensitive data after the Error-message fix
+        nameof(AuthController),     // must be reachable pre-login; sensitive actions are individually [Authorize]d
+        nameof(PricingController)   // public plan/pricing catalog, no tenant data
+    };
+
+    [Fact]
+    public void EveryApiController_ShouldRequireAuthorization_UnlessExplicitlyAllowListed()
+    {
+        var controllerTypes = typeof(ExcelImportController).Assembly
+            .GetExportedTypes()
+            .Where(type =>
+                type is { IsClass: true, IsAbstract: false } &&
+                type.Name.EndsWith("Controller", StringComparison.Ordinal) &&
+                typeof(Microsoft.AspNetCore.Mvc.ControllerBase).IsAssignableFrom(type));
+
+        var violations = new List<string>();
+
+        foreach (var controllerType in controllerTypes)
+        {
+            if (AnonymousControllerAllowList.Contains(controllerType.Name))
+            {
+                continue;
+            }
+
+            var hasClassLevelAuthorize = controllerType
+                .GetCustomAttributes<AuthorizeAttribute>(inherit: true)
+                .Any();
+
+            if (hasClassLevelAuthorize)
+            {
+                continue;
+            }
+
+            // No class-level [Authorize]: every public action must individually carry one.
+            var publicActions = controllerType
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                .Where(method => !method.IsSpecialName)
+                .ToArray();
+
+            var unprotectedActions = publicActions
+                .Where(method => !method.GetCustomAttributes<AuthorizeAttribute>(inherit: true).Any())
+                .Select(method => method.Name)
+                .ToArray();
+
+            if (unprotectedActions.Length > 0)
+            {
+                violations.Add($"{controllerType.Name}: {string.Join(", ", unprotectedActions)}");
+            }
+        }
+
+        Assert.True(
+            violations.Count == 0,
+            "The following controllers/actions are neither [Authorize]d nor on the anonymous allow-list: "
+                + string.Join(" | ", violations));
+    }
+
     [Fact]
     public void ExcelImportController_ShouldRequireAdminPolicy()
     {

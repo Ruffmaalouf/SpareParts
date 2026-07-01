@@ -1,8 +1,9 @@
 const React = require("react");
 const { Pressable, ScrollView, Switch, Text, View } = require("react-native");
-const { money, shortDate, dateTime } = require("../core/formatters");
+const { money, shortDate, shortDateTime } = require("../core/formatters");
 const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
 const { FEATURE_LABELS, LIMIT_LABELS } = require("./billing-screen");
+const { SUPER_ADMIN_ROLE_ID } = require("../core/role-policy");
 const { useTheme } = require("../theme/theme-context");
 
 const { useCallback, useEffect, useMemo, useState } = React;
@@ -10,7 +11,6 @@ const el = React.createElement;
 
 const FEATURE_CODES = Object.keys(FEATURE_LABELS);
 const LIMIT_CODES = Object.keys(LIMIT_LABELS);
-const SUPER_ADMIN_ROLE_ID = 5;
 
 const TABS = [
   { key: "packages", label: "Packages" },
@@ -473,7 +473,7 @@ function AdminBillingScreen({ api, user }) {
         renderRow: (row) => el(View, { key: `webhook-${row.id}`, style: styles.screenListItem },
           el(ListRow, {
             title: `${row.provider} • ${row.eventType}`,
-            subtitle: `${dateTime(row.createdAt)}${row.processedAt ? ` • ${dateTime(row.processedAt)}` : ""}`,
+            subtitle: `${shortDateTime(row.createdAt)}${row.processedAt ? ` • ${shortDateTime(row.processedAt)}` : ""}`,
             value: row.error || ""
           }),
           el(Badge, { tone: WEBHOOK_STATUS_TONES[row.status] || "muted" }, row.status)

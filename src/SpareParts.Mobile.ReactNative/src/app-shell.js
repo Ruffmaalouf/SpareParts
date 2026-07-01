@@ -28,7 +28,7 @@ const { SmartSearch } = require("./components/smart-search");
 const { LoginScreen } = require("./screens/login-screen");
 const { CustomerStorefrontScreen } = require("./screens/customer-storefront-screen");
 const { screenRegistry } = require("./screens/screen-registry");
-const { isSuperAdmin } = require("./core/role-policy");
+const { isScreenVisible } = require("./core/role-policy");
 const { ThemeContext } = require("./theme/theme-context");
 const { createPalette, createStyles } = require("./theme/styles");
 const { isWebAppUser: isWebAppRoleUser } = require("./core/role-policy");
@@ -38,7 +38,6 @@ const el = React.createElement;
 
 const sessionStore = new MobileSessionStore(AsyncStorage, storageKeys);
 const bottomTabKeys = ["dashboard", "invoices", "parts", "management", "settings"];
-const superAdminOnlyKeys = new Set(["admin-billing"]);
 const customerTabs = [
   { key: "store-home", label: "Garage", icon: "gauge", description: "Cockpit" },
   { key: "store-parts", label: "Parts", icon: "piston", description: "Fitment" },
@@ -119,7 +118,7 @@ function AppContent() {
   const api = useMemo(() => new ApiClient(apiBaseUrl, token, clearSession, handlePlanLocked), [apiBaseUrl, clearSession, handlePlanLocked, token]);
   const isCustomerMode = Boolean(user && isWebAppRoleUser(user));
   const visibleAdminScreens = useMemo(
-    () => screenRegistry.items.filter((item) => !superAdminOnlyKeys.has(item.key) || isSuperAdmin(user)),
+    () => screenRegistry.items.filter((item) => isScreenVisible(item.key, user)),
     [user]
   );
   const bottomTabs = useMemo(

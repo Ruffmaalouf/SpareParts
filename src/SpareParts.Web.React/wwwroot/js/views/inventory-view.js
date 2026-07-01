@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { asRows, money } from "../core/formatters.js";
+import { asRows, escapeHtml, money } from "../core/formatters.js";
 import { CommunicationPayloadFactory } from "../services/communication-payload-factory.js";
 import { PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
 import { StatusLine } from "../components/shared.js";
@@ -639,7 +639,7 @@ export function InventoryView({ api, onView }) {
 
   const printLabel = useCallback((part) => {
     const win = window.open("", "_blank");
-    win.document.write(`<!DOCTYPE html><html><head><title>Label ${part.internalCode || part.name}</title>
+    win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(part.internalCode || part.name)}</title>
 <style>
   @page { size: 80mm 40mm; margin: 2mm; }
   body { font-family: Arial, sans-serif; margin: 2mm; width: 76mm; height: 36mm; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
@@ -648,9 +648,9 @@ export function InventoryView({ api, onView }) {
   .price { font-size: 0.8rem; font-weight: bold; text-align: right; }
   @media print { body { margin: 0; } }
 </style></head><body>
-<div class="barcode">${part.internalCode || part.id}</div>
-<div class="name">${part.name || ""}</div>
-<div class="price">${money(part.salePrice, part.currency)}</div>
+<div class="barcode">${escapeHtml(part.internalCode || part.id)}</div>
+<div class="name">${escapeHtml(part.name || "")}</div>
+<div class="price">${escapeHtml(money(part.salePrice, part.currency))}</div>
 <script>window.onload = function() { window.print(); }<\/script>
 </body></html>`);
     win.document.close();
