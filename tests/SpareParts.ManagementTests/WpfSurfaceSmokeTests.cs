@@ -1,10 +1,12 @@
 using System.IO;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Xml;
@@ -94,6 +96,34 @@ public sealed class WpfSurfaceSmokeTests
             RegexOptions.CultureInvariant);
 
         Assert.True(hasInteractiveMarkup, $"{label} has no recognizable form/navigation controls.");
+    }
+
+    [Fact]
+    public void Search_controls_should_handle_inline_run_click_sources()
+    {
+        RunOnStaThread(() =>
+        {
+            EnsureApplicationResources();
+
+            var controls = new UserControl[]
+            {
+                new PartSearchControl(new StubPartsApiClient()),
+                new CustomerSearchControl(new RecordingCrudApiClient()),
+                new RoleSearchControl(),
+                new WarehouseSearchControl(new RecordingCrudApiClient())
+            };
+
+            foreach (var control in controls)
+            {
+                var method = control.GetType().GetMethod(
+                    "IsInsideControl",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+
+                Assert.NotNull(method);
+                var result = method!.Invoke(control, [new Run("inline result text")]);
+                Assert.False(Assert.IsType<bool>(result));
+            }
+        });
     }
 
     private static bool IsInteractiveControl(DependencyObject dependencyObject)

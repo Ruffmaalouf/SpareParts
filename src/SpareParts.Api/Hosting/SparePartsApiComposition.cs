@@ -119,7 +119,8 @@ public static class SparePartsApiComposition
         nameof(InsuranceAddonsMigration),
         nameof(ApiKeysMigration),
         nameof(Phase3FeatureCodesMigration),
-        nameof(SalesReturnTypeMigration)
+        nameof(SalesReturnTypeMigration),
+        nameof(PartImageEnrichmentMigration)
     ];
 
     private static readonly Dictionary<ServiceCapability, string[]> ControllerMap = new()
@@ -570,6 +571,7 @@ public static class SparePartsApiComposition
         ApiKeysMigration.EnsureApplied(factory);
         Phase3FeatureCodesMigration.EnsureApplied(factory);
         SalesReturnTypeMigration.EnsureApplied(factory);
+        PartImageEnrichmentMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)

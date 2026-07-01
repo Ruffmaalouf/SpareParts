@@ -62,6 +62,20 @@ function looksLikeHeadlight(part) {
   return text.includes("headlight") || text.includes("xenon") || text.includes("6311733");
 }
 
+function firstPartImage(part) {
+  if (part?.imageUrl) return part.imageUrl;
+  const raw = part?.imageUrls;
+  if (!raw) return "";
+  if (Array.isArray(raw)) return raw.find(Boolean) || "";
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.find(Boolean) || "";
+  } catch {
+    // Older imports may store comma/newline separated URLs.
+  }
+  return String(raw).split(/[\n,]+/).map((url) => url.trim()).filter(Boolean)[0] || "";
+}
+
 function pickFeatured(parts) {
   return parts.find(looksLikeHeadlight) || parts[0] || null;
 }
@@ -127,13 +141,14 @@ function Ticker() {
 }
 
 function PartCard({ part, inCart, addToCart, t }) {
+  const imageUrl = firstPartImage(part);
   const showImg = looksLikeHeadlight(part);
   return h("article", { className: "apx-card" },
     h("div", { className: "apx-card-media" },
       h("span", { className: "apx-card-tag" }, partTag(part)),
       isBenchChecked(part) && h("span", { className: "apx-card-bench" }, "Bench"),
-      showImg
-        ? h("img", { src: headlightAsset, alt: part.name })
+      imageUrl || showImg
+        ? h("img", { src: imageUrl || headlightAsset, alt: part.name })
         : h("span", { className: "apx-card-ph" }, partVisualLabel(part))
     ),
     h("div", { className: "apx-card-body" },

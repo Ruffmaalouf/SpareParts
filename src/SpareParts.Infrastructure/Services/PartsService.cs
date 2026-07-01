@@ -67,6 +67,7 @@ WITH FilteredParts AS
         p.PricingCalculatedAt,
         p.Currency,
         p.MinStock,
+        p.ImageUrls,
         p.Notes,
         p.UsedCarId,
         p.IsActive
@@ -108,6 +109,8 @@ SELECT
     StockQuantity = ISNULL(stock.Quantity, 0),
     ReservedQuantity = ISNULL(stock.ReservedQuantity, 0),
     AvailableQuantity = ISNULL(stock.Quantity - stock.ReservedQuantity, 0),
+    p.ImageUrls,
+    ImageUrl = CASE WHEN ISJSON(p.ImageUrls) = 1 THEN JSON_VALUE(p.ImageUrls, '$[0]') ELSE NULL END,
     p.Notes,
     p.UsedCarId,
     p.IsActive

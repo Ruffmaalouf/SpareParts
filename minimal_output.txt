@@ -1,0 +1,18 @@
+Changed database context to 'SparePartsDb'.
+Msg 1934, Level 16, State 1, Server PC36, Line 4
+UPDATE failed because the following SET options have incorrect settings: 'QUOTED_IDENTIFIER'. Verify that SET options are correct for use with indexed views and/or indexes on computed columns and/or filtered indexes and/or query notifications and/or XML data type methods and/or spatial index operations.
+Id          NewImageUrl                                                                                                                                                                                                                                                     
+----------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+          1 ["https://api.openverse.org/v1/images/c5289131-9326-4278-bc2d-b6bdd48b31bd/thumb/"]                                                                                                                                                                             
+          2 ["https://api.openverse.org/v1/images/cce69fd7-fefc-4c1e-be5f-3dd44c13568f/thumb/"]                                                                                                                                                                             
+          3 ["https://api.openverse.org/v1/images/84383039-2c58-49f1-8959-b07d0e955458/thumb/"]                                                                                                                                                                             
+          4 ["https://api.openverse.org/v1/images/753cf4ce-bd98-42e8-95f4-be542b0718e0/thumb/"]                                                                                                                                                                             
+          5 ["https://api.openverse.org/v1/images/06743d7c-3d4b-4bbd-a272-798fdffc8bff/thumb/"]                                                                                                                                                                             
+          7 ["https://api.openverse.org/v1/images/b9231c2a-f902-44a5-90e6-c89e21c45895/thumb/"]                                                                                                                                                                             
+         10 ["https://api.openverse.org/v1/images/a4d07ddd-d8ae-4120-9a2c-38e139311b98/thumb/"]                                                                                                                                                                             
+         11 ["https://api.openverse.org/v1/images/5d9a5977-9680-43cf-992a-bf72e2221413/thumb/"]                                                                                                                                                                             
+         12 ["https://api.openverse.org/v1/images/5d9a5977-9680-43cf-992a-bf72e2221413/thumb/"]                                                                                                                                                                             
+        353 ["https://api.openverse.org/v1/images/5d9a5977-9680-43cf-992a-bf72e2221413/thumb/"]                                                                                                                                                                             
+
+(10 rows affected)
+Done — 10 parts updated.

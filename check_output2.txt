@@ -1,0 +1,17 @@
+Python Launcher (py): 
+'py' is not recognized as an internal or external command,
+operable program or batch file.
+'py' is not recognized as an internal or external command,
+operable program or batch file.
+ 
+python3: 
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+ 
+Looking for python.exe: 
+INFO: Could not find files for the given pattern(s).
+The filename, directory name, or volume label syntax is incorrect.
+The system cannot find the path specified.
+ 
+PATH: 
+C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin;C:\Program Files\Microsoft MPI\Bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\dotnet\;C:\Program Files\nodejs\;C:\Program Files (x86)\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\PowerShell\7\;C:\Program Files (x86)\HP\HP OCR\DB_Lib\;C:\Program Files\HP\Common\HPDestPlgIn\;C:\Program Files (x86)\HP\Common\HPDestPlgIn\;C:\Program Files (x86)\cloudflared\;C:\Program Files\Git\cmd;C:\Users\r.maalouf\AppData\Local\Microsoft\WindowsApps;C:\Users\r.maalouf\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\r.maalouf\.dotnet\tools;C:\Users\r.maalouf\AppData\Local\GitHubDesktop\bin;C:\Users\r.maalouf\.dotnet\tools;C:\Users\r.maalouf\AppData\Roaming\npm;C:\Users\r.maalouf\AppData\Local\gitkraken\bin;C:\Users\r.maalouf\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\HP\Common\HPDestPlgIn\;C:\Program Files (x86)\HP\Common\HPDestPlgIn\ 
+Done. 

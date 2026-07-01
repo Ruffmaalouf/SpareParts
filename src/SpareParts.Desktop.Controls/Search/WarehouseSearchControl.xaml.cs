@@ -134,8 +134,7 @@ namespace SpareParts.Desktop.Wpf
             {
                 if (d == InputPill || d == ResultsPopup) return true;
                 if (d is System.Windows.Controls.Primitives.Popup) return true;
-                d = VisualTreeHelper.GetParent(d) ??
-                    LogicalTreeHelper.GetParent(d) as DependencyObject;
+                d = SearchTreeHelper.GetParent(d);
             }
             return false;
         }

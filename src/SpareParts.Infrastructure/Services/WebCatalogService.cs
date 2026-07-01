@@ -42,6 +42,8 @@ SELECT p.Id,
        w.Id AS WarehouseId,
        w.Name AS WarehouseName,
        p.UsedCarId,
+       p.ImageUrls,
+       CASE WHEN ISJSON(p.ImageUrls) = 1 THEN JSON_VALUE(p.ImageUrls, '$[0]') ELSE NULL END AS ImageUrl,
        CASE
            WHEN uc.Id IS NULL THEN N'Warehouse stock'
            ELSE CONCAT(cb.Name, N' ', cm.Name, N' / ', uc.ModelYear)

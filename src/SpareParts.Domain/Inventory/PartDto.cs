@@ -27,6 +27,8 @@ namespace SpareParts.Domain.Inventory
         public int StockQuantity { get; set; }
         public int ReservedQuantity { get; set; }
         public int AvailableQuantity { get; set; }
+        public string? ImageUrls { get; set; }
+        public string? ImageUrl { get; set; }
         public string? Notes { get; set; }
         public int? UsedCarId { get; set; }
         public bool IsActive { get; set; }
