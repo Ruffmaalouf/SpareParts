@@ -135,25 +135,6 @@ WHERE Id = @PartId;
             session.Transaction);
     }
 
-    private sealed class UsedCarPricingCarRow
-    {
-        public int Id { get; set; }
-        public decimal GrandTotalBase { get; set; }
-        public decimal ExpectedSellThroughRate { get; set; }
-        public string BaseCurrencyCode { get; set; } = "USD";
-        public string CounterCurrencyCode { get; set; } = "USD";
-        public decimal CounterRateToBase { get; set; } = 1m;
-    }
-
-    private sealed class UsedCarPricingPartRow
-    {
-        public int PartId { get; set; }
-        public decimal? EstimatedMarketPrice { get; set; }
-        public decimal? AveragePrice { get; set; }
-        public decimal SalePrice { get; set; }
-        public string Currency { get; set; } = "USD";
-    }
-
     private static decimal ResolvePartRateToBase(
         DbSession session,
         UsedCarPricingCarRow car,

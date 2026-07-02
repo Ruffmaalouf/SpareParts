@@ -1,17 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
 import { money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
+import { read } from "../admin/resource-utils.js";
 
 function toArray(value) {
   return Array.isArray(value) ? value : value ? [value] : [];

@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- APEX WORKSHOP THEME — Light workspace / Black sidebar / Orange accent -->
+    <!-- WORKSHOP LIGHT THEME — Light workspace / Black sidebar / Racing red accent -->
 
     <!-- Color Primitives -->
     <Color x:Key="ColorWorkspace">#FFF0EEEA</Color>
@@ -10,8 +10,8 @@
     <Color x:Key="ColorInput">#FFF8F7F4</Color>
     <Color x:Key="ColorSidebar">#FF111110</Color>
     <Color x:Key="ColorSidebarHover">#FF1E1E1C</Color>
-    <Color x:Key="ColorAccent">#FFD4500C</Color>
-    <Color x:Key="ColorAccentHover">#FFBF4510</Color>
+    <Color x:Key="ColorAccent">#FFE2231A</Color>
+    <Color x:Key="ColorAccentHover">#FFB81C15</Color>
     <Color x:Key="ColorDanger">#FFDC2626</Color>
     <Color x:Key="ColorSuccess">#FF16A34A</Color>
     <Color x:Key="ColorAmber">#FFB45309</Color>
@@ -51,7 +51,7 @@
     <!-- Preloader -->
     <SolidColorBrush x:Key="PreloaderOverlayBrush">#CCF0EEEA</SolidColorBrush>
     <SolidColorBrush x:Key="PreloaderCardBrush">#FFFFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="PreloaderBorderBrush">#FFD4500C</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderBorderBrush">#FFE2231A</SolidColorBrush>
 
     <!-- ── Global TextBlock ── -->
     <Style TargetType="TextBlock">
@@ -70,7 +70,7 @@
         <Setter Property="FontSize"                 Value="13"/>
         <Setter Property="Height"                   Value="38"/>
         <Setter Property="CaretBrush"               Value="{StaticResource AccentBrush}"/>
-        <Setter Property="SelectionBrush"           Value="#33D4500C"/>
+        <Setter Property="SelectionBrush"           Value="#33E2231A"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -88,7 +88,7 @@
                             <Setter TargetName="bdr" Property="Background"  Value="{StaticResource CardBackgroundBrush}"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FFD4500C" BlurRadius="8" ShadowDepth="0" Opacity="0.18"/>
+                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="8" ShadowDepth="0" Opacity="0.18"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -114,7 +114,7 @@
         <Setter Property="FontSize"                 Value="13"/>
         <Setter Property="Height"                   Value="38"/>
         <Setter Property="CaretBrush"               Value="{StaticResource AccentBrush}"/>
-        <Setter Property="SelectionBrush"           Value="#33D4500C"/>
+        <Setter Property="SelectionBrush"           Value="#33E2231A"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -132,7 +132,7 @@
                             <Setter TargetName="bdr" Property="Background"  Value="{StaticResource CardBackgroundBrush}"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FFD4500C" BlurRadius="8" ShadowDepth="0" Opacity="0.18"/>
+                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="8" ShadowDepth="0" Opacity="0.18"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -174,7 +174,7 @@
                             <Setter Property="Foreground"                  Value="White"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FFD4500C" BlurRadius="14" ShadowDepth="0" Opacity="0.35"/>
+                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="14" ShadowDepth="0" Opacity="0.35"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -311,9 +311,9 @@
                 <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#0CD4500C"/>
+                <Setter Property="Background" Value="#0CE2231A"/>
                 <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
-                <Setter Property="BorderBrush" Value="#22D4500C"/>
+                <Setter Property="BorderBrush" Value="#22E2231A"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -441,7 +441,7 @@
                             <Setter TargetName="Bd" Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0CD4500C"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0CE2231A"/>
                             <Setter Property="Foreground"                 Value="{StaticResource AccentBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -563,7 +563,7 @@
                             <Setter TargetName="bdr" Property="Background" Value="{StaticResource AppBackgroundBrush}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="bdr" Property="Background" Value="#0CD4500C"/>
+                            <Setter TargetName="bdr" Property="Background" Value="#0CE2231A"/>
                             <Setter Property="Foreground"                  Value="{StaticResource AccentBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -585,7 +585,7 @@
                         <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}"
                                 HorizontalAlignment="Left" CornerRadius="3">
                             <Border.Effect>
-                                <DropShadowEffect Color="#FFD4500C" BlurRadius="6" ShadowDepth="0" Opacity="0.4"/>
+                                <DropShadowEffect Color="#FFE2231A" BlurRadius="6" ShadowDepth="0" Opacity="0.4"/>
                             </Border.Effect>
                         </Border>
                     </Border>
@@ -863,7 +863,7 @@
         <Setter Property="Padding"         Value="20"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="#FFD4500C" BlurRadius="20" ShadowDepth="0" Opacity="0.12"/>
+                <DropShadowEffect Color="#FFE2231A" BlurRadius="20" ShadowDepth="0" Opacity="0.12"/>
             </Setter.Value>
         </Setter>
     </Style>
@@ -923,8 +923,8 @@
     <Style x:Key="AccentTagStyle" TargetType="Border">
         <Setter Property="CornerRadius"    Value="6"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="BorderBrush"     Value="#22D4500C"/>
-        <Setter Property="Background"      Value="#0CD4500C"/>
+        <Setter Property="BorderBrush"     Value="#22E2231A"/>
+        <Setter Property="Background"      Value="#0CE2231A"/>
         <Setter Property="Padding"         Value="8 3"/>
     </Style>
 
@@ -962,8 +962,8 @@
                 <Setter Property="Background"  Value="{StaticResource AppBackgroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background"  Value="#0CD4500C"/>
-                <Setter Property="BorderBrush" Value="#22D4500C"/>
+                <Setter Property="Background"  Value="#0CE2231A"/>
+                <Setter Property="BorderBrush" Value="#22E2231A"/>
                 <Setter Property="Foreground"  Value="{StaticResource AccentBrush}"/>
             </Trigger>
         </Style.Triggers>

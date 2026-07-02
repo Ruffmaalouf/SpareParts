@@ -522,6 +522,12 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<ThemeOption> Themes { get; } = new();
         public ICommand SelectThemeCommand { get; private set; } = null!;
 
+        /// <summary>Dark-mode theme swatches (everything except Workshop Light) for the two-tier Themes popup.</summary>
+        public IEnumerable<ThemeOption> DarkThemes => Themes.Where(t => !t.IsLightMode);
+
+        /// <summary>Light-mode theme swatches, rendered under their own "Light mode" section header.</summary>
+        public IEnumerable<ThemeOption> LightThemes => Themes.Where(t => t.IsLightMode);
+
         public ObservableCollection<InvoiceTabViewModel> Tabs { get; } = new();
         public ObservableCollection<PurchaseDraftItemViewModel> PurchaseDraftItems { get; } = new();
         public ObservableCollection<StockSnapshotViewModel> StockSnapshots { get; } = new();
@@ -1052,12 +1058,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                     OnPropertyChanged(nameof(IsGlobalLoading));
             };
 
-            Themes.Add(new ThemeOption { Key = AppTheme.Default, Name = "Classic Dark", SubTitle = "Petrol Head · Racing Red", AccentHex = "#D40000" });
+            Themes.Add(new ThemeOption { Key = AppTheme.Default, Name = "Classic Dark", SubTitle = "Apex Cockpit · Racing Red", AccentHex = "#E2231A" });
             Themes.Add(new ThemeOption { Key = AppTheme.MPower, Name = "M Power", SubTitle = "BMW · Midnight Blue", AccentHex = "#1C69D4" });
             Themes.Add(new ThemeOption { Key = AppTheme.NeonGlow, Name = "Neon Glow", SubTitle = "Cyberpunk · Electric Cyan", AccentHex = "#00E5FF" });
             Themes.Add(new ThemeOption { Key = AppTheme.AMG, Name = "AMG", SubTitle = "Mercedes · Titanium Grey", AccentHex = "#C0C0C0" });
             Themes.Add(new ThemeOption { Key = AppTheme.PorscheRS, Name = "Porsche RS", SubTitle = "Racing · Guards Red", AccentHex = "#E30613" });
             Themes.Add(new ThemeOption { Key = AppTheme.LamborghiniSC, Name = "Squadra Corse", SubTitle = "Lamborghini · Giallo Orion", AccentHex = "#FFD600" });
+            Themes.Add(new ThemeOption { Key = AppTheme.WorkshopLight, Name = "Workshop Light", SubTitle = "Light workspace · Racing Red", AccentHex = "#E2231A", IsLightMode = true });
 
             SelectThemeCommand = new RelayCommand(o =>
             {
@@ -1066,8 +1073,13 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 picked.IsSelected = true;
                 ThemeManager.ApplyTheme(picked.Key);
             });
-            Themes[0].IsSelected = true;
-            ThemeManager.ApplyTheme(AppTheme.Default);
+
+            // Restore the user's last-selected theme (persisted to %LocalAppData%\SpareParts\Preferences\theme.json)
+            // so the choice survives an app restart, matching mobile's changeTheme() persistence behavior.
+            var savedTheme = ThemeManager.LoadPersistedTheme();
+            var savedOption = Themes.FirstOrDefault(t => t.Key == savedTheme) ?? Themes[0];
+            savedOption.IsSelected = true;
+            ThemeManager.ApplyTheme(savedOption.Key, persist: false);
 
             SelectBrandCommand = new RelayCommand(SelectBrand);
             SelectCarCommand = new RelayCommand(SelectCar);

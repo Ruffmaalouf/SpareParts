@@ -3,6 +3,7 @@ import { asRows, displayCurrencyContext, displayMoneyFromBase, money, shortDate 
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
 import { genericColumns } from "./management-view.js";
 import { PricingCoachCard, PricingCoachSignal, smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
+import { read } from "../admin/resource-utils.js";
 
 const scanColumns = [
   { key: "type", label: "Type", render: (row) => row.targetType || "-" },
@@ -10,17 +11,6 @@ const scanColumns = [
   { key: "result", label: "Result", render: (row) => row.displayText || `#${row.targetId || ""}`.trim() },
   { key: "detail", label: "Detail", render: (row) => row.secondaryText || row.apiRoute || "-" }
 ];
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
 
 function reportCell(value) {
   if (value === null || value === undefined || value === "") return "-";

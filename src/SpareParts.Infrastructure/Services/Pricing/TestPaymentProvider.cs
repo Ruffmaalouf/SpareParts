@@ -62,11 +62,4 @@ public sealed class TestPaymentProvider : IPaymentProvider
             PaymentSucceeded = payload.Succeeded
         });
     }
-
-    private sealed class TestWebhookPayload
-    {
-        public int PaymentId { get; set; }
-        public bool Succeeded { get; set; } = true;
-        public string? EventId { get; set; }
-    }
 }

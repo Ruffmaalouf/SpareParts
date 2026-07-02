@@ -325,7 +325,7 @@ function ProfitHeatmapTile({ row, formatMoney, onPress }) {
 const CK = {
   bg: "#070708", panel: "#121217", panel2: "#16161c", border: "#24242c",
   text: "#f4f4f7", muted: "#8c8c9c", muted2: "#5d5d6d",
-  red: "#ff3b3b", orange: "#ff8a3d", green: "#2bdb8f", blue: "#4d8dff",
+  red: "#e2231a", orange: "#ff8a3d", green: "#2bdb8f", blue: "#4d8dff",
   purple: "#b768ff", cyan: "#34d9d4", gold: "#ffc257"
 };
 

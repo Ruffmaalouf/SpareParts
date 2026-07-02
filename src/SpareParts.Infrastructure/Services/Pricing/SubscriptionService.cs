@@ -127,7 +127,7 @@ public sealed class SubscriptionService : ISubscriptionService
             throw new ValidationException($"Unknown billing cycle '{request.BillingCycle}'.");
         }
 
-        PackageRow package;
+        SubscriptionPricingPackageRow package;
         using (var conn = _factory.CreateConnection())
         {
             package = GetPackageByCode(conn, request.PackageCode, null);
@@ -578,9 +578,9 @@ public sealed class SubscriptionService : ISubscriptionService
             transaction);
     }
 
-    private static PackageRow GetPackageByCode(IDbConnection conn, string code, IDbTransaction? transaction)
+    private static SubscriptionPricingPackageRow GetPackageByCode(IDbConnection conn, string code, IDbTransaction? transaction)
     {
-        var package = conn.QuerySingleOrDefault<PackageRow>(
+        var package = conn.QuerySingleOrDefault<SubscriptionPricingPackageRow>(
             "SELECT Id, Code, Name, MonthlyPrice, YearlyPrice, Currency, SortOrder, IsActive, IsCustomPricing FROM dbo.PricingPackages WHERE Code = @Code",
             new { Code = code },
             transaction);
@@ -639,39 +639,5 @@ public sealed class SubscriptionService : ISubscriptionService
             Limits = limits.Select(l => new PackageLimitDto { LimitCode = l.LimitCode, LimitValue = l.LimitValue }).ToList(),
             Usage = usage
         };
-    }
-
-    private sealed class SubscriptionRow
-    {
-        public int Id { get; set; }
-        public int TenantId { get; set; }
-        public string TenantName { get; set; } = string.Empty;
-        public string TenantCode { get; set; } = string.Empty;
-        public int PackageId { get; set; }
-        public string PackageCode { get; set; } = string.Empty;
-        public string PackageName { get; set; } = string.Empty;
-        public int PackageSortOrder { get; set; }
-        public int Status { get; set; }
-        public int BillingCycle { get; set; }
-        public DateTime CurrentPeriodStart { get; set; }
-        public DateTime CurrentPeriodEnd { get; set; }
-        public DateTime? TrialEndsAt { get; set; }
-        public DateTime? CancelledAt { get; set; }
-        public bool CancelAtPeriodEnd { get; set; }
-        public string? ProviderCode { get; set; }
-        public string? ProviderSubscriptionId { get; set; }
-    }
-
-    private sealed class PackageRow
-    {
-        public int Id { get; set; }
-        public string Code { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public decimal MonthlyPrice { get; set; }
-        public decimal YearlyPrice { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int SortOrder { get; set; }
-        public bool IsActive { get; set; }
-        public bool IsCustomPricing { get; set; }
     }
 }

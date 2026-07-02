@@ -133,6 +133,4 @@ public static class TenantIdMigration
 
     private static string QuoteIdentifier(string value)
         => $"[{value.Replace("]", "]]", StringComparison.Ordinal)}]";
-
-    private sealed record TenantTable(string Name, bool CreateIndex);
 }

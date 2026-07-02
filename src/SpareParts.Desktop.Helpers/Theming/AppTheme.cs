@@ -7,6 +7,7 @@ namespace SpareParts.Desktop.Wpf
         NeonGlow,
         AMG,
         PorscheRS,
-        LamborghiniSC
+        LamborghiniSC,
+        WorkshopLight
     }
 }

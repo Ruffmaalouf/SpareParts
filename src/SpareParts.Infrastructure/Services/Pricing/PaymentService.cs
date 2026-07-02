@@ -261,34 +261,4 @@ public sealed class PaymentService : IPaymentService
         PaidAt = row.PaidAt,
         CreatedAt = row.CreatedAt
     };
-
-    private sealed class PaymentRow
-    {
-        public int Id { get; set; }
-        public int TenantId { get; set; }
-        public int? SubscriptionId { get; set; }
-        public string ProviderCode { get; set; } = string.Empty;
-        public string? ProviderPaymentId { get; set; }
-        public string? ProviderCheckoutSessionId { get; set; }
-        public string PackageCode { get; set; } = string.Empty;
-        public int BillingCycle { get; set; }
-        public decimal Amount { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int Status { get; set; }
-        public string? Notes { get; set; }
-        public DateTime? PaidAt { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
-
-    private sealed class WebhookEventRow
-    {
-        public int Id { get; set; }
-        public string Provider { get; set; } = string.Empty;
-        public string EventId { get; set; } = string.Empty;
-        public string EventType { get; set; } = string.Empty;
-        public int Status { get; set; }
-        public DateTime? ProcessedAt { get; set; }
-        public string? Error { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
 }

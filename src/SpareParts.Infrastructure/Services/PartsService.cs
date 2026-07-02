@@ -478,18 +478,6 @@ ORDER BY
         };
     }
 
-    private sealed class PartListingQueryRow
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string OEMNumber { get; set; } = string.Empty;
-        public PartCondition Condition { get; set; }
-        public decimal SalePrice { get; set; }
-        public string Currency { get; set; } = string.Empty;
-        public int? UsedCarId { get; set; }
-        public string? UsedCarName { get; set; }
-    }
-
     public void UpdateUsedCar(int id, int? usedCarId, int userId)
     {
         using var session = new DbSession(_factory, _tenantContext.TenantId);
@@ -837,24 +825,4 @@ END;
         => string.IsNullOrWhiteSpace(row.InternalCode)
             ? row.PartName
             : $"{row.InternalCode} - {row.PartName}";
-
-    private sealed class DeadStockQueryRow
-    {
-        public int PartId { get; set; }
-        public string InternalCode { get; set; } = string.Empty;
-        public string PartName { get; set; } = string.Empty;
-        public string? OemNumber { get; set; }
-        public string Currency { get; set; } = PartDefaults.Currency;
-        public decimal SalePrice { get; set; }
-        public decimal UnitCost { get; set; }
-        public decimal OnHand { get; set; }
-        public decimal AvailableQuantity { get; set; }
-        public decimal StockValue { get; set; }
-        public decimal SoldQuantityLast90 { get; set; }
-        public decimal SoldQuantityAllTime { get; set; }
-        public DateTime? LastSoldAt { get; set; }
-        public DateTime? LastReceivedAt { get; set; }
-        public DateTime DormantSince { get; set; }
-        public int DormantDays { get; set; }
-    }
 }

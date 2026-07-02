@@ -36,7 +36,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         public ObservableCollection<DeadStockItemRow> Items { get; } = new();
         public ObservableCollection<DeadStockItemRow> FilteredItems { get; } = new();
-        public ObservableCollection<DeadStockMetricTile> MetricTiles { get; } = new();
+        public ObservableCollection<MetricTile> MetricTiles { get; } = new();
 
         public ICommand LoadCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -250,10 +250,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             Replace(MetricTiles, new[]
             {
-                new DeadStockMetricTile("Candidates", rows.Count.ToString("N0", CultureInfo.CurrentCulture), "Aged on-hand parts", Accent("#FFFF7043")),
-                new DeadStockMetricTile("Units", totalUnits.ToString("N0", CultureInfo.CurrentCulture), "Stock still on shelf", Accent("#FFFFB74D")),
-                new DeadStockMetricTile("Value", currency == "MIXED" ? "Mixed" : DeadStockItemRow.FormatMoney(stockValue, currency), "Estimated inventory value", Accent("#FF81C784")),
-                new DeadStockMetricTile("Oldest", $"{worstDormant:N0}d", "Longest dormant row", Accent("#FF64B5F6"))
+                new MetricTile("Candidates", rows.Count.ToString("N0", CultureInfo.CurrentCulture), "Aged on-hand parts", Accent("#FFFF7043")),
+                new MetricTile("Units", totalUnits.ToString("N0", CultureInfo.CurrentCulture), "Stock still on shelf", Accent("#FFFFB74D")),
+                new MetricTile("Value", currency == "MIXED" ? "Mixed" : DeadStockItemRow.FormatMoney(stockValue, currency), "Estimated inventory value", Accent("#FF81C784")),
+                new MetricTile("Oldest", $"{worstDormant:N0}d", "Longest dormant row", Accent("#FF64B5F6"))
             });
         }
 

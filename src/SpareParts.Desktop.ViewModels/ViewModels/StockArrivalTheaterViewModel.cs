@@ -45,7 +45,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ObservableCollection<StockArrivalLane> Lanes { get; } = new();
-        public ObservableCollection<StockArrivalMetricTile> MetricTiles { get; } = new();
+        public ObservableCollection<MetricTile> MetricTiles { get; } = new();
         public ObservableCollection<StockArrivalFeedRow> ArrivalFeed { get; } = new();
 
         public ICommand LoadCommand { get; }
@@ -254,10 +254,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
             Replace(MetricTiles, new[]
             {
-                new StockArrivalMetricTile("Recent arrivals", arrivalCount.ToString("N0", CultureInfo.CurrentCulture), "Purchases and cars", Brushes.DeepSkyBlue),
-                new StockArrivalMetricTile("Ready requests", readyRequests.Count.ToString("N0", CultureInfo.CurrentCulture), $"{waitingCustomers:N0} waiting customers", Brushes.LimeGreen),
-                new StockArrivalMetricTile("Campaigns", campaignCount.ToString("N0", CultureInfo.CurrentCulture), assets.Count == 0 ? "Campaign assets unavailable" : "Suggested sends", Brushes.Orange),
-                new StockArrivalMetricTile("Priced stock", pricedStock.ToString("N0", CultureInfo.CurrentCulture), "Available to sell", Brushes.Gold)
+                new MetricTile("Recent arrivals", arrivalCount.ToString("N0", CultureInfo.CurrentCulture), "Purchases and cars", Brushes.DeepSkyBlue),
+                new MetricTile("Ready requests", readyRequests.Count.ToString("N0", CultureInfo.CurrentCulture), $"{waitingCustomers:N0} waiting customers", Brushes.LimeGreen),
+                new MetricTile("Campaigns", campaignCount.ToString("N0", CultureInfo.CurrentCulture), assets.Count == 0 ? "Campaign assets unavailable" : "Suggested sends", Brushes.Orange),
+                new MetricTile("Priced stock", pricedStock.ToString("N0", CultureInfo.CurrentCulture), "Available to sell", Brushes.Gold)
             });
         }
 

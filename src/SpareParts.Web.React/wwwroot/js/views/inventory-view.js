@@ -13,6 +13,7 @@ import { StatusPill } from "../components/ui/StatusPill.js";
 import { Badge } from "../components/ui/Badge.js";
 import { EmptyState } from "../components/ui/EmptyState.js";
 import { selectPartPassport } from "./part-passport-workspace-view.js";
+import { read as readValue } from "../admin/resource-utils.js";
 
 const conditionLabels = new Map([
   [1, "New"],
@@ -103,18 +104,6 @@ function buildPartSearchText(part, donor) {
     donorLocation(donor),
     donor?.supplierName
   ].filter(Boolean).join(" ").toLowerCase();
-}
-
-function readValue(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-
-  return "";
 }
 
 function normalizeText(value) {

@@ -55,7 +55,7 @@ public sealed class InvoiceService : IInvoiceService
             return existing;
         }
 
-        var payment = session.Connection.QuerySingleOrDefault<PaymentRow>(
+        var payment = session.Connection.QuerySingleOrDefault<InvoicePaymentRow>(
             "SELECT * FROM dbo.Payments WHERE Id = @Id",
             new { Id = paymentId },
             session.Transaction);
@@ -126,32 +126,4 @@ public sealed class InvoiceService : IInvoiceService
         DueAt = row.DueAt,
         PaidAt = row.PaidAt
     };
-
-    private sealed class InvoiceRow
-    {
-        public int Id { get; set; }
-        public string InvoiceNumber { get; set; } = string.Empty;
-        public int TenantId { get; set; }
-        public int? SubscriptionId { get; set; }
-        public int? PaymentId { get; set; }
-        public decimal Subtotal { get; set; }
-        public decimal TaxAmount { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int Status { get; set; }
-        public DateTime IssuedAt { get; set; }
-        public DateTime? DueAt { get; set; }
-        public DateTime? PaidAt { get; set; }
-    }
-
-    private sealed class PaymentRow
-    {
-        public int Id { get; set; }
-        public int TenantId { get; set; }
-        public int? SubscriptionId { get; set; }
-        public decimal Amount { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int Status { get; set; }
-        public DateTime? PaidAt { get; set; }
-    }
 }

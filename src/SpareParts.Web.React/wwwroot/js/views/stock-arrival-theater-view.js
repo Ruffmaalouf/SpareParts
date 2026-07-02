@@ -2,6 +2,7 @@ import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runt
 import { asRows, displayCurrencyContext, displayMoneyFromBase, initials, money, shortDate } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
 import { smartPricingCoach, waitingCustomersByPart } from "../services/pricing-coach.js";
+import { read } from "../admin/resource-utils.js";
 
 const campaignLanguage = "ArabicEnglish";
 
@@ -11,17 +12,6 @@ const lanes = [
   { key: "campaign", title: "Campaigns", subtitle: "Ready-made audiences and arrival bundles." },
   { key: "pricing", title: "Price", subtitle: "Stock that needs a quote before it can move." }
 ];
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
 
 function toNumber(value) {
   const parsed = Number(String(value || "").replace(/,/g, ".").trim());

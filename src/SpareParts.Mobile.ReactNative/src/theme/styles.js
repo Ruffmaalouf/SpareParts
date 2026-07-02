@@ -4025,7 +4025,7 @@ function createStyles(palette) {
     borderRadius: 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#d71920"
+    backgroundColor: "#e2231a"
   },
   storeBrandMarkText: {
     color: "#fff",
@@ -4316,7 +4316,7 @@ function createStyles(palette) {
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 2,
-    backgroundColor: "#d71920",
+    backgroundColor: "#e2231a",
     margin: 14,
     paddingHorizontal: 14
   },

@@ -477,38 +477,4 @@ public sealed class VisualPartSearchService
 
         return recognition.Message;
     }
-
-    private sealed record VisualRecognitionResult(
-        string Source,
-        string SearchText,
-        string PartFamily,
-        IReadOnlyList<string> Tags,
-        string Message)
-    {
-        public static VisualRecognitionResult Metadata(string message)
-            => new("metadata", string.Empty, string.Empty, Array.Empty<string>(), message);
-    }
-
-    private sealed class VisualRecognitionPayload
-    {
-        public string? PartFamily { get; set; }
-        public string? SearchText { get; set; }
-        public List<string>? Tags { get; set; }
-        public decimal Confidence { get; set; }
-    }
-
-    private sealed class VisualPartCandidate
-    {
-        public int PartId { get; set; }
-        public string InternalCode { get; set; } = string.Empty;
-        public string? Barcode { get; set; }
-        public string PartName { get; set; } = string.Empty;
-        public string? OemNumber { get; set; }
-        public string? BrandName { get; set; }
-        public string? CategoryName { get; set; }
-        public string? Notes { get; set; }
-        public decimal SalePrice { get; set; }
-        public string Currency { get; set; } = "USD";
-        public int AvailableQuantity { get; set; }
-    }
 }

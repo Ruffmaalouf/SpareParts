@@ -14,11 +14,16 @@
   --apx-panel: #111316;
   --apx-panel2: #191c20;
   --apx-line: rgba(247, 244, 237, .13);
-  /* accent — Brick Red */
-  --apx-accent: #ff4b3a;
+  /* accent — canonical brand red. Bridged to the theme picker's global --accent custom property
+     (see js/core/formatters.js applyWebTheme, which sets --accent on document.documentElement).
+     #E2231A is the fallback when no theme override is active — keep in sync with
+     wwwroot/js/core/config.js wpfThemes and SpareParts.Mobile.ReactNative/src/core/app-config.js
+     wpfThemes "apex" accent. */
+  --apx-accent: var(--accent, #E2231A);
   --apx-accent2: #ff8a3d;
   --apx-on-accent: #ffffff;
-  --apx-glow: rgba(255, 75, 58, .45);
+  /* glow alpha kept at .45, rgb updated to match the new #E2231A accent (was 255,75,58 for the old #ff4b3a) */
+  --apx-glow: rgba(226, 35, 26, .45);
   --apx-green: #34e08a;
   --apx-display: "Oswald", system-ui, sans-serif;
   --apx-card-min: 262px;

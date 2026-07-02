@@ -178,7 +178,7 @@ ORDER BY
 
         using var conn = _factory.CreateConnection();
         var part = request.PartId is int partId
-            ? conn.QuerySingleOrDefault<PartLookup>(
+            ? conn.QuerySingleOrDefault<PartRequestPartLookup>(
                 """
 SELECT Id, InternalCode, Name, OEMNumber, TenantId
 FROM dbo.Parts
@@ -194,7 +194,7 @@ WHERE Id = @PartId
         }
 
         var customer = request.CustomerId is int customerId
-            ? conn.QuerySingleOrDefault<CustomerLookup>(
+            ? conn.QuerySingleOrDefault<PartRequestCustomerLookup>(
                 """
 SELECT Id, Name, Phone
 FROM dbo.Customers
@@ -275,7 +275,7 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
 
         try
         {
-            var target = conn.QuerySingleOrDefault<ReservationTarget>(
+            var target = conn.QuerySingleOrDefault<PartRequestReservationTarget>(
                 """
 SELECT Id, PartId, Quantity, Status
 FROM dbo.PartRequests WITH (UPDLOCK, ROWLOCK)
@@ -467,7 +467,7 @@ WHERE PartRequestId = @Id
         string expirationAction,
         int userId)
     {
-        var stockRows = conn.Query<ReservationStockRow>(
+        var stockRows = conn.Query<PartRequestReservationStockRow>(
             """
 SELECT
     s.Id,
@@ -639,7 +639,7 @@ WHERE Status = N'Active'
         string reservationStatus,
         string reason)
     {
-        var lines = conn.Query<ActiveReservationLine>(
+        var lines = conn.Query<PartRequestActiveReservationLine>(
             """
 SELECT Id, StockId, Quantity
 FROM dbo.PartRequestReservations WITH (UPDLOCK, ROWLOCK)
@@ -733,42 +733,4 @@ WHERE Id = @Id;
         => value.HasValue && value.Value.Kind == DateTimeKind.Unspecified
             ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
             : value;
-
-    private sealed class PartLookup
-    {
-        public int Id { get; set; }
-        public string InternalCode { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string? OEMNumber { get; set; }
-        public int? TenantId { get; set; }
-    }
-
-    private sealed class CustomerLookup
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string? Phone { get; set; }
-    }
-
-    private sealed class ReservationTarget
-    {
-        public int Id { get; set; }
-        public int? PartId { get; set; }
-        public int Quantity { get; set; }
-        public string Status { get; set; } = PartRequestStatus.Open;
-    }
-
-    private sealed class ReservationStockRow
-    {
-        public int Id { get; set; }
-        public int WarehouseId { get; set; }
-        public int AvailableQuantity { get; set; }
-    }
-
-    private sealed class ActiveReservationLine
-    {
-        public int Id { get; set; }
-        public int StockId { get; set; }
-        public int Quantity { get; set; }
-    }
 }

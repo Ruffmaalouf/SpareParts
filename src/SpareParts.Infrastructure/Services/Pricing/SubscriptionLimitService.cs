@@ -214,7 +214,7 @@ public sealed class SubscriptionLimitService : ISubscriptionLimitService
             return (row.Id, row.Code, row.SortOrder);
         }
 
-        var free = conn.QuerySingleOrDefault<PackageRow>(
+        var free = conn.QuerySingleOrDefault<SubscriptionLimitPackageRow>(
             "SELECT Id, Code, SortOrder FROM dbo.PricingPackages WHERE Code = @Code",
             new { Code = PackageCode.Free },
             transaction);
@@ -225,22 +225,5 @@ public sealed class SubscriptionLimitService : ISubscriptionLimitService
         }
 
         return (free.Id, free.Code, free.SortOrder);
-    }
-
-    private sealed class SubscriptionPackageRow
-    {
-        public int Id { get; set; }
-        public string Code { get; set; } = string.Empty;
-        public int SortOrder { get; set; }
-        public int Status { get; set; }
-        public DateTime? TrialEndsAt { get; set; }
-        public DateTime CurrentPeriodEnd { get; set; }
-    }
-
-    private sealed class PackageRow
-    {
-        public int Id { get; set; }
-        public string Code { get; set; } = string.Empty;
-        public int SortOrder { get; set; }
     }
 }

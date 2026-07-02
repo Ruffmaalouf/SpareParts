@@ -1,6 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { displayCurrencyContext, displayMoneyFromBase, initials, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
+import { read } from "../admin/resource-utils.js";
 
 const emptyForm = {
   barcode: "",
@@ -18,17 +19,6 @@ const emptyForm = {
   repairs: "",
   expectedSellThroughRate: "0.8"
 };
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
 
 function toArray(value) {
   return Array.isArray(value) ? value : value ? [value] : [];

@@ -50,7 +50,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ObservableCollection<PartCompatibilityPartRow> FilteredParts { get; } = new();
-        public ObservableCollection<PartCompatibilityMetricTile> MetricTiles { get; } = new();
+        public ObservableCollection<MetricTile> MetricTiles { get; } = new();
         public ObservableCollection<PartCompatibilityGraphNode> GraphNodes { get; } = new();
         public ObservableCollection<PartCompatibilityGraphEdge> GraphEdges { get; } = new();
         public ObservableCollection<PartCompatibilityFitmentGroup> FitmentGroups { get; } = new();
@@ -388,7 +388,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 .Take(12);
         }
 
-        private IReadOnlyList<PartCompatibilityMetricTile> BuildMetrics(
+        private IReadOnlyList<MetricTile> BuildMetrics(
             IReadOnlyCollection<CompatibilityMatch> matches,
             IReadOnlyCollection<PartCompatibilityFitmentGroup> fitmentGroups)
         {
@@ -402,7 +402,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 .Where(match => match.Part.Id != SelectedPart?.Id)
                 .Sum(match => Math.Max(0, match.Part.AvailableQuantity));
 
-            return new List<PartCompatibilityMetricTile>
+            return new List<MetricTile>
             {
                 new("Models", fitmentGroups.Count.ToString("N0", CultureInfo.InvariantCulture), "Distinct fitment groups", Accent("#FF29B6F6")),
                 new("Donor cars", donorCars.ToString("N0", CultureInfo.InvariantCulture), "Linked vehicle records", Accent("#FFFFB74D")),

@@ -1,6 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { money } from "../core/formatters.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
+import { read } from "../admin/resource-utils.js";
 
 const code128Patterns = [
   "212222", "222122", "222221", "121223", "121322", "131222", "122213", "122312",
@@ -18,17 +19,6 @@ const code128Patterns = [
   "114311", "411113", "411311", "113141", "114131", "311141", "411131", "211412",
   "211214", "211232", "2331112"
 ];
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
 
 function toArray(value) {
   return Array.isArray(value) ? value : value ? [value] : [];

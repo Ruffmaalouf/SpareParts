@@ -114,7 +114,7 @@ END;",
     private static CurrencyRepairContext ResolveCurrencyContext(System.Data.IDbConnection connection)
     {
         var constants = TableExists(connection, "dbo", "AppConstants")
-            ? connection.Query<AppConstantRow>("SELECT [Key], [Value] FROM dbo.AppConstants;")
+            ? connection.Query<CurrencyRateRepairAppConstantRow>("SELECT [Key], [Value] FROM dbo.AppConstants;")
                 .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase)
             : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -135,14 +135,14 @@ END;",
         return new CurrencyRepairContext(baseCurrencyCode, counterCurrencyCode, counterRateToBase);
     }
 
-    private static IReadOnlyDictionary<string, CurrencyRateRow> LoadCurrencyRates(System.Data.IDbConnection connection)
+    private static IReadOnlyDictionary<string, CurrencyRateRepairRateRow> LoadCurrencyRates(System.Data.IDbConnection connection)
     {
         if (!TableExists(connection, "dbo", "CurrencyRates"))
         {
-            return new Dictionary<string, CurrencyRateRow>(StringComparer.OrdinalIgnoreCase);
+            return new Dictionary<string, CurrencyRateRepairRateRow>(StringComparer.OrdinalIgnoreCase);
         }
 
-        return connection.Query<CurrencyRateRow>(
+        return connection.Query<CurrencyRateRepairRateRow>(
                 @"SELECT Code, RateToUsd, BaseCode
                   FROM dbo.CurrencyRates
                   WHERE Code IS NOT NULL
@@ -154,7 +154,7 @@ END;",
     }
 
     private static decimal? ResolveRateToBaseCurrency(
-        IReadOnlyDictionary<string, CurrencyRateRow> ratesByCode,
+        IReadOnlyDictionary<string, CurrencyRateRepairRateRow> ratesByCode,
         string baseCurrencyCode,
         string currencyCode)
     {
@@ -183,7 +183,7 @@ END;",
 
     private static decimal ResolveUnitsPerReferenceCurrency(
         string currencyCode,
-        IReadOnlyDictionary<string, CurrencyRateRow> ratesByCode,
+        IReadOnlyDictionary<string, CurrencyRateRepairRateRow> ratesByCode,
         IDictionary<string, decimal> unitsPerReferenceCurrency,
         HashSet<string> activeStack)
     {
@@ -246,23 +246,5 @@ END;",
 
         var normalized = currencyCode.Trim().ToUpperInvariant();
         return normalized.Length == 3 ? normalized : null;
-    }
-
-    private sealed record CurrencyRepairContext(
-        string BaseCurrencyCode,
-        string CounterCurrencyCode,
-        decimal CounterRateToBase);
-
-    private sealed class AppConstantRow
-    {
-        public string Key { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
-    }
-
-    private sealed class CurrencyRateRow
-    {
-        public string Code { get; set; } = string.Empty;
-        public decimal RateToUsd { get; set; }
-        public string BaseCode { get; set; } = string.Empty;
     }
 }

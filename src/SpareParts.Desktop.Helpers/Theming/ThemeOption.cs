@@ -10,6 +10,13 @@ namespace SpareParts.Desktop.Wpf
         public string Name { get; set; } = string.Empty;
         public string SubTitle { get; set; } = string.Empty;
 
+        /// <summary>
+        /// True for light-mode themes (e.g. Workshop Light). Used by the Themes popup to
+        /// render a separate "Light mode" section instead of mixing light swatches into the
+        /// flat list of dark themes.
+        /// </summary>
+        public bool IsLightMode { get; set; }
+
         private string _accentHex = "#FF5722";
         public string AccentHex
         {

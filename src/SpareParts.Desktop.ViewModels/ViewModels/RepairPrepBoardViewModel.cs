@@ -46,7 +46,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         public ObservableCollection<RepairPrepCarRow> Cars { get; } = new();
         public ObservableCollection<RepairPrepTaskRow> SelectedTasks { get; } = new();
         public ObservableCollection<RepairPrepLinkedPartRow> SelectedLinkedParts { get; } = new();
-        public ObservableCollection<RepairPrepMetricTile> MetricTiles { get; } = new();
+        public ObservableCollection<MetricTile> MetricTiles { get; } = new();
 
         public ICommand LoadCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -350,9 +350,9 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             var totalTasks = Cars.Sum(car => car.TaskCount);
 
             MetricTiles.Clear();
-            MetricTiles.Add(new RepairPrepMetricTile("Cars", Cars.Count.ToString("N0", CultureInfo.CurrentCulture), "Total used cars", Brushes.LightSkyBlue));
-            MetricTiles.Add(new RepairPrepMetricTile("Active", active.ToString("N0", CultureInfo.CurrentCulture), "Before listing or sale", Brushes.Gold));
-            MetricTiles.Add(new RepairPrepMetricTile("Tasks", $"{doneTasks:N0}/{totalTasks:N0}", "Prep checklist", Brushes.LightGreen));
+            MetricTiles.Add(new MetricTile("Cars", Cars.Count.ToString("N0", CultureInfo.CurrentCulture), "Total used cars", Brushes.LightSkyBlue));
+            MetricTiles.Add(new MetricTile("Active", active.ToString("N0", CultureInfo.CurrentCulture), "Before listing or sale", Brushes.Gold));
+            MetricTiles.Add(new MetricTile("Tasks", $"{doneTasks:N0}/{totalTasks:N0}", "Prep checklist", Brushes.LightGreen));
         }
 
         private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)

@@ -2,7 +2,7 @@ const React = require("react");
 const { Pressable, ScrollView, Switch, Text, View } = require("react-native");
 const { money, shortDate, shortDateTime } = require("../core/formatters");
 const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
-const { FEATURE_LABELS, LIMIT_LABELS } = require("./billing-screen");
+const { FEATURE_LABELS, LIMIT_LABELS } = require("../core/billing-labels");
 const { SUPER_ADMIN_ROLE_ID } = require("../core/role-policy");
 const { useTheme } = require("../theme/theme-context");
 

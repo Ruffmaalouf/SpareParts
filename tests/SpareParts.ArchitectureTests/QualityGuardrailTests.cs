@@ -19,38 +19,78 @@ public class QualityGuardrailTests
     [
         "accounting",
         "activity-log",
+        "admin-billing",
+        "api-platform",
         "ar",
+        "ar-finder",
         "billing",
         "business-assistant",
+        "car-crush",
+        "car-twin",
+        "community-guard",
         "compatibility",
+        "condition-scanner",
         "contacts",
         "customer-aging",
         "dashboard",
         "dead-stock",
+        "dismantler-forecast",
+        "does-it-fit",
+        "escrow",
         "expiry-alerts",
+        "garage-stock",
         "growth-lab",
+        "halfcut",
+        "instant-offer",
         "inventory",
         "invoices",
+        "kareem",
+        "listing-boost",
+        "live-inspection",
         "loyalty",
         "management",
         "manual-journal",
+        "market-price",
+        "mechanic-desk",
+        "mechanic-trust",
+        "my-garage",
+        "needboard",
+        "negotiation",
+        "new-vs-used",
+        "part-genealogy",
+        "part-insurance",
         "part-passport",
+        "part-reel",
         "part-requests",
+        "part-reserve",
+        "price-genius",
+        "price-report",
         "purchase-parts",
+        "qr-tag",
         "quotes",
+        "referral",
+        "regional-demand",
         "reorder",
         "repair-prep",
         "report-builder",
+        "sales-returns",
+        "seller-reputation",
+        "seller-verification",
         "settings",
         "shipments",
         "stock",
         "stock-arrival",
         "supplier-aging",
-        "used-car-wholesale",
+        "symptom-search",
         "used-car-purchases",
+        "used-car-wholesale",
         "used-cars",
+        "voice-search",
         "warranty",
-        "whatsapp"
+        "watchlist",
+        "whatsapp",
+        "whatsapp-selling",
+        "yard-tour"
     ];
 
     private static readonly Dictionary<string, string> DesktopScreenMap = new(StringComparer.Ordinal)
@@ -65,6 +105,7 @@ public class QualityGuardrailTests
         ["PartPurchases"] = "purchase-parts",
         ["Purchases"] = "used-car-purchases",
         ["UsedCarWholesale"] = "used-car-wholesale",
+        ["CarTwin"] = "car-twin",
         ["StockArrivalTheater"] = "stock-arrival",
         ["RepairPrepBoard"] = "repair-prep",
         ["StockManagement"] = "stock",
@@ -84,12 +125,50 @@ public class QualityGuardrailTests
         ["Warranty"] = "warranty",
         ["Shipments"] = "shipments",
         ["ActivityLog"] = "activity-log",
-        ["BillingSubscription"] = "billing"
+        ["BillingSubscription"] = "billing",
+        ["SalesReturns"] = "sales-returns",
+        ["AdminBilling"] = "admin-billing",
+        ["Needboard"] = "needboard",
+        ["Watchlist"] = "watchlist",
+        ["SellerReputation"] = "seller-reputation",
+        ["SellerVerification"] = "seller-verification",
+        ["SymptomSearch"] = "symptom-search",
+        ["MechanicDesk"] = "mechanic-desk",
+        ["GarageStock"] = "garage-stock",
+        ["PartReserve"] = "part-reserve",
+        ["PartReel"] = "part-reel",
+        ["WhatsAppSelling"] = "whatsapp-selling",
+        ["Halfcut"] = "halfcut",
+        ["CarCrush"] = "car-crush",
+        ["Escrow"] = "escrow",
+        ["MarketPrice"] = "market-price",
+        ["ListingBoost"] = "listing-boost",
+        ["Referral"] = "referral",
+        ["VoiceSearch"] = "voice-search",
+        ["MyGarage"] = "my-garage",
+        ["DoesItFit"] = "does-it-fit",
+        ["PriceGenius"] = "price-genius",
+        ["ConditionScanner"] = "condition-scanner",
+        ["CommunityGuard"] = "community-guard",
+        ["LiveInspection"] = "live-inspection",
+        ["QrTag"] = "qr-tag",
+        ["PartGenealogy"] = "part-genealogy",
+        ["DismantlerForecast"] = "dismantler-forecast",
+        ["RegionalDemand"] = "regional-demand",
+        ["MechanicTrust"] = "mechanic-trust",
+        ["NewVsUsed"] = "new-vs-used",
+        ["Negotiation"] = "negotiation",
+        ["YardTour"] = "yard-tour",
+        ["InstantOffer"] = "instant-offer",
+        ["PartInsurance"] = "part-insurance",
+        ["Kareem"] = "kareem",
+        ["ArFinder"] = "ar-finder",
+        ["PriceReport"] = "price-report",
+        ["ApiPlatform"] = "api-platform"
     };
 
     private static readonly string[] WebOnlyScreens =
     [
-        "admin-billing"
     ];
 
     [Fact]
@@ -254,9 +333,8 @@ public class QualityGuardrailTests
         var array = ExtractArray(text, "featureModules");
         var modules = new Dictionary<string, FeatureModuleContract>(StringComparer.Ordinal);
 
-        foreach (Match match in Regex.Matches(array, @"\{(?<body>.*?)\}", RegexOptions.Singleline))
+        foreach (var body in ExtractTopLevelObjectBodies(array))
         {
-            var body = match.Groups["body"].Value;
             var key = MatchString(body, "key");
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -272,6 +350,65 @@ public class QualityGuardrailTests
         }
 
         return modules;
+    }
+
+    /// <summary>
+    /// Splits a JS array literal into the raw body text of each top-level <c>{ ... }</c> object,
+    /// tracking brace/bracket depth and quoted-string state so that braces embedded inside string
+    /// values (e.g. a route template like "/api/usedcars/{id}/twin") do not prematurely close an
+    /// object before all of its properties (such as "capabilities") have been captured.
+    /// </summary>
+    private static IEnumerable<string> ExtractTopLevelObjectBodies(string arrayText)
+    {
+        var depth = 0;
+        var objectStart = -1;
+        var inString = false;
+        var stringDelimiter = '\0';
+
+        for (var index = 0; index < arrayText.Length; index++)
+        {
+            var current = arrayText[index];
+
+            if (inString)
+            {
+                if (current == '\\')
+                {
+                    index++;
+                }
+                else if (current == stringDelimiter)
+                {
+                    inString = false;
+                }
+
+                continue;
+            }
+
+            if (current is '"' or '\'' or '`')
+            {
+                inString = true;
+                stringDelimiter = current;
+                continue;
+            }
+
+            if (current == '{')
+            {
+                if (depth == 0)
+                {
+                    objectStart = index + 1;
+                }
+
+                depth++;
+            }
+            else if (current == '}')
+            {
+                depth--;
+                if (depth == 0 && objectStart >= 0)
+                {
+                    yield return arrayText[objectStart..index];
+                    objectStart = -1;
+                }
+            }
+        }
     }
 
     private static IReadOnlyDictionary<string, string> ParseScreenRegistry(string relativePath)
@@ -433,8 +570,13 @@ public class QualityGuardrailTests
 
     private static bool RouteMatchesEndpoint(string routeTemplate, string endpoint)
     {
+        // Regex.Escape only escapes '{' (and other true regex metacharacters) — '}' is not a
+        // .NET regex metacharacter on its own, so it is left unescaped. The route-parameter
+        // placeholder pattern below must therefore match an escaped '\{' followed by an
+        // unescaped '}', not an escaped '\}', or route templates with typed constraints
+        // (e.g. "{id:int}") will never be substituted and will fail to match any endpoint.
         var pattern = Regex.Escape(routeTemplate);
-        pattern = Regex.Replace(pattern, @"\\\{[^}]+\\\}", "[^/]+");
+        pattern = Regex.Replace(pattern, @"\\\{[^}]+\}", "[^/]+");
         return Regex.IsMatch(endpoint, $"^{pattern}$", RegexOptions.IgnoreCase);
     }
 

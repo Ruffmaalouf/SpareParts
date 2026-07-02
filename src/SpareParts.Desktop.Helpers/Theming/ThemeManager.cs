@@ -11,18 +11,19 @@ namespace SpareParts.Desktop.Wpf
     {
         private static readonly Dictionary<AppTheme, Uri> ThemeUris = new()
         {
-            { AppTheme.MPower,        new Uri("Themes/BMWMTheme.xaml",      UriKind.Relative) },
-            { AppTheme.NeonGlow,      new Uri("Themes/NeonGlowTheme.xaml",  UriKind.Relative) },
-            { AppTheme.AMG,           new Uri("Themes/AMGTheme.xaml",       UriKind.Relative) },
-            { AppTheme.PorscheRS,     new Uri("Themes/PorscheRSTheme.xaml", UriKind.Relative) },
-            { AppTheme.LamborghiniSC, new Uri("Themes/LamboTheme.xaml",     UriKind.Relative) },
+            { AppTheme.MPower,        new Uri("Themes/BMWMTheme.xaml",         UriKind.Relative) },
+            { AppTheme.NeonGlow,      new Uri("Themes/NeonGlowTheme.xaml",     UriKind.Relative) },
+            { AppTheme.AMG,           new Uri("Themes/AMGTheme.xaml",          UriKind.Relative) },
+            { AppTheme.PorscheRS,     new Uri("Themes/PorscheRSTheme.xaml",    UriKind.Relative) },
+            { AppTheme.LamborghiniSC, new Uri("Themes/LamboTheme.xaml",        UriKind.Relative) },
+            { AppTheme.WorkshopLight, new Uri("Themes/WorkshopLightTheme.xaml", UriKind.Relative) },
         };
 
         public static AppTheme CurrentTheme { get; private set; } = AppTheme.Default;
 
         private const string ThemeTag = "AppThemeOverride";
 
-        public static void ApplyTheme(AppTheme theme)
+        public static void ApplyTheme(AppTheme theme, bool persist = true)
         {
             var app = Application.Current;
             if (app == null) return;
@@ -37,6 +38,14 @@ namespace SpareParts.Desktop.Wpf
                 dicts.Add(nd);
             }
             CurrentTheme = theme;
+
+            if (persist)
+            {
+                ThemePreferenceStore.Save(theme);
+            }
         }
+
+        /// <summary>Reads the last-persisted theme choice (defaults to <see cref="AppTheme.Default"/> if none saved).</summary>
+        public static AppTheme LoadPersistedTheme() => ThemePreferenceStore.Load();
     }
 }

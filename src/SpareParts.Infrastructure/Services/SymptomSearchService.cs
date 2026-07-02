@@ -4,13 +4,6 @@ namespace SpareParts.Infrastructure.Services;
 
 public sealed class SymptomSearchService
 {
-    private sealed record SymptomRule(
-        string[] Keywords,
-        string PartName,
-        string PartNameAr,
-        string Category,
-        string[] SearchTerms);
-
     private static readonly SymptomRule[] Rules =
     [
         new(

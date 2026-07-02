@@ -18,24 +18,30 @@ export const languageOptions = [
   { key: "fr", name: "French" }
 ];
 
+// NOTE: this array is kept byte-for-byte identical (same keys, same hex values, same theme
+// identities) to SpareParts.Mobile.ReactNative/src/core/app-config.js's `wpfThemes` array. Web
+// (browser-served static JS) and mobile (React Native runtime) cannot literally share one JS
+// module, so this is the canonical roster expressed in two places on purpose — if you edit one,
+// edit the other to match. WPF's theme files are the ultimate source of the hex values.
 export const wpfThemes = [
   {
     key: "apex",
     name: "Apex",
     colors: {
-      bg: "#11161c",
-      surface: "#171d25",
-      surface2: "#1e2530",
-      sidebar: "#0d1117",
-      input: "#141a21",
-      line: "#2b3340",
-      text: "#eef1f5",
-      muted: "#8b96a3",
-      soft: "#5d6773",
-      accent: "#c23a32",
-      accentViolet: "#b8893f",
-      accent2: "#2f9461",
-      danger: "#d6453b"
+      bg: "#090909",
+      surface: "#131313",
+      surface2: "#1c1c1c",
+      sidebar: "#050505",
+      input: "#0e0e0e",
+      line: "#2a2a2a",
+      text: "#f2f1ee",
+      muted: "#9b9b9b",
+      soft: "#6b6b6b",
+      accent: "#e2231a",
+      accentViolet: "#ffb400",
+      accent2: "#2bd97e",
+      whatsapp: "#25d366",
+      danger: "#ff3b30"
     }
   },
   {
@@ -54,6 +60,7 @@ export const wpfThemes = [
       accent: "#00c9a7",
       accentViolet: "#7c5cfc",
       accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b6b"
     }
   },
@@ -72,6 +79,7 @@ export const wpfThemes = [
       soft: "#737b8c",
       accent: "#ff5722",
       accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b5f"
     }
   },
@@ -89,7 +97,7 @@ export const wpfThemes = [
       muted: "#8888A0",
       soft: "#6f6f82",
       accent: "#C8C8D0",
-      accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b5f"
     }
   },
@@ -107,7 +115,7 @@ export const wpfThemes = [
       muted: "#8899BB",
       soft: "#66779a",
       accent: "#1C69D4",
-      accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b5f"
     }
   },
@@ -125,7 +133,7 @@ export const wpfThemes = [
       muted: "#888878",
       soft: "#6e6e5e",
       accent: "#FFD600",
-      accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b5f"
     }
   },
@@ -143,7 +151,7 @@ export const wpfThemes = [
       muted: "#4DD0E1",
       soft: "#3497a8",
       accent: "#00E5FF",
-      accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b8a"
     }
   },
@@ -161,7 +169,7 @@ export const wpfThemes = [
       muted: "#888888",
       soft: "#707070",
       accent: "#E30613",
-      accent2: "#25d366",
+      whatsapp: "#25d366",
       danger: "#ff6b5f"
     }
   }
@@ -393,13 +401,13 @@ export const featureModules = [
   { key: "seller-reputation", label: "Shop Reputation", title: "Shop Reputation", source: "Seller performance workspace", endpoint: "/api/seller-reputation", capabilities: ["Seller reputation score", "Leaderboard comparison", "Fulfillment and dispute signals"] },
   { key: "seller-verification", label: "Seller Verification", title: "Seller Verification", source: "Seller onboarding workspace", endpoint: "/api/seller-verification", capabilities: ["Verification status", "Business document submission", "Admin review notes"] },
   { key: "symptom-search", label: "Symptom Finder", title: "Symptom Finder", source: "Mobile/web symptom diagnosis workspace", endpoint: "/api/symptom-search", commandOnly: true, capabilities: ["Translate reported symptoms into likely parts", "Prioritize repair leads", "Guide staff toward fitment checks"] },
-  { key: "mechanic-desk", label: "Mechanic Desk", title: "Mechanic Desk", source: "Garage mechanic workspace", endpoint: "/api/mechanic-desk", capabilities: ["Track mechanic orders", "Send quote-ready requests", "Accept winning mechanic quotes"] },
+  { key: "mechanic-desk", label: "Mechanic Desk", title: "Mechanic Desk", source: "Garage mechanic workspace", endpoint: "/api/repair-orders", capabilities: ["Track mechanic orders", "Send quote-ready requests", "Accept winning mechanic quotes"] },
   { key: "garage-stock", label: "Garage Stock", title: "Garage Stock", source: "Garage inventory workspace", endpoint: "/api/garage-stock", capabilities: ["Maintain garage-held stock", "Adjust reserved quantities", "Remove stale stock records"] },
   { key: "part-reserve", label: "Part Reservations", title: "Part Reservations", source: "Reservation workflow workspace", endpoint: "/api/part-reservations", capabilities: ["Create customer reservations", "Review held inventory", "Release expired holds"] },
   { key: "part-reel", label: "Part Reels", title: "Part Reels", source: "Short-form part media workspace", endpoint: "/api/part-reels", capabilities: ["Publish short-form part promos", "Track likes and traction", "Archive spent reels"] },
   { key: "whatsapp-selling", label: "WhatsApp Selling", title: "WhatsApp Selling", source: "WhatsApp selling workflow", endpoint: "/api/marketplace/catalog-export", commandOnly: true, capabilities: ["Set seller WhatsApp contact", "Generate catalog export payloads", "Prepare marketplace-ready selling assets"] },
-  { key: "halfcut", label: "Half-Cut Showcase", title: "Half-Cut Showcase", source: "Half-cut inventory workspace", endpoint: "/api/half-cut", capabilities: ["List half-cut inventory", "Post new half-cut offers", "Manage buyer claims and confirmations"] },
-  { key: "car-crush", label: "CarCrush", title: "CarCrush", source: "Vehicle teardown checklist workspace", endpoint: "/api/car-crush/checklist", commandOnly: true, capabilities: ["Decode donor vehicles", "Generate dismantling checklists", "Create salvage listing packs"] },
+  { key: "halfcut", label: "Half-Cut Showcase", title: "Half-Cut Showcase", source: "Half-cut inventory workspace", endpoint: "/api/half-cuts", capabilities: ["List half-cut inventory", "Post new half-cut offers", "Manage buyer claims and confirmations"] },
+  { key: "car-crush", label: "CarCrush", title: "CarCrush", source: "Vehicle teardown checklist workspace", endpoint: "/api/car-crush/generate", commandOnly: true, capabilities: ["Decode donor vehicles", "Generate dismantling checklists", "Create salvage listing packs"] },
   { key: "escrow", label: "Escrow / Protection", title: "Escrow / Protection", source: "Escrow transaction workspace", endpoint: "/api/escrow", capabilities: ["Open protected transactions", "Track escrow status changes", "Release or cancel protected deals"] },
   { key: "market-price", label: "Market Price Index", title: "Market Price Index", source: "Market pricing intelligence workspace", endpoint: "/api/market-price", capabilities: ["Review recent market pricing", "Filter by fitment signals", "Benchmark pricing decisions"] },
   { key: "listing-boost", label: "Boost Listings", title: "Boost Listings", source: "Listing promotion workspace", endpoint: "/api/listing-boosts", capabilities: ["Create paid listing boosts", "Monitor campaign windows", "Cancel weak-performing boosts"] },
@@ -410,12 +418,12 @@ export const featureModules = [
   { key: "condition-scanner", label: "Condition Scanner", title: "Condition Scanner", source: "Condition scoring workspace", endpoint: "/api/condition-scanner/scan", commandOnly: true, capabilities: ["Assess condition from photos", "Summarize detected wear", "Support pricing and disclosure"] },
   { key: "community-guard", label: "CommunityGuard", title: "CommunityGuard", source: "Marketplace moderation workspace", endpoint: "/api/community-guard", capabilities: ["Review community reports", "File abuse or trust incidents", "Monitor marketplace safety signals"] },
   { key: "live-inspection", label: "Live Inspection", title: "Live Inspection", source: "Live inspection scheduling workspace", endpoint: "/api/live-inspection", capabilities: ["Queue live buyer inspections", "Track buyer contact details", "Manage inspection notes"] },
-  { key: "qr-tag", label: "QR Tag System", title: "QR Tag System", source: "Part QR workflow", endpoint: "/api/qr-tag", commandOnly: true, capabilities: ["Generate QR labels for parts", "Fetch printable QR data", "Support scan-driven retrieval"] },
-  { key: "part-genealogy", label: "Part Genealogy", title: "Part Genealogy", source: "Part lifecycle workspace", endpoint: "/api/part-genealogy", commandOnly: true, capabilities: ["Trace part lifecycle events", "Record chain-of-custody notes", "Explain donor and movement history"] },
+  { key: "qr-tag", label: "QR Tag System", title: "QR Tag System", source: "Part QR workflow", endpoint: "/api/qr-tag/{id}", commandOnly: true, capabilities: ["Generate QR labels for parts", "Fetch printable QR data", "Support scan-driven retrieval"] },
+  { key: "part-genealogy", label: "Part Genealogy", title: "Part Genealogy", source: "Part lifecycle workspace", endpoint: "/api/part-genealogy/{id}", commandOnly: true, capabilities: ["Trace part lifecycle events", "Record chain-of-custody notes", "Explain donor and movement history"] },
   { key: "dismantler-forecast", label: "Dismantler Forecast", title: "Dismantler Forecast", source: "Dismantling demand workspace", endpoint: "/api/dismantler-forecast", commandOnly: true, capabilities: ["Forecast teardown demand", "Prioritize profitable dismantles", "Support used-car buying decisions"] },
   { key: "regional-demand", label: "Regional Demand Map", title: "Regional Demand Map", source: "Regional demand analytics workspace", endpoint: "/api/regional-demand/top", capabilities: ["Review region demand hotspots", "Compare top-demand parts", "Guide stocking by geography"] },
   { key: "mechanic-trust", label: "MechanicTrust Network", title: "MechanicTrust Network", source: "Mechanic trust workspace", endpoint: "/api/mechanic-trust", capabilities: ["Manage mechanic trust profiles", "Verify network members", "Track specialties by brand and job type"] },
-  { key: "new-vs-used", label: "New vs Used", title: "New vs Used", source: "Replacement option workspace", endpoint: "/api/new-vs-used", commandOnly: true, capabilities: ["Compare new and used pricing", "Override indexed prices", "Support customer trade-off conversations"] },
+  { key: "new-vs-used", label: "New vs Used", title: "New vs Used", source: "Replacement option workspace", endpoint: "/api/new-vs-used/{id}", commandOnly: true, capabilities: ["Compare new and used pricing", "Override indexed prices", "Support customer trade-off conversations"] },
   { key: "yard-tour", label: "Live Yard Tour", title: "Live Yard Tour", source: "Remote yard tour workspace", endpoint: "/api/yard-tours", capabilities: ["Schedule yard livestreams", "Publish tour links", "Update tour status"] },
   { key: "negotiation", label: "AI Negotiation Bot", title: "AI Negotiation Bot", source: "Negotiation workflow workspace", endpoint: "/api/negotiations", capabilities: ["Track offer sessions", "Post counter-offers", "Accept or reject deals"] },
   { key: "instant-offer", label: "InstantOffer", title: "InstantOffer", source: "Instant offer workspace", endpoint: "/api/instant-offers", capabilities: ["Create instant offers", "Monitor offer queue", "Patch offer status"] },

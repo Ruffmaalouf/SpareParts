@@ -2,23 +2,13 @@ import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runt
 import { displayCurrencyContext, displayMoneyFromBase, escapeHtml, money, shortDate } from "../core/formatters.js";
 import { AccountingService } from "../services/accounting-service.js";
 import { DataTable, PageHeader, StatusLine } from "../components/shared.js";
+import { read } from "../admin/resource-utils.js";
 
 const reportTabs = [
   { key: "trial", labelKey: "accounting.trialBalance", label: "Trial Balance" },
   { key: "ledger", labelKey: "accounting.ledger", label: "Ledger" },
   { key: "statement", labelKey: "accounting.statement", label: "Statement" }
 ];
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
 
 function toArray(value) {
   return Array.isArray(value) ? value : value ? [value] : [];

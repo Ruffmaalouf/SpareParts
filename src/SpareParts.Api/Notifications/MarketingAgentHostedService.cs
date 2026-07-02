@@ -49,11 +49,23 @@ public sealed class MarketingAgentHostedService : BackgroundService
             var demandMatching = scope.ServiceProvider.GetRequiredService<DemandMatchingService>();
 
             var pending = demandMatching.GetPartsPendingMarketing();
+            if (pending.Count == 0)
+            {
+                return;
+            }
+
+            // Batch the demand lookup across every pending part in one pair of queries instead of
+            // one FindMatches call (two SQL round-trips) per part.
+            var matchesByPartName = demandMatching.FindMatchesForParts(
+                pending.Select(part => part.Name).ToList());
 
             foreach (var part in pending)
             {
                 if (cancellationToken.IsCancellationRequested) break;
-                await ProcessPartAsync(demandMatching, part, cancellationToken);
+                var matches = matchesByPartName.TryGetValue(part.Name, out var partMatches)
+                    ? partMatches
+                    : Array.Empty<DemandMatchDto>();
+                await ProcessPartAsync(demandMatching, part, matches, cancellationToken);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -68,11 +80,11 @@ public sealed class MarketingAgentHostedService : BackgroundService
     private async Task ProcessPartAsync(
         DemandMatchingService demandMatching,
         PartPendingMarketingDto part,
+        IReadOnlyList<DemandMatchDto> matches,
         CancellationToken cancellationToken)
     {
         try
         {
-            var matches = demandMatching.FindMatches(part.Name);
             var notified = 0;
 
             foreach (var match in matches)

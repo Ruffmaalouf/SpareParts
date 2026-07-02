@@ -49,7 +49,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public ObservableCollection<GrowthMetricTile> MetricTiles { get; } = new();
+        public ObservableCollection<MetricTile> MetricTiles { get; } = new();
         public ObservableCollection<MoneyActionDto> MoneyActions { get; } = new();
         public ObservableCollection<DonorCarTreasureDto> DonorCars { get; } = new();
         public ObservableCollection<TeardownQueueItemDto> TeardownQueue { get; } = new();
@@ -356,11 +356,11 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         {
             Replace(MetricTiles, new[]
             {
-                new GrowthMetricTile("Unlockable", FormatMoney(briefing.UnlockableValue, briefing.Currency), "Tonight's opportunity value", Accent("#FF81C784")),
-                new GrowthMetricTile("Money actions", briefing.MoneyActions.Count.ToString("N0", CultureInfo.CurrentCulture), "Calls, pricing, and stock moves", Accent("#FFFFB74D")),
-                new GrowthMetricTile("Donor cars", briefing.DonorCars.Count.ToString("N0", CultureInfo.CurrentCulture), "Treasure maps ready", Accent("#FF64B5F6")),
-                new GrowthMetricTile("Teardown queue", briefing.TeardownQueue.Count.ToString("N0", CultureInfo.CurrentCulture), "Next workshop jobs", Accent("#FFBA68C8")),
-                new GrowthMetricTile("Buying signals", briefing.BuyingRadar.Count.ToString("N0", CultureInfo.CurrentCulture), "Parts worth sourcing", Accent("#FFFF7043"))
+                new MetricTile("Unlockable", FormatMoney(briefing.UnlockableValue, briefing.Currency), "Tonight's opportunity value", Accent("#FF81C784")),
+                new MetricTile("Money actions", briefing.MoneyActions.Count.ToString("N0", CultureInfo.CurrentCulture), "Calls, pricing, and stock moves", Accent("#FFFFB74D")),
+                new MetricTile("Donor cars", briefing.DonorCars.Count.ToString("N0", CultureInfo.CurrentCulture), "Treasure maps ready", Accent("#FF64B5F6")),
+                new MetricTile("Teardown queue", briefing.TeardownQueue.Count.ToString("N0", CultureInfo.CurrentCulture), "Next workshop jobs", Accent("#FFBA68C8")),
+                new MetricTile("Buying signals", briefing.BuyingRadar.Count.ToString("N0", CultureInfo.CurrentCulture), "Parts worth sourcing", Accent("#FFFF7043"))
             });
         }
 

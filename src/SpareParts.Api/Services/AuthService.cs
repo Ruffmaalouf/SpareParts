@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Serialization;
 using Dapper;
 using Microsoft.IdentityModel.Tokens;
 using SpareParts.Api.Hosting;
@@ -338,54 +337,4 @@ public sealed class AuthService
 
     private static string Truncate(string value, int maxLength)
         => value.Length <= maxLength ? value : value[..maxLength];
-
-    private sealed record ExternalProfile(string Provider, string ProviderUserId, string? Email, string FullName);
-
-    private sealed class GoogleTokenInfo
-    {
-        [JsonPropertyName("aud")]
-        public string Audience { get; set; } = string.Empty;
-
-        [JsonPropertyName("sub")]
-        public string Subject { get; set; } = string.Empty;
-
-        [JsonPropertyName("email")]
-        public string? Email { get; set; }
-
-        [JsonPropertyName("email_verified")]
-        public string EmailVerified { get; set; } = string.Empty;
-
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
-    }
-
-    private sealed class FacebookDebugTokenResponse
-    {
-        [JsonPropertyName("data")]
-        public FacebookDebugTokenData? Data { get; set; }
-    }
-
-    private sealed class FacebookDebugTokenData
-    {
-        [JsonPropertyName("app_id")]
-        public string AppId { get; set; } = string.Empty;
-
-        [JsonPropertyName("is_valid")]
-        public bool IsValid { get; set; }
-
-        [JsonPropertyName("user_id")]
-        public string UserId { get; set; } = string.Empty;
-    }
-
-    private sealed class FacebookProfileResponse
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; } = string.Empty;
-
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
-
-        [JsonPropertyName("email")]
-        public string? Email { get; set; }
-    }
 }

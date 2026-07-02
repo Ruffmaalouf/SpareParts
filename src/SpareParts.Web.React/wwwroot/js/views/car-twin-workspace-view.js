@@ -1,6 +1,7 @@
 import { h, useCallback, useEffect, useMemo, useRef, useState } from "../core/react-runtime.js";
 import { asRows, dateTime, money } from "../core/formatters.js";
 import { PageHeader, StatusLine } from "../components/shared.js";
+import { read } from "../admin/resource-utils.js";
 
 let threeModulePromise = null;
 function loadThree() {
@@ -31,17 +32,6 @@ const timelineDotByEventType = {
   LocationMove: "muted",
   Note: "muted"
 };
-
-function read(row, ...keys) {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") return value;
-    const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-    const pascalValue = row?.[pascalKey];
-    if (pascalValue !== undefined && pascalValue !== null && pascalValue !== "") return pascalValue;
-  }
-  return "";
-}
 
 function carTitle(car) {
   const title = read(car, "car") || `Used car #${read(car, "id")}`;

@@ -79,7 +79,7 @@
     <SolidColorBrush x:Key="AppBackgroundBrush"  Color="#FF070708"/>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FF121217"/>
     <SolidColorBrush x:Key="CardHighlightBrush"  Color="#FF16161C"/>
-    <SolidColorBrush x:Key="AccentBrush"         Color="#FFFF3B3B"/>
+    <SolidColorBrush x:Key="AccentBrush"         Color="#FFE2231A"/>
     <SolidColorBrush x:Key="TextPrimaryBrush"    Color="#FFF4F4F7"/>
     <SolidColorBrush x:Key="TextSecondaryBrush"  Color="#FF8C8C9C"/>
     <SolidColorBrush x:Key="BorderBrush"         Color="#FF24242C"/>

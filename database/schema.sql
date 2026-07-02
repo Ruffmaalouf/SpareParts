@@ -1,5 +1,32 @@
 -- SpareParts Database Schema
 -- Generated for staging deployment
+--
+-- ══════════════════════════════════════════════════════════════════════════
+-- IMPORTANT — THIS FILE IS NOT THE FULL SCHEMA PICTURE
+-- ══════════════════════════════════════════════════════════════════════════
+-- A database provisioned from ONLY this file (schema.sql) is incomplete.
+-- Many tables, columns, and indexes — including multi-tenancy support —
+-- are added at runtime by the C# migrations in
+-- src/SpareParts.Api/Infrastructure/*Migration.cs, which run automatically
+-- on every API startup via RunMigrations() in
+-- src/SpareParts.Api/Hosting/SparePartsApiComposition.cs.
+--
+-- Specifically: the TenantId column on Stock, StockMovements, and every
+-- other tenant-owned table (Users, Parts, Customers, Suppliers, Warehouses,
+-- Locations, Brands, Categories, UsedCars, Transactions, TransactionTypes,
+-- Accounts, JournalEntries, UsedCarPurchases, UsedCarWholesaleSales, and
+-- more) is NOT created by this file. It is added, backfilled to the
+-- default tenant, and indexed by
+-- src/SpareParts.Api/Infrastructure/TenantIdMigration.cs, which itself
+-- depends on src/SpareParts.Api/Infrastructure/TenantsMigration.cs having
+-- already created dbo.Tenants and seeded the default tenant (Id = 1).
+--
+-- Do not assume a database is "fully provisioned" after running just this
+-- file — the API's C# migration pipeline (~70 migration classes as of this
+-- writing) must also run at least once before the schema matches what the
+-- application code expects. See docs/database-architecture.md for the full
+-- migration inventory and ordering.
+-- ══════════════════════════════════════════════════════════════════════════
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
@@ -276,6 +303,16 @@ CREATE TABLE dbo.UsedCars (
 GO
 
 -- ── usedcar_images ────────────────────────────────────────────────────────────
+-- NOTE (naming inconsistency, documentation only — do NOT rename here):
+-- This table uses snake_case (usedcar_images / ImageId) while every other
+-- table in this schema uses PascalCase (e.g. UsedCars, StockMovements).
+-- The C# migration UsedCarImagesMigration.cs (which also touches this
+-- table) preserves the same snake_case name for consistency with what's
+-- already deployed. Renaming it to a PascalCase name (e.g. UsedCarImages)
+-- would be a breaking change requiring coordinated updates across the
+-- Dapper repository code in src/SpareParts.Infrastructure/ and any C#
+-- migration that references dbo.usedcar_images by name — out of scope for
+-- a documentation-only pass. Deferred until a dedicated migration task.
 IF OBJECT_ID('dbo.usedcar_images', 'U') IS NULL
 CREATE TABLE dbo.usedcar_images (
     ImageId         INT            NOT NULL IDENTITY(1,1) PRIMARY KEY,
