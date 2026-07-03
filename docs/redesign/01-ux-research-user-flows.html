@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SpareParts · Ignition · Report 01 — UX Research &amp; User Flows</title>
+<style>
+* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --carbon:#0a0a0b;
+  --surface:#131316;
+  --elevated:#1b1b1f;
+  --orange:#f97316;
+  --amber:#fbbf24;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --info:#38bdf8;
+  --text-primary:#fafafa;
+  --text-secondary:#a1a1aa;
+  --ink:#141416;
+  --ink-soft:#52525b;
+  --paper:#ffffff;
+  --paper-soft:#f4f4f5;
+  --rule:#e4e4e7;
+  --font-display:'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;
+  --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+  --font-mono:'JetBrains Mono', 'Consolas', monospace;
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; background:#3f3f46; }
+body{ font-family:var(--font-body); color:var(--ink); -webkit-font-smoothing:antialiased; }
+
+.page{
+  width:210mm;
+  min-height:292mm;
+  padding:14mm;
+  margin:0 auto;
+  background:var(--paper);
+  position:relative;
+  page-break-after:always;
+  overflow:hidden;
+}
+
+.page.dark{ background:var(--carbon); color:var(--text-primary); }
+
+/* ---------- Cover ---------- */
+.cover{
+  background:
+    radial-gradient(circle at 15% 12%, rgba(249,115,22,0.28), transparent 45%),
+    radial-gradient(circle at 85% 88%, rgba(56,189,248,0.14), transparent 40%),
+    var(--carbon);
+  color:var(--text-primary);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.cover-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+.brand-mark{ display:flex; align-items:center; gap:10px; }
+.brand-mark .dot{ width:14px; height:14px; border-radius:4px; background:var(--orange); box-shadow:0 0 22px rgba(249,115,22,.7);}
+.brand-mark span{ font-family:var(--font-display); font-weight:700; letter-spacing:.14em; font-size:12px; color:var(--text-secondary); text-transform:uppercase; }
+.cover-kicker{ font-family:var(--font-mono); font-size:11px; letter-spacing:.24em; color:var(--orange); text-transform:uppercase; }
+
+.cover-mid{ margin-top:40mm; }
+.cover-eyebrow{ font-family:var(--font-mono); font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--orange); margin-bottom:14px; }
+.cover-title{ font-family:var(--font-display); font-weight:800; font-size:52px; line-height:1.05; letter-spacing:-0.02em; margin:0 0 10px; max-width:150mm; }
+.cover-title em{ font-style:normal; color:var(--orange); }
+.cover-sub{ font-family:var(--font-body); font-size:15px; color:var(--text-secondary); max-width:130mm; line-height:1.6; }
+
+.cover-tags{ display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
+.tag{ font-family:var(--font-mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:6px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.14); color:var(--text-secondary); }
+
+.cover-bottom{ display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,.12); padding-top:16px; }
+.cover-meta-block{ font-family:var(--font-body); font-size:12px; color:var(--text-secondary); line-height:1.8; }
+.cover-meta-block b{ color:var(--text-primary); font-weight:600; }
+.cover-swatches{ display:flex; gap:6px; }
+.sw{ width:26px; height:26px; border-radius:7px; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+
+/* ---------- Content page shell ---------- */
+.content{ display:flex; flex-direction:column; }
+.page-eyebrow{ font-family:var(--font-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--orange); margin-bottom:6px; }
+.page-title{ font-family:var(--font-display); font-weight:800; font-size:26px; letter-spacing:-0.01em; margin:0 0 4px; color:var(--ink); display:flex; align-items:baseline; gap:10px;}
+.page-title .num{ color:var(--orange); font-family:var(--font-mono); font-size:18px; font-weight:700; }
+.page-intro{ font-size:12.5px; color:var(--ink-soft); max-width:170mm; line-height:1.6; margin:0 0 14px; }
+.hr{ height:1px; background:var(--rule); margin:0 0 14px; }
+
+.footer{
+  position:absolute; bottom:10mm; left:14mm; right:14mm;
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:var(--font-mono); font-size:9px; color:#a1a1aa;
+  border-top:1px solid var(--rule); padding-top:6px;
+}
+.footer .fpage{ font-weight:700; color:var(--orange); }
+.footer.dark{ border-top-color:rgba(255,255,255,.14); color:rgba(255,255,255,.5); }
+
+h2.sec{ font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--ink); margin:16px 0 8px; display:flex; align-items:center; gap:8px;}
+h2.sec .chip{ font-family:var(--font-mono); font-size:10px; background:var(--orange); color:#fff; border-radius:5px; padding:2px 6px; }
+h3.sub{ font-family:var(--font-display); font-weight:700; font-size:12.5px; color:var(--ink); margin:12px 0 6px; }
+p{ font-size:11.5px; line-height:1.62; color:#27272a; margin:0 0 8px; }
+ul,ol{ margin:0 0 10px; padding-left:18px; }
+li{ font-size:11.5px; line-height:1.55; color:#27272a; margin-bottom:4px; }
+.small{ font-size:10px; color:var(--ink-soft); }
+strong{ color:var(--ink); }
+
+.callout{ border-left:3px solid var(--orange); background:var(--paper-soft); padding:10px 12px; border-radius:0 8px 8px 0; margin:10px 0; }
+.callout .lbl{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); font-weight:700; margin-bottom:3px; }
+
+table.grid{ width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:10.5px; }
+table.grid th{ text-align:left; font-family:var(--font-display); font-weight:700; color:#fff; background:var(--ink); padding:6px 8px; font-size:10px; }
+table.grid td{ padding:6px 8px; border-bottom:1px solid var(--rule); vertical-align:top; color:#27272a; }
+table.grid tr:nth-child(even) td{ background:#fafafa; }
+table.grid td.n{ font-family:var(--font-mono); text-align:center; font-weight:700; color:var(--orange); }
+
+.badge{ display:inline-block; font-family:var(--font-mono); font-size:9px; font-weight:700; padding:2px 7px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em; }
+.badge.danger{ background:rgba(239,68,68,.12); color:#b91c1c; }
+.badge.warn{ background:rgba(251,191,36,.18); color:#92620a; }
+.badge.info{ background:rgba(56,189,248,.15); color:#0369a1; }
+.badge.ok{ background:rgba(34,197,94,.15); color:#15803d; }
+
+.cols2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.cols3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+.persona-card{ border:1px solid var(--rule); border-radius:10px; padding:10px 12px; background:#fff; }
+.persona-card h4{ font-family:var(--font-display); font-size:12px; margin:0 0 2px; color:var(--ink);}
+.persona-card .role{ font-family:var(--font-mono); font-size:9px; color:var(--orange); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.persona-card p{ font-size:10.2px; margin:0 0 6px; }
+.persona-card .jtbd{ font-size:9.6px; color:var(--ink-soft); font-style:italic; border-top:1px dashed var(--rule); padding-top:5px; margin-top:5px;}
+
+.fig{ margin:10px 0 16px; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:#fff; }
+.fig .fig-cap{ font-family:var(--font-mono); font-size:9px; color:#fff; background:var(--ink); padding:6px 10px; display:flex; justify-content:space-between; }
+.fig .fig-cap b{ color:var(--orange); }
+.fig-body{ padding:8px; background:#fafafa; display:flex; justify-content:center; }
+
+.toc-list{ list-style:none; padding:0; margin:0; }
+.toc-list li{ display:flex; align-items:baseline; gap:10px; padding:9px 0; border-bottom:1px solid var(--rule); font-size:12px; }
+.toc-list .tn{ font-family:var(--font-mono); color:var(--orange); font-weight:700; width:22px; }
+.toc-list .tt{ font-family:var(--font-display); font-weight:600; color:var(--ink); flex:1; }
+.toc-list .tp{ font-family:var(--font-mono); color:var(--ink-soft); font-size:11px; }
+
+.stepflow{ display:flex; align-items:stretch; gap:6px; flex-wrap:wrap; margin:8px 0; }
+.stepflow .step{ flex:1; min-width:60px; background:var(--paper-soft); border:1px solid var(--rule); border-radius:8px; padding:6px 8px; font-size:9.6px; text-align:center; position:relative; }
+.stepflow .step b{ display:block; font-family:var(--font-mono); color:var(--orange); font-size:13px; }
+.stepflow .arrow{ align-self:center; color:#d4d4d8; font-size:14px; }
+
+.kv{ display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:10.5px; }
+.kv dt{ font-weight:700; color:var(--ink); }
+.kv dd{ margin:0; color:#3f3f46; }
+
+@media print{
+  body{ background:#fff; }
+  .page{ margin:0; box-shadow:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PAGE 1 — COVER -->
+<!-- ============================================================ -->
+<section class="page dark cover">
+  <div class="cover-top">
+    <div class="brand-mark"><span class="dot"></span><span>SpareParts · Ignition Design Package</span></div>
+    <div class="cover-kicker">Confidential — Internal Redesign</div>
+  </div>
+
+  <div class="cover-mid">
+    <div class="cover-eyebrow">Report 01 of 6</div>
+    <h1 class="cover-title">UX Research &amp;<br><em>User Flows</em></h1>
+    <p class="cover-sub">Ground-up interaction redesign for the SpareParts dashboard and a new unified Client Workspace — grounded in the current React web codebase, built on the shared "Ignition" design language for web, WPF desktop, and mobile.</p>
+    <div class="cover-tags">
+      <span class="tag">Dashboard</span>
+      <span class="tag">Client Workspace</span>
+      <span class="tag">Information Architecture</span>
+      <span class="tag">WCAG 2.2 AA</span>
+      <span class="tag">Cross-Platform</span>
+    </div>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="cover-meta-block">
+      <div><b>Author</b> — dev-ui-ux, UX Research Agent</div>
+      <div><b>Date</b> — 2 July 2026</div>
+      <div><b>Scope</b> — src/SpareParts.Web.React (reference implementation), applies to WPF + Mobile</div>
+    </div>
+    <div class="cover-swatches">
+      <div class="sw" style="background:#0a0a0b;border:1px solid #333"></div>
+      <div class="sw" style="background:#f97316"></div>
+      <div class="sw" style="background:#fbbf24"></div>
+      <div class="sw" style="background:#22c55e"></div>
+      <div class="sw" style="background:#ef4444"></div>
+      <div class="sw" style="background:#38bdf8"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 2 — TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Report 01 — UX Research &amp; User Flows</div>
+  <h1 class="page-title"><span class="num">00</span> Table of Contents</h1>
+  <div class="hr"></div>
+
+  <ol class="toc-list" style="list-style:none;">
+    <li><span class="tn">01</span><span class="tt">Executive Summary of UX Findings</span><span class="tp">p.03</span></li>
+    <li><span class="tn">02</span><span class="tt">Personas &amp; Jobs-To-Be-Done</span><span class="tp">p.04</span></li>
+    <li><span class="tn">03</span><span class="tt">Heuristic Audit — Dashboard &amp; Client/Contacts (Top 10 Problems)</span><span class="tp">p.05</span></li>
+    <li><span class="tn">04</span><span class="tt">New Information Architecture — 70+ Screens</span><span class="tp">p.07</span></li>
+    <li><span class="tn">05</span><span class="tt">IA Map — Icon Rail, Command Palette, Progressive Disclosure (Figure)</span><span class="tp">p.08</span></li>
+    <li><span class="tn">06</span><span class="tt">Redesigned Flow 01 — Morning Business Review</span><span class="tp">p.09</span></li>
+    <li><span class="tn">07</span><span class="tt">Redesigned Flow 02 — Invoicing a Walk-in Client</span><span class="tp">p.10</span></li>
+    <li><span class="tn">08</span><span class="tt">Redesigned Flow 03 — Client Lookup Mid-Counter-Sale</span><span class="tp">p.11</span></li>
+    <li><span class="tn">09</span><span class="tt">Redesigned Flow 04 — Chasing Overdue Receivables</span><span class="tp">p.12</span></li>
+    <li><span class="tn">10</span><span class="tt">Redesigned Flow 05 — Quote → Invoice Conversion</span><span class="tp">p.13</span></li>
+    <li><span class="tn">11</span><span class="tt">Wireframe — Dashboard (Desktop)</span><span class="tp">p.14</span></li>
+    <li><span class="tn">12</span><span class="tt">Wireframe — Dashboard (Mobile / Narrow)</span><span class="tp">p.15</span></li>
+    <li><span class="tn">13</span><span class="tt">Wireframe — Client Workspace (Desktop)</span><span class="tp">p.16</span></li>
+    <li><span class="tn">14</span><span class="tt">Wireframe — Client Workspace (Mobile / Narrow)</span><span class="tp">p.17</span></li>
+    <li><span class="tn">15</span><span class="tt">Accessibility Compliance Plan — WCAG 2.2 AA</span><span class="tp">p.18</span></li>
+    <li><span class="tn">16</span><span class="tt">Cognitive Load &amp; Progressive Disclosure Principles</span><span class="tp">p.20</span></li>
+  </ol>
+
+  <div class="callout" style="margin-top:16px;">
+    <div class="lbl">Report Companions</div>
+    <div class="small">Report 02 (visual system), 03 (dashboard component spec), 04 (client workspace component spec), 05 (WPF adaptation), 06 (mobile adaptation) build directly on the flows and IA defined here. Any deviation from this IA must be re-approved by Ralph before implementation, per the Design Change Workflow.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">02</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 3 — EXECUTIVE SUMMARY -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 01</div>
+  <h1 class="page-title"><span class="num">01</span> Executive Summary of UX Findings</h1>
+  <div class="hr"></div>
+
+  <p>This report is grounded entirely in the live React web implementation at <code>src/SpareParts.Web.React/wwwroot</code> — specifically <code>js/views/dashboard-view.js</code> (663 lines), <code>js/views/contacts-view.js</code>, <code>js/views/customer-aging-view.js</code>, <code>js/views/invoices-view.js</code>, <code>js/views/screen-registry.js</code>, and the shared UI primitives in <code>js/components/ui/</code>. No application code was modified; every problem cited below points to a real file, function, or behavior.</p>
+
+  <h2 class="sec"><span class="chip">01.1</span> Headline Findings</h2>
+  <ul>
+    <li><strong>The screen registry has grown to 70 entries</strong> (<code>screenRegistry.js</code>, lines 76–151) — far beyond the "50+" briefed. Navigation is currently a flat curated set of 7 groups plus a catch-all "More Modules" bucket that silently absorbs 40+ ungrouped screens, meaning most of the app is one bucket away from being undiscoverable.</li>
+    <li><strong>The client relationship is fragmented across at least 6 independent screens</strong> with no shared identity: Contacts (list only, two static columns), Customer Aging (a spreadsheet-like report), Invoices (POS workspace with a customer <em>dropdown</em>, not a customer <em>record</em>), Quotes, Part Requests, Loyalty, and WhatsApp. A staff member chasing one client's story must open up to 6 screens and re-search the same name in each.</li>
+    <li><strong>There is no backend endpoint for a single customer's aggregate record.</strong> <code>CustomersController.cs</code> exposes only <code>GET /api/customers</code> (list) and <code>GET /api/customers/aging</code> (report). There is no <code>GET /api/customers/{id}</code>. The proposed Client Workspace requires this to exist — flagged explicitly in Section 04 as a dependency for dev-backend-api, not something this report can wireframe around.</li>
+    <li><strong>The dashboard is dense but not prioritized.</strong> <code>DashboardView</code> renders 8 KPI cards, a command-center search panel, 4 analysis panels, hot parts, quick actions, and an 8-item bottom stat bar — 20+ distinct data blocks with no visual hierarchy beyond size and position. <code>buildActionQueue()</code> (lines 77–175) computes a genuinely good "what needs my attention" triage list but demotes it to a secondary block instead of leading with it.</li>
+    <li><strong>Design language has already churned once without resolution.</strong> The live <code>styles.css</code> root tokens (line 10) are a graphite-blue/red palette (<code>--accent:#c23a32</code>), not the "Aurora" dark-navy/teal palette described in the brief. This is the second unreleased direction found in the codebase — evidence that Ignition must be locked with Ralph via mockup approval <em>before</em> any component work starts, per the Design Change Workflow.</li>
+  </ul>
+
+  <h2 class="sec"><span class="chip">01.2</span> What This Report Recommends</h2>
+  <p>Two structural moves anchor the redesign: (1) a <strong>triage-first dashboard</strong> that leads with the exceptions already computed by <code>buildActionQueue()</code> rather than burying them under decorative charts, and (2) a <strong>single Client Workspace</strong> that replaces the six fragmented client touchpoints with one profile view — client identity, balance/aging, invoices, quotes, part requests, vehicles, loyalty, and communications as tabs of one record, not six separate hunts. Both changes reduce the step count for the five audited tasks by 35–60% (Section 06–10) without hiding any data that exists today.</p>
+
+  <div class="callout">
+    <div class="lbl">Reading This Report</div>
+    <div class="small">Sections 03–04 are diagnostic (what's wrong, where it lives in code). Sections 05–10 are prescriptive (before/after flows with step counts). Sections 11–14 are visual (wireframes). Section 15–16 are the accessibility and cognitive-load rules every wireframe in this package must obey.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">03</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 4 — PERSONAS -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 02</div>
+  <h1 class="page-title"><span class="num">02</span> Personas &amp; Jobs-To-Be-Done</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Four recurring roles emerge from the screen registry and API surface: screens like <code>owner-cockpit</code>, <code>report-builder</code>, and <code>admin-billing</code> imply an owner; <code>invoices</code>/POS-line-building implies a counter salesperson; <code>accounting</code>, <code>customer-aging</code>, <code>supplier-aging</code> imply back-office/accounting; <code>stock</code>, <code>reorder</code>, <code>stock-arrival</code>, <code>shipments</code> imply warehouse. Every redesigned flow in this report is written against one of these four.</p>
+
+  <div class="cols2">
+    <div class="persona-card">
+      <h4>Rita — Shop Owner</h4>
+      <div class="role">Primary dashboard user</div>
+      <p>Opens the app once each morning and periodically through the day. Needs to know in under 10 seconds: are we making money today, is anything on fire (unpaid bills, dead stock, failed messages), what changed since yesterday.</p>
+      <div class="jtbd">JTBD: "When I open the app, I want the 3 things that need my decision today surfaced first, so I don't have to read 20 tiles to find them."</div>
+    </p></div>
+
+    <div class="persona-card">
+      <h4>Karim — Counter Salesperson</h4>
+      <div class="role">Primary POS / Client Workspace user</div>
+      <p>Serves walk-in and repeat customers at the counter. Needs fast part lookup, fast invoice creation, and — for repeat clients — instant visibility into their balance and history without leaving the sale.</p>
+      <div class="jtbd">JTBD: "When a regular customer is standing in front of me, I want to see their balance and last visit in one glance, so I know whether to extend credit before I finish the sale."</div>
+    </div>
+
+    <div class="persona-card">
+      <h4>Nour — Accountant / Back-Office</h4>
+      <div class="role">Primary Client Workspace + Accounting user</div>
+      <p>Works receivables, payables, and reconciliation. Needs to move from "who owes us money" to "contact them" to "record the payment" without re-finding the customer in three separate screens.</p>
+      <div class="jtbd">JTBD: "When I'm chasing overdue balances, I want to message and log payment against the same client record I'm viewing, so I don't lose my place switching screens."</div>
+    </div>
+
+    <div class="persona-card">
+      <h4>Elie — Warehouse / Stock</h4>
+      <div class="role">Secondary dashboard user</div>
+      <p>Manages receiving, stock levels, dead stock, and reorder points. Cares about the inventory-specific KPIs on the dashboard (low stock, donor parts, reserved items) far more than sales or accounting figures.</p>
+      <div class="jtbd">JTBD: "When I check the dashboard, I want inventory exceptions grouped together, not interleaved with sales numbers I don't act on."</div>
+    </div>
+  </div>
+
+  <h2 class="sec"><span class="chip">02.1</span> Shared Constraint Across All Four</h2>
+  <p>Every persona above is time-boxed at a physical counter or warehouse floor — this is a shop-floor SaaS, not a back-office-only tool. That constraint drives two non-negotiable design rules carried through the rest of this report: (1) the single most urgent action must be reachable without scrolling on any screen size, and (2) any workflow that today requires re-typing a customer's name in a second screen is a defect, not a minor friction.</p>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">04</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 5 — HEURISTIC AUDIT (1/2) -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 03</div>
+  <h1 class="page-title"><span class="num">03</span> Heuristic Audit — Top 10 Problems</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Ten concrete usability problems found in the current dashboard and client/contacts experience, each cited to the exact file and behavior.</p>
+
+  <table class="grid">
+    <tr><th style="width:24px">#</th><th style="width:130px">Screen / File</th><th>Problem</th><th style="width:60px">Severity</th></tr>
+    <tr>
+      <td class="n">1</td>
+      <td><code>contacts-view.js</code></td>
+      <td>Customers and suppliers render as two static list columns with name, phone/email, and opening balance only (lines 40–56). There is no click-through to a detail record — <code>ContactPanel</code> has no <code>onClick</code> at all. A salesperson cannot open a customer from Contacts; the screen is a read-only ledger snapshot, not a workspace.</td>
+      <td><span class="badge danger">Critical</span></td>
+    </tr>
+    <tr>
+      <td class="n">2</td>
+      <td><code>dashboard-view.js</code></td>
+      <td>The triage list built by <code>buildActionQueue()</code> (negative P&amp;L, unpaid transactions, red inventory segments, currency margin risk, failed messages) is fully computed but never rendered in the returned JSX — the function's output (<code>actionQueue</code>, line 249) is dead-assigned. The most decision-relevant data on the whole dashboard is invisible to the user today.</td>
+      <td><span class="badge danger">Critical</span></td>
+    </tr>
+    <tr>
+      <td class="n">3</td>
+      <td><code>customer-aging-view.js</code></td>
+      <td>Aging is its own disconnected screen (<code>/api/customers/aging</code>) with no link back to that customer's invoices, quotes, or contact record — "Send Reminder" (line 149) fires a WhatsApp template but the accountant then has to re-search the same customer in Invoices to see what they actually owe for.</td>
+      <td><span class="badge danger">Critical</span></td>
+    </tr>
+    <tr>
+      <td class="n">4</td>
+      <td><code>invoices-view.js</code></td>
+      <td>Customer selection during POS is a plain <code>&lt;select&gt;</code> of names (line 277–282) with no balance, credit limit, or history shown at the point of sale — exactly the moment a salesperson most needs that context (Karim's JTBD, Section 02).</td>
+      <td><span class="badge warn">High</span></td>
+    </tr>
+    <tr>
+      <td class="n">5</td>
+      <td><code>screen-registry.js</code></td>
+      <td>70 screens are registered; <code>Sidebar.js</code> only curates 7 named groups (<code>cockpitGroups</code>, lines 19–27) covering roughly 17 keys. The remaining 50+ screens — including Loyalty, Warranty, Quotes, Part Requests, and most experimental modules — fall into a single flat "More Modules" bucket (line 58) with no sub-grouping or search.</td>
+      <td><span class="badge danger">Critical</span></td>
+    </tr>
+    <tr>
+      <td class="n">6</td>
+      <td><code>Topbar.js</code></td>
+      <td>The global search bar renders a <code>⌘K</code> hint (line 29) but there is no keyboard listener registered anywhere in the topbar or app shell to actually open a command palette on that shortcut — the affordance promises a capability the app does not deliver.</td>
+      <td><span class="badge warn">High</span></td>
+    </tr>
+    <tr>
+      <td class="n">7</td>
+      <td><code>dashboard-view.js</code></td>
+      <td>KPI row shows 8 cards, then a command panel, then 4 analysis panels, then hot parts + quick actions, then an 8-stat bottom bar (lines 408–617) — several values repeat 2–3 times (Sales Today and Profit Today appear in the KPI row, the bottom bar, <em>and</em> a P&amp;L breakdown) with no single source of truth the eye is drawn to first.</td>
+      <td><span class="badge warn">High</span></td>
+    </tr>
+    <tr>
+      <td class="n">8</td>
+      <td>Backend gap</td>
+      <td><code>CustomersController.cs</code> has no <code>GET /api/customers/{id}</code>. Any "client profile" today would require the frontend to independently call aging, sales, quotes, part-requests, and loyalty endpoints and manually join them client-side by customer ID — slow, error-prone, and not how the current codebase is built.</td>
+      <td><span class="badge danger">Critical</span></td>
+    </tr>
+    <tr>
+      <td class="n">9</td>
+      <td><code>DataTable.js</code></td>
+      <td>Row actions (<code>renderRowActions</code>) and expandable rows (<code>renderExpanded</code>) exist as generic capabilities in the shared table component but are unused by Contacts or Customer Aging — both screens could already support inline expand-to-profile without new components, yet neither does.</td>
+      <td><span class="badge info">Medium</span></td>
+    </tr>
+    <tr>
+      <td class="n">10</td>
+      <td><code>quotes-view.js</code>, <code>part-requests-view.js</code>, <code>loyalty-view.js</code></td>
+      <td>All three screens independently re-implement a customer picker/search pattern in their own form state rather than referencing one shared client identity — proof that "which client am I looking at" is solved four separate times in four separate ways across the app today.</td>
+      <td><span class="badge warn">High</span></td>
+    </tr>
+  </table>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">05</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 6 — HEURISTIC AUDIT (2/2) — implications -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 03 (continued)</div>
+  <h1 class="page-title"><span class="num">03.1</span> What These 10 Problems Have in Common</h1>
+  <div class="hr"></div>
+
+  <p>Read together, the ten problems cluster into three root causes rather than ten unrelated bugs:</p>
+
+  <h3 class="sub">Root cause A — No client identity model in the UI</h3>
+  <p>Problems 1, 3, 4, 8, and 10 are all symptoms of the same gap: the frontend has no concept of "open this client and see everything about them." Every screen that touches a customer (Contacts, Aging, Invoices, Quotes, Part Requests, Loyalty) re-solves the same lookup problem independently, and none of them link to each other. This is precisely the gap the new Client Workspace (Section 04, 08, 13–14) is designed to close — and it is why Section 04 explicitly flags a backend dependency rather than trying to wireframe around it.</p>
+
+  <h3 class="sub">Root cause B — Computed insight without a rendering path</h3>
+  <p>Problem 2 (the dead action queue) is the clearest single fix available: the business logic for "what needs my attention today" already exists and is already correct. The redesign's job is purely presentational — put <code>buildActionQueue()</code>'s output at the top of the dashboard, visually first, per persona Rita's JTBD in Section 02.</p>
+
+  <h3 class="sub">Root cause C — Flat navigation cannot scale past the group it was designed for</h3>
+  <p>Problems 5 and 6 show a navigation model (7 curated groups + one overflow bucket) that was sized for roughly 20 screens and is now carrying 70. Adding an 8th named group won't fix this — Section 04 proposes a different model entirely: fewer, task-oriented top-level destinations with in-context sub-navigation, plus a real command palette so the ⌘K hint already in the UI becomes true.</p>
+
+  <div class="callout">
+    <div class="lbl">Design Implication</div>
+    <div class="small">Fixing problems 1–10 individually would still leave the product feeling fragmented. The redesign treats Root Cause A and Root Cause C as the two structural changes (Client Workspace + new IA) and Root Cause B as a one-panel reprioritization within the new Dashboard — this is why this report organizes flows and wireframes around those two deliverables rather than a longer patch list.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">06</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 7 — NEW IA -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 04</div>
+  <h1 class="page-title"><span class="num">04</span> New Information Architecture</h1>
+  <div class="hr"></div>
+  <p class="page-intro">The current 7-group-plus-overflow sidebar (<code>Sidebar.js</code>, <code>cockpitGroups</code>) is replaced with 8 task-oriented top-level destinations on a 72px icon rail, each expanding to a flyout of its child screens. All 70 screens currently in <code>screen-registry.js</code> are placed — none are dropped, none remain in an undifferentiated "More" bucket.</p>
+
+  <table class="grid">
+    <tr><th style="width:150px">Rail Destination</th><th style="width:34px">Icon</th><th>Contains (screen-registry keys)</th></tr>
+    <tr><td><strong>Dashboard</strong></td><td>grid</td><td><code>dashboard</code> — single destination, no flyout.</td></tr>
+    <tr><td><strong>Clients</strong> <span class="badge ok">New</span></td><td>users</td><td>Client Workspace (replaces <code>contacts</code>, <code>customer-aging</code>, <code>supplier-aging</code>), <code>quotes</code>, <code>part-requests</code>, <code>loyalty</code>, <code>warranty</code>, <code>whatsapp</code>, <code>whatsapp-selling</code></td></tr>
+    <tr><td><strong>Sales / POS</strong></td><td>cart</td><td><code>invoices</code>, <code>sales-returns</code>, <code>barcode-mode (ar)</code>, <code>part-reserve</code></td></tr>
+    <tr><td><strong>Inventory</strong></td><td>box</td><td><code>inventory</code>, <code>part-passport</code>, <code>compatibility</code>, <code>does-it-fit</code>, <code>reorder</code>, <code>dead-stock</code>, <code>expiry-alerts</code>, <code>stock</code>, <code>stock-arrival</code>, <code>garage-stock</code>, <code>part-genealogy</code>, <code>qr-tag</code>, <code>condition-scanner</code></td></tr>
+    <tr><td><strong>Vehicles &amp; Yard</strong></td><td>car</td><td><code>used-cars</code>, <code>used-car-purchases</code>, <code>used-car-wholesale</code>, <code>car-twin</code>, <code>repair-prep</code>, <code>halfcut</code>, <code>car-crush</code>, <code>yard-tour</code>, <code>my-garage</code></td></tr>
+    <tr><td><strong>Finance</strong></td><td>bank</td><td><code>accounting</code>, <code>manual-journal</code>, <code>billing</code>, <code>admin-billing</code>, <code>escrow</code>, <code>part-insurance</code>, <code>shipments</code></td></tr>
+    <tr><td><strong>Insights &amp; Growth</strong></td><td>trend</td><td><code>report-builder</code>, <code>growth-lab</code>, <code>market-price</code>, <code>price-genius</code>, <code>price-report</code>, <code>dismantler-forecast</code>, <code>regional-demand</code>, <code>new-vs-used</code>, <code>seller-reputation</code>, <code>seller-verification</code>, <code>mechanic-trust</code>, <code>listing-boost</code>, <code>referral</code>, <code>community-guard</code>, <code>api-platform</code></td></tr>
+    <tr><td><strong>Tools &amp; Labs</strong></td><td>bolt</td><td><code>symptom-search</code>, <code>voice-search</code>, <code>ar-finder</code>, <code>negotiation</code>, <code>instant-offer</code>, <code>kareem</code>, <code>mechanic-desk</code>, <code>needboard</code>, <code>watchlist</code>, <code>part-reel</code>, <code>live-inspection</code>, <code>business-assistant</code>, <code>activity-log</code></td></tr>
+    <tr><td><strong>Settings</strong> (pinned bottom, unchanged position)</td><td>cog</td><td><code>management</code>, <code>settings</code></td></tr>
+  </table>
+
+  <h2 class="sec"><span class="chip">04.1</span> Command Palette (Ctrl+K / ⌘K)</h2>
+  <p>Every rail destination and every one of the 70 screens is also reachable through a single global command palette, opened by the shortcut already hinted at in <code>Topbar.js</code> today. Typing filters by screen name, and — once the backend dependency below is resolved — by customer name/phone, invoice number, and part code, unifying the "Popular searches" chips and 9-tab command panel currently duplicated inside the dashboard (<code>ck-cmd-panel</code>, lines 476–509) into one consistent entry point usable from anywhere in the app, not just the dashboard.</p>
+
+  <div class="callout">
+    <div class="lbl">Backend Dependency — Flagged for dev-backend-api</div>
+    <div class="small">The Client Workspace (see IA map, Section 05, and wireframes Section 13–14) requires a new aggregate endpoint, e.g. <code>GET /api/customers/{id}/profile</code>, returning identity, balance/aging, recent invoices, open quotes, active part requests, vehicles, loyalty points, and communication timeline in one call. This does not exist in <code>CustomersController.cs</code> today (Section 03, problem 8) and is out of this report's scope to design — it is called out here so implementation planning is not surprised by it.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">07</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 8 — IA MAP FIGURE -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 05</div>
+  <h1 class="page-title"><span class="num">05</span> IA Map — Rail, Palette &amp; Disclosure</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Figure 1 shows the full navigation model: the always-visible 72px icon rail, the flyout that expands per destination, the command palette overlay, and where progressive disclosure hides secondary detail (client sub-tabs, dashboard "show more") until requested.</p>
+
+  <div class="fig">
+    <div class="fig-cap"><span>FIGURE 1 — Information Architecture Map</span><b>Web reference build · adapts 1:1 to WPF ribbon + mobile tab bar</b></div>
+    <div class="fig-body">
+<svg width="760" height="520" viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg">
+  <rect width="760" height="520" fill="#fafafa"/>
+  <!-- Rail -->
+  <rect x="10" y="10" width="52" height="500" rx="10" fill="#0a0a0b"/>
+  <text x="36" y="30" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="8" font-weight="700">RAIL</text>
+  <g font-family="Inter" font-size="7" fill="#fafafa">
+    <circle cx="36" cy="55" r="14" fill="#f97316"/>
+    <text x="36" y="58" text-anchor="middle" fill="#0a0a0b" font-weight="700">D</text>
+    <circle cx="36" cy="90" r="14" fill="#1b1b1f"/>
+    <text x="36" y="93" text-anchor="middle">Cl</text>
+    <circle cx="36" cy="125" r="14" fill="#1b1b1f"/>
+    <text x="36" y="128" text-anchor="middle">Sa</text>
+    <circle cx="36" cy="160" r="14" fill="#1b1b1f"/>
+    <text x="36" y="163" text-anchor="middle">In</text>
+    <circle cx="36" cy="195" r="14" fill="#1b1b1f"/>
+    <text x="36" y="198" text-anchor="middle">Ve</text>
+    <circle cx="36" cy="230" r="14" fill="#1b1b1f"/>
+    <text x="36" y="233" text-anchor="middle">Fi</text>
+    <circle cx="36" cy="265" r="14" fill="#1b1b1f"/>
+    <text x="36" y="268" text-anchor="middle">Ins</text>
+    <circle cx="36" cy="300" r="14" fill="#1b1b1f"/>
+    <text x="36" y="303" text-anchor="middle">To</text>
+  </g>
+  <circle cx="36" cy="480" r="14" fill="#1b1b1f"/>
+  <text x="36" y="483" text-anchor="middle" fill="#a1a1aa" font-family="Inter" font-size="7">St</text>
+
+  <!-- Flyout from Clients -->
+  <rect x="70" y="80" width="150" height="200" rx="10" fill="#131316" stroke="#f97316" stroke-width="1.5"/>
+  <text x="82" y="98" fill="#f97316" font-family="JetBrains Mono" font-size="8" font-weight="700">CLIENTS FLYOUT</text>
+  <g font-family="Inter" font-size="8.5" fill="#fafafa">
+    <text x="82" y="118">Client Workspace</text>
+    <text x="82" y="136">Quotes / Estimates</text>
+    <text x="82" y="154">Part Requests</text>
+    <text x="82" y="172">Loyalty</text>
+    <text x="82" y="190">Warranty &amp; Returns</text>
+    <text x="82" y="208">WhatsApp</text>
+    <text x="82" y="226">WhatsApp Selling</text>
+  </g>
+  <line x1="70" y1="112" x2="220" y2="112" stroke="#2a2a30"/>
+  <rect x="78" y="104" width="134" height="18" rx="5" fill="rgba(249,115,22,.18)"/>
+  <text x="88" y="196" fill="#52525b" font-family="JetBrains Mono" font-size="6"></text>
+
+  <!-- arrow to workspace detail -->
+  <line x1="220" y1="112" x2="255" y2="112" stroke="#f97316" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Client Workspace detail box -->
+  <rect x="255" y="60" width="240" height="260" rx="10" fill="#ffffff" stroke="#e4e4e7"/>
+  <rect x="255" y="60" width="240" height="26" rx="10" fill="#f97316"/>
+  <text x="265" y="78" fill="#fff" font-family="Plus Jakarta Sans" font-size="9" font-weight="700">CLIENT WORKSPACE — Karim H.</text>
+  <text x="265" y="102" font-family="JetBrains Mono" font-size="7" fill="#71717a">Balance $1,240 · 45 days overdue</text>
+  <g font-family="Inter" font-size="7.5" fill="#27272a">
+    <rect x="265" y="112" width="52" height="16" rx="8" fill="#fff7ed" stroke="#f97316"/>
+    <text x="291" y="123" text-anchor="middle" fill="#c2410c">Profile</text>
+    <rect x="321" y="112" width="52" height="16" rx="8" fill="#f4f4f5"/>
+    <text x="347" y="123" text-anchor="middle">Invoices</text>
+    <rect x="377" y="112" width="52" height="16" rx="8" fill="#f4f4f5"/>
+    <text x="403" y="123" text-anchor="middle">Quotes</text>
+    <rect x="433" y="112" width="45" height="16" rx="8" fill="#f4f4f5"/>
+    <text x="455" y="123" text-anchor="middle">Vehicles</text>
+
+    <rect x="265" y="134" width="52" height="16" rx="8" fill="#f4f4f5"/>
+    <text x="291" y="145" text-anchor="middle">Loyalty</text>
+    <rect x="321" y="134" width="65" height="16" rx="8" fill="#f4f4f5"/>
+    <text x="353" y="145" text-anchor="middle">Part Reqs</text>
+    <rect x="390" y="134" width="88" height="16" rx="8" fill="#f4f4f5"/>
+    <text x="434" y="145" text-anchor="middle">Communications</text>
+  </g>
+  <text x="265" y="168" font-family="Plus Jakarta Sans" font-size="8" font-weight="700" fill="#18181b">Progressive disclosure:</text>
+  <text x="265" y="184" font-family="Inter" font-size="7" fill="#52525b">Visible by default → identity, balance, aging bar,</text>
+  <text x="265" y="196" font-family="Inter" font-size="7" fill="#52525b">last 3 invoices, quick actions (call/WhatsApp/invoice)</text>
+  <text x="265" y="214" font-family="Inter" font-size="7" fill="#52525b">On demand (tab click) → full invoice history, quote</text>
+  <text x="265" y="226" font-family="Inter" font-size="7" fill="#52525b">history, vehicle list, loyalty ledger, comms timeline</text>
+  <rect x="265" y="240" width="215" height="60" rx="6" fill="#fafafa" stroke="#e4e4e7" stroke-dasharray="2 2"/>
+  <text x="273" y="254" font-family="JetBrains Mono" font-size="6.5" fill="#a1a1aa">data source (new):</text>
+  <text x="273" y="266" font-family="JetBrains Mono" font-size="6.5" fill="#f97316">GET /api/customers/{id}/profile</text>
+  <text x="273" y="280" font-family="Inter" font-size="6.5" fill="#71717a">aggregates: identity, aging, invoices,</text>
+  <text x="273" y="291" font-family="Inter" font-size="6.5" fill="#71717a">quotes, part requests, loyalty, comms</text>
+
+  <!-- Command palette overlay -->
+  <rect x="530" y="60" width="210" height="130" rx="10" fill="#0a0a0b" stroke="#f97316" stroke-width="1.2"/>
+  <text x="540" y="78" fill="#f97316" font-family="JetBrains Mono" font-size="8" font-weight="700">⌘K COMMAND PALETTE</text>
+  <rect x="540" y="86" width="190" height="18" rx="5" fill="#1b1b1f"/>
+  <text x="548" y="98" fill="#71717a" font-family="Inter" font-size="7">Search screens, clients, invoices…</text>
+  <text x="540" y="118" fill="#a1a1aa" font-family="Inter" font-size="7">→ Client: Karim Haddad</text>
+  <text x="540" y="132" fill="#a1a1aa" font-family="Inter" font-size="7">→ Screen: Customer Aging</text>
+  <text x="540" y="146" fill="#a1a1aa" font-family="Inter" font-size="7">→ Invoice #INV-2291</text>
+  <text x="540" y="160" fill="#52525b" font-family="Inter" font-size="6.5">Replaces dashboard's local 9-tab search —</text>
+  <text x="540" y="171" fill="#52525b" font-family="Inter" font-size="6.5">one entry point, reachable app-wide.</text>
+
+  <!-- overflow note -->
+  <rect x="530" y="210" width="210" height="110" rx="10" fill="#fff" stroke="#e4e4e7"/>
+  <text x="540" y="228" fill="#18181b" font-family="Plus Jakarta Sans" font-size="8.5" font-weight="700">No overflow bucket</text>
+  <text x="540" y="244" fill="#3f3f46" font-family="Inter" font-size="7">All 70 screen-registry keys are placed</text>
+  <text x="540" y="256" fill="#3f3f46" font-family="Inter" font-size="7">into 1 of 8 task-oriented destinations —</text>
+  <text x="540" y="268" fill="#3f3f46" font-family="Inter" font-size="7">see Section 04 table. Replaces the flat</text>
+  <text x="540" y="280" fill="#3f3f46" font-family="Inter" font-size="7">"More Modules" group in Sidebar.js</text>
+  <text x="540" y="292" fill="#3f3f46" font-family="Inter" font-size="7">(line 58) that today holds 50+ screens.</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#f97316"/>
+    </marker>
+  </defs>
+
+  <text x="30" y="510" font-family="JetBrains Mono" font-size="7" fill="#a1a1aa">D=Dashboard  Cl=Clients  Sa=Sales/POS  In=Inventory  Ve=Vehicles  Fi=Finance  Ins=Insights  To=Tools  St=Settings</text>
+</svg>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">08</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 9 — FLOW 1: MORNING BUSINESS REVIEW -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 06</div>
+  <h1 class="page-title"><span class="num">06</span> Flow 01 — Morning Business Review</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Persona: Rita (Owner). Task: understand overnight performance and today's urgent items within seconds of opening the app.</p>
+
+  <h3 class="sub">Before — Today's flow (6 steps, no single-glance triage)</h3>
+  <div class="stepflow">
+    <div class="step"><b>1</b>Open Dashboard, scan 8 KPI cards top row</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2</b>Scroll past Command Center search panel</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3</b>Scan 4-panel analysis grid (Inventory, Categories, Sales chart, Activity)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4</b>Scroll to Hot Parts + Quick Actions row</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>5</b>Scroll to 8-stat bottom bar to find Overdue Invoices</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>6</b>Manually cross-reference which numbers indicate a problem</div>
+  </div>
+  <p class="small">Root problem: <code>buildActionQueue()</code> already flags negative P&amp;L, unpaid transactions, red inventory segments, currency risk, and failed messages — but its output is never rendered (Section 03, problem 2). Rita does this cross-referencing manually today.</p>
+
+  <h3 class="sub">After — Ignition flow (2 steps to full triage)</h3>
+  <div class="stepflow">
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>1</b>Open Dashboard — Action Queue band renders first, above KPIs, showing up to 4 prioritized exceptions with tone (danger/warning/success) and one-tap navigation</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>2</b>Tap the exception that matters → deep-links directly into Accounting / Stock / WhatsApp filtered to that issue</div>
+  </div>
+
+  <table class="grid">
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Steps to see "what needs my attention"</td><td class="n">6</td><td class="n">1</td></tr>
+    <tr><td>Steps to act on the top issue</td><td class="n">7+</td><td class="n">2</td></tr>
+    <tr><td>Scrolling required for triage</td><td>Yes (3 sections)</td><td>No</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="lbl">Design Rationale</div>
+    <div class="small">This flow requires no new backend work — <code>buildActionQueue()</code> in <code>dashboard-view.js</code> already computes the correct data. The fix is purely a rendering-priority change: promote the existing but unrendered action queue to the top of the page, above the KPI row, as specified in the Dashboard wireframe (Section 11).</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">09</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 10 — FLOW 2: INVOICING WALK-IN -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 07</div>
+  <h1 class="page-title"><span class="num">07</span> Flow 02 — Invoicing a Walk-in Client</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Persona: Karim (Counter Salesperson). Task: sell a part to a walk-in customer and print/send the receipt.</p>
+
+  <h3 class="sub">Before — Today's flow (7 steps)</h3>
+  <div class="stepflow">
+    <div class="step"><b>1</b>Open Invoices screen</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2</b>Leave Customer = "Walk-in" (default)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3</b>Pick Warehouse dropdown</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4</b>Select part from long dropdown, check availableStock text</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>5</b>Enter qty + unit price, click Add Line</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>6</b>Enter paid amount, click Create Invoice</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>7</b>Scroll to invoice row, click Send Invoice separately</div>
+  </div>
+  <p class="small">Source: <code>InvoicesView</code>, <code>addLine()</code> (line 168), <code>createInvoice()</code> (line 211), and the separate <code>sendInvoice()</code> action bound to a table row (line 448) — creating and sending are two disconnected actions today.</p>
+
+  <h3 class="sub">After — Ignition flow (4 steps)</h3>
+  <div class="stepflow">
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>1</b>Sales/POS opens with warehouse pre-set to the operator's default; part search is the first focused field (barcode/name/OEM)</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>2</b>Type/scan part → line auto-adds with live stock badge inline (no separate stock lookup step)</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>3</b>Confirm total + payment method in a persistent right-hand cart rail</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>4</b>Tap "Complete &amp; Send" — creates invoice and fires WhatsApp receipt in one action</div>
+  </div>
+
+  <table class="grid">
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Steps, walk-in cash sale</td><td class="n">7</td><td class="n">4</td></tr>
+    <tr><td>Screens/panels visited</td><td class="n">2 (form + table row)</td><td class="n">1 (single cart rail)</td></tr>
+    <tr><td>Create + send as one action</td><td>No</td><td>Yes</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="lbl">Design Rationale</div>
+    <div class="small">The current form-then-table split forces the salesperson to build the invoice in one region and act on it in another, further down the page. Ignition collapses this into a persistent cart pattern (line-item builder + running total always visible), and merges "create" and "send" into a single default action since in practice a walk-in sale is always immediately receipted.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">10</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 11 — FLOW 3: CLIENT LOOKUP MID-SALE -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 08</div>
+  <h1 class="page-title"><span class="num">08</span> Flow 03 — Client Lookup Mid-Counter-Sale</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Persona: Karim. Task: a repeat customer at the counter asks "how much do I still owe you?" while Karim is mid-invoice.</p>
+
+  <h3 class="sub">Before — Today's flow (8 steps, loses invoice progress)</h3>
+  <div class="stepflow">
+    <div class="step"><b>1</b>Leave the Invoices screen (draft lines are lost — no save-and-resume)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2</b>Navigate to Customer Aging</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3</b>Type customer name into aging search box</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4</b>Read balance from aging table row</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>5</b>Navigate to Contacts to confirm phone/details</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>6</b>Re-search same name in Contacts (no shared state)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>7</b>Navigate back to Invoices</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>8</b>Rebuild the draft invoice lines from scratch</div>
+  </div>
+  <p class="small">Confirmed in code: <code>InvoicesView</code> draft state (<code>draftItems</code>) is local component state with no persistence, and <code>ContactsView</code>/<code>CustomerAgingView</code> each hold independent, non-shared <code>search</code> state (lines 18–21 in both files).</p>
+
+  <h3 class="sub">After — Ignition flow (2 steps, invoice preserved)</h3>
+  <div class="stepflow">
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>1</b>From the POS customer field, tap the client's name → opens Client Workspace as a side panel (invoice draft stays open underneath, unaffected)</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>2</b>Read balance + aging badge in the panel header, close panel → draft invoice exactly as left it</div>
+  </div>
+
+  <table class="grid">
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Steps to see balance</td><td class="n">4</td><td class="n">1</td></tr>
+    <tr><td>Steps to return to sale, fully intact</td><td class="n">4 (rebuild from scratch)</td><td class="n">1 (close panel)</td></tr>
+    <tr><td>Total steps</td><td class="n">8</td><td class="n">2</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="lbl">Design Rationale</div>
+    <div class="small">This is the single highest-value flow in the redesign: it directly serves Karim's JTBD from Section 02 and is only possible once the Client Workspace exists as a shared, reusable panel rather than a full-page navigation. The panel opens as an overlay/drawer specifically so it never discards in-progress POS state — see wireframe interaction note, Section 13.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">11</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 12 — FLOW 4: OVERDUE RECEIVABLES -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 09</div>
+  <h1 class="page-title"><span class="num">09</span> Flow 04 — Chasing Overdue Receivables</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Persona: Nour (Accountant). Task: find customers over 90 days overdue, review what they owe, and send reminders.</p>
+
+  <h3 class="sub">Before — Today's flow (9 steps for 3 customers)</h3>
+  <div class="stepflow">
+    <div class="step"><b>1</b>Open Customer Aging</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2</b>Scan table for 90+ days column values &gt; 0</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3</b>Click "Send Reminder" (row 1) — generic template only</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4</b>To see <em>which invoices</em> caused the balance, navigate to Invoices</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>5</b>Re-search customer name in Invoices</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>6</b>Scan invoice list for unpaid rows</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>7</b>Repeat steps 3–6 for customer 2</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>8</b>Repeat steps 3–6 for customer 3</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>9</b>No way to log "contacted, promised payment Friday" anywhere</div>
+  </div>
+  <p class="small"><code>CustomerAgingView.sendReminder()</code> (line 39) only fires <code>CommunicationPayloadFactory.accountBalanceReminder</code> — a single templated message with no per-customer note-taking, and no link from the aging row to the underlying invoice list.</p>
+
+  <h3 class="sub">After — Ignition flow (4 steps for 3 customers, notes captured)</h3>
+  <div class="stepflow">
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>1</b>Client Workspace list, filter = "Overdue 90+" (aging becomes a filter, not a separate screen)</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>2</b>Open client → Profile tab shows balance, aging bar, and the exact unpaid invoices inline</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>3</b>Send reminder from the same panel; add a follow-up note in Communications tab</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>4</b>Back to filtered list (state preserved) → next client</div>
+  </div>
+
+  <table class="grid">
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Steps per customer</td><td class="n">~7</td><td class="n">4 (first pass), 2 (return to list)</td></tr>
+    <tr><td>Steps for 3 customers</td><td class="n">~19</td><td class="n">~8</td></tr>
+    <tr><td>Follow-up note captured</td><td>Not possible</td><td>Yes — Communications tab</td></tr>
+  </table>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">12</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 13 — FLOW 5: QUOTE TO INVOICE -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 10</div>
+  <h1 class="page-title"><span class="num">10</span> Flow 05 — Quote → Invoice Conversion</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Persona: Karim / Nour. Task: create a quote for a customer, then convert the accepted quote into a real invoice.</p>
+
+  <h3 class="sub">Before — Today's flow (8 steps across 2 disconnected screens)</h3>
+  <div class="stepflow">
+    <div class="step"><b>1</b>Open Quotes screen</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>2</b>Search/select customer (own local picker, separate from Invoices' picker)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>3</b>Build quote lines, set expiry date, save as Draft</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>4</b>Mark quote Sent; wait for customer response</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>5</b>Customer accepts — mark quote Accepted (manual status change)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>6</b>Navigate to Invoices screen separately</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>7</b>Re-select the same customer and re-enter every line item by hand (no data carries over)</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>8</b>Create invoice, then separately mark the quote as Converted</div>
+  </div>
+  <p class="small">Confirmed via <code>quotes-view.js</code> status vocabulary (<code>Draft, Sent, Accepted, Declined, Expired, Converted</code>, line 5) — "Converted" exists as a status value, but there is no code path found linking a quote's line items into <code>InvoicesView</code>'s <code>draftItems</code>; the two screens do not share data.</p>
+
+  <h3 class="sub">After — Ignition flow (4 steps, one data model)</h3>
+  <div class="stepflow">
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>1</b>From Client Workspace → Quotes tab → New Quote (customer already in context, no re-picking)</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>2</b>Build lines, send — status updates automatically on customer view/response webhook where available</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>3</b>On Accepted, one button: "Convert to Invoice" carries every line, customer, and pricing forward</div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:#f97316;background:#fff7ed;"><b>4</b>Review pre-filled invoice, confirm payment, complete</div>
+  </div>
+
+  <table class="grid">
+    <tr><th>Metric</th><th>Before</th><th>After</th></tr>
+    <tr><td>Steps end-to-end</td><td class="n">8</td><td class="n">4</td></tr>
+    <tr><td>Line items re-entered by hand</td><td>Yes, all of them</td><td>No — carried automatically</td></tr>
+    <tr><td>Customer re-selected</td><td>Yes</td><td>No — already in workspace context</td></tr>
+  </table>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">13</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 14 — WIREFRAME: DASHBOARD DESKTOP -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 11</div>
+  <h1 class="page-title"><span class="num">11</span> Wireframe — Dashboard (Desktop)</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Figure 2. Structural change from today's <code>DashboardView</code>: the computed-but-unrendered Action Queue (Section 03, problem 2) now leads the page, above the KPI band. Everything else — KPI cards, category breakdown, sales chart, hot parts — is preserved but re-ordered by urgency, not by decoration.</p>
+
+  <div class="fig">
+    <div class="fig-cap"><span>FIGURE 2 — Dashboard, Desktop ≥1280px</span><b>72px rail + flyout · full-width KPI band · Ctrl+K palette</b></div>
+    <div class="fig-body">
+<svg width="760" height="480" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg">
+  <rect width="760" height="480" fill="#0a0a0b" rx="8"/>
+  <!-- rail -->
+  <rect x="0" y="0" width="52" height="480" fill="#0a0a0b"/>
+  <circle cx="26" cy="26" r="10" fill="#f97316"/>
+  <circle cx="26" cy="56" r="10" fill="#1b1b1f"/>
+  <circle cx="26" cy="86" r="10" fill="#1b1b1f"/>
+  <circle cx="26" cy="116" r="10" fill="#1b1b1f"/>
+  <line x1="52" y1="0" x2="52" y2="480" stroke="#27272a"/>
+
+  <!-- topbar -->
+  <rect x="52" y="0" width="708" height="40" fill="#131316"/>
+  <rect x="70" y="10" width="300" height="20" rx="6" fill="#1b1b1f"/>
+  <text x="80" y="24" fill="#71717a" font-family="Inter" font-size="8">Search screens, clients, parts…</text>
+  <text x="350" y="24" fill="#52525b" font-family="JetBrains Mono" font-size="7">Ctrl K</text>
+  <rect x="660" y="8" width="80" height="24" rx="12" fill="#f97316"/>
+  <text x="700" y="24" text-anchor="middle" fill="#0a0a0b" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">+ New Sale</text>
+
+  <!-- content bg -->
+  <rect x="52" y="40" width="708" height="440" fill="#0a0a0b"/>
+
+  <text x="72" y="62" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="13" font-weight="800">Welcome back, Rita</text>
+  <text x="72" y="76" fill="#a1a1aa" font-family="Inter" font-size="7.5">Tuesday, 2 July 2026</text>
+
+  <!-- ACTION QUEUE band (new, first) -->
+  <rect x="72" y="86" width="668" height="60" rx="12" fill="#131316" stroke="#f97316" stroke-width="1.2"/>
+  <text x="84" y="100" fill="#f97316" font-family="JetBrains Mono" font-size="7.5" font-weight="700">⚠ ACTION QUEUE — 3 ITEMS NEED YOU TODAY</text>
+  <g font-family="Inter" font-size="7" fill="#fafafa">
+    <rect x="84" y="108" width="205" height="30" rx="8" fill="rgba(239,68,68,.14)"/>
+    <text x="92" y="120" fill="#ef4444" font-weight="700">Receivables</text>
+    <text x="92" y="131" fill="#e4e4e7">6 unpaid · $4,120 → Review</text>
+
+    <rect x="296" y="108" width="205" height="30" rx="8" fill="rgba(251,191,36,.16)"/>
+    <text x="304" y="120" fill="#b45309" font-weight="700">Inventory</text>
+    <text x="304" y="131" fill="#e4e4e7">2 red segments → Triage stock</text>
+
+    <rect x="508" y="108" width="220" height="30" rx="8" fill="rgba(56,189,248,.14)"/>
+    <text x="516" y="120" fill="#0ea5e9" font-weight="700">Messages</text>
+    <text x="516" y="131" fill="#e4e4e7">3 failed sends → Retry WhatsApp</text>
+  </g>
+
+  <!-- KPI band -->
+  <text x="72" y="164" fill="#a1a1aa" font-family="JetBrains Mono" font-size="7" letter-spacing="1">KPI BAND</text>
+  <g>
+    <rect x="72" y="170" width="80" height="52" rx="10" fill="#131316"/>
+    <rect x="160" y="170" width="80" height="52" rx="10" fill="#131316"/>
+    <rect x="248" y="170" width="80" height="52" rx="10" fill="#131316"/>
+    <rect x="336" y="170" width="80" height="52" rx="10" fill="#131316"/>
+    <rect x="424" y="170" width="80" height="52" rx="10" fill="#131316"/>
+    <rect x="512" y="170" width="80" height="52" rx="10" fill="#131316"/>
+    <rect x="600" y="170" width="70" height="52" rx="10" fill="#131316"/>
+  </g>
+  <g font-family="Inter" font-size="6" fill="#a1a1aa">
+    <text x="80" y="184">Sales Today</text><text x="80" y="196" fill="#fafafa" font-family="JetBrains Mono" font-size="8">$3,240</text>
+    <text x="168" y="184">Profit Today</text><text x="168" y="196" fill="#22c55e" font-family="JetBrains Mono" font-size="8">$980</text>
+    <text x="256" y="184">Cash</text><text x="256" y="196" fill="#fafafa" font-family="JetBrains Mono" font-size="8">$12.4K</text>
+    <text x="344" y="184">Active Reqs</text><text x="344" y="196" fill="#fafafa" font-family="JetBrains Mono" font-size="8">18</text>
+    <text x="432" y="184">Available</text><text x="432" y="196" fill="#fafafa" font-family="JetBrains Mono" font-size="8">1,204</text>
+    <text x="520" y="184">Low Stock</text><text x="520" y="196" fill="#ef4444" font-family="JetBrains Mono" font-size="8">12</text>
+    <text x="608" y="184">Donor Cars</text><text x="608" y="196" fill="#fafafa" font-family="JetBrains Mono" font-size="8">34</text>
+  </g>
+
+  <!-- 4 panel grid -->
+  <rect x="72" y="234" width="325" height="120" rx="10" fill="#131316"/>
+  <text x="84" y="250" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Sales Overview — This Week</text>
+  <polyline points="90,330 140,310 190,318 240,290 290,300 340,270 385,280" fill="none" stroke="#f97316" stroke-width="2"/>
+
+  <rect x="415" y="234" width="325" height="120" rx="10" fill="#131316"/>
+  <text x="427" y="250" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Top Categories by Value</text>
+  <rect x="427" y="262" width="220" height="8" rx="4" fill="#f97316"/>
+  <rect x="427" y="278" width="160" height="8" rx="4" fill="#38bdf8"/>
+  <rect x="427" y="294" width="110" height="8" rx="4" fill="#a855f7"/>
+  <rect x="427" y="310" width="70" height="8" rx="4" fill="#22c55e"/>
+
+  <!-- hot parts + quick actions -->
+  <rect x="72" y="364" width="325" height="100" rx="10" fill="#131316"/>
+  <text x="84" y="380" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Hot Parts</text>
+  <rect x="84" y="390" width="60" height="60" rx="8" fill="#1b1b1f"/>
+  <rect x="150" y="390" width="60" height="60" rx="8" fill="#1b1b1f"/>
+  <rect x="216" y="390" width="60" height="60" rx="8" fill="#1b1b1f"/>
+  <rect x="282" y="390" width="60" height="60" rx="8" fill="#1b1b1f"/>
+
+  <rect x="415" y="364" width="325" height="100" rx="10" fill="#131316"/>
+  <text x="427" y="380" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Quick Actions</text>
+  <rect x="427" y="390" width="72" height="30" rx="8" fill="#f97316"/>
+  <rect x="507" y="390" width="72" height="30" rx="8" fill="#1b1b1f"/>
+  <rect x="587" y="390" width="72" height="30" rx="8" fill="#1b1b1f"/>
+  <rect x="427" y="426" width="72" height="30" rx="8" fill="#1b1b1f"/>
+  <rect x="507" y="426" width="72" height="30" rx="8" fill="#1b1b1f"/>
+  <rect x="587" y="426" width="72" height="30" rx="8" fill="#1b1b1f"/>
+
+  <text x="72" y="474" fill="#52525b" font-family="JetBrains Mono" font-size="6.5">12-column grid · pill badges 999px radius · card radius 16px · orange = primary accent only</text>
+</svg>
+    </div>
+  </div>
+  <p class="small"><strong>Annotation:</strong> Action Queue band directly renders <code>buildActionQueue()</code>'s existing output (max 4 items, tone-colored: danger/warning/info/success) — same data source as today, new position and visual treatment only.</p>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">14</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 15 — WIREFRAME: DASHBOARD MOBILE -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 12</div>
+  <h1 class="page-title"><span class="num">12</span> Wireframe — Dashboard (Mobile / Narrow)</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Figure 3. Below 768px, the icon rail collapses to a bottom tab bar (5 primary destinations + "More"), the KPI band becomes a horizontally-scrollable single row, and the Action Queue remains the very first element — non-negotiable across breakpoints per the shop-floor time-boxed constraint noted in Section 02.</p>
+
+  <div class="fig">
+    <div class="fig-cap"><span>FIGURE 3 — Dashboard, Mobile ≤428px</span><b>Bottom tab bar · single-column stack · swipeable KPI strip</b></div>
+    <div class="fig-body">
+<svg width="300" height="500" viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="500" rx="22" fill="#0a0a0b" stroke="#27272a" stroke-width="2"/>
+  <!-- status bar -->
+  <rect x="10" y="10" width="280" height="18" rx="4" fill="#131316"/>
+  <text x="150" y="23" text-anchor="middle" fill="#71717a" font-family="Inter" font-size="6">9:41</text>
+
+  <!-- topbar -->
+  <text x="20" y="48" fill="#fafafa" font-family="Plus Jakarta Sans" font-weight="800" font-size="12">Hi, Rita</text>
+  <circle cx="272" cy="42" r="9" fill="#1b1b1f"/>
+  <circle cx="272" cy="42" r="2" fill="#f97316"/>
+
+  <!-- search -->
+  <rect x="20" y="58" width="260" height="26" rx="8" fill="#131316"/>
+  <text x="30" y="75" fill="#71717a" font-family="Inter" font-size="7">Search…</text>
+
+  <!-- action queue -->
+  <rect x="20" y="94" width="260" height="70" rx="12" fill="#131316" stroke="#f97316" stroke-width="1"/>
+  <text x="30" y="108" fill="#f97316" font-family="JetBrains Mono" font-size="6.5" font-weight="700">ACTION QUEUE</text>
+  <rect x="30" y="114" width="240" height="20" rx="6" fill="rgba(239,68,68,.16)"/>
+  <text x="38" y="127" fill="#fecaca" font-family="Inter" font-size="6.5">Receivables · 6 unpaid · $4,120</text>
+  <rect x="30" y="138" width="240" height="20" rx="6" fill="rgba(251,191,36,.16)"/>
+  <text x="38" y="151" fill="#fde68a" font-family="Inter" font-size="6.5">Inventory · 2 red segments</text>
+
+  <!-- kpi swipeable row -->
+  <text x="20" y="182" fill="#a1a1aa" font-family="JetBrains Mono" font-size="6">KPI · SWIPE →</text>
+  <rect x="20" y="188" width="90" height="54" rx="10" fill="#131316"/>
+  <rect x="118" y="188" width="90" height="54" rx="10" fill="#131316"/>
+  <rect x="216" y="188" width="74" height="54" rx="10" fill="#131316" opacity="0.5"/>
+  <text x="28" y="204" fill="#a1a1aa" font-family="Inter" font-size="6">Sales Today</text>
+  <text x="28" y="222" fill="#fafafa" font-family="JetBrains Mono" font-size="10">$3,240</text>
+  <text x="126" y="204" fill="#a1a1aa" font-family="Inter" font-size="6">Profit Today</text>
+  <text x="126" y="222" fill="#22c55e" font-family="JetBrains Mono" font-size="10">$980</text>
+
+  <!-- sales chart -->
+  <rect x="20" y="254" width="260" height="90" rx="12" fill="#131316"/>
+  <text x="30" y="270" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7.5" font-weight="700">Sales — This Week</text>
+  <polyline points="30,330 70,318 110,324 150,300 190,308 230,286 270,296" fill="none" stroke="#f97316" stroke-width="2"/>
+
+  <!-- quick actions grid -->
+  <text x="20" y="360" fill="#a1a1aa" font-family="JetBrains Mono" font-size="6">QUICK ACTIONS</text>
+  <rect x="20" y="366" width="80" height="40" rx="10" fill="#f97316"/>
+  <text x="60" y="390" text-anchor="middle" fill="#0a0a0b" font-family="Plus Jakarta Sans" font-size="7" font-weight="700">New Sale</text>
+  <rect x="108" y="366" width="80" height="40" rx="10" fill="#1b1b1f"/>
+  <text x="148" y="390" text-anchor="middle" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7">Find Part</text>
+  <rect x="196" y="366" width="84" height="40" rx="10" fill="#1b1b1f"/>
+  <text x="238" y="390" text-anchor="middle" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7">New Client</text>
+
+  <!-- bottom tab bar -->
+  <rect x="0" y="440" width="300" height="60" rx="0" fill="#131316"/>
+  <line x1="0" y1="440" x2="300" y2="440" stroke="#27272a"/>
+  <g font-family="Inter" font-size="6" fill="#a1a1aa">
+    <circle cx="40" cy="463" r="12" fill="#f97316"/>
+    <text x="40" y="486" text-anchor="middle" fill="#f97316">Dash</text>
+    <circle cx="105" cy="463" r="12" fill="#1b1b1f"/>
+    <text x="105" y="486" text-anchor="middle">Clients</text>
+    <circle cx="170" cy="463" r="12" fill="#1b1b1f"/>
+    <text x="170" y="486" text-anchor="middle">Sales</text>
+    <circle cx="235" cy="463" r="12" fill="#1b1b1f"/>
+    <text x="235" y="486" text-anchor="middle">Parts</text>
+    <circle cx="270" cy="463" r="10" fill="#1b1b1f"/>
+    <text x="270" y="486" text-anchor="middle">More</text>
+  </g>
+</svg>
+    </div>
+  </div>
+  <p class="small"><strong>Annotation:</strong> Touch targets on the bottom tab bar are 44×44pt minimum (Section 15). The "More" tab opens the same 8-destination structure as the desktop rail flyout, presented as a full-screen sheet rather than a hover flyout.</p>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">15</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 16 — WIREFRAME: CLIENT WORKSPACE DESKTOP -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 13</div>
+  <h1 class="page-title"><span class="num">13</span> Wireframe — Client Workspace (Desktop)</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Figure 4. Replaces Contacts (<code>contacts-view.js</code>), Customer Aging (<code>customer-aging-view.js</code>), and the customer-facing portions of Invoices, Quotes, Part Requests, Loyalty, and WhatsApp with one two-pane workspace: client list (left) and full client profile (right), organized as tabs per Section 05's progressive-disclosure figure.</p>
+
+  <div class="fig">
+    <div class="fig-cap"><span>FIGURE 4 — Client Workspace, Desktop ≥1280px</span><b>List + profile split-pane · opens as drawer from POS (Flow 03)</b></div>
+    <div class="fig-body">
+<svg width="760" height="480" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg">
+  <rect width="760" height="480" fill="#0a0a0b" rx="8"/>
+  <rect x="0" y="0" width="52" height="480" fill="#0a0a0b"/>
+  <circle cx="26" cy="56" r="10" fill="#f97316"/>
+  <line x1="52" y1="0" x2="52" y2="480" stroke="#27272a"/>
+  <rect x="52" y="0" width="708" height="40" fill="#131316"/>
+
+  <!-- client list pane -->
+  <rect x="52" y="40" width="230" height="440" fill="#0a0a0b"/>
+  <rect x="66" y="54" width="202" height="24" rx="7" fill="#131316"/>
+  <text x="76" y="70" fill="#71717a" font-family="Inter" font-size="7">Search clients…</text>
+  <g font-family="Inter" font-size="6.5" fill="#a1a1aa">
+    <rect x="66" y="86" width="60" height="16" rx="8" fill="#f97316"/>
+    <text x="96" y="97" text-anchor="middle" fill="#0a0a0b" font-weight="700">All</text>
+    <rect x="130" y="86" width="70" height="16" rx="8" fill="#1b1b1f"/>
+    <text x="165" y="97" text-anchor="middle">Overdue</text>
+    <rect x="204" y="86" width="64" height="16" rx="8" fill="#1b1b1f"/>
+    <text x="236" y="97" text-anchor="middle">VIP</text>
+  </g>
+
+  <!-- list rows -->
+  <rect x="66" y="112" width="202" height="46" rx="10" fill="#1b1b1f" stroke="#f97316" stroke-width="1.2"/>
+  <text x="76" y="128" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Karim Haddad</text>
+  <text x="76" y="140" fill="#a1a1aa" font-family="Inter" font-size="6.5">Balance $1,240</text>
+  <rect x="220" y="120" width="40" height="14" rx="7" fill="rgba(239,68,68,.2)"/>
+  <text x="240" y="130" text-anchor="middle" fill="#f87171" font-family="Inter" font-size="6">45d</text>
+
+  <rect x="66" y="164" width="202" height="46" rx="10" fill="#131316"/>
+  <text x="76" y="180" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Garage Mecanix</text>
+  <text x="76" y="192" fill="#a1a1aa" font-family="Inter" font-size="6.5">Balance $320</text>
+  <rect x="220" y="172" width="40" height="14" rx="7" fill="rgba(34,197,94,.18)"/>
+  <text x="240" y="182" text-anchor="middle" fill="#4ade80" font-family="Inter" font-size="6">Cur.</text>
+
+  <rect x="66" y="216" width="202" height="46" rx="10" fill="#131316"/>
+  <text x="76" y="232" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Rami Haddad</text>
+  <text x="76" y="244" fill="#a1a1aa" font-family="Inter" font-size="6.5">Balance $0</text>
+
+  <text x="66" y="290" fill="#52525b" font-family="Inter" font-size="6.5">247 clients · virtualized list</text>
+
+  <!-- profile pane -->
+  <rect x="290" y="40" width="470" height="440" fill="#0a0a0b"/>
+  <rect x="306" y="54" width="438" height="52" rx="12" fill="#131316"/>
+  <circle cx="332" cy="80" r="16" fill="#f97316"/>
+  <text x="332" y="84" text-anchor="middle" fill="#0a0a0b" font-family="Plus Jakarta Sans" font-size="9" font-weight="800">KH</text>
+  <text x="358" y="76" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="10" font-weight="800">Karim Haddad</text>
+  <text x="358" y="90" fill="#a1a1aa" font-family="Inter" font-size="7">+961 03 884 219 · Jdeideh</text>
+  <text x="600" y="72" fill="#f87171" font-family="JetBrains Mono" font-size="8" font-weight="700">$1,240 owed</text>
+  <text x="600" y="86" fill="#a1a1aa" font-family="Inter" font-size="6.5">45 days overdue</text>
+  <rect x="700" y="64" width="34" height="24" rx="8" fill="#1b1b1f"/>
+  <text x="717" y="79" text-anchor="middle" fill="#fafafa" font-family="Inter" font-size="10">⋯</text>
+
+  <!-- tabs -->
+  <g font-family="Inter" font-size="7.5">
+    <rect x="306" y="114" width="60" height="20" rx="10" fill="#f97316"/>
+    <text x="336" y="127" text-anchor="middle" fill="#0a0a0b" font-weight="700">Profile</text>
+    <rect x="370" y="114" width="60" height="20" rx="10" fill="#1b1b1f"/>
+    <text x="400" y="127" text-anchor="middle" fill="#fafafa">Invoices</text>
+    <rect x="434" y="114" width="58" height="20" rx="10" fill="#1b1b1f"/>
+    <text x="463" y="127" text-anchor="middle" fill="#fafafa">Quotes</text>
+    <rect x="496" y="114" width="66" height="20" rx="10" fill="#1b1b1f"/>
+    <text x="529" y="127" text-anchor="middle" fill="#fafafa">Vehicles</text>
+    <rect x="566" y="114" width="60" height="20" rx="10" fill="#1b1b1f"/>
+    <text x="596" y="127" text-anchor="middle" fill="#fafafa">Loyalty</text>
+    <rect x="630" y="114" width="104" height="20" rx="10" fill="#1b1b1f"/>
+    <text x="682" y="127" text-anchor="middle" fill="#fafafa">Communications</text>
+  </g>
+
+  <!-- aging bar -->
+  <rect x="306" y="146" width="438" height="34" rx="10" fill="#131316"/>
+  <text x="316" y="160" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7.5" font-weight="700">Aging</text>
+  <rect x="316" y="166" width="60" height="8" rx="4" fill="#22c55e"/>
+  <rect x="380" y="166" width="40" height="8" rx="4" fill="#fbbf24"/>
+  <rect x="424" y="166" width="30" height="8" rx="4" fill="#f97316"/>
+  <rect x="458" y="166" width="80" height="8" rx="4" fill="#ef4444"/>
+  <text x="316" y="178" fill="#52525b" font-family="JetBrains Mono" font-size="5.5">Current   1-30   31-60   90+ ($780)</text>
+
+  <!-- recent invoices (default visible) -->
+  <rect x="306" y="188" width="438" height="120" rx="10" fill="#131316"/>
+  <text x="316" y="204" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7.5" font-weight="700">Recent Invoices</text>
+  <g font-family="Inter" font-size="6.5" fill="#e4e4e7">
+    <text x="316" y="222">INV-2291 · 28 Jun</text><text x="600" y="222" fill="#f87171">$420 unpaid</text>
+    <text x="316" y="240">INV-2277 · 14 Jun</text><text x="600" y="240" fill="#4ade80">$360 paid</text>
+    <text x="316" y="258">INV-2260 · 30 May</text><text x="600" y="258" fill="#f87171">$460 unpaid</text>
+  </g>
+  <rect x="316" y="272" width="120" height="20" rx="8" fill="#f97316"/>
+  <text x="376" y="285" text-anchor="middle" fill="#0a0a0b" font-family="Inter" font-size="7" font-weight="700">Send Reminder</text>
+  <rect x="446" y="272" width="110" height="20" rx="8" fill="#1b1b1f"/>
+  <text x="501" y="285" text-anchor="middle" fill="#fafafa" font-family="Inter" font-size="7">WhatsApp</text>
+  <rect x="566" y="272" width="100" height="20" rx="8" fill="#1b1b1f"/>
+  <text x="616" y="285" text-anchor="middle" fill="#fafafa" font-family="Inter" font-size="7">New Invoice</text>
+
+  <!-- quick vehicle/loyalty snapshot -->
+  <rect x="306" y="318" width="215" height="90" rx="10" fill="#131316"/>
+  <text x="316" y="334" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7.5" font-weight="700">Vehicles</text>
+  <text x="316" y="352" fill="#e4e4e7" font-family="Inter" font-size="6.5">BMW 320i · 2016 · F30</text>
+  <text x="316" y="366" fill="#52525b" font-family="Inter" font-size="6">2 vehicles on file</text>
+
+  <rect x="531" y="318" width="213" height="90" rx="10" fill="#131316"/>
+  <text x="541" y="334" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="7.5" font-weight="700">Loyalty</text>
+  <text x="541" y="356" fill="#f97316" font-family="JetBrains Mono" font-size="14" font-weight="700">1,240 pts</text>
+  <text x="541" y="370" fill="#52525b" font-family="Inter" font-size="6">Silver tier</text>
+
+  <text x="306" y="430" fill="#52525b" font-family="JetBrains Mono" font-size="6.5">Data source (new): GET /api/customers/{id}/profile — see Section 04 dependency note</text>
+</svg>
+    </div>
+  </div>
+  <p class="small"><strong>Annotation:</strong> This same component renders as the side-drawer referenced in Flow 03 (Section 08) — opened over any screen without navigating away, so POS/invoice state underneath is preserved.</p>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">16</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 17 — WIREFRAME: CLIENT WORKSPACE MOBILE -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 14</div>
+  <h1 class="page-title"><span class="num">14</span> Wireframe — Client Workspace (Mobile / Narrow)</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Figure 5. The split-pane collapses to a single-column stack: list first, tapping a client pushes a full-screen profile with the same tab set rendered as a horizontally-scrollable chip row instead of a fixed tab strip.</p>
+
+  <div class="fig">
+    <div class="fig-cap"><span>FIGURE 5 — Client Workspace, Mobile ≤428px</span><b>List → push profile · sticky action bar</b></div>
+    <div class="fig-body">
+<svg width="300" height="500" viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="500" rx="22" fill="#0a0a0b" stroke="#27272a" stroke-width="2"/>
+  <rect x="10" y="10" width="280" height="18" rx="4" fill="#131316"/>
+
+  <!-- header with back -->
+  <text x="20" y="48" fill="#f97316" font-family="Inter" font-size="10">‹</text>
+  <text x="36" y="48" fill="#fafafa" font-family="Plus Jakarta Sans" font-weight="800" font-size="12">Karim Haddad</text>
+
+  <!-- identity + balance -->
+  <rect x="20" y="58" width="260" height="52" rx="12" fill="#131316"/>
+  <circle cx="44" cy="84" r="15" fill="#f97316"/>
+  <text x="44" y="88" text-anchor="middle" fill="#0a0a0b" font-family="Plus Jakarta Sans" font-size="9" font-weight="800">KH</text>
+  <text x="66" y="80" fill="#a1a1aa" font-family="Inter" font-size="6.5">+961 03 884 219</text>
+  <text x="66" y="94" fill="#f87171" font-family="JetBrains Mono" font-size="10" font-weight="700">$1,240 · 45d overdue</text>
+
+  <!-- tab chip row -->
+  <g font-family="Inter" font-size="6.5">
+    <rect x="20" y="118" width="52" height="18" rx="9" fill="#f97316"/>
+    <text x="46" y="130" text-anchor="middle" fill="#0a0a0b" font-weight="700">Profile</text>
+    <rect x="76" y="118" width="54" height="18" rx="9" fill="#1b1b1f"/>
+    <text x="103" y="130" text-anchor="middle" fill="#fafafa">Invoices</text>
+    <rect x="134" y="118" width="50" height="18" rx="9" fill="#1b1b1f"/>
+    <text x="159" y="130" text-anchor="middle" fill="#fafafa">Quotes</text>
+    <rect x="188" y="118" width="56" height="18" rx="9" fill="#1b1b1f"/>
+    <text x="216" y="130" text-anchor="middle" fill="#fafafa">Vehicles</text>
+    <rect x="248" y="118" width="34" height="18" rx="9" fill="#1b1b1f"/>
+    <text x="265" y="130" text-anchor="middle" fill="#fafafa">···</text>
+  </g>
+
+  <!-- aging -->
+  <rect x="20" y="146" width="260" height="30" rx="10" fill="#131316"/>
+  <text x="28" y="160" fill="#fafafa" font-family="Inter" font-size="6.5" font-weight="700">Aging</text>
+  <rect x="28" y="166" width="40" height="6" rx="3" fill="#22c55e"/>
+  <rect x="70" y="166" width="26" height="6" rx="3" fill="#fbbf24"/>
+  <rect x="98" y="166" width="20" height="6" rx="3" fill="#f97316"/>
+  <rect x="120" y="166" width="60" height="6" rx="3" fill="#ef4444"/>
+
+  <!-- invoices list -->
+  <rect x="20" y="184" width="260" height="120" rx="10" fill="#131316"/>
+  <text x="28" y="200" fill="#fafafa" font-family="Inter" font-size="6.5" font-weight="700">Recent Invoices</text>
+  <text x="28" y="218" fill="#e4e4e7" font-family="Inter" font-size="6">INV-2291 · $420</text>
+  <text x="220" y="218" fill="#f87171" font-family="Inter" font-size="6">unpaid</text>
+  <text x="28" y="234" fill="#e4e4e7" font-family="Inter" font-size="6">INV-2277 · $360</text>
+  <text x="220" y="234" fill="#4ade80" font-family="Inter" font-size="6">paid</text>
+  <text x="28" y="250" fill="#e4e4e7" font-family="Inter" font-size="6">INV-2260 · $460</text>
+  <text x="220" y="250" fill="#f87171" font-family="Inter" font-size="6">unpaid</text>
+
+  <!-- loyalty / vehicle snapshot -->
+  <rect x="20" y="312" width="126" height="70" rx="10" fill="#131316"/>
+  <text x="28" y="328" fill="#fafafa" font-family="Inter" font-size="6.5" font-weight="700">Loyalty</text>
+  <text x="28" y="352" fill="#f97316" font-family="JetBrains Mono" font-size="12" font-weight="700">1,240</text>
+  <rect x="154" y="312" width="126" height="70" rx="10" fill="#131316"/>
+  <text x="162" y="328" fill="#fafafa" font-family="Inter" font-size="6.5" font-weight="700">Vehicles</text>
+  <text x="162" y="350" fill="#e4e4e7" font-family="Inter" font-size="6">BMW 320i 2016</text>
+
+  <!-- sticky action bar -->
+  <rect x="0" y="440" width="300" height="60" fill="#131316"/>
+  <line x1="0" y1="440" x2="300" y2="440" stroke="#27272a"/>
+  <rect x="16" y="454" width="130" height="32" rx="10" fill="#f97316"/>
+  <text x="81" y="474" text-anchor="middle" fill="#0a0a0b" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">Send Reminder</text>
+  <rect x="154" y="454" width="130" height="32" rx="10" fill="#1b1b1f"/>
+  <text x="219" y="474" text-anchor="middle" fill="#fafafa" font-family="Plus Jakarta Sans" font-size="8" font-weight="700">New Invoice</text>
+</svg>
+    </div>
+  </div>
+  <p class="small"><strong>Annotation:</strong> The two most common counter actions (Send Reminder, New Invoice) are pinned to a sticky bottom bar so they remain reachable without scrolling — consistent with the touch-target and one-thumb-reach rules in Section 15.</p>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">17</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 18 — ACCESSIBILITY (1/2) -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 15</div>
+  <h1 class="page-title"><span class="num">15</span> Accessibility Compliance Plan — WCAG 2.2 AA</h1>
+  <div class="hr"></div>
+  <p class="page-intro">Every wireframe in this report — and every component spec in Reports 02–06 — must satisfy the following, verified against the actual Ignition token values, not generic guidance.</p>
+
+  <h3 class="sub">15.1 Contrast Strategy</h3>
+  <table class="grid">
+    <tr><th>Pairing</th><th>Ratio</th><th>Result</th><th>Use</th></tr>
+    <tr><td>#fafafa on #0a0a0b</td><td class="n">19.6:1</td><td><span class="badge ok">AAA</span></td><td>Primary text, dark surfaces</td></tr>
+    <tr><td>#a1a1aa on #0a0a0b</td><td class="n">7.8:1</td><td><span class="badge ok">AAA</span></td><td>Secondary text</td></tr>
+    <tr><td>#f97316 on #0a0a0b</td><td class="n">6.2:1</td><td><span class="badge ok">AA (large + normal)</span></td><td>Accent text, active nav</td></tr>
+    <tr><td>#0a0a0b on #f97316 (CTA button)</td><td class="n">6.2:1</td><td><span class="badge ok">AA</span></td><td>Primary buttons — dark text on orange, not white on orange</td></tr>
+    <tr><td>#ef4444 on #0a0a0b</td><td class="n">4.9:1</td><td><span class="badge warn">AA large only</span></td><td>Danger badges must pair with icon + bold weight, not color alone</td></tr>
+    <tr><td>#fbbf24 on #0a0a0b</td><td class="n">10.8:1</td><td><span class="badge ok">AAA</span></td><td>Warning badges</td></tr>
+    <tr><td>#18181b on #ffffff (light mode body)</td><td class="n">16.1:1</td><td><span class="badge ok">AAA</span></td><td>Light-mode primary text</td></tr>
+  </table>
+  <p><strong>Rule enforced in every wireframe above:</strong> the danger accent (#ef4444) is never the sole signal — every danger/overdue state pairs color with a text label ("45d overdue", "unpaid") or icon, satisfying WCAG 1.4.1 (Use of Color). This is visible in Figures 4–5 where the aging badge always carries a numeric day-count, not just a red dot.</p>
+
+  <h3 class="sub">15.2 Keyboard Navigation Map</h3>
+  <table class="grid">
+    <tr><th>Zone</th><th>Behavior</th></tr>
+    <tr><td>Icon rail</td><td>Arrow Up/Down moves focus between destinations; Enter/Space opens flyout; Escape closes flyout and returns focus to the rail icon.</td></tr>
+    <tr><td>Command palette</td><td>Ctrl+K / ⌘K opens from anywhere (fixing the dead affordance in <code>Topbar.js</code>, Section 03 problem 6); Arrow Up/Down cycles results; Enter navigates; Escape closes and returns focus to the element that had it before open.</td></tr>
+    <tr><td>Client Workspace drawer</td><td>Opens with focus moved to the drawer's close button; Tab is trapped within the drawer while open (focus trap); Escape closes and returns focus to the triggering element (e.g. the POS customer field from Flow 03).</td></tr>
+    <tr><td>Data tables</td><td>Sortable column headers are real buttons (already true in <code>DataTable.js</code>, lines 74–83) reachable by Tab, toggled by Enter/Space; row actions reachable via Tab after each row without a mouse.</td></tr>
+    <tr><td>Tab strips (Client Workspace profile tabs)</td><td>Left/Right arrow moves between tabs per the ARIA Tabs pattern; Tab key moves out of the tab list into the active panel.</td></tr>
+  </table>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">18</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 19 — ACCESSIBILITY (2/2) -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 15 (continued)</div>
+  <h1 class="page-title"><span class="num">15.3</span> Focus Order, Landmarks, Motion, Touch</h1>
+  <div class="hr"></div>
+
+  <h3 class="sub">15.3 Focus Order</h3>
+  <p>Reading/focus order on every screen: skip-link → rail → topbar (search, then actions) → page heading → primary content region → secondary panels, left to right, top to bottom, matching visual order exactly. Because Figure 2 promotes the Action Queue above the KPI band, its focus order is promoted identically — a screen reader user reaches the day's urgent items before the decorative KPI band, not after it, matching the sighted-user priority stated in Flow 01 (Section 06).</p>
+
+  <h3 class="sub">15.4 Screen Reader Landmarks</h3>
+  <table class="grid">
+    <tr><th>Landmark</th><th>Role / Label</th></tr>
+    <tr><td>Icon rail</td><td><code>nav</code>, <code>aria-label="Primary navigation"</code></td></tr>
+    <tr><td>Topbar search</td><td><code>search</code> landmark, input <code>aria-label="Search screens, clients, invoices, or parts"</code></td></tr>
+    <tr><td>Main content</td><td><code>main</code>, one per view, page <code>h1</code> as first heading inside it</td></tr>
+    <tr><td>Action Queue band</td><td><code>region</code>, <code>aria-label="Action queue — items requiring attention"</code>, each item announced with its tone ("Danger: Receivables, 6 unpaid, $4,120")</td></tr>
+    <tr><td>Client Workspace drawer</td><td><code>dialog</code>, <code>aria-modal="true"</code>, <code>aria-labelledby</code> pointing to the client name heading</td></tr>
+    <tr><td>Data tables</td><td>Native <code>table</code>/<code>th scope="col"</code> retained (already correct in <code>DataTable.js</code>) — no ARIA grid re-implementation needed</td></tr>
+  </table>
+
+  <h3 class="sub">15.5 Reduced Motion</h3>
+  <p>All chart line-draw animations, drawer slide-ins, and KPI count-up transitions respect <code>prefers-reduced-motion: reduce</code> by dropping to instant-state changes with no easing. The sales chart in Figures 2–3 renders its final path immediately rather than animating point-by-point when this preference is set. This applies identically to WPF (Storyboard duration 0) and React Native (Reanimated disabled) per platform, to be specified precisely in Reports 05–06.</p>
+
+  <h3 class="sub">15.6 Touch Target Sizing</h3>
+  <table class="grid">
+    <tr><th>Element</th><th>Minimum size</th><th>Note</th></tr>
+    <tr><td>Bottom tab bar icons (mobile)</td><td class="n">44×44pt</td><td>Figure 3 — rail collapses to 5 tabs, each full 44pt hit target even though the visual icon is smaller</td></tr>
+    <tr><td>Sticky action bar buttons (Figure 5)</td><td class="n">44×44pt (height 32px visual + 6px padding)</td><td>"Send Reminder" / "New Invoice" — the two highest-frequency mobile counter actions</td></tr>
+    <tr><td>Table row action buttons</td><td class="n">32×32px desktop / 44×44pt touch</td><td>Larger target on touch input via CSS pointer media query, not two separate components</td></tr>
+    <tr><td>Client list rows (Figure 4/5)</td><td class="n">Full-row tap target, min 44pt height</td><td>Entire row is the hit area, not just the client name text</td></tr>
+  </table>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">19</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 20 — COGNITIVE LOAD -->
+<!-- ============================================================ -->
+<section class="page content">
+  <div class="page-eyebrow">Section 16</div>
+  <h1 class="page-title"><span class="num">16</span> Cognitive Load &amp; Progressive Disclosure</h1>
+  <div class="hr"></div>
+  <p class="page-intro">The current dashboard's core problem (Section 03, problems 2 and 7) is not missing data — it is undifferentiated data. Ignition's disclosure rules make that differentiation explicit and consistent across both the Dashboard and Client Workspace.</p>
+
+  <h3 class="sub">16.1 Dashboard — Visible by Default vs. On Demand</h3>
+  <table class="grid">
+    <tr><th>Visible immediately (no interaction)</th><th>Revealed on demand</th></tr>
+    <tr><td>Action Queue (max 4 items, tone-sorted danger→success)</td><td>Full unpaid-transactions list (link from Receivables card)</td></tr>
+    <tr><td>6–8 KPI cards, single row</td><td>Per-KPI trend detail / historical comparison (click-through)</td></tr>
+    <tr><td>This-week sales chart, current totals</td><td>12-month profit history (already exists in <code>InvoicesView</code> but is buried below the fold today — relocated to an on-demand drill-in, not dashboard-default)</td></tr>
+    <tr><td>Hot Parts (top 5), Quick Actions grid</td><td>Full category breakdown table, full inventory snapshot donut legend</td></tr>
+  </table>
+  <p>This directly resolves Section 03 problem 7 (Sales/Profit Today repeating 2–3 times): under the new rule, a value appears in exactly one default-visible location (the KPI band) and any repetition (e.g., the old "bottom stat bar") is removed rather than duplicated.</p>
+
+  <h3 class="sub">16.2 Client Workspace — Visible by Default vs. On Demand</h3>
+  <table class="grid">
+    <tr><th>Visible immediately (Profile tab)</th><th>Revealed on demand (other tabs)</th></tr>
+    <tr><td>Identity, phone, balance, aging bar</td><td>Full invoice history with filters (Invoices tab)</td></tr>
+    <tr><td>Last 3 invoices with paid/unpaid status</td><td>Full quote history and draft builder (Quotes tab)</td></tr>
+    <tr><td>Primary quick actions: Send Reminder, WhatsApp, New Invoice</td><td>Active + historical part requests (Part Requests tab)</td></tr>
+    <tr><td>Vehicle count + most recent vehicle</td><td>Full vehicle list with VIN/plate detail (Vehicles tab)</td></tr>
+    <tr><td>Loyalty points total + tier</td><td>Full points ledger, redemption history (Loyalty tab)</td></tr>
+    <tr><td>—</td><td>Full communication timeline across WhatsApp/SMS/notes (Communications tab)</td></tr>
+  </table>
+
+  <h3 class="sub">16.3 Principles Applied</h3>
+  <ul>
+    <li><strong>Urgency before volume:</strong> exceptions (Action Queue, overdue badges) always render before comprehensive listings, on both Dashboard and Client Workspace.</li>
+    <li><strong>One canonical location per fact:</strong> a given number (balance, sales total) has exactly one default-visible home; drill-ins reference it, they don't duplicate it in a different format.</li>
+    <li><strong>Context-preserving disclosure:</strong> the Client Workspace opens as a drawer over POS (Flow 03) specifically so "revealing more" never means "losing where you were" — this is a cognitive-load rule as much as a technical one.</li>
+    <li><strong>Task-scoped navigation over feature-scoped navigation:</strong> the 8-destination IA (Section 04) groups by what a persona is trying to do (serve a client, manage inventory) rather than by internal feature name, reducing the search cost of "where do I click" that the current 70-screen flat structure imposes.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="lbl">Handoff</div>
+    <div class="small">This report defines flows, IA, wireframe structure, and accessibility/disclosure rules only. Visual treatment (exact component styling, spacing scale, elevation system) is owned by dev-graphic-designer in Report 02, built on these wireframes. Implementation is routed to dev-web-react, dev-desktop-wpf, and dev-mobile-rn only after Ralph reviews and approves this flow — per the Design Change Workflow, no code has been written as part of this report.</div>
+  </div>
+
+  <div class="footer">
+    <span>SpareParts · Ignition Design Package · 01 UX Research &amp; User Flows</span>
+    <span class="fpage">20</span>
+  </div>
+</section>
+
+</body>
+</html>

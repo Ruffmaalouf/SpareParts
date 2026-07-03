@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report 06 — Consolidated Overview &amp; Developer Handoff · SpareParts Ignition Design Package</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+:root{
+  --carbon:#0a0a0b; --surface:#131316; --elevated:#1b1b1f; --line-dark:#26262b;
+  --orange:#f97316; --orange-deep:#ea580c; --amber:#fbbf24; --success:#22c55e; --danger:#ef4444; --info:#38bdf8;
+  --ink:#17181c; --ink-soft:#4b4e57; --ink-mute:#8a8d96; --paper-line:#e6e7ea; --paper-soft:#f4f4f6;
+  --disp:'Plus Jakarta Sans',-apple-system,'Segoe UI',Arial,sans-serif;
+  --body:'Inter',-apple-system,'Segoe UI',Arial,sans-serif;
+  --mono:'JetBrains Mono','Consolas',monospace;
+}
+
+body{ font-family:var(--body); background:#3a3a42; color:var(--ink); font-size:11px; line-height:1.5; }
+
+.page{ width:210mm; min-height:292mm; padding:14mm; margin:0 auto 10px; background:#ffffff; position:relative; page-break-after:always; display:flex; flex-direction:column; overflow:hidden; }
+.page.dark{ background:var(--carbon); color:#fafafa; }
+
+@media print{
+  body{ background:#fff; }
+  .page{ margin:0; box-shadow:none; width:210mm; }
+  @page{ size:A4 portrait; margin:0; }
+}
+
+/* ---------- shared type ---------- */
+h1,h2,h3,h4{ font-family:var(--disp); letter-spacing:-.02em; }
+.eyebrow{ font-family:var(--mono); font-size:8.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--orange-deep); margin-bottom:6px; }
+.sec-title{ font-family:var(--disp); font-size:23px; font-weight:800; letter-spacing:-.03em; color:var(--ink); }
+.sec-sub{ font-size:11px; color:var(--ink-soft); margin-top:4px; max-width:160mm; }
+.rule{ height:2px; background:linear-gradient(90deg,var(--orange) 0 42px,var(--paper-line) 42px 100%); margin:10px 0 12px; }
+p{ margin-bottom:8px; }
+code{ font-family:var(--mono); font-size:9.5px; background:var(--paper-soft); border:1px solid var(--paper-line); border-radius:3px; padding:0 3px; }
+.small{ font-size:9.5px; color:var(--ink-soft); }
+b,strong{ color:var(--ink); }
+
+.footer{ margin-top:auto; padding-top:8px; border-top:1px solid var(--paper-line); display:flex; justify-content:space-between; font-family:var(--mono); font-size:8px; color:var(--ink-mute); letter-spacing:.06em; }
+.page.dark .footer{ border-top:1px solid #26262b; color:#6b6b74; }
+
+/* ---------- tables ---------- */
+table{ width:100%; border-collapse:collapse; font-size:9.5px; margin:6px 0 10px; }
+th{ font-family:var(--disp); font-size:8.5px; text-transform:uppercase; letter-spacing:.08em; text-align:left; color:var(--ink-soft); background:var(--paper-soft); padding:5px 7px; border-bottom:2px solid var(--paper-line); }
+td{ padding:5px 7px; border-bottom:1px solid var(--paper-line); vertical-align:top; color:var(--ink-soft); }
+td b, td strong{ color:var(--ink); }
+.mono{ font-family:var(--mono); font-size:9px; }
+.num{ text-align:right; font-family:var(--mono); }
+.good{ color:#15803d; font-weight:700; }
+.bad{ color:#b91c1c; font-weight:700; }
+
+/* ---------- chips / badges ---------- */
+.chip{ display:inline-block; font-family:var(--mono); font-size:8px; letter-spacing:.05em; border-radius:999px; padding:1.5px 8px; margin:1px 2px 1px 0; white-space:nowrap; }
+.chip.orange{ background:#fff7ed; color:#c2410c; border:1px solid #fdba74; }
+.chip.grey{ background:var(--paper-soft); color:var(--ink-soft); border:1px solid var(--paper-line); }
+.chip.dark{ background:var(--carbon); color:#fafafa; border:1px solid var(--carbon); }
+.chip.green{ background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+.chip.red{ background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+.chip.amber{ background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+
+/* ---------- callouts / cards ---------- */
+.callout{ border-left:3px solid var(--orange); background:#fff7ed; border-radius:0 8px 8px 0; padding:8px 12px; margin:8px 0; font-size:10px; color:#7c2d12; }
+.callout b{ color:#7c2d12; }
+.notebox{ border:1px dashed var(--paper-line); border-radius:8px; padding:8px 12px; margin:8px 0; font-size:9.5px; color:var(--ink-soft); background:#fcfcfd; }
+.card{ border:1px solid var(--paper-line); border-radius:10px; padding:10px 12px; background:#fff; }
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0; }
+
+/* ---------- stat band ---------- */
+.statband{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0; }
+.stat{ background:var(--carbon); border-radius:10px; padding:10px 12px; }
+.stat .v{ font-family:var(--mono); font-size:16px; font-weight:700; color:var(--orange); letter-spacing:-.02em; }
+.stat .l{ font-size:8.5px; color:#a1a1aa; margin-top:3px; line-height:1.35; }
+
+/* ---------- cover ---------- */
+.cover{ justify-content:space-between; }
+.cover-top{ display:flex; justify-content:space-between; align-items:center; }
+.brand{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:#a1a1aa; }
+.brand .dot{ width:12px; height:12px; border-radius:50%; background:var(--orange); display:inline-block; }
+.cover-kicker{ font-family:var(--mono); font-size:8.5px; letter-spacing:.16em; text-transform:uppercase; color:#6b6b74; }
+.cover-eyebrow{ font-family:var(--mono); font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--orange); margin-bottom:14px; }
+.cover-title{ font-family:var(--disp); font-size:52px; font-weight:800; letter-spacing:-.04em; line-height:1.02; color:#fafafa; }
+.cover-title em{ font-style:normal; color:var(--orange); }
+.cover-sub{ margin-top:16px; font-size:12.5px; color:#a1a1aa; max-width:150mm; line-height:1.65; }
+.cover-tags{ margin-top:18px; }
+.cover-tags .tag{ display:inline-block; font-family:var(--mono); font-size:8.5px; letter-spacing:.08em; color:#fafafa; border:1px solid #3a3a42; border-radius:999px; padding:3px 12px; margin:0 6px 6px 0; }
+.cover-meta{ display:flex; justify-content:space-between; align-items:flex-end; }
+.cover-meta-block{ font-size:10px; color:#a1a1aa; line-height:1.9; }
+.cover-meta-block b{ color:#fafafa; font-weight:600; }
+.cover-badge{ text-align:center; border:1px solid #3a3a42; border-radius:14px; padding:12px 20px; }
+.cover-badge .n{ font-family:var(--disp); font-size:34px; font-weight:800; color:var(--orange); line-height:1; }
+.cover-badge .l{ font-family:var(--mono); font-size:7.5px; letter-spacing:.14em; text-transform:uppercase; color:#6b6b74; margin-top:4px; }
+.swatches{ display:flex; gap:6px; margin-top:14px; }
+.sw{ width:26px; height:26px; border-radius:7px; }
+
+/* ---------- toc ---------- */
+.toc-row{ display:flex; align-items:baseline; gap:10px; padding:9px 2px; border-bottom:1px solid var(--paper-line); }
+.toc-num{ font-family:var(--mono); font-size:10px; font-weight:700; color:var(--orange-deep); width:26px; flex:none; }
+.toc-label{ font-family:var(--disp); font-size:12.5px; font-weight:700; color:var(--ink); flex:none; }
+.toc-desc{ font-size:9.5px; color:var(--ink-mute); flex:1; padding-left:6px; }
+.toc-page{ font-family:var(--mono); font-size:9.5px; color:var(--ink-soft); flex:none; }
+
+/* ---------- report index pages ---------- */
+.rep-head{ display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+.rep-no{ font-family:var(--disp); font-size:34px; font-weight:800; color:var(--orange); letter-spacing:-.04em; line-height:1; }
+.rep-meta{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:8px 0; }
+.rep-meta .cell{ background:var(--paper-soft); border-radius:8px; padding:7px 10px; }
+.rep-meta .k{ font-family:var(--mono); font-size:7.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-mute); }
+.rep-meta .v{ font-size:10px; font-weight:600; color:var(--ink); margin-top:2px; }
+.seclist{ columns:2; column-gap:20px; font-size:9.5px; color:var(--ink-soft); margin:6px 0 10px; }
+.seclist li{ margin:0 0 3.5px 14px; break-inside:avoid; }
+.decision{ display:flex; gap:9px; padding:7px 0; border-bottom:1px solid var(--paper-line); }
+.decision .dn{ font-family:var(--mono); font-size:9px; font-weight:700; color:var(--orange-deep); width:22px; flex:none; padding-top:1px; }
+.decision .dt{ font-size:10px; color:var(--ink-soft); }
+.decision .dt b{ color:var(--ink); }
+
+/* ---------- checklists ---------- */
+.check{ display:flex; gap:8px; padding:4px 0; border-bottom:1px dotted var(--paper-line); font-size:9.8px; color:var(--ink-soft); }
+.check .bx{ font-family:var(--mono); color:var(--ink-mute); flex:none; }
+.check b{ color:var(--ink); }
+h3.blk{ font-size:11.5px; font-weight:800; color:var(--ink); margin:12px 0 4px; }
+h3.blk .tag{ font-family:var(--mono); font-size:7.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#fff; background:var(--carbon); border-radius:4px; padding:2px 7px; margin-right:7px; vertical-align:1px; }
+
+.fig-wrap{ border:1px solid var(--paper-line); border-radius:10px; padding:8px; margin:8px 0; background:#fff; }
+.fig-cap{ font-family:var(--mono); font-size:8px; color:var(--ink-mute); letter-spacing:.05em; margin-top:6px; text-align:center; }
+
+.kbd{ font-family:var(--mono); font-size:8.5px; border:1px solid var(--paper-line); border-bottom-width:2px; border-radius:4px; padding:0 5px; background:#fff; color:var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PAGE 1 — COVER -->
+<!-- ============================================================ -->
+<section class="page dark cover">
+  <div class="cover-top">
+    <div class="brand"><span class="dot"></span><span>SpareParts &middot; Ignition Design Package</span></div>
+    <div class="cover-kicker">Confidential — Internal Redesign</div>
+  </div>
+
+  <div>
+    <div class="cover-eyebrow">Report 06 of 6 — Read This One First</div>
+    <h1 class="cover-title">Consolidated Overview<br>&amp; <em>Developer Handoff</em></h1>
+    <p class="cover-sub">The map of the whole Ignition package: what the five specialist reports decided, the numbers they commit to, one merged implementation roadmap across backend, web, WPF and mobile, QA acceptance checklists, the risk register, and the short list of decisions that still belong to Ralph.</p>
+    <div class="cover-tags">
+      <span class="tag">Package Index</span>
+      <span class="tag">Decision Register</span>
+      <span class="tag">Unified Roadmap</span>
+      <span class="tag">Acceptance Criteria</span>
+      <span class="tag">Risk Register</span>
+      <span class="tag">Owner Questions</span>
+    </div>
+    <div class="swatches">
+      <div class="sw" style="background:#0a0a0b;border:1px solid #3a3a42;"></div>
+      <div class="sw" style="background:#131316;border:1px solid #3a3a42;"></div>
+      <div class="sw" style="background:#1b1b1f;border:1px solid #3a3a42;"></div>
+      <div class="sw" style="background:#f97316;"></div>
+      <div class="sw" style="background:#fbbf24;"></div>
+      <div class="sw" style="background:#22c55e;"></div>
+      <div class="sw" style="background:#ef4444;"></div>
+      <div class="sw" style="background:#38bdf8;"></div>
+    </div>
+  </div>
+
+  <div class="cover-meta">
+    <div class="cover-meta-block">
+      <div>Author &nbsp;<b>documentation — Documentation Agent</b></div>
+      <div>Date &nbsp;<b>2 July 2026</b></div>
+      <div>Scope &nbsp;<b>Consolidates Reports 01–05 &middot; docs/redesign/</b></div>
+    </div>
+    <div class="cover-badge">
+      <div class="n">06</div>
+      <div class="l">of 6 reports</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 2 — TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Report 06 — Consolidated Overview &amp; Developer Handoff</div>
+  <div class="sec-title">Table of Contents</div>
+  <div class="rule"></div>
+
+  <div class="toc-row"><span class="toc-num">01</span><span class="toc-label">Executive Summary</span><span class="toc-desc">What the Ignition package is, the two screens, the headline numbers</span><span class="toc-page">p. 03</span></div>
+  <div class="toc-row"><span class="toc-num">02</span><span class="toc-label">Package Map</span><span class="toc-desc">How the six reports interlock — dependency figure and reading order</span><span class="toc-page">p. 04</span></div>
+  <div class="toc-row"><span class="toc-num">03</span><span class="toc-label">Package Index — Report 01</span><span class="toc-desc">UX Research &amp; User Flows (dev-ui-ux)</span><span class="toc-page">p. 05</span></div>
+  <div class="toc-row"><span class="toc-num">&nbsp;</span><span class="toc-label">Package Index — Report 02</span><span class="toc-desc">Visual Design Language (dev-graphic-designer)</span><span class="toc-page">p. 06</span></div>
+  <div class="toc-row"><span class="toc-num">&nbsp;</span><span class="toc-label">Package Index — Report 03</span><span class="toc-desc">UI Component Architecture (dev-web-react)</span><span class="toc-page">p. 07</span></div>
+  <div class="toc-row"><span class="toc-num">&nbsp;</span><span class="toc-label">Package Index — Report 04</span><span class="toc-desc">System Architecture (dev-backend-api)</span><span class="toc-page">p. 08</span></div>
+  <div class="toc-row"><span class="toc-num">&nbsp;</span><span class="toc-label">Package Index — Report 05</span><span class="toc-desc">Workflow Optimization (workflow agent)</span><span class="toc-page">p. 09</span></div>
+  <div class="toc-row"><span class="toc-num">04</span><span class="toc-label">Unified Decision Register</span><span class="toc-desc">The cross-cutting decisions all five reports agree on</span><span class="toc-page">p. 10</span></div>
+  <div class="toc-row"><span class="toc-num">05</span><span class="toc-label">Consolidated Implementation Roadmap</span><span class="toc-desc">One sequenced plan: Phase 0–3, owners, files, endpoints, exit criteria</span><span class="toc-page">p. 11–12</span></div>
+  <div class="toc-row"><span class="toc-num">06</span><span class="toc-label">Acceptance Criteria — Dashboard</span><span class="toc-desc">Testable QA checklist: visual, functional, performance, a11y, security</span><span class="toc-page">p. 13</span></div>
+  <div class="toc-row"><span class="toc-num">&nbsp;</span><span class="toc-label">Acceptance Criteria — Client Workspace &amp; Cross-Cutting</span><span class="toc-desc">Workspace checklist plus package-wide budgets and security gates</span><span class="toc-page">p. 14</span></div>
+  <div class="toc-row"><span class="toc-num">07</span><span class="toc-label">Risk Register</span><span class="toc-desc">Top 10 risks with likelihood, impact and mitigation</span><span class="toc-page">p. 15</span></div>
+  <div class="toc-row"><span class="toc-num">08</span><span class="toc-label">Open Questions for Ralph</span><span class="toc-desc">Decisions the package deliberately leaves to the owner</span><span class="toc-page">p. 16</span></div>
+
+  <div class="notebox" style="margin-top:14px;">
+    <b>Figures in this report:</b> Figure 1 — Package map (six reports and their dependencies), p.04. Figure 2 — Consolidated roadmap timeline (Phase 0–3 with approval gates), p.11.
+  </div>
+
+  <div class="callout">
+    <b>How to use this report.</b> A developer new to the package reads pages 3–4 for orientation, jumps to the report index page for their discipline (pages 5–9), then works from the roadmap (pages 11–12). QA works from pages 13–14. Nothing in this report introduces a new decision — every figure and rule here is traceable to one of the five source reports, which remain the authoritative specifications.
+  </div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>02</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 3 — EXECUTIVE SUMMARY -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 01</div>
+  <div class="sec-title">Executive Summary</div>
+  <div class="sec-sub">A from-scratch redesign of the two screens where the business actually lives — grounded in the current codebase, quantified, and ready to build.</div>
+  <div class="rule"></div>
+
+  <p><b>What this package is.</b> "Ignition" is a complete, ground-up redesign of the SpareParts <b>Dashboard</b> and a new unified <b>Client Workspace</b>, produced by a six-agent design team as six companion reports. It replaces the rejected "Aurora" navy/teal direction with a deliberately unmistakable identity — carbon black surfaces (<code>#0a0a0b / #131316 / #1b1b1f</code>), a single electric-orange accent (<code>#f97316</code>), Plus Jakarta Sans / Inter / JetBrains Mono type, borderless shadow cards at 16px radius, a 72px icon rail, and a global <span class="kbd">Ctrl</span>+<span class="kbd">K</span> command bar. Every claim in the package is grounded in real files: <code>screen-registry.js</code> (70 registered screens), <code>dashboard-view.js</code> (663 lines, 7 API calls on mount), the 17,400-line <code>styles.css</code>, and the existing <code>OwnerCockpitService</code> aggregate.</p>
+
+  <p><b>The two screens.</b> (1) The Dashboard becomes a <b>command center</b>: a KPI band of tabular-numeral tiles, a 7-day trend, and — promoted to the organizing principle of the screen — the <b>Action Queue</b>, which scores exceptions by severity &times; money at stake, carries a lifecycle (appears &rarr; acted &rarr; resolved/dismissed), and deep-links to the exact entity, not just a screen. (2) The <b>Client Workspace</b> replaces six fragmented screens (Contacts, Customer Aging, Invoices, Quotes, Part Requests, WhatsApp) with one customer-360 record — identity, balance and aging buckets, invoices, payments, quotes, requests and communications as tabs of a single view, where a payment can be received and a reminder previewed and sent without navigating away.</p>
+
+  <div class="statband">
+    <div class="stat"><div class="v">799 &rarr; 358</div><div class="l">UI steps per shop-day across the 10 highest-frequency tasks (−55%) — Report 05</div></div>
+    <div class="stat"><div class="v">~98 min</div><div class="l">Projected daily UI-tax recovery per shop (~1.6 h); verified by telemetry before legacy retirement — Report 05</div></div>
+    <div class="stat"><div class="v">95s &rarr; 30s</div><div class="l">Two-line counter sale, keyboard-first POS loop + Ctrl+K grammar — Report 05</div></div>
+    <div class="stat"><div class="v">7 &rarr; 1</div><div class="l">Dashboard API requests: one composed GET /api/dashboard/summary — Report 04</div></div>
+  </div>
+  <div class="statband" style="margin-top:0;">
+    <div class="stat"><div class="v">&le;350 ms</div><div class="l">p95 server budget, dashboard cache-miss; &le;12 ms on ETag 304 cache-hit — Report 04</div></div>
+    <div class="stat"><div class="v">6 &rarr; 1</div><div class="l">Screens to answer "what does this client owe and why?" — Reports 01/05</div></div>
+    <div class="stat"><div class="v">68 / 70</div><div class="l">Legacy screens untouched: Ignition ships scoped under .ignition-root, zero regression — Report 03</div></div>
+    <div class="stat"><div class="v">WCAG 2.2 AA</div><div class="l">Contrast-verified token pairs (19.4:1 body, 7.6:1 orange CTA), keyboard map, reduced motion — Reports 01/03</div></div>
+  </div>
+
+  <p><b>How it ships.</b> Everything is additive. The backend adds 8 new endpoints and changes none (<code>/api/owner-cockpit</code> and friends keep working for WPF and mobile until each migrates on its own schedule). The web app adds a four-layer token CSS cascade after <code>styles.css</code> and two rebuilt views; the other 68 screens render exactly as today. Rollout is side-by-side for four weeks with telemetry gates — legacy screens retire only when measured targets are hit (counter sale p50 &le;35s, queue dismissals &le;15%), never on a calendar date, and file deletions require Ralph's explicit approval per the workspace safety rules.</p>
+
+  <div class="callout"><b>Bottom line for the dev team:</b> two screens, ~24 new frontend files, 8 additive endpoints, 4 covering indexes, one token contract shared by web, WPF and mobile — with a measured payback of roughly one working month of staff time per shop per year if the projections hold, and instrumentation to prove whether they do.</div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>03</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 4 — PACKAGE MAP -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 02</div>
+  <div class="sec-title">Package Map — How the Six Reports Interlock</div>
+  <div class="sec-sub">Research feeds specification; specification feeds implementation; this report is the single entry point that binds them.</div>
+  <div class="rule"></div>
+
+  <div class="fig-wrap">
+  <svg viewBox="0 0 760 400" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#9a9aa2"/></marker>
+      <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#f97316"/></marker>
+    </defs>
+
+    <!-- column labels -->
+    <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#8a8d96" letter-spacing="2">
+      <text x="95" y="22" text-anchor="middle">RESEARCH</text>
+      <text x="330" y="22" text-anchor="middle">SPECIFICATION</text>
+      <text x="545" y="22" text-anchor="middle">IMPLEMENTATION PLAN</text>
+      <text x="700" y="22" text-anchor="middle">HANDOFF</text>
+    </g>
+    <line x1="20" y1="30" x2="740" y2="30" stroke="#e6e7ea"/>
+
+    <!-- 01 -->
+    <g>
+      <rect x="20" y="150" width="150" height="120" rx="12" fill="#0a0a0b"/>
+      <text x="34" y="176" font-family="Plus Jakarta Sans" font-size="15" font-weight="800" fill="#f97316">01</text>
+      <text x="34" y="194" font-family="Plus Jakarta Sans" font-size="10.5" font-weight="700" fill="#fafafa">UX Research &amp;</text>
+      <text x="34" y="207" font-family="Plus Jakarta Sans" font-size="10.5" font-weight="700" fill="#fafafa">User Flows</text>
+      <text x="34" y="224" font-size="7.5" fill="#a1a1aa">Personas &middot; heuristic audit &middot; IA</text>
+      <text x="34" y="235" font-size="7.5" fill="#a1a1aa">5 flows &middot; wireframes &middot; WCAG plan</text>
+      <text x="34" y="256" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">dev-ui-ux</text>
+    </g>
+
+    <!-- 02 -->
+    <g>
+      <rect x="250" y="48" width="160" height="108" rx="12" fill="#131316"/>
+      <text x="264" y="72" font-family="Plus Jakarta Sans" font-size="15" font-weight="800" fill="#f97316">02</text>
+      <text x="264" y="90" font-family="Plus Jakarta Sans" font-size="10.5" font-weight="700" fill="#fafafa">Visual Design Language</text>
+      <text x="264" y="106" font-size="7.5" fill="#a1a1aa">Ignition tokens &middot; hero mockups</text>
+      <text x="264" y="117" font-size="7.5" fill="#a1a1aa">icons &middot; data-viz &middot; platform mapping</text>
+      <text x="264" y="140" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">dev-graphic-designer</text>
+    </g>
+
+    <!-- 04 -->
+    <g>
+      <rect x="250" y="262" width="160" height="108" rx="12" fill="#131316"/>
+      <text x="264" y="286" font-family="Plus Jakarta Sans" font-size="15" font-weight="800" fill="#f97316">04</text>
+      <text x="264" y="304" font-family="Plus Jakarta Sans" font-size="10.5" font-weight="700" fill="#fafafa">System Architecture</text>
+      <text x="264" y="320" font-size="7.5" fill="#a1a1aa">Read models &middot; JSON contracts</text>
+      <text x="264" y="331" font-size="7.5" fill="#a1a1aa">SQL/indexes &middot; caching &middot; security</text>
+      <text x="264" y="354" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">dev-backend-api</text>
+    </g>
+
+    <!-- 03 -->
+    <g>
+      <rect x="465" y="48" width="160" height="108" rx="12" fill="#1b1b1f"/>
+      <text x="479" y="72" font-family="Plus Jakarta Sans" font-size="15" font-weight="800" fill="#f97316">03</text>
+      <text x="479" y="90" font-family="Plus Jakarta Sans" font-size="10.5" font-weight="700" fill="#fafafa">UI Component Architecture</text>
+      <text x="479" y="106" font-size="7.5" fill="#a1a1aa">Token CSS cascade &middot; 16 components</text>
+      <text x="479" y="117" font-size="7.5" fill="#a1a1aa">composition maps &middot; perf &middot; phases</text>
+      <text x="479" y="140" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">dev-web-react</text>
+    </g>
+
+    <!-- 05 -->
+    <g>
+      <rect x="465" y="262" width="160" height="108" rx="12" fill="#1b1b1f"/>
+      <text x="479" y="286" font-family="Plus Jakarta Sans" font-size="15" font-weight="800" fill="#f97316">05</text>
+      <text x="479" y="304" font-family="Plus Jakarta Sans" font-size="10.5" font-weight="700" fill="#fafafa">Workflow Optimization</text>
+      <text x="479" y="320" font-size="7.5" fill="#a1a1aa">Task inventory &middot; click paths &middot; −55%</text>
+      <text x="479" y="331" font-size="7.5" fill="#a1a1aa">action-queue engine &middot; Ctrl+K &middot; rollout</text>
+      <text x="479" y="354" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">workflow agent</text>
+    </g>
+
+    <!-- 06 -->
+    <g>
+      <rect x="660" y="150" width="80" height="120" rx="12" fill="none" stroke="#f97316" stroke-width="2"/>
+      <text x="700" y="182" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="17" font-weight="800" fill="#f97316">06</text>
+      <text x="700" y="200" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="9" font-weight="700" fill="#17181c">Overview &amp;</text>
+      <text x="700" y="211" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="9" font-weight="700" fill="#17181c">Handoff</text>
+      <text x="700" y="228" text-anchor="middle" font-size="7" fill="#8a8d96">this report</text>
+      <text x="700" y="252" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#8a8d96">documentation</text>
+    </g>
+
+    <!-- arrows 01 -> 02, 01 -> 04 -->
+    <path d="M170 185 C 210 165, 215 120, 248 104" fill="none" stroke="#9a9aa2" stroke-width="1.6" marker-end="url(#arr)"/>
+    <path d="M170 235 C 210 255, 215 298, 248 314" fill="none" stroke="#9a9aa2" stroke-width="1.6" marker-end="url(#arr)"/>
+    <!-- 02 -> 03 -->
+    <line x1="410" y1="102" x2="463" y2="102" stroke="#9a9aa2" stroke-width="1.6" marker-end="url(#arr)"/>
+    <!-- 04 -> 03 (contracts up) -->
+    <path d="M410 290 C 445 260, 450 190, 500 158" fill="none" stroke="#9a9aa2" stroke-width="1.6" marker-end="url(#arr)"/>
+    <!-- 04 -> 05 -->
+    <line x1="410" y1="316" x2="463" y2="316" stroke="#9a9aa2" stroke-width="1.6" marker-end="url(#arr)"/>
+    <!-- 01 -> 05 (long, under) -->
+    <path d="M95 270 C 95 385, 380 392, 463 350" fill="none" stroke="#9a9aa2" stroke-width="1.6" marker-end="url(#arr)"/>
+    <!-- 03 -> 06, 05 -> 06, 02/04 implied -->
+    <path d="M625 110 C 660 125, 675 135, 690 148" fill="none" stroke="#f97316" stroke-width="1.8" marker-end="url(#arrO)"/>
+    <path d="M625 310 C 660 295, 675 285, 690 272" fill="none" stroke="#f97316" stroke-width="1.8" marker-end="url(#arrO)"/>
+
+    <!-- edge labels -->
+    <g font-size="7" fill="#8a8d96">
+      <text x="182" y="140">flows &amp; wireframes</text>
+      <text x="182" y="282">data the flows need</text>
+      <text x="416" y="94">tokens</text>
+      <text x="430" y="222">JSON contracts</text>
+      <text x="416" y="308">deep-link /</text>
+      <text x="416" y="317" font-size="6.5">queue API</text>
+      <text x="200" y="384">task inventory &amp; step counts</text>
+      <text x="628" y="132" fill="#c2410c">consolidated</text>
+      <text x="634" y="292" fill="#c2410c">roadmap &amp; QA</text>
+    </g>
+  </svg>
+  <div class="fig-cap">FIG 1 &middot; Package dependency map. Report 01 grounds everything; 02 and 04 specify look and data; 03 and 05 turn both into build and adoption plans; 06 binds the package for handoff.</div>
+  </div>
+
+  <h3 class="blk">Recommended reading order per role</h3>
+  <table>
+    <tr><th style="width:34mm;">Role / agent</th><th>Read first</th><th>Then</th><th>Reference as needed</th></tr>
+    <tr><td><b>dev-web-react</b></td><td>06 (this) &rarr; 03 all sections</td><td>02 §13 token mapping &middot; 04 §02–06 contracts</td><td>01 wireframes &middot; 05 §4–6 queue/palette behavior</td></tr>
+    <tr><td><b>dev-backend-api</b></td><td>06 &rarr; 04 all sections</td><td>05 §4 deep-link contract &middot; 01 §01 missing endpoints</td><td>03 §6–7 composition maps (what binds to what)</td></tr>
+    <tr><td><b>dev-database</b></td><td>06 &rarr; 04 §07 SQL &amp; indexes</td><td>04 §04 caching/invalidation</td><td>04 §09 tenant-guard rules</td></tr>
+    <tr><td><b>dev-desktop-wpf / dev-mobile-rn</b></td><td>06 &rarr; 02 §13 token mapping</td><td>01 §12/§14 narrow wireframes &middot; 05 §7 cross-device</td><td>04 §11 additive versioning (no breakage)</td></tr>
+    <tr><td><b>dev-qa-security</b></td><td>06 §06–07 (pages 13–15)</td><td>04 §09 security &middot; 01 §15 WCAG plan</td><td>03 §10–11 budgets &middot; 05 §8 telemetry gates</td></tr>
+    <tr><td><b>Ralph (owner)</b></td><td>06 §01 + §08</td><td>02 hero mockups (pages 8–12)</td><td>05 §1 + Fig 6 (the payback)</td></tr>
+  </table>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>04</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 5 — INDEX REPORT 01 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 03 &middot; Package Index &middot; 1 of 5</div>
+  <div class="rep-head"><div class="rep-no">01</div><div><div class="sec-title" style="font-size:19px;">UX Research &amp; User Flows</div><div class="small">docs/redesign/01-ux-research-user-flows.html &middot; 22 pages</div></div></div>
+  <div class="rule"></div>
+
+  <div class="rep-meta">
+    <div class="cell"><div class="k">Author</div><div class="v">dev-ui-ux — UX Research Agent</div></div>
+    <div class="cell"><div class="k">Purpose</div><div class="v">Diagnose today's UX in the real code; define the IA, flows and wireframes everything else builds on</div></div>
+    <div class="cell"><div class="k">Grounded in</div><div class="v">dashboard-view.js &middot; contacts-view.js &middot; customer-aging-view.js &middot; screen-registry.js</div></div>
+  </div>
+
+  <h3 class="blk">Section list</h3>
+  <ol class="seclist">
+    <li>Executive Summary of UX Findings</li>
+    <li>Personas &amp; Jobs-To-Be-Done (Rita owner &middot; Karim counter &middot; Nour accounting &middot; Elie warehouse)</li>
+    <li>Heuristic Audit — Dashboard &amp; Client/Contacts (Top 10 Problems)</li>
+    <li>New Information Architecture — 70+ Screens</li>
+    <li>IA Map — Icon Rail, Command Palette, Progressive Disclosure (Figure)</li>
+    <li>Flow 01 — Morning Business Review</li>
+    <li>Flow 02 — Invoicing a Walk-in Client</li>
+    <li>Flow 03 — Client Lookup Mid-Counter-Sale</li>
+    <li>Flow 04 — Chasing Overdue Receivables</li>
+    <li>Flow 05 — Quote &rarr; Invoice Conversion</li>
+    <li>Wireframe — Dashboard (Desktop)</li>
+    <li>Wireframe — Dashboard (Mobile / Narrow)</li>
+    <li>Wireframe — Client Workspace (Desktop)</li>
+    <li>Wireframe — Client Workspace (Mobile / Narrow)</li>
+    <li>Accessibility Compliance Plan — WCAG 2.2 AA</li>
+    <li>Cognitive Load &amp; Progressive Disclosure Principles</li>
+  </ol>
+
+  <h3 class="blk">Most important decisions</h3>
+  <div class="decision"><div class="dn">1.1</div><div class="dt"><b>Triage-first dashboard.</b> Lead the screen with the exceptions <code>buildActionQueue()</code> already computes (negative P&amp;L, unpaid receivables, red stock, failed messages) instead of burying them under 20+ undifferentiated data blocks.</div></div>
+  <div class="decision"><div class="dn">1.2</div><div class="dt"><b>One Client Workspace replaces six screens.</b> Contacts, Customer Aging, Invoices, Quotes, Part Requests and WhatsApp become tabs of a single client record — and the report explicitly flags the missing backend dependency: no <code>GET /api/customers/{id}</code> exists today (handed to Report 04).</div></div>
+  <div class="decision"><div class="dn">1.3</div><div class="dt"><b>New IA: 72px icon rail + Ctrl+K palette + progressive disclosure.</b> Replaces the flat 7-group sidebar whose "More Modules" bucket silently absorbs 40+ of the 70 registered screens.</div></div>
+  <div class="decision"><div class="dn">1.4</div><div class="dt"><b>Audited flows with committed step counts.</b> Morning review 6&rarr;2 &middot; walk-in invoice 7&rarr;4 &middot; mid-sale client lookup 8&rarr;2 &middot; overdue chase (3 clients) 9&rarr;4 &middot; quote&rarr;invoice 8&rarr;4 — a 35–60% step reduction with no data hidden.</div></div>
+  <div class="decision"><div class="dn">1.5</div><div class="dt"><b>WCAG 2.2 AA plan is binding on every wireframe.</b> Contrast strategy, keyboard navigation map, focus order, screen-reader landmarks, reduced motion, and 44px touch targets (§15) plus two shop-floor rules: most-urgent action reachable without scrolling; re-typing a customer's name in a second screen is a defect.</div></div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>05</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 6 — INDEX REPORT 02 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 03 &middot; Package Index &middot; 2 of 5</div>
+  <div class="rep-head"><div class="rep-no">02</div><div><div class="sec-title" style="font-size:19px;">Visual Design Language</div><div class="small">docs/redesign/02-visual-design-system.html &middot; 15 pages — the approval artifact for Ralph's mockup sign-off</div></div></div>
+  <div class="rule"></div>
+
+  <div class="rep-meta">
+    <div class="cell"><div class="k">Author</div><div class="v">dev-graphic-designer — Visual Design Agent</div></div>
+    <div class="cell"><div class="k">Purpose</div><div class="v">Define the Ignition identity: tokens, ramps, type, elevation, hero mockups, icons, chart style, platform mapping</div></div>
+    <div class="cell"><div class="k">Design test</div><div class="v">"If it isn't carbon black with one orange accent and machined type, it isn't Ignition"</div></div>
+  </div>
+
+  <h3 class="blk">Section list</h3>
+  <ol class="seclist">
+    <li>Design Vision — Ignition (why carbon + orange)</li>
+    <li>Color System — Dark Mode (default surface)</li>
+    <li>Color System — Light Mode</li>
+    <li>Typography, Spacing &amp; Radii (4/8 grid)</li>
+    <li>Elevation &amp; Motion (4 shadow levels, duration/easing)</li>
+    <li>Before &rarr; After (Apex/Aurora vs Ignition)</li>
+    <li>Hero Figure A — Dashboard (Desktop)</li>
+    <li>Hero Figure B — Client Workspace (Desktop)</li>
+    <li>Mobile Variants (narrow layout)</li>
+    <li>Light-Mode Dashboard Variant</li>
+    <li>Iconography (stroke spec + 12-icon set)</li>
+    <li>Data Visualization Style</li>
+    <li>Cross-Platform Token Mapping (CSS &rarr; WPF &rarr; RN)</li>
+  </ol>
+
+  <h3 class="blk">Most important decisions</h3>
+  <div class="decision"><div class="dn">2.1</div><div class="dt"><b>Carbon + one orange accent.</b> Three-step surface elevation <code>#0a0a0b &rarr; #131316 &rarr; #1b1b1f</code> (+ <code>#232328</code> pressed), accent <code>#f97316</code> (hover <code>#ea580c</code>) used sparingly enough that orange always means "look here", four semantic status colors (<code>#22c55e / #fbbf24 / #ef4444 / #38bdf8</code>). Full 50–900 ramps for neutral and orange; complete light-mode inversion included.</div></div>
+  <div class="decision"><div class="dn">2.2</div><div class="dt"><b>Three-typeface stack with strict roles.</b> Plus Jakarta Sans (display, −0.04em tracking), Inter (body — disappears at small sizes in dense tables), JetBrains Mono reserved exclusively for tabular numerals: prices, quantities, aging buckets.</div></div>
+  <div class="decision"><div class="dn">2.3</div><div class="dt"><b>Borderless shadow cards, 16px radius, dark-first.</b> Cards separate by layered shadow and one-shade surface shifts, never borders; geometry gets sharp only for status (pills, 2px orange active-nav rail).</div></div>
+  <div class="decision"><div class="dn">2.4</div><div class="dt"><b>Single stroke icon family.</b> 24&times;24 grid (20&times;20 live area), 1.75px stroke, round caps/joins, stroke-only with accent fill reserved for active state; optical sizes 14/16/20/28px.</div></div>
+  <div class="decision"><div class="dn">2.5</div><div class="dt"><b>One token system, three implementations.</b> The §13 table is the cross-platform contract: CSS <code>--ig-*</code> custom properties &harr; WPF <code>IgnitionTheme.xaml</code> ResourceDictionary keys (<code>IgBrushAccent</code>…) &harr; React Native <code>theme.js</code>. 72px rail on desktop/web; bottom tabs + 44px targets are mobile's only sanctioned deviations.</div></div>
+
+  <div class="callout" style="margin-top:8px;"><b>Workflow gate:</b> per the Design Change Workflow in CLAUDE.md, the hero mockups in this report (pages 8–12) are the "before pictures" Ralph must approve before any implementation phase starts, and post-implementation screenshots must be compared back to them.</div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>06</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 7 — INDEX REPORT 03 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 03 &middot; Package Index &middot; 3 of 5</div>
+  <div class="rep-head"><div class="rep-no">03</div><div><div class="sec-title" style="font-size:19px;">UI Component Architecture &amp; Patterns</div><div class="small">docs/redesign/03-ui-component-architecture.html &middot; 14 pages</div></div></div>
+  <div class="rule"></div>
+
+  <div class="rep-meta">
+    <div class="cell"><div class="k">Author</div><div class="v">dev-web-react — Web Frontend Agent</div></div>
+    <div class="cell"><div class="k">Purpose</div><div class="v">Turn Reports 01+02 into buildable components inside the no-build hyperscript React runtime</div></div>
+    <div class="cell"><div class="k">Hard constraints</div><div class="v">No JSX &middot; no bundler &middot; plain ES modules with h() &middot; one component per file &middot; ApiClient unchanged</div></div>
+  </div>
+
+  <h3 class="blk">Section list</h3>
+  <ol class="seclist">
+    <li>Executive Summary (state of the component layer)</li>
+    <li>Design-Token Architecture</li>
+    <li>New Component Inventory — Shell &amp; Data</li>
+    <li>New Component Inventory — Client Workspace</li>
+    <li>Component States &amp; Specimen Renders</li>
+    <li>Composition Map — Dashboard Screen</li>
+    <li>Composition Map — Client Workspace Screen</li>
+    <li>Responsive Strategy (desktop / tablet / phone)</li>
+    <li>Interaction Engineering (focus, skeletons, timing)</li>
+    <li>Performance Budget</li>
+    <li>Accessibility Implementation</li>
+    <li>Implementation Plan &amp; File Map (Phase 0–3)</li>
+  </ol>
+
+  <h3 class="blk">Most important decisions</h3>
+  <div class="decision"><div class="dn">3.1</div><div class="dt"><b>Four-layer CSS cascade, additive to the legacy file.</b> <code>tokens.css &rarr; primitives.css &rarr; components.css &rarr; views.*.css</code> linked <i>after</i> the 17,400-line <code>styles.css</code>; every rule scoped under an opt-in <code>.ignition-root</code> class so the 68 untouched screens can't regress. Total new CSS &lt;25KB gzipped.</div></div>
+  <div class="decision"><div class="dn">3.2</div><div class="dt"><b>Second-generation component set under <code>js/components/ignition/</code>.</b> 16 new components — IconRail, CommandBar, CommandPalette, KpiTile, KpiBand, ActionQueueCard, InsightPanel, TrendChart, DataGrid, MoneyText, QuickActionDock, ClientRail, ClientHeader, AgingBar, ActivityTimeline, TabStrip — composing over (never replacing in place) the existing <code>ui/</code> kit; chart math and aging-bucket math ported from the live views.</div></div>
+  <div class="decision"><div class="dn">3.3</div><div class="dt"><b>Performance budget is contractual.</b> LCP &lt;1.8s (KpiBand is the LCP element), Total Blocking Time &lt;150ms, skeleton&rarr;content crossfade 160ms with a &le;150ms skip rule to avoid loading-state flash, palette debounce 180ms.</div></div>
+  <div class="decision"><div class="dn">3.4</div><div class="dt"><b>Responsive contract per breakpoint.</b> 12-col desktop &rarr; 8-col tablet (bottom tab bar, KPI 2-col scroll-snap) &rarr; 4-col phone (bottom tabs + "More" sheet, KPI carousel, ClientRail becomes a full-screen drawer with back-button paging).</div></div>
+  <div class="decision"><div class="dn">3.5</div><div class="dt"><b>Phased, reversible file map.</b> Phase 0 tokens &rarr; Phase 1 component library &rarr; Phase 2 Dashboard v2 (same <code>load()</code> and <code>buildActionQueue()</code> logic retained) &rarr; Phase 3 Client Workspace. Explicit do-not-touch list (<code>styles.css</code>, <code>api-client.js</code>, all 66 other views); superseded views stay on disk pending Ralph's deletion approval.</div></div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>07</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 8 — INDEX REPORT 04 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 03 &middot; Package Index &middot; 4 of 5</div>
+  <div class="rep-head"><div class="rep-no">04</div><div><div class="sec-title" style="font-size:19px;">System Architecture — Read Models &amp; Contracts</div><div class="small">docs/redesign/04-system-architecture.html &middot; 13 pages</div></div></div>
+  <div class="rule"></div>
+
+  <div class="rep-meta">
+    <div class="cell"><div class="k">Author</div><div class="v">dev-backend-api — Backend API Agent</div></div>
+    <div class="cell"><div class="k">Purpose</div><div class="v">The composed endpoints, JSON contracts, SQL, caching and security the two screens bind to</div></div>
+    <div class="cell"><div class="k">Posture</div><div class="v">Everything additive — zero changes to any currently shipping endpoint; WPF/mobile unaffected</div></div>
+  </div>
+
+  <h3 class="blk">Section list</h3>
+  <ol class="seclist">
+    <li>Executive Summary (chatty-call inventory)</li>
+    <li>Dashboard Read Model — GET /api/dashboard/summary</li>
+    <li>Dashboard — Example Payload</li>
+    <li>Caching &amp; Invalidation</li>
+    <li>Client Workspace Read Model — GET /api/clients/{id}/workspace</li>
+    <li>Workspace Child Resources (paged tabs + typeahead)</li>
+    <li>Data Layer — Aggregate SQL &amp; Covering Indexes</li>
+    <li>Performance Engineering (N+1, compression, ETag)</li>
+    <li>Security Architecture</li>
+    <li>Sequence Diagrams</li>
+    <li>Versioning &amp; Rollout</li>
+  </ol>
+
+  <h3 class="blk">Most important decisions</h3>
+  <div class="decision"><div class="dn">4.1</div><div class="dt"><b>One composed dashboard endpoint.</b> <code>GET /api/dashboard/summary</code> wraps the existing <code>OwnerCockpitService</code> (unchanged) plus new <code>DashboardActionQueueService</code> and <code>DashboardTrendService</code>, collapsing 7 client calls to 1. Budget: <b>&le;350ms p95 server time cold, &le;12ms on ETag 304</b>; core P&amp;L stays in one <code>DbSession</code> for consistency, independent reads parallelize via <code>Task.WhenAll</code> on separate short-lived connections.</div></div>
+  <div class="decision"><div class="dn">4.2</div><div class="dt"><b>The Client Workspace becomes a backend resource.</b> <code>GET /api/clients/{id}/workspace</code> (header + balance + aging + KPIs, 20s TTL) with five independently paged child routes — <code>/invoices /payments /quotes /part-requests /timeline</code> — plus <code>/api/clients/search</code> typeahead. 8 new endpoints total.</div></div>
+  <div class="decision"><div class="dn">4.3</div><div class="dt"><b>Cache + ETag polling, not SignalR.</b> Per-tenant cache keys (<code>dash:tenant:{id}:{date}</code>, 45s TTL) with explicit write-path invalidation on sales/payments so money is never stale; dashboard "Live updates" polls at 30–60s with <code>If-None-Match</code>. SignalR rejected for cost and cross-tenant-broadcast risk.</div></div>
+  <div class="decision"><div class="dn">4.4</div><div class="dt"><b>Covering indexes ship first.</b> Additive migration (e.g. <code>IX_Transactions_Tenant_Type_Date INCLUDE(...)</code>) deployable ahead of code; every query keeps the codebase's tenant-guard shape <code>(@TenantId = 0 OR t.TenantId = @TenantId)</code> with <code>TenantId</code> sourced only from the JWT via <code>ITenantContext</code> — never from a request.</div></div>
+  <div class="decision"><div class="dn">4.5</div><div class="dt"><b>Security invariants.</b> Class-level <code>[Authorize]</code> on both new controllers; uniform 404 for missing <i>or</i> cross-tenant customers (enumeration prevention); zero <code>tenantId</code>/<code>dbName</code>/cache-key leakage in wire DTOs; production-safe ProblemDetails errors; search rate-limiting partitioned by tenant, not IP.</div></div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>08</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 9 — INDEX REPORT 05 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 03 &middot; Package Index &middot; 5 of 5</div>
+  <div class="rep-head"><div class="rep-no">05</div><div><div class="sec-title" style="font-size:19px;">Workflow Optimization</div><div class="small">docs/redesign/05-workflow-optimization.html &middot; 15 pages</div></div></div>
+  <div class="rule"></div>
+
+  <div class="rep-meta">
+    <div class="cell"><div class="k">Author</div><div class="v">Workflow Optimization Agent</div></div>
+    <div class="cell"><div class="k">Purpose</div><div class="v">Quantify the redesign's payback task-by-task and define the adoption, telemetry and rollback plan</div></div>
+    <div class="cell"><div class="k">Discipline</div><div class="v">"No projection ships unmeasured" — every §3 number becomes a telemetry distribution</div></div>
+  </div>
+
+  <h3 class="blk">Section list</h3>
+  <ol class="seclist">
+    <li>Executive Summary (where time is lost today)</li>
+    <li>Task Inventory (T1–T10, roles, frequencies)</li>
+    <li>Click-Path Analysis — Before vs After</li>
+    <li>The Action Queue as a Workflow Engine</li>
+    <li>Client Workspace — Operational Flows</li>
+    <li>Speed Mechanics (Ctrl+K grammar, barcode, recents)</li>
+    <li>Cross-Device Workflow (phone vs desktop, offline)</li>
+    <li>Adoption &amp; Rollout (telemetry, gates, rollback)</li>
+    <li>Figures F1–F6 (swimlanes, lifecycle, day-in-the-life)</li>
+  </ol>
+
+  <h3 class="blk">Most important decisions</h3>
+  <div class="decision"><div class="dn">5.1</div><div class="dt"><b>The headline numbers.</b> Across the 10 highest-frequency tasks: <b>799 &rarr; 358 UI steps per shop-day (−55%)</b>, projected <b>~98 min/day</b> recovered (~47 min counter staff, ~43 min owner, ~8 min quoting — ~1.6h, one working month/year); 2-line counter sale <b>95s &rarr; ~30s</b>. Fig 6's whole-day model shows the UI tax falling 98 &rarr; 41 min (−58%). Assumed frequencies are replaced by measured counts during rollout.</div></div>
+  <div class="decision"><div class="dn">5.2</div><div class="dt"><b>Action Queue as a workflow engine, not a hint list.</b> Items scored by severity &times; money at stake, full lifecycle (appears &rarr; acted &rarr; resolved/dismissed) that survives refresh, and a deep-link contract into the exact entity-level action — upgrading the existing <code>buildActionQueue()</code> six signals.</div></div>
+  <div class="decision"><div class="dn">5.3</div><div class="dt"><b>Ctrl+K grammar.</b> Terse verbs: <code>inv eli</code> (invoice for Elie), <code>pay eli 250</code>, <code>part n54 coil</code> (inline stock/price card — no navigation), <code>q eli</code>, <code>c eli</code>, <code>cust +</code>, <code>wa eli</code>, <code>#8811</code>, <code>&gt; screen</code>. &lt;50ms keystroke-to-result on cached index; barcode scanners act as keyboard wedges into the same field.</div></div>
+  <div class="decision"><div class="dn">5.4</div><div class="dt"><b>Missing flow discovered and fixed: receiving a payment.</b> Today it has no UI path at all (manual journal in Accounting); the Workspace payment sheet makes it a 3-step flow with oldest-first allocation (T4 target: 3min &rarr; &le;45s).</div></div>
+  <div class="decision"><div class="dn">5.5</div><div class="dt"><b>Metric-gated rollout, not calendar-gated.</b> 4-week side-by-side (opt-in weeks 1–2, default weeks 3–4), 6 telemetry event families, 9 success metrics (e.g. T2 p50 &le;35s, queue same-day resolution &ge;70%, dismissals &le;15%), and hard rollback criteria (T2 p50 &gt;60s or dismissals &gt;30% at week 4 flips the default back).</div></div>
+
+  <div class="notebox"><b>Count note for implementers:</b> Report 05 counts 74 registry entries where Reports 01/03 count 70 — the registry grew during the package's production. Treat <code>screen-registry.js</code> at build time as the source of truth; the "68 untouched screens" guarantee means "all registered screens except the two Ignition rebuilds".</div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>09</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 10 — UNIFIED DECISION REGISTER -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 04</div>
+  <div class="sec-title">Unified Decision Register</div>
+  <div class="sec-sub">The cross-cutting decisions every report agrees on. If an implementation choice contradicts a row below, stop and escalate — these are the package's load-bearing walls.</div>
+  <div class="rule"></div>
+
+  <table>
+    <tr><th style="width:6mm;">#</th><th style="width:46mm;">Decision</th><th>Rationale (one line)</th><th style="width:34mm;">Specified in detail</th></tr>
+    <tr><td class="mono">D1</td><td><b>Ignition token system</b> — carbon 3-step elevation + single orange accent + 3-typeface stack; dark-first with full light mode</td><td>Visibly, unmistakably different from Aurora and the live graphite-blue theme; orange = "look here", used for exactly one thing per screen</td><td>02 §1–5 (spec) &middot; 03 §2 (CSS encoding) &middot; 02 §13 (WPF/RN mapping)</td></tr>
+    <tr><td class="mono">D2</td><td><b>Action Queue is the dashboard's organizing principle</b> — scored, lifecycled, deep-linked</td><td>The triage list the code already computes is the highest-value pixel on the screen; charts support it, not vice versa</td><td>01 §1/§6 (why) &middot; 04 §2 (server-side build) &middot; 05 §4 (engine + lifecycle contract)</td></tr>
+    <tr><td class="mono">D3</td><td><b>Client-360 model</b> — one workspace per client; six fragmented screens become tabs of one record</td><td>Re-searching the same customer across 6 screens is the single largest owner-side time sink</td><td>01 §1/§13 (IA + wireframe) &middot; 03 §4/§7 (components) &middot; 04 §5–6 (contract) &middot; 05 §5 (flows)</td></tr>
+    <tr><td class="mono">D4</td><td><b>Single composed dashboard endpoint</b> — <code>GET /api/dashboard/summary</code>, 7 calls &rarr; 1</td><td>Over-fetch (full parts catalog, full aging table) is a server-side aggregation problem, not a frontend caching problem</td><td>04 §2–4 (contract, budget, cache) &middot; 03 §6 (binding)</td></tr>
+    <tr><td class="mono">D5</td><td><b>Ctrl+K command palette on every screen</b> — terse grammar, inline answers, barcode wedge</td><td>Counter tasks run ~55&times;/day; two keystrokes beat any menu, and the 70-screen long tail stays reachable</td><td>01 §4.1 &middot; 03 §3 (component) &middot; 05 §6 (grammar + latency)</td></tr>
+    <tr><td class="mono">D6</td><td><b>WCAG 2.2 AA</b> — contrast-verified tokens, keyboard map, focus management, reduced motion, touch targets</td><td>Shop-floor use means bad light, gloves, hurry — accessibility here is usability for everyone</td><td>01 §15 (plan) &middot; 02 §2–3 (AA-calibrated ramps) &middot; 03 §11 (ARIA/impl)</td></tr>
+    <tr><td class="mono">D7</td><td><b>Additive, phased shipping with zero legacy regression</b> — scoped CSS, additive endpoints, side-by-side rollout</td><td>Two screens must ship without risking the other 68 or breaking WPF/mobile clients that still call old routes</td><td>03 §2/§12 (scoping + file map) &middot; 04 §11 (versioning) &middot; 05 §8 (adoption gates)</td></tr>
+    <tr><td class="mono">D8</td><td><b>Tenant-isolation invariants</b> — TenantId from JWT only; uniform 404; no tenant/dbName in responses</td><td>Multi-tenant money data: enumeration and leakage prevention are non-negotiable and already codebase convention</td><td>04 §5/§7/§9 &middot; CLAUDE.md security focus</td></tr>
+    <tr><td class="mono">D9</td><td><b>ETag polling over SignalR</b> — 30–60s poll, 304s near-free</td><td>A parts-shop dashboard doesn't need sub-second push; polling is simpler, cheaper, and safer for tenant isolation</td><td>04 §8 (comparison table)</td></tr>
+    <tr><td class="mono">D10</td><td><b>Measure before retiring anything</b> — telemetry gates, rollback criteria, deletions need Ralph's approval</td><td>The projections (−55%, ~98 min) are planning numbers until the beacons confirm them; honesty is designed in</td><td>05 §8 (events, gates, rollback) &middot; 03 §12 (files kept on disk)</td></tr>
+  </table>
+
+  <div class="callout"><b>Change control:</b> Report 01 already states it — any deviation from the agreed IA (and by extension any D-row above) must be re-approved by Ralph before implementation, per the Design Change Workflow. The register exists so a reviewer can check a PR against ten rows instead of five reports.</div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>10</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 11 — ROADMAP: TIMELINE + PHASES 0-1 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 05</div>
+  <div class="sec-title">Consolidated Implementation Roadmap</div>
+  <div class="sec-sub">Report 03's build phases, Report 04's endpoint rollout and Report 05's adoption plan merged into one sequence. Owner column = dev team agents from the workspace roster.</div>
+  <div class="rule"></div>
+
+  <div class="fig-wrap">
+  <svg viewBox="0 0 760 265" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Inter, Arial, sans-serif">
+    <!-- week axis -->
+    <g font-family="JetBrains Mono, monospace" font-size="8" fill="#8a8d96">
+      <text x="150" y="14">WK 0</text><text x="205" y="14">1</text><text x="260" y="14">2</text><text x="315" y="14">3</text>
+      <text x="370" y="14">4</text><text x="425" y="14">5</text><text x="480" y="14">6</text><text x="535" y="14">7</text>
+      <text x="590" y="14">8</text><text x="645" y="14">9</text><text x="700" y="14">10+</text>
+    </g>
+    <g stroke="#eeeef1">
+      <line x1="152" y1="20" x2="152" y2="238"/><line x1="207" y1="20" x2="207" y2="238"/><line x1="262" y1="20" x2="262" y2="238"/>
+      <line x1="317" y1="20" x2="317" y2="238"/><line x1="372" y1="20" x2="372" y2="238"/><line x1="427" y1="20" x2="427" y2="238"/>
+      <line x1="482" y1="20" x2="482" y2="238"/><line x1="537" y1="20" x2="537" y2="238"/><line x1="592" y1="20" x2="592" y2="238"/>
+      <line x1="647" y1="20" x2="647" y2="238"/><line x1="702" y1="20" x2="702" y2="238"/>
+    </g>
+
+    <!-- Phase 0 -->
+    <text x="10" y="46" font-family="Plus Jakarta Sans" font-size="9.5" font-weight="800" fill="#17181c">PHASE 0</text>
+    <text x="10" y="57" font-size="7.5" fill="#8a8d96">Foundation</text>
+    <rect x="152" y="34" width="110" height="20" rx="6" fill="#0a0a0b"/>
+    <text x="160" y="47" font-size="7.5" fill="#fafafa">tokens &middot; indexes &middot; approval</text>
+
+    <!-- Phase 1 -->
+    <text x="10" y="90" font-family="Plus Jakarta Sans" font-size="9.5" font-weight="800" fill="#17181c">PHASE 1</text>
+    <text x="10" y="101" font-size="7.5" fill="#8a8d96">Dashboard</text>
+    <rect x="207" y="78" width="165" height="20" rx="6" fill="#f97316"/>
+    <text x="215" y="91" font-size="7.5" fill="#0a0a0b" font-weight="600">summary endpoint &middot; components &middot; dashboard v2</text>
+
+    <!-- Phase 2 -->
+    <text x="10" y="134" font-family="Plus Jakarta Sans" font-size="9.5" font-weight="800" fill="#17181c">PHASE 2</text>
+    <text x="10" y="145" font-size="7.5" fill="#8a8d96">Client Workspace</text>
+    <rect x="317" y="122" width="165" height="20" rx="6" fill="#fb923c"/>
+    <text x="325" y="135" font-size="7.5" fill="#0a0a0b" font-weight="600">workspace endpoints &middot; client-360 view</text>
+
+    <!-- Phase 3 -->
+    <text x="10" y="178" font-family="Plus Jakarta Sans" font-size="9.5" font-weight="800" fill="#17181c">PHASE 3</text>
+    <text x="10" y="189" font-size="7.5" fill="#8a8d96">WPF &middot; Mobile parity</text>
+    <rect x="482" y="166" width="240" height="20" rx="6" fill="#fdba74"/>
+    <text x="490" y="179" font-size="7.5" fill="#7c2d12" font-weight="600">IgnitionTheme.xaml &middot; RN theme.js &middot; per-platform migration</text>
+
+    <!-- adoption overlay -->
+    <text x="10" y="216" font-family="Plus Jakarta Sans" font-size="9.5" font-weight="800" fill="#17181c">ADOPTION</text>
+    <text x="10" y="227" font-size="7.5" fill="#8a8d96">side-by-side + telemetry</text>
+    <rect x="262" y="206" width="110" height="18" rx="6" fill="none" stroke="#38bdf8" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="270" y="218" font-size="7" fill="#0369a1">opt-in (wk 1–2)</text>
+    <rect x="372" y="206" width="110" height="18" rx="6" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-dasharray="4 3"/>
+    <text x="380" y="218" font-size="7" fill="#166534">default (wk 3–4)</text>
+    <rect x="482" y="206" width="110" height="18" rx="6" fill="none" stroke="#8a8d96" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="490" y="218" font-size="7" fill="#4b4e57">measure to wk 6 gates</text>
+
+    <!-- gates -->
+    <g>
+      <path d="M152 34 l-7 10 7 10 7 -10 z" fill="#f97316" transform="translate(0,-14)"/>
+      <text x="120" y="26" font-size="6.8" fill="#c2410c">GATE A: Ralph approves mockups</text>
+      <path d="M592 206 l-6 9 6 9 6 -9 z" fill="#22c55e"/>
+      <text x="600" y="215" font-size="6.8" fill="#166534">GATE B: week-6 metrics hit</text>
+      <text x="600" y="224" font-size="6.8" fill="#166534">&rarr; legacy retirement (approval)</text>
+    </g>
+    <!-- footnote -->
+    <text x="152" y="252" font-size="7" fill="#8a8d96">Durations are working estimates for sequencing only; phase boundaries are gated by exit criteria, not dates. Phase 2 may start once Phase 1 contracts are stable.</text>
+  </svg>
+  <div class="fig-cap">FIG 2 &middot; Consolidated roadmap. Two hard gates: Ralph's mockup approval before any code (Design Change Workflow), and measured week-6 success metrics before any legacy screen retires.</div>
+  </div>
+
+  <h3 class="blk"><span class="tag">Phase 0</span>Foundation — tokens, indexes, owner approval <span class="chip grey" style="margin-left:6px;">~1 week</span></h3>
+  <table>
+    <tr><th style="width:26mm;">Owner</th><th>Scope &amp; files/endpoints</th><th style="width:52mm;">Exit criteria</th></tr>
+    <tr><td><span class="chip dark">dev-ui-ux</span><span class="chip dark">dev-graphic-designer</span></td><td>Present Report 02 hero mockups (dark + light, both screens, mobile variants) to Ralph for sign-off — <b>Gate A</b>, required by the Design Change Workflow before any implementation.</td><td>Written "yes" from Ralph on the Ignition direction; chosen default theme recorded (see §08 Q1).</td></tr>
+    <tr><td><span class="chip dark">dev-web-react</span></td><td>Create <code>wwwroot/css/ignition/tokens.css</code> + <code>primitives.css</code> (all <code>--ig-*</code> props, dark + <code>[data-ig-theme="light"]</code>, scoped <code>.ignition-root</code>); edit <code>index.html</code> to link them after <code>styles.css</code>.</td><td>App builds &amp; loads; pixel-identical rendering of all legacy screens (spot-check 10); new CSS &le;6KB.</td></tr>
+    <tr><td><span class="chip dark">dev-database</span></td><td>Migration with covering indexes from Report 04 §07 (<code>IX_Transactions_Tenant_Type_Date</code> et al). Additive only. <b>Requires explicit approval per CLAUDE.md before running on any shared/production DB; low-traffic window.</b></td><td>Indexes present; query plans for aging/trend/summary show index use; zero data change.</td></tr>
+    <tr><td><span class="chip dark">dev-qa-security</span></td><td>Baseline capture: current screen renders, current p95 latencies of the 7 dashboard calls, week-0 overdue-receivables balance (Report 05 metric baseline).</td><td>Baseline document stored with the package.</td></tr>
+  </table>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>11</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 12 — ROADMAP PHASES 1-3 -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 05 &middot; continued</div>
+  <div class="sec-title" style="font-size:19px;">Roadmap — Phases 1 to 3</div>
+  <div class="rule"></div>
+
+  <h3 class="blk"><span class="tag">Phase 1</span>Dashboard — endpoint, component library, first shipped screen <span class="chip grey" style="margin-left:6px;">~3 weeks</span></h3>
+  <table>
+    <tr><th style="width:26mm;">Owner</th><th>Scope &amp; files/endpoints</th><th style="width:52mm;">Exit criteria</th></tr>
+    <tr><td><span class="chip dark">dev-backend-api</span></td><td><code>DashboardController</code> + <code>DashboardActionQueueService</code> + <code>DashboardTrendService</code> &rarr; <code>GET /api/dashboard/summary</code>; per-tenant cache (45s TTL) + weak ETag; then <code>IDashboardCacheInvalidator</code> hooks on sale/payment commit paths (the one medium-risk step — full build+test after).</td><td>Contract matches Report 04 §03 payload; p95 &le;350ms cold / &le;12ms 304 under test load; invalidation proven by integration test (post payment &rarr; next poll shows new KPI).</td></tr>
+    <tr><td><span class="chip dark">dev-web-react</span></td><td><code>components.css</code> + 11 shell/data components (IconRail, CommandBar, CommandPalette, KpiTile/Band, ActionQueueCard, InsightPanel, TrendChart, DataGrid, MoneyText, QuickActionDock); rebuild <code>dashboard-view.js</code> on the new endpoint wrapped in <code>.ignition-root</code>; palette grammar verbs <code>inv/pay/part/q/c/cust/wa/#/&gt;</code>; telemetry beacons (Report 05 §8 events).</td><td>Dashboard renders from 1 composed call (+2 reference-data calls); LCP &lt;1.8s, TBT &lt;150ms; palette &lt;50ms on cached index; screenshots sent to Ralph vs Report 02 Fig A (Design Change Workflow step 2).</td></tr>
+    <tr><td><span class="chip dark">dev-qa-security</span></td><td>Contract tests, a11y audit (keyboard map, contrast, focus return), security checks (401 unauthenticated, no tenant/dbName in payload, ProblemDetails shape), perf regression run.</td><td>Page-13 checklist fully green; opt-in banner live (adoption weeks 1–2 start).</td></tr>
+  </table>
+
+  <h3 class="blk"><span class="tag">Phase 2</span>Client Workspace — client-360 endpoints and screen <span class="chip grey" style="margin-left:6px;">~3 weeks, overlaps P1 tail</span></h3>
+  <table>
+    <tr><th style="width:26mm;">Owner</th><th>Scope &amp; files/endpoints</th><th style="width:52mm;">Exit criteria</th></tr>
+    <tr><td><span class="chip dark">dev-backend-api</span></td><td><code>ClientWorkspaceController/Service</code>: <code>GET /api/clients/{id}/workspace</code> (20s TTL) + paged <code>/invoices /payments /quotes /part-requests /timeline</code> + <code>/api/clients/search</code>; explicit tenant-ownership check before child queries; uniform 404.</td><td>All 7 routes live &amp; paged via existing pagination headers; enumeration test passes (cross-tenant id &rarr; identical 404).</td></tr>
+    <tr><td><span class="chip dark">dev-database</span></td><td>Single-customer aging query (narrowed CTE from <code>CustomersService.GetAging</code>), timeline union query, parameterization review of all new SQL.</td><td>No string-concatenated SQL; plans use Phase-0 indexes.</td></tr>
+    <tr><td><span class="chip dark">dev-web-react</span></td><td>5 workspace components (ClientRail, ClientHeader, AgingBar, ActivityTimeline, TabStrip) + <code>client-workspace-view.js</code>; payment sheet, invoice/quote-from-context, reminder preview (reuses <code>CommunicationPayloadFactory.accountBalanceReminder</code>); registry + Sidebar "Clients" entry; legacy contacts/aging keys stay registered.</td><td>All Report 05 §5 flows work end-to-end; T4 receive-payment flow &le;45s in hallway test; after-screenshots to Ralph vs Report 02 Fig B; default flip (adoption weeks 3–4).</td></tr>
+    <tr><td><span class="chip dark">dev-qa-security</span></td><td>Page-14 checklist; load test workspace + child tabs; verify telemetry event flow for T2/T4/T6.</td><td>Checklist green; week-6 metric collection running toward <b>Gate B</b>.</td></tr>
+  </table>
+
+  <h3 class="blk"><span class="tag">Phase 3</span>WPF &amp; mobile parity, hardening, legacy retirement <span class="chip grey" style="margin-left:6px;">~4 weeks, own pace per platform</span></h3>
+  <table>
+    <tr><th style="width:26mm;">Owner</th><th>Scope &amp; files/endpoints</th><th style="width:52mm;">Exit criteria</th></tr>
+    <tr><td><span class="chip dark">dev-desktop-wpf</span></td><td><code>IgnitionTheme.xaml</code> ResourceDictionary (1:1 <code>IgBrush*/IgFont*/IgCornerRadius*</code> keys per Report 02 §13) merged in <code>App.xaml</code>; Dashboard + Client Workspace views consume the new endpoints (additive — old calls keep working meanwhile).</td><td>Token audit passes (dev-ui-ux-designer cross-platform consistency check); desktop screenshots approved by Ralph.</td></tr>
+    <tr><td><span class="chip dark">dev-mobile-rn</span></td><td>Ignition <code>theme.js</code>; bottom-tab layout + 44px targets (sanctioned deviations); phone dashboard (KPI carousel + queue) and workspace (drawer client list) per Reports 01 §12/§14 and 03 §8; offline counter notes per Report 05 §7.</td><td>Expo build ships both screens; token audit passes; <code>sync_queue_depth</code> telemetry live.</td></tr>
+    <tr><td><span class="chip dark">dev-qa-security</span></td><td>Full security scan per CLAUDE.md workflow (auth coverage, headers, CORS, error handling, rate limits); verify week-6 success metrics (Report 05 §8 table).</td><td><b>Gate B met.</b> Metrics at target (T2 &le;35s, dismissals &le;15%, screens/session −40% &hellip;).</td></tr>
+    <tr><td><span class="chip dark">all + Ralph</span></td><td>Only after Gate B: propose retirement of <code>contacts-view.js</code>/<code>customer-aging-view.js</code> and pruning of <code>cockpit.css</code> — file deletion needs Ralph's explicit approval per Safety Rules. Remaining 68-screen migration is a separate future package.</td><td>Ralph's written approval recorded before any deletion; rollback path retained until then.</td></tr>
+  </table>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>12</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 13 — ACCEPTANCE: DASHBOARD -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 06 &middot; Acceptance Criteria &middot; 1 of 2</div>
+  <div class="sec-title">Acceptance Checklist — Dashboard</div>
+  <div class="sec-sub">Every line is testable and traceable to a source report. QA (dev-qa-security) signs each box; the screen does not ship with an open box.</div>
+  <div class="rule"></div>
+
+  <h3 class="blk">Visual (Reports 02, 03)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Canvas is <b>#0a0a0b</b>; cards <b>#131316</b>; popovers/hover <b>#1b1b1f</b> — verified by computed style, not screenshot.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><b>#f97316</b> appears only as: primary CTA, active nav rail (2px), focus ring, links, primary chart series. No second accent hue anywhere.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Cards are borderless (shadow + surface shift only), radius 16px; status pills and badges are the only sharp geometry.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Headings render Plus Jakarta Sans (−0.04em); body Inter; <b>every money/quantity/aging figure renders JetBrains Mono with tabular-nums</b> (MoneyText component).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Icon rail is 72px wide, icons 20px at 1.75px-equivalent stroke, active item carries orange rail + filled state.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Layout matches Report 02 Fig A regions: KPI band &rarr; command bar &rarr; trend + Action Queue &rarr; insight panels; light mode via <code>[data-ig-theme="light"]</code> renders per Report 02 §10.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>All 68 legacy screens render pixel-identical to the Phase-0 baseline (sample of 10 compared).</span></div>
+
+  <h3 class="blk">Functional (Reports 04, 05)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>View mounts with <b>exactly one</b> call to <code>GET /api/dashboard/summary</code> (plus the two pre-existing reference-data calls); no <code>api.list("/api/parts")</code> full-catalog fetch remains.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Action Queue items show severity &times; money-at-stake ordering; each deep-links to the entity-level action (e.g. payment sheet for that client), not just a screen.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Queue lifecycle persists: acted/resolved/dismissed states survive refresh and re-login; dismissed items do not reappear for the same underlying signal state.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><span class="kbd">Ctrl</span>+<span class="kbd">K</span> opens the palette on every screen; verbs <code>inv</code>, <code>pay</code>, <code>part</code>, <code>q</code>, <code>c</code>, <code>cust +</code>, <code>wa</code>, <code>#NNNN</code>, <code>&gt; screen</code> all resolve; <code>part</code> answers inline without navigation; Enter executes top match.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Live-updates poll runs at 30–60s with <code>If-None-Match</code>; unchanged data returns <b>304</b> with no body; a posted payment appears on the next poll (invalidation hook proven).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Barcode wedge scan in palette or POS field resolves barcode &rarr; internal code &rarr; OEM code.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Telemetry events fire: <code>task_start/complete</code>, <code>screen_view</code>, <code>palette_used</code>, <code>queue_item_*</code> with tenantId, role, taskId, ts.</span></div>
+
+  <h3 class="blk">Performance budgets (Reports 03 §10, 04 §2)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Server p95: <b>&le;350ms</b> cache-miss, <b>&le;12ms</b> ETag 304 (load test at realistic tenant data volume).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>LCP <b>&lt;1.8s</b> (KpiBand); TBT <b>&lt;150ms</b>; skeleton crossfade 160ms, skipped when data lands &le;150ms.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Total new Ignition CSS <b>&lt;25KB gzipped</b>; palette keystroke-to-result <b>&lt;50ms</b> on cached index.</span></div>
+
+  <h3 class="blk">Accessibility — WCAG 2.2 AA (Reports 01 §15, 03 §11)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Contrast pairs measured: #fafafa/#0a0a0b &ge;19:1; #a1a1aa/#131316 &ge;7:1; #0a0a0b on #f97316 CTA &ge;7:1; white-on-danger restricted to bold &ge;13px labels.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Full keyboard path: rail &rarr; command bar &rarr; KPI band &rarr; queue &rarr; panels in documented focus order; visible focus ring on every interactive element; palette close returns focus to trigger.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Landmarks/roles per spec (nav, main, complementary; queue as list with actionable items); <code>prefers-reduced-motion</code> disables crossfades/slides; touch targets &ge;24px desktop, 44px mobile.</span></div>
+
+  <h3 class="blk">Security (Report 04 §9; CLAUDE.md focus areas)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Unauthenticated <code>GET /api/dashboard/summary</code> &rarr; 401; controller carries class-level <code>[Authorize]</code> (architecture test).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Response DTO contains no <code>tenantId</code>, <code>dbName</code>, cache key, connection info or stack trace (the illustrative <code>cacheMeta</code> from Report 04's examples is stripped).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Forced server error returns production-safe ProblemDetails; no .NET exception details reach the client.</span></div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>13</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 14 — ACCEPTANCE: WORKSPACE + CROSS-CUTTING -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 06 &middot; Acceptance Criteria &middot; 2 of 2</div>
+  <div class="sec-title">Acceptance Checklist — Client Workspace &amp; Cross-Cutting</div>
+  <div class="rule"></div>
+
+  <h3 class="blk">Visual (Reports 02 Fig B, 03 §7)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Three-region layout: searchable ClientRail (left) &rarr; ClientHeader with balance + AgingBar &rarr; TabStrip (Overview, Invoices, Payments, Quotes, Requests, Timeline/Messages); aging buckets use semantic colors (current&rarr;green &hellip; 90+&rarr;danger).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Narrow layout per Reports 01 §14 / 03 §8: rail becomes full-screen drawer; selected client pushes header+tabs as a page with back navigation.</span></div>
+
+  <h3 class="blk">Functional (Reports 04 §5–6, 05 §5)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Selecting a client issues <b>one</b> <code>GET /api/clients/{id}/workspace</code> for header + balance + aging + KPIs; tabs lazy-load their paged child route only when opened.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Typeahead uses <code>GET /api/clients/search</code>; results in &le;300ms; recents shown on empty query.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><b>Receive payment without leaving the screen:</b> payment sheet opens from header/queue deep-link, amount allocates oldest-first, posts, and balance + aging + timeline update in place (T4 flow).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>New invoice / new quote start from workspace context with the client pre-attached (no customer dropdown hunt); quote&rarr;invoice conversion preserves context (Flow 05: 8&rarr;4 steps).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>WhatsApp reminder shows an editable <b>preview before send</b> (reuses <code>accountBalanceReminder</code> payload); delivery status lands back on the client's timeline, and failures create a queue item.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Collection worklist: from the overdue queue item, the batch flow (5 clients) completes in &le;4 steps per client with notes captured (Flow 04 target).</span></div>
+
+  <h3 class="blk">Performance</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Workspace endpoint cached 20s per tenant+client; invalidated on payment/invoice mutation for that client; child tabs paged (default page size per contract, never unbounded).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Rail search, tab switches and payment-sheet open all &lt;200ms perceived (skeleton rules from Report 03 §9 apply).</span></div>
+
+  <h3 class="blk">Accessibility</h3>
+  <div class="check"><span class="bx">[ ]</span><span>ClientRail: <code>role="listbox"</code>, options carry <code>aria-selected</code>, search input has an <code>sr-only</code> label; TabStrip follows the ARIA tabs pattern with arrow-key navigation.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Payment sheet and drawers trap focus while open and return focus on close; all money values readable by screen reader with currency announced.</span></div>
+
+  <h3 class="blk">Security (Report 04 §5/§9)</h3>
+  <div class="check"><span class="bx">[ ]</span><span>Cross-tenant customer id returns the <b>same 404</b> (status, shape, timing) as a nonexistent id — verified by integration test with two tenants.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span>Ownership check runs before any child query (not relying on SQL predicate alone); all child routes carry <code>[Authorize]</code> and tenant filters.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><code>/api/clients/search</code> rate limiting is partitioned per tenant; parameterized queries only (dev-database review signed).</span></div>
+
+  <h3 class="blk">Cross-cutting — package level</h3>
+  <div class="check"><span class="bx">[ ]</span><span><b>Zero legacy breakage:</b> no existing route renamed/removed/reshaped; WPF and mobile function unchanged against the old endpoints (smoke test both apps).</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><b>Week-6 success metrics</b> (Report 05 §8): T2 p50 &le;35s &middot; T4 p50 &le;45s &middot; T6 answered in-place &ge;80% &middot; palette-initiated sales &ge;60% &middot; queue same-day resolution &ge;70% &middot; dismissals &le;15% &middot; screens/session −40% &middot; reminder failures resolved &le;24h &ge;90% &middot; overdue&gt;30d balance −20% by day 60.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><b>Rollback armed:</b> default flips back to legacy automatically-decidable criteria (T2 p50 &gt;60s or dismissals &gt;30% at week 4) documented and rehearsed.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><b>Cross-platform token audit</b> (dev-ui-ux-designer): web CSS vars, WPF ResourceDictionary and RN theme.js agree on every Report 02 §13 row.</span></div>
+  <div class="check"><span class="bx">[ ]</span><span><code>dotnet build</code> + <code>dotnet test</code> (Architecture, Management, Integration suites) green after every phase; security scan workflow completed before Gate B.</span></div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>14</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 15 — RISK REGISTER -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 07</div>
+  <div class="sec-title">Risk Register</div>
+  <div class="sec-sub">Top 10 risks to the package, with likelihood / impact and the mitigation already designed into the reports (plus who watches it).</div>
+  <div class="rule"></div>
+
+  <table>
+    <tr><th style="width:5mm;">#</th><th style="width:38mm;">Risk</th><th style="width:15mm;">Likelihood</th><th style="width:13mm;">Impact</th><th>Mitigation (and owner)</th></tr>
+    <tr><td class="mono">R1</td><td><b>Legacy CSS collision</b> — the 17,400-line <code>styles.css</code> (+392-line <code>cockpit.css</code>) breaks, or is broken by, Ignition styles across the other 68–70 screens</td><td><span class="chip amber">Medium</span></td><td><span class="chip red">High</span></td><td>All Ignition rules scoped under <code>.ignition-root</code>, linked after legacy CSS, zero global resets; legacy files untouched; Phase-0 pixel baseline + 10-screen regression check each phase. <i>(dev-web-react, dev-qa-security)</i></td></tr>
+    <tr><td class="mono">R2</td><td><b>No-build runtime limits</b> — no JSX/bundler; hand-written <code>h()</code> components slow the team or drift from spec</td><td><span class="chip amber">Medium</span></td><td><span class="chip amber">Medium</span></td><td>Report 03 specs every component's props/states; mirrors existing <code>ui/</code> conventions; one component per file (workspace rule); composition maps prevent structural drift. <i>(dev-web-react)</i></td></tr>
+    <tr><td class="mono">R3</td><td><b>WPF/mobile breakage via endpoint change</b></td><td><span class="chip green">Low</span></td><td><span class="chip red">High</span></td><td>Additive-only rule: 8 new routes, zero renames/removals/reshapes; old routes stay supported (composed, not forked); platforms migrate on their own schedule. Smoke-test both apps each backend release. <i>(dev-backend-api, dev-qa-security)</i></td></tr>
+    <tr><td class="mono">R4</td><td><b>Stale money on screen</b> — cache shows wrong receivables/cash after a write</td><td><span class="chip amber">Medium</span></td><td><span class="chip red">High</span></td><td>Write-path invalidation hooks on sale/payment commits (the flagged medium-risk change), short TTLs (45s/20s), ETag revalidation; integration test: post payment &rarr; next poll updated. <i>(dev-backend-api)</i></td></tr>
+    <tr><td class="mono">R5</td><td><b>Adoption resistance</b> — counter staff keep the old screens; muscle memory beats the palette</td><td><span class="chip amber">Medium</span></td><td><span class="chip amber">Medium</span></td><td>4-week side-by-side (opt-in first), legacy reachable throughout, one-card training + self-teaching palette, defaults flip only at week 3–4, rollback criteria pre-agreed. <i>(workflow agent, Ralph)</i></td></tr>
+    <tr><td class="mono">R6</td><td><b>Action-queue noise</b> — items people dismiss erode trust in the whole dashboard</td><td><span class="chip amber">Medium</span></td><td><span class="chip amber">Medium</span></td><td>Precision guard: dismissals &le;15% is a shipping gate; lifecycle telemetry per item type; scoring (severity &times; money) tunable server-side without client release. <i>(dev-backend-api, workflow agent)</i></td></tr>
+    <tr><td class="mono">R7</td><td><b>Projections don't materialize</b> — the −55% / ~98-min figures are planning assumptions (Report 05 itself models 57–98 min/day depending on method)</td><td><span class="chip amber">Medium</span></td><td><span class="chip green">Low</span></td><td>"No projection ships unmeasured": telemetry replaces assumed frequencies from week 1; gates use measured p50s, not the projections; honest rollback either way. <i>(dev-qa-security owns the numbers)</i></td></tr>
+    <tr><td class="mono">R8</td><td><b>Index migration on production DB</b> — locking/perf during creation on large Transactions table</td><td><span class="chip green">Low</span></td><td><span class="chip amber">Medium</span></td><td>Additive index-only migration, deployable ahead of code, run in low-traffic window; requires explicit approval per CLAUDE.md before touching production. <i>(dev-database)</i></td></tr>
+    <tr><td class="mono">R9</td><td><b>Scale-out cache incoherence</b> — in-memory per-tenant cache assumes the current single IIS/YARP host; a second API instance would serve stale/split views</td><td><span class="chip green">Low</span></td><td><span class="chip amber">Medium</span></td><td>Explicitly documented assumption in Report 04 §04; trigger point defined: introduce a distributed cache (e.g. Redis) or sticky routing before any scale-out. <i>(dev-backend-api)</i></td></tr>
+    <tr><td class="mono">R10</td><td><b>Third unreleased design language</b> — Ignition joins Aurora and the live graphite-blue theme as another half-shipped look if scope creeps toward the other 68 screens</td><td><span class="chip amber">Medium</span></td><td><span class="chip red">High</span></td><td>Hard scope: two screens only; Gate A locks the direction with Ralph before code; Gate B proves value before any expansion; 68-screen migration is explicitly a separate future package. <i>(documentation agent tracks scope, Ralph approves)</i></td></tr>
+  </table>
+
+  <div class="notebox"><b>Watch item (not yet a risk):</b> screen-registry drift — 70 entries in Reports 01/03 vs 74 in Report 05. Recount at Phase-0 baseline so the "untouched screens" guarantee and regression sample are exact.</div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>15</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PAGE 16 — OPEN QUESTIONS -->
+<!-- ============================================================ -->
+<section class="page">
+  <div class="eyebrow">Section 08</div>
+  <div class="sec-title">Open Questions for Ralph</div>
+  <div class="sec-sub">The package deliberately leaves these to the owner. None block Phase 0; Q1 and Q2 are needed before Phase 1 ships. Each lists the default the team will assume if you simply say "use the defaults".</div>
+  <div class="rule"></div>
+
+  <table>
+    <tr><th style="width:6mm;">Q</th><th style="width:52mm;">Decision needed</th><th>Context</th><th style="width:40mm;">Package default if unspecified</th></tr>
+    <tr><td class="mono">Q1</td><td><b>Dark or light as the shipped default?</b> (per platform, with or without a user toggle)</td><td>Ignition is designed dark-first (Report 02 §2) but a complete light mode exists (§3, §10). Counter environments are bright; the "wow, it changed" effect is strongest in dark.</td><td>Dark default on web + WPF, per-user toggle via <code>[data-ig-theme]</code>; mobile follows OS setting.</td></tr>
+    <tr><td class="mono">Q2</td><td><b>Approve the Ignition mockups (Gate A)</b> — and flag anything to adjust before code</td><td>Design Change Workflow requires your sign-off on Report 02's hero figures (pages 8–12) before implementation starts.</td><td>No default — this one is blocking by design.</td></tr>
+    <tr><td class="mono">Q3</td><td><b>Platform order after web:</b> WPF first or mobile first?</td><td>Phase 3 covers both; the roster can parallelize, but review bandwidth (your screenshots approval) serializes in practice.</td><td>WPF first (heaviest daily in-shop use), mobile immediately after.</td></tr>
+    <tr><td class="mono">Q4</td><td><b>LBP/USD display rules</b> — default display currency, dual display, LBP rounding</td><td>Mockups show both <code>$1,240.00</code> and <code>1,284,600 LBP</code>; the currency-margin squeeze is an action-queue signal. Needs one rule: which currency leads KPIs, when to show both, and LBP rounding granularity.</td><td>USD leads KPIs; LBP secondary on hover/subline at current rate; LBP rounded to 1,000.</td></tr>
+    <tr><td class="mono">Q5</td><td><b>Who may dismiss Action Queue items?</b></td><td>Dismissal shapes what the shop pays attention to. Owner-only keeps control; staff-wide keeps the queue clean but risks hiding money issues.</td><td>Owner + accountant roles dismiss; counter staff can act and resolve but not dismiss.</td></tr>
+    <tr><td class="mono">Q6</td><td><b>Default landing screen per role</b></td><td>Dashboard-for-everyone is simplest; but counter staff (Karim) live in POS/Workspace, and Report 01's personas suggest role-based landing.</td><td>Dashboard for all in v1; revisit with week-6 <code>screen_view</code> telemetry.</td></tr>
+    <tr><td class="mono">Q7</td><td><b>Telemetry consent &amp; retention</b></td><td>Report 05's beacons record per-user task timings (tenantId, role, taskId). It's your own staff's data, but you should set the retention window and who sees per-person numbers.</td><td>90-day retention; per-person data visible to owner only; aggregates for the team.</td></tr>
+    <tr><td class="mono">Q8</td><td><b>Naming: "Clients" or "Contacts"?</b></td><td>The new workspace replaces "Contacts"; the nav label and palette verb (<code>c</code>) should match what your staff actually say at the counter.</td><td>"Clients" (matches Report 04's <code>/api/clients/*</code> routes).</td></tr>
+    <tr><td class="mono">Q9</td><td><b>Legacy retirement (Gate B follow-through)</b> — approve deleting <code>contacts-view.js</code> / <code>customer-aging-view.js</code> once metrics hit</td><td>Safety Rules require your explicit approval for any file deletion; until then they stay on disk, just unlinked from navigation.</td><td>No default — deletion always waits for your explicit "yes".</td></tr>
+  </table>
+
+  <div class="callout" style="margin-top:6px;">
+    <b>Sign-off block.</b> Gate A (mockups approved, Q1 answered): ________ &nbsp;date ______ &nbsp;&middot;&nbsp; Phase 1 shipped &amp; after-screenshots approved: ________ &nbsp;&middot;&nbsp; Phase 2 shipped: ________ &nbsp;&middot;&nbsp; Gate B (metrics met, retirement approved): ________
+  </div>
+
+  <div class="notebox">
+    <b>Package manifest</b> — docs/redesign/: 01-ux-research-user-flows &middot; 02-visual-design-system &middot; 03-ui-component-architecture &middot; 04-system-architecture &middot; 05-workflow-optimization &middot; <b>06-consolidated-overview (this report)</b>. Each exists as .html (source of truth) and .pdf. Produced 2 July 2026 by the six-agent Ignition design team; no application code was modified in the making of this package.
+  </div>
+
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 06 Consolidated Overview</span><span>16</span></div>
+</section>
+
+</body>
+</html>

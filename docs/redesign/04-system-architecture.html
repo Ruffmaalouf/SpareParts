@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SpareParts — Report 04 — System Architecture &amp; Data Contracts</title>
+<style>
+* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root{
+    --carbon:#0a0a0b;
+    --carbon-2:#131316;
+    --carbon-3:#1c1c20;
+    --orange:#f97316;
+    --orange-2:#fb923c;
+    --ink:#16161a;
+    --ink-soft:#4b4b56;
+    --line:#e6e6ea;
+    --panel:#f7f7f9;
+    --green:#16a34a;
+    --red:#dc2626;
+    --blue:#2563eb;
+    --amber:#d97706;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Inter', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--ink);
+    background:#e9e9ee;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{ font-family:'Inter',sans-serif; margin:0; }
+  code, pre, .mono{ font-family:'JetBrains Mono', 'Consolas', monospace; }
+
+  .page{
+    width:210mm;
+    min-height:292mm;
+    padding:14mm;
+    margin:0 auto;
+    background:#fff;
+    position:relative;
+    page-break-after:always;
+    overflow:hidden;
+  }
+
+  /* ---------- COVER ---------- */
+  .cover{
+    background:
+      radial-gradient(circle at 82% 12%, rgba(249,115,22,0.35), transparent 45%),
+      radial-gradient(circle at 8% 92%, rgba(249,115,22,0.18), transparent 40%),
+      linear-gradient(180deg,#0a0a0b 0%,#0a0a0b 100%);
+    color:#f4f4f5;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .cover-grid{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:14mm 14mm;
+    pointer-events:none;
+  }
+  .cover-top{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; }
+  .brandmark{ display:flex; align-items:center; gap:10px; }
+  .brandmark .dot{ width:11px; height:11px; border-radius:2px; background:var(--orange); box-shadow:0 0 18px rgba(249,115,22,.9); }
+  .brandmark span{ font-weight:800; letter-spacing:.14em; font-size:12.5px; color:#d4d4d8; text-transform:uppercase; }
+  .pkg-tag{ font-size:10.5px; color:#8a8a92; letter-spacing:.08em; border:1px solid #2a2a30; padding:5px 10px; border-radius:20px; }
+
+  .cover-mid{ position:relative; z-index:2; }
+  .kicker{ color:var(--orange-2); font-weight:700; letter-spacing:.22em; font-size:12px; text-transform:uppercase; margin-bottom:18px; }
+  .cover-title{ font-size:52px; font-weight:900; line-height:1.05; letter-spacing:-.02em; margin-bottom:16px; }
+  .cover-title em{ font-style:normal; color:var(--orange); }
+  .cover-sub{ font-size:16.5px; color:#b6b6bd; max-width:120mm; line-height:1.55; }
+
+  .cover-diagram{
+    position:relative; z-index:2;
+    margin-top:20px;
+    border:1px solid #232328;
+    border-radius:14px;
+    background:rgba(255,255,255,0.02);
+    padding:16px 18px;
+  }
+  .cover-diagram .cd-label{ font-size:10px; letter-spacing:.14em; color:#8a8a92; text-transform:uppercase; margin-bottom:10px; }
+
+  .cover-bottom{ position:relative; z-index:2; display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid #222227; padding-top:16px; }
+  .cover-meta div{ font-size:11.5px; color:#8a8a92; margin-bottom:4px; }
+  .cover-meta b{ color:#f4f4f5; font-weight:700; }
+  .cover-badge{ text-align:right; }
+  .cover-badge .n{ font-size:34px; font-weight:900; color:var(--orange); line-height:1; }
+  .cover-badge .l{ font-size:10.5px; color:#8a8a92; letter-spacing:.12em; text-transform:uppercase; margin-top:4px; }
+
+  /* ---------- TOC ---------- */
+  .toc-head{ display:flex; justify-content:space-between; align-items:baseline; border-bottom:3px solid var(--ink); padding-bottom:14px; margin-bottom:6px; }
+  .toc-head h1{ font-size:26px; font-weight:900; letter-spacing:-.01em; }
+  .toc-head .tag{ font-size:11px; color:var(--orange); font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+  .toc-list{ margin-top:18px; }
+  .toc-row{ display:flex; align-items:baseline; gap:10px; padding:10px 0; border-bottom:1px dashed var(--line); }
+  .toc-num{ font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--orange); font-size:13px; width:26px; flex:none; }
+  .toc-title{ font-weight:700; font-size:14px; flex:none; width:66mm; }
+  .toc-desc{ font-size:11.5px; color:var(--ink-soft); flex:1; }
+  .toc-pg{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-soft); width:16px; text-align:right; }
+  .toc-note{ margin-top:22px; padding:12px 14px; background:var(--panel); border-left:3px solid var(--orange); font-size:11.5px; color:var(--ink-soft); border-radius:0 6px 6px 0; }
+
+  /* ---------- CONTENT PAGES ---------- */
+  .kicker-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .kicker-chip{ background:var(--ink); color:#fff; font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:3px 9px; border-radius:20px; }
+  .kicker-chip.o{ background:var(--orange); }
+  .sec-eyebrow{ font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--orange); font-weight:800; margin-bottom:4px; }
+  .sec-title{ font-size:22px; font-weight:900; letter-spacing:-.01em; margin-bottom:4px; }
+  .sec-sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; max-width:160mm; }
+  .rule{ height:3px; background:linear-gradient(90deg,var(--ink),var(--orange)); border-radius:3px; margin-bottom:16px; }
+
+  .content-body{ font-size:12px; line-height:1.62; color:#26262c; }
+  .content-body h3{ font-size:14.5px; font-weight:800; margin:16px 0 8px; color:var(--ink); }
+  .content-body h4{ font-size:12.5px; font-weight:800; margin:12px 0 6px; color:var(--ink); }
+  .content-body p{ margin:0 0 8px; }
+  .content-body ul, .content-body ol{ margin:0 0 10px; padding-left:18px; }
+  .content-body li{ margin-bottom:4px; }
+  .content-body strong{ color:var(--ink); }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+
+  .card{ border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:#fff; }
+  .card h4{ margin-top:0; }
+  .card.panel{ background:var(--panel); }
+
+  .stat-card{ border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .stat-card .v{ font-size:19px; font-weight:900; color:var(--ink); }
+  .stat-card .l{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+  .stat-card.bad .v{ color:var(--red); }
+  .stat-card.good .v{ color:var(--green); }
+  .stat-card.warn .v{ color:var(--amber); }
+
+  table{ width:100%; border-collapse:collapse; font-size:11px; margin:10px 0 14px; }
+  th{ background:var(--ink); color:#fff; text-align:left; padding:6px 8px; font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
+  td{ padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#fafafb; }
+  td code{ font-size:10px; background:#f1f1f4; padding:1px 4px; border-radius:3px; }
+
+  pre{
+    background:#0e0e11; color:#e4e4e7; border-radius:10px; padding:12px 14px;
+    font-size:10px; line-height:1.55; overflow:hidden; white-space:pre-wrap; word-break:break-word;
+    border:1px solid #232328;
+  }
+  pre .k{ color:#7dd3fc; }
+  pre .s{ color:#86efac; }
+  pre .n{ color:#fca5a5; }
+  pre .c{ color:#6b7280; }
+  .code-label{ display:flex; align-items:center; justify-content:space-between; margin:14px 0 6px; }
+  .code-label span{ font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+  .code-label .pill{ font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--panel); color:var(--ink-soft); border:1px solid var(--line); }
+  .code-label .pill.get{ background:#dbeafe; color:#1e3a8a; }
+  .code-label .pill.post{ background:#dcfce7; color:#14532d; }
+
+  .badge{ display:inline-block; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:20px; letter-spacing:.03em; }
+  .badge.red{ background:#fee2e2; color:#991b1b; }
+  .badge.amber{ background:#fef3c7; color:#92400e; }
+  .badge.green{ background:#dcfce7; color:#14532d; }
+  .badge.blue{ background:#dbeafe; color:#1e3a8a; }
+  .badge.gray{ background:#eee; color:#444; }
+
+  .figure{ border:1px solid var(--line); border-radius:12px; padding:12px; background:#fcfcfd; margin:10px 0 16px; }
+  .figure .fig-title{ font-size:11px; font-weight:800; color:var(--ink); margin-bottom:8px; display:flex; justify-content:space-between; }
+  .figure .fig-title .fnum{ color:var(--orange); }
+  .figure svg{ width:100%; height:auto; display:block; }
+
+  .footer{
+    position:absolute; left:14mm; right:14mm; bottom:9mm;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:9px; color:#9a9aa2; border-top:1px solid var(--line); padding-top:6px;
+  }
+  .footer .pg{ font-family:'JetBrains Mono',monospace; }
+  .page-content{ padding-bottom:8mm; }
+
+  .callout{ border:1px solid var(--line); border-left:4px solid var(--orange); border-radius:0 8px 8px 0; padding:10px 12px; background:#fff8f2; font-size:11.5px; margin:10px 0; }
+  .callout.security{ border-left-color:var(--red); background:#fef2f2; }
+  .callout.perf{ border-left-color:var(--blue); background:#eff6ff; }
+  .callout.ok{ border-left-color:var(--green); background:#f0fdf4; }
+
+  .two-col{ display:grid; grid-template-columns:1.05fr .95fr; gap:14px; }
+
+  @media print{
+    body{ background:#fff; }
+    .page{ box-shadow:none; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 — COVER ============ -->
+<section class="page cover">
+  <div class="cover-grid"></div>
+  <div class="cover-top">
+    <div class="brandmark"><span class="dot"></span><span>SpareParts &middot; Ignition Design Package</span></div>
+    <div class="pkg-tag">6-Report Series &middot; 04 / 06</div>
+  </div>
+
+  <div class="cover-mid">
+    <div class="kicker">Report 04 — System Architecture</div>
+    <div class="cover-title">Backend &amp; Data<br>Contracts for<br><em>Dashboard</em> &amp; <em>Workspace</em></div>
+    <div class="cover-sub">Composed read models, tenant-safe Dapper aggregates, caching and refresh strategy, and the security envelope that makes the new Dashboard and Client Workspace fast, correct, and impossible to leak across tenants.</div>
+
+    <div class="cover-diagram">
+      <div class="cd-label">System at a glance</div>
+      <svg viewBox="0 0 760 130" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="cov-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#fb923c"></path>
+          </marker>
+        </defs>
+        <g font-family="Inter, sans-serif">
+          <rect x="10" y="35" width="120" height="56" rx="8" fill="none" stroke="#3a3a40"></rect>
+          <text x="70" y="58" fill="#e4e4e7" font-size="11" font-weight="700" text-anchor="middle">React Web</text>
+          <text x="70" y="74" fill="#9a9aa2" font-size="9" text-anchor="middle">api-client.js</text>
+
+          <line x1="130" y1="63" x2="188" y2="63" stroke="#fb923c" stroke-width="1.6" marker-end="url(#cov-arrow)"></line>
+
+          <rect x="190" y="18" width="150" height="94" rx="8" fill="none" stroke="#fb923c"></rect>
+          <text x="265" y="38" fill="#fb923c" font-size="10.5" font-weight="800" text-anchor="middle">YARP / IIS</text>
+          <text x="265" y="56" fill="#c9c9cf" font-size="9" text-anchor="middle">JWT passthrough</text>
+          <text x="265" y="70" fill="#c9c9cf" font-size="9" text-anchor="middle">CORS + headers</text>
+          <text x="265" y="84" fill="#c9c9cf" font-size="9" text-anchor="middle">rate limiting</text>
+          <text x="265" y="98" fill="#c9c9cf" font-size="9" text-anchor="middle">TLS termination</text>
+
+          <line x1="340" y1="63" x2="398" y2="63" stroke="#fb923c" stroke-width="1.6" marker-end="url(#cov-arrow)"></line>
+
+          <rect x="400" y="10" width="170" height="110" rx="8" fill="none" stroke="#3a3a40"></rect>
+          <text x="485" y="30" fill="#e4e4e7" font-size="10.5" font-weight="800" text-anchor="middle">ASP.NET Core 8 API</text>
+          <text x="485" y="48" fill="#9a9aa2" font-size="9" text-anchor="middle">[Authorize] global</text>
+          <text x="485" y="62" fill="#9a9aa2" font-size="9" text-anchor="middle">DashboardController</text>
+          <text x="485" y="76" fill="#9a9aa2" font-size="9" text-anchor="middle">ClientWorkspaceController</text>
+          <text x="485" y="90" fill="#9a9aa2" font-size="9" text-anchor="middle">TenantResolutionMiddleware</text>
+          <text x="485" y="104" fill="#9a9aa2" font-size="9" text-anchor="middle">ApiExceptionMiddleware</text>
+
+          <line x1="570" y1="63" x2="628" y2="63" stroke="#fb923c" stroke-width="1.6" marker-end="url(#cov-arrow)"></line>
+
+          <rect x="630" y="18" width="120" height="94" rx="8" fill="none" stroke="#3a3a40"></rect>
+          <text x="690" y="38" fill="#e4e4e7" font-size="10.5" font-weight="800" text-anchor="middle">SQL Server</text>
+          <text x="690" y="56" fill="#9a9aa2" font-size="9" text-anchor="middle">Dapper</text>
+          <text x="690" y="70" fill="#9a9aa2" font-size="9" text-anchor="middle">covering</text>
+          <text x="690" y="82" fill="#9a9aa2" font-size="9" text-anchor="middle">indexes</text>
+          <text x="690" y="98" fill="#9a9aa2" font-size="9" text-anchor="middle">TenantId filter</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="cover-meta">
+      <div>Author &nbsp;<b>dev-backend-api — Backend API Agent</b></div>
+      <div>Date &nbsp;<b>2 July 2026</b></div>
+      <div>Scope &nbsp;<b>src/SpareParts.Api &middot; src/SpareParts.Infrastructure &middot; YARP</b></div>
+    </div>
+    <div class="cover-badge">
+      <div class="n">04</div>
+      <div class="l">of 6 reports</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAGE 2 — TOC ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="toc-head">
+      <h1>Table of Contents</h1>
+      <div class="tag">Report 04</div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-soft);max-width:150mm;">
+      This report is grounded in the current codebase: <code>OwnerCockpitController</code> / <code>OwnerCockpitService</code>,
+      <code>CustomersController</code> aging query, <code>DbSession</code> + <code>RepositoryCatalog</code>, the JWT tenant claim
+      pipeline in <code>TenantResolutionMiddleware</code>, and the fragmented fetch pattern in <code>dashboard-view.js</code>.
+      Every contract below is additive — nothing in <code>src/SpareParts.Api</code> is modified by this proposal.
+    </p>
+
+    <div class="toc-list">
+      <div class="toc-row"><span class="toc-num">01</span><span class="toc-title">Executive Summary</span><span class="toc-desc">Current chatty-call inventory, over-fetch cost, and the target composed-read-model architecture.</span><span class="toc-pg">03</span></div>
+      <div class="toc-row"><span class="toc-num">02</span><span class="toc-title">Dashboard Read Model</span><span class="toc-desc">GET /api/dashboard/summary — full contract, assembly strategy, timing budget.</span><span class="toc-pg">04</span></div>
+      <div class="toc-row"><span class="toc-num">03</span><span class="toc-title">Dashboard — Example Payload</span><span class="toc-desc">Realistic JSON: KPIs with deltas, action queue, trend series, alert panels.</span><span class="toc-pg">05</span></div>
+      <div class="toc-row"><span class="toc-num">04</span><span class="toc-title">Caching &amp; Invalidation</span><span class="toc-desc">Per-tenant cache keys, TTLs, write-path invalidation hooks, cache-hit sequence.</span><span class="toc-pg">06</span></div>
+      <div class="toc-row"><span class="toc-num">05</span><span class="toc-title">Client Workspace Read Model</span><span class="toc-desc">GET /api/clients/{id}/workspace — header, aging, KPIs, full contract.</span><span class="toc-pg">07</span></div>
+      <div class="toc-row"><span class="toc-num">06</span><span class="toc-title">Workspace Child Resources</span><span class="toc-desc">Paged invoices, payments, quotes, part-requests, timeline; typeahead search.</span><span class="toc-pg">08</span></div>
+      <div class="toc-row"><span class="toc-num">07</span><span class="toc-title">Data Layer — Aggregate SQL</span><span class="toc-desc">Aging buckets, daily P&amp;L, top movers; covering indexes; parameterization rules.</span><span class="toc-pg">09</span></div>
+      <div class="toc-row"><span class="toc-num">08</span><span class="toc-title">Performance Engineering</span><span class="toc-desc">N+1 elimination, compression, ETag polling, SignalR-vs-polling recommendation.</span><span class="toc-pg">10</span></div>
+      <div class="toc-row"><span class="toc-num">09</span><span class="toc-title">Security Architecture</span><span class="toc-desc">Authorize coverage, capability checks, tenant leakage prevention, error contract.</span><span class="toc-pg">11</span></div>
+      <div class="toc-row"><span class="toc-num">10</span><span class="toc-title">Sequence Diagrams</span><span class="toc-desc">First load, cached refresh, workspace navigation + optimistic payment.</span><span class="toc-pg">12</span></div>
+      <div class="toc-row"><span class="toc-num">11</span><span class="toc-title">Versioning &amp; Rollout</span><span class="toc-desc">Additive endpoint strategy so WPF and mobile migrate later without breakage.</span><span class="toc-pg">13</span></div>
+    </div>
+
+    <div class="toc-note">
+      <strong>Read-only research basis.</strong> No files under <code>src/SpareParts.Api</code>, <code>src/SpareParts.Infrastructure</code>,
+      or <code>src/SpareParts.Web.React</code> were modified while producing this report. All endpoint names, table names, and column
+      names referenced come from the current repository state as of 2 July 2026.
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">02</span></div>
+</section>
+
+<!-- ============ PAGE 3 — EXEC SUMMARY ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 01</div>
+    <div class="sec-title">Executive Summary</div>
+    <div class="sec-sub">What the current backend does well, where it forces the frontend to over-fetch, and the target shape.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>What exists today</h3>
+      <p>
+        The dashboard is already served by a real, non-trivial aggregate endpoint: <code>GET /api/owner-cockpit</code>
+        (<code>OwnerCockpitController</code> &rarr; <code>OwnerCockpitService.GetDashboard</code>). It opens one
+        <code>DbSession</code>, runs eight sequential Dapper queries against the same transaction (summary, previous-day
+        summary for deltas, active users, daily P&amp;L, cash balance, profit-per-part, profit-per-car, profit heatmap,
+        unpaid transactions, alerts), and returns a single <code>OwnerCockpitDashboardDto</code>. This is the right pattern —
+        one round trip, tenant-filtered SQL, server-computed deltas — and Report 04 keeps it, it does not replace it.
+      </p>
+      <p>
+        The gap is everything <em>around</em> that endpoint. <code>dashboard-view.js</code>'s <code>load()</code> function
+        fires <strong>six</strong> parallel calls on mount (<code>/api/owner-cockpit</code>, <code>/api/communications/recent</code>,
+        <code>/api/appconstants</code>, <code>/api/currencies</code>, <code>/api/parts</code> via <code>list()</code> which itself
+        paginates through the full parts catalog, and <code>/api/partrequests?status=Active</code>), then a
+        <strong>seventh</strong> call in a separate <code>useEffect</code> (<code>/api/customers/aging</code>) purely to
+        compute one overdue-receivables total. The Client Workspace concept does not exist as a backend resource at all today
+        — a customer's invoices, payments, quotes, part requests, and communications are five separate controllers
+        (<code>InvoicesController</code>, <code>PaymentsController</code>, <code>QuotesController</code>,
+        <code>PartRequestsController</code>, <code>CommunicationsController</code>) with no per-customer filter on most of
+        them and no shared "customer 360" shape.
+      </p>
+
+      <h3>Weaknesses this creates</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Chatty, unbounded fetches</h4>
+          <ul>
+            <li><code>api.list("/api/parts")</code> pages through the <em>entire</em> parts catalog client-side just to compute inventory-snapshot counters (available/reserved/low-stock/donor/margin-watch) that are pure aggregates.</li>
+            <li>The aging call re-fetches and re-sums <em>every open customer balance</em> just to render one KPI card.</li>
+            <li>No request is cancelled or coalesced — a fast dashboard refresh (clicking "Refresh") re-issues all seven calls.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Missing aggregates &amp; no per-client shape</h4>
+          <ul>
+            <li><code>InvoicesController.GetAll</code> and <code>PaymentsController.GetHistory</code> return the tenant's full history — no <code>customerId</code> filter, no paging, no sort — so a workspace tab has to filter client-side.</li>
+            <li>Aging is tenant-wide only (<code>CustomersController.GetAging</code>); there is no single-customer aging-bucket endpoint.</li>
+            <li>There is no endpoint that answers "everything about customer 47" in one call — the UI team's Client Workspace has nothing to bind to.</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Target architecture (this report)</h3>
+      <p>
+        Two new <strong>composed read-model endpoints</strong>, additive to the existing surface, each backed by parallel
+        Dapper queries inside a single short-lived <code>DbSession</code>, tenant-filtered exactly the way
+        <code>OwnerCockpitService</code> and <code>CustomersService.GetAging</code> already do it
+        (<code>(@TenantId = 0 OR t.TenantId = @TenantId)</code>), with per-tenant response caching and ETag support layered
+        on top at the controller/middleware level — not inside the SQL:
+      </p>
+      <ul>
+        <li><strong>GET /api/dashboard/summary</strong> — wraps and extends <code>OwnerCockpitService</code>'s existing aggregate work, adds the Action Queue and trend series server-side (today it is reconstructed ad hoc in <code>buildActionQueue()</code> in the browser), and removes the client's need for the parts-list and aging round trips.</li>
+        <li><strong>GET /api/clients/{id}/workspace</strong> — header + balance + aging + KPIs in one call, with <strong>paged</strong> child resources (<code>/invoices</code>, <code>/payments</code>, <code>/quotes</code>, <code>/part-requests</code>, <code>/timeline</code>) that reuse the existing services with an added <code>customerId</code> filter and standard pagination headers already defined in <code>SparePartsControllerBase</code> (<code>ApplyPaginationHeaders</code>, <code>NormalizeOptionalPagination</code>).</li>
+      </ul>
+
+      <div class="callout">
+        <strong>Design constraint honored:</strong> every new query keeps the same tenant-guard shape already used across
+        <code>OwnerCockpitService</code>, <code>CustomersService</code>, and the repository layer:
+        <code>(@TenantId = 0 OR &lt;table&gt;.TenantId = @TenantId)</code>, with <code>TenantId</code> sourced only from
+        <code>ITenantContext</code> / <code>CurrentTenantId</code> (JWT claim, server-resolved) — never from a query string,
+        header, or request body field.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">03</span></div>
+</section>
+
+<!-- ============ PAGE 4 — DASHBOARD READ MODEL ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 02</div>
+    <div class="sec-title">Dashboard Read Model</div>
+    <div class="sec-sub">GET /api/dashboard/summary — one composed endpoint replacing seven fragmented calls.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>Endpoint</h3>
+      <table>
+        <tr><th style="width:120px;">Method</th><th>Route</th><th>Auth</th><th>Query params</th></tr>
+        <tr><td><code>GET</code></td><td><code>/api/dashboard/summary</code></td><td><span class="badge blue">[Authorize]</span></td><td><code>businessDate</code> (optional, default today, same as existing <code>owner-cockpit</code> param)</td></tr>
+      </table>
+      <p>
+        <code>DashboardController</code> is new and thin — it does not reimplement aggregation. It composes
+        <code>OwnerCockpitService.GetDashboard(businessDate)</code> (unchanged) with two new focused service calls that run
+        against the <em>same</em> tenant-scoped pattern: <code>DashboardActionQueueService.Build(...)</code> and
+        <code>DashboardTrendService.GetSalesTrend(...)</code>. The controller assembles the response DTO; no business logic
+        lives in the controller, matching every existing controller in <code>src/SpareParts.Api/Controllers</code>.
+      </p>
+
+      <h3>Assembly strategy: one session, parallel-shaped queries</h3>
+      <p>
+        <code>OwnerCockpitService.GetDashboard</code> already opens exactly one <code>DbSession</code> (one connection, one
+        transaction) and issues its eight queries sequentially against it — this is correct for Dapper + a single SQL Server
+        connection, since a <code>SqlConnection</code>/<code>SqlTransaction</code> cannot execute two commands concurrently.
+        <strong>True parallelism is achieved by using separate, short-lived connections for the pieces that do not need
+        transactional consistency with each other</strong> — the trend series and action-queue inputs are read-only,
+        point-in-time snapshots, so they run on their own <code>DbSession</code> instances via
+        <code>Task.WhenAll</code>, while the core P&amp;L/aging numbers stay inside the single existing cockpit session for
+        internal consistency (sales count must match sales amount from the same read).
+      </p>
+      <div class="figure">
+        <div class="fig-title"><span>Figure 1 — Dashboard summary assembly</span><span class="fnum">FIG. 01</span></div>
+        <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#26262c"></path></marker>
+          </defs>
+          <g font-family="Inter, sans-serif" font-size="10">
+            <rect x="10" y="18" width="150" height="34" rx="6" fill="#16161a"></rect>
+            <text x="85" y="39" fill="#fff" text-anchor="middle" font-weight="700">DashboardController</text>
+
+            <line x1="85" y1="52" x2="85" y2="76" stroke="#26262c" stroke-width="1.4" marker-end="url(#a1)"></line>
+
+            <rect x="20" y="78" width="220" height="46" rx="6" fill="#fff8f2" stroke="#f97316"></rect>
+            <text x="130" y="96" text-anchor="middle" font-weight="700" fill="#c2410c">Task A (session 1)</text>
+            <text x="130" y="112" text-anchor="middle" fill="#7a4a20" font-size="9">OwnerCockpitService.GetDashboard()</text>
+
+            <rect x="280" y="78" width="220" height="46" rx="6" fill="#eff6ff" stroke="#2563eb"></rect>
+            <text x="390" y="96" text-anchor="middle" font-weight="700" fill="#1e40af">Task B (session 2)</text>
+            <text x="390" y="112" text-anchor="middle" fill="#1e3a8a" font-size="9">DashboardActionQueueService.Build()</text>
+
+            <rect x="540" y="78" width="220" height="46" rx="6" fill="#f0fdf4" stroke="#16a34a"></rect>
+            <text x="650" y="96" text-anchor="middle" font-weight="700" fill="#166534">Task C (session 3)</text>
+            <text x="650" y="112" text-anchor="middle" fill="#14532d" font-size="9">DashboardTrendService.GetSalesTrend()</text>
+
+            <line x1="130" y1="124" x2="130" y2="150" stroke="#26262c" stroke-width="1.2" marker-end="url(#a1)"></line>
+            <line x1="390" y1="124" x2="390" y2="150" stroke="#26262c" stroke-width="1.2" marker-end="url(#a1)"></line>
+            <line x1="650" y1="124" x2="650" y2="150" stroke="#26262c" stroke-width="1.2" marker-end="url(#a1)"></line>
+
+            <text x="130" y="146" text-anchor="middle" fill="#6b6b74" font-size="8.5">Task.WhenAll</text>
+            <text x="390" y="146" text-anchor="middle" fill="#6b6b74" font-size="8.5">(independent</text>
+            <text x="650" y="146" text-anchor="middle" fill="#6b6b74" font-size="8.5">connections)</text>
+
+            <rect x="180" y="154" width="420" height="40" rx="6" fill="#16161a"></rect>
+            <text x="390" y="170" text-anchor="middle" fill="#fff" font-weight="700">DashboardSummaryDto</text>
+            <text x="390" y="184" text-anchor="middle" fill="#c9c9cf" font-size="9">merged &middot; camelCase &middot; ETag computed &middot; cached per tenant</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>Response-time budget</h3>
+      <table>
+        <tr><th>Stage</th><th>Budget (p95)</th><th>Notes</th></tr>
+        <tr><td>Task A — cockpit aggregate</td><td>&le; 220 ms</td><td>Existing 8-query sequence; largest cost is <code>LoadProfitHeatmap</code> and <code>LoadProfitPerPart</code> (30-day window scans).</td></tr>
+        <tr><td>Task B — action queue</td><td>&le; 60 ms</td><td>Reuses counts already available from Task A's alerts/unpaid-transactions where possible; only adds message-failure and currency-margin lookups.</td></tr>
+        <tr><td>Task C — trend series</td><td>&le; 80 ms</td><td>Single grouped query over <code>Transactions</code> for the last 7/30 days, covering-indexed (Section 07).</td></tr>
+        <tr><td>Serialization + gzip/br</td><td>&le; 15 ms</td><td>Response compression, Section 08.</td></tr>
+        <tr><td><strong>Total, cold (cache miss)</strong></td><td><strong>&le; 350 ms server time</strong></td><td>Target end-to-end including network: under 600 ms on a typical shop connection.</td></tr>
+        <tr><td><strong>Total, cache hit (ETag 304)</strong></td><td><strong>&le; 12 ms</strong></td><td>No DB round trip; see Section 04.</td></tr>
+      </table>
+
+      <div class="callout perf">
+        This replaces 7 client-initiated requests (owner-cockpit, communications/recent, appconstants, currencies, parts
+        [paged], partrequests, customers/aging) with <strong>1 request</strong> for the numbers that actually feed KPIs,
+        the action queue, and the trend chart. <code>appconstants</code> and <code>currencies</code> stay as their own
+        calls — they are reference/lookup data, not per-load dashboard state, and are already cached client-side across
+        views; folding them in would couple unrelated concerns into one payload.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">04</span></div>
+</section>
+
+<!-- ============ PAGE 5 — DASHBOARD EXAMPLE PAYLOAD ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 03</div>
+    <div class="sec-title">Dashboard — Example Payload</div>
+    <div class="sec-sub">Full JSON contract for GET /api/dashboard/summary, realistic values.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <div class="code-label"><span>200 OK</span><span class="pill get">GET /api/dashboard/summary</span></div>
+      <pre>{
+  "businessDate": "2026-07-02",
+  "generatedAt": "2026-07-02T14:31:07Z",
+  "currencyCode": "USD",
+  "kpis": {
+    "salesToday":        { "value": 4820.50, "deltaPercent": 12.4,  "direction": "up"   },
+    "profitToday":        { "value": 1180.25, "deltaPercent": -3.1,  "direction": "down" },
+    "cashBalance":         { "value": 18420.00, "deltaPercent": null,  "direction": "flat" },
+    "receivables":         { "value": 9340.75, "deltaPercent": 5.6,   "direction": "up"   },
+    "stockValue":          { "value": 212330.10, "deltaPercent": null,  "direction": "flat" },
+    "lowStockCount":       { "value": 14, "deltaPercent": -8.0,  "direction": "down" }
+  },
+  "actionQueue": [
+    {
+      "id": "receivables-overdue",
+      "type": "receivables",
+      "severity": "danger",
+      "title": "Follow up unpaid transactions",
+      "detail": "6 open transactions waiting for payment.",
+      "amount": 9340.75,
+      "currencyCode": "USD",
+      "deepLink": "/accounting?filter=unpaid"
+    },
+    {
+      "id": "inventory-risk",
+      "type": "inventory",
+      "severity": "danger",
+      "title": "Triage red stock segments",
+      "detail": "3 segments need margin, turnover, or dead-stock review: Electronics, Bumpers / body, Engines.",
+      "amount": null,
+      "currencyCode": null,
+      "deepLink": "/stock?signal=red"
+    },
+    {
+      "id": "message-failures",
+      "type": "messages",
+      "severity": "warning",
+      "title": "Retry failed customer messages",
+      "detail": "2 recent WhatsApp messages failed delivery.",
+      "amount": null,
+      "currencyCode": null,
+      "deepLink": "/whatsapp?status=failed"
+    }
+  ],
+  "salesTrend": {
+    "granularity": "daily",
+    "rangeDays": 7,
+    "series": [
+      { "date": "2026-06-26", "amount": 3120.00 },
+      { "date": "2026-06-27", "amount": 3980.40 },
+      { "date": "2026-06-28", "amount": 3510.00 },
+      { "date": "2026-06-29", "amount": 4290.15 },
+      { "date": "2026-06-30", "amount": 4010.60 },
+      { "date": "2026-07-01", "amount": 5120.00 },
+      { "date": "2026-07-02", "amount": 4820.50 }
+    ],
+    "peakDate": "2026-07-01",
+    "peakAmount": 5120.00
+  },
+  "lowStockPanel": {
+    "totalCount": 14,
+    "topItems": [
+      { "partId": 4821, "name": "N54 Ignition Coil", "onHand": 2, "minStock": 8, "deepLink": "/reorder?partId=4821" },
+      { "partId": 5190, "name": "W205 Brake Pad Set", "onHand": 0, "minStock": 6, "deepLink": "/reorder?partId=5190" }
+    ]
+  },
+  "deadStockPanel": {
+    "totalValue": 6210.40,
+    "totalUnits": 88,
+    "topSegments": [
+      { "segmentKey": "used-car-parts", "categoryName": "Used-car parts", "deadStockValue": 2410.00, "deadStockUnits": 31 }
+    ]
+  },
+  "unpaidTransactionsPanel": {
+    "count": 6,
+    "totalRemaining": 9340.75,
+    "topItems": [
+      { "transactionNumber": "INV-10432", "counterparty": "Al Rawi Motors", "remainingAmount": 3200.00, "daysOverdue": 41 }
+    ]
+  },
+  "cacheMeta": {
+    "cacheKey": "dash:tenant:118:2026-07-02",
+    "ttlSeconds": 45,
+    "etag": "W/\"dash-118-20260702-14310700\""
+  }
+}</pre>
+      <p style="font-size:10.5px;color:var(--ink-soft);">
+        Field naming is camelCase to match the existing <code>ApiExceptionMiddleware</code> serializer options
+        (<code>JsonNamingPolicy.CamelCase</code>) and every existing DTO in <code>src/SpareParts.Domain</code>. The
+        <code>kpis</code> block deliberately mirrors — not replaces — the flat fields already on
+        <code>OwnerCockpitDashboardDto</code> (<code>TodaySalesAmount</code>, <code>SalesChangePercent</code>, etc.); the
+        new endpoint's service layer maps from that existing DTO rather than duplicating its SQL.
+      </p>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">05</span></div>
+</section>
+
+<!-- ============ PAGE 6 — CACHING ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 04</div>
+    <div class="sec-title">Caching &amp; Invalidation</div>
+    <div class="sec-sub">Per-tenant cache keys, TTLs, and write-path invalidation so the dashboard never shows stale money.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>Cache strategy</h3>
+      <p>
+        <code>IMemoryCache</code> (already available in ASP.NET Core, no new package) keyed per tenant and business date,
+        wrapping the composed <code>DashboardSummaryDto</code> — not the individual SQL results. This keeps the cache layer
+        entirely inside <code>DashboardController</code>/<code>DashboardService</code> and out of
+        <code>OwnerCockpitService</code>, which stays reusable and cache-agnostic for other callers (e.g. scheduled email
+        digests via <code>OwnerCockpitDigestService</code>, which already exists and calls the same service uncached).
+      </p>
+      <table>
+        <tr><th>Cache key</th><th>TTL</th><th>Invalidated by</th></tr>
+        <tr><td><code>dash:tenant:{tenantId}:{businessDate}</code></td><td>45 seconds</td><td>Natural TTL expiry (dashboard "Live updates" pill polls at 30–60s, Section 08) plus explicit invalidation below.</td></tr>
+        <tr><td><code>workspace:tenant:{tenantId}:client:{clientId}</code></td><td>20 seconds</td><td>Any write to that customer's invoices/payments/quotes.</td></tr>
+      </table>
+
+      <h3>Explicit invalidation hooks</h3>
+      <p>
+        TTL alone is not enough for money data — a cashier posting a payment should see the receivables KPI update on
+        their <em>own</em> next dashboard load, not wait 45 seconds. Each write-path service that changes
+        sales/payments/stock already exists (<code>IPaymentService</code>, <code>IInvoiceService</code>,
+        <code>SalesController</code>, <code>PurchasesController</code>) — they gain a lightweight
+        <code>IDashboardCacheInvalidator</code> call at the end of their existing transaction commit:
+      </p>
+      <pre>public interface IDashboardCacheInvalidator
+{
+    void InvalidateTenant(int tenantId);
+    void InvalidateClient(int tenantId, int customerId);
+}</pre>
+      <p>This is a single <code>IMemoryCache.Remove(key)</code> call, not a new SQL round trip, so it costs microseconds and is called from within the same request that already holds the write, not a background job.</p>
+
+      <div class="figure">
+        <div class="fig-title"><span>Figure 2 — Cache hit vs. cache miss vs. invalidation</span><span class="fnum">FIG. 02</span></div>
+        <svg viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#26262c"></path></marker>
+          </defs>
+          <g font-family="Inter, sans-serif" font-size="10">
+            <text x="10" y="18" font-weight="800" fill="#16161a">Client</text>
+            <text x="260" y="18" font-weight="800" fill="#16161a">DashboardController</text>
+            <text x="540" y="18" font-weight="800" fill="#16161a">IMemoryCache</text>
+            <text x="690" y="18" font-weight="800" fill="#16161a">SQL Server</text>
+
+            <line x1="30" y1="24" x2="30" y2="250" stroke="#d8d8de"></line>
+            <line x1="300" y1="24" x2="300" y2="250" stroke="#d8d8de"></line>
+            <line x1="560" y1="24" x2="560" y2="250" stroke="#d8d8de"></line>
+            <line x1="710" y1="24" x2="710" y2="250" stroke="#d8d8de"></line>
+
+            <line x1="30" y1="42" x2="300" y2="42" stroke="#16161a" marker-end="url(#a2)"></line>
+            <text x="35" y="38" font-size="9" fill="#26262c">GET /api/dashboard/summary</text>
+
+            <line x1="300" y1="58" x2="560" y2="58" stroke="#16161a" marker-end="url(#a2)"></line>
+            <text x="305" y="54" font-size="9" fill="#26262c">TryGetValue(dash:tenant:118:...)</text>
+            <line x1="560" y1="74" x2="300" y2="74" stroke="#dc2626" marker-end="url(#a2)"></line>
+            <text x="305" y="70" font-size="9" fill="#dc2626">miss</text>
+
+            <line x1="300" y1="90" x2="710" y2="90" stroke="#f97316" marker-end="url(#a2)"></line>
+            <text x="330" y="86" font-size="9" fill="#c2410c">3 parallel Dapper queries (Fig. 1)</text>
+            <line x1="710" y1="106" x2="300" y2="106" stroke="#f97316" marker-end="url(#a2)"></line>
+
+            <line x1="300" y1="122" x2="560" y2="122" stroke="#16161a" marker-end="url(#a2)"></line>
+            <text x="305" y="118" font-size="9" fill="#26262c">Set(key, dto, ttl=45s)</text>
+
+            <line x1="300" y1="138" x2="30" y2="138" stroke="#16a34a" marker-end="url(#a2)"></line>
+            <text x="35" y="134" font-size="9" fill="#166534">200 OK + ETag + body (~300ms)</text>
+
+            <line x1="30" y1="162" x2="300" y2="162" stroke="#16161a" marker-end="url(#a2)"></line>
+            <text x="35" y="158" font-size="9" fill="#26262c">GET summary, If-None-Match: etag</text>
+
+            <line x1="300" y1="178" x2="560" y2="178" stroke="#16161a" marker-end="url(#a2)"></line>
+            <text x="305" y="174" font-size="9" fill="#26262c">TryGetValue → hit, etag matches</text>
+            <line x1="560" y1="194" x2="300" y2="194" stroke="#16a34a" marker-end="url(#a2)"></line>
+
+            <line x1="300" y1="210" x2="30" y2="210" stroke="#16a34a" marker-end="url(#a2)"></line>
+            <text x="35" y="206" font-size="9" fill="#166534">304 Not Modified, no body (~10ms)</text>
+
+            <line x1="710" y1="226" x2="300" y2="226" stroke="#2563eb" marker-end="url(#a2)"></line>
+            <text x="480" y="222" font-size="9" fill="#1e3a8a" text-anchor="middle">payment posted → PaymentService.commit()</text>
+            <line x1="300" y1="242" x2="560" y2="242" stroke="#2563eb" marker-end="url(#a2)"></line>
+            <text x="305" y="238" font-size="9" fill="#1e3a8a">Remove(dash:tenant:118:...)</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="callout">
+        <strong>Multi-instance note:</strong> the API is currently deployed behind a single IIS/YARP host per tenant tier
+        (no distributed cache dependency exists in the repo today). <code>IMemoryCache</code> is therefore correct for the
+        current topology. If the deployment moves to multiple API instances behind YARP load balancing, the same interface
+        (<code>IDashboardCacheInvalidator</code>) swaps its implementation to a distributed cache (e.g. SQL-backed or Redis)
+        without touching controllers or services — this is called out explicitly so it is not a silent scaling trap.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">06</span></div>
+</section>
+
+<!-- ============ PAGE 7 — CLIENT WORKSPACE READ MODEL ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 05</div>
+    <div class="sec-title">Client Workspace Read Model</div>
+    <div class="sec-sub">GET /api/clients/{id}/workspace — customer 360 in one call.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>Endpoint</h3>
+      <table>
+        <tr><th style="width:120px;">Method</th><th>Route</th><th>Auth</th></tr>
+        <tr><td><code>GET</code></td><td><code>/api/clients/{id:int}/workspace</code></td><td><span class="badge blue">[Authorize]</span> — tenant-scoped, 403 if customer belongs to another tenant</td></tr>
+      </table>
+      <p>
+        Backed by a new <code>ClientWorkspaceController</code> + <code>ClientWorkspaceService</code> in
+        <code>src/SpareParts.Infrastructure/Services</code>, following the exact shape of
+        <code>CustomersService</code>: one <code>DbSession</code>/short connection, tenant-filtered queries reusing the
+        aging SQL already in <code>CustomersService.GetAging()</code> (narrowed with <code>AND c.Id = @CustomerId</code>)
+        plus a new single-customer aggregate for header/KPIs. This endpoint returns header + aging + KPIs only — child
+        collections (invoices, payments, quotes, part-requests, timeline) are separate paged calls (Section 06) so opening
+        the workspace does not pull unbounded history up front.
+      </p>
+
+      <div class="code-label"><span>200 OK</span><span class="pill get">GET /api/clients/47/workspace</span></div>
+      <pre>{
+  "customerId": 47,
+  "name": "Al Rawi Motors",
+  "phone": "+961 3 555 214",
+  "email": "purchasing@alrawimotors.example",
+  "customerType": "Wholesale",
+  "isActive": true,
+  "currencyCode": "USD",
+  "balance": {
+    "totalBalance": 3420.75,
+    "current": 220.00,
+    "days1To30": 1450.00,
+    "days31To60": 1200.75,
+    "days61To90": 350.00,
+    "over90Days": 200.00
+  },
+  "kpis": {
+    "lifetimeRevenue": 84210.30,
+    "lifetimeInvoiceCount": 212,
+    "averageDaysToPay": 18,
+    "openQuotesCount": 3,
+    "activePartRequestsCount": 2,
+    "loyaltyPoints": 4180,
+    "loyaltyTier": "Gold"
+  },
+  "vehicles": [
+    { "vehicleId": 901, "make": "BMW", "model": "5 Series", "year": 2019, "plateNumber": "B-4471" }
+  ],
+  "lastActivityAt": "2026-07-01T16:42:00Z",
+  "cacheMeta": {
+    "cacheKey": "workspace:tenant:118:client:47",
+    "ttlSeconds": 20,
+    "etag": "W/\"wksp-47-20260702-143050\""
+  }
+}</pre>
+
+      <h3>Authorization &amp; tenant isolation for this endpoint specifically</h3>
+      <p>
+        <code>{id}</code> is a bare integer, so the service must load the customer row and compare its
+        <code>TenantId</code> to <code>CurrentTenantId</code> before returning anything — the same pattern
+        <code>CustomersService</code> already relies on implicitly via its <code>WHERE (@TenantId = 0 OR ...)</code>
+        filters. If the customer does not exist <em>or</em> belongs to a different tenant, the response is
+        <strong>identical</strong> (404 <code>not_found</code>, same envelope shape as
+        <code>ApiExceptionMiddleware</code>'s <code>NotFoundException</code> mapping) — never a 403 that would confirm the
+        record exists under another tenant. This is the standard enumeration-prevention rule and is applied uniformly to
+        <code>/workspace</code>, <code>/invoices</code>, <code>/payments</code>, <code>/quotes</code>,
+        <code>/part-requests</code>, and <code>/timeline</code>.
+      </p>
+
+      <div class="callout security">
+        <strong>SuperAdmin exception, handled explicitly:</strong> <code>TenantResolutionMiddleware</code> sets
+        <code>TenantId = 0</code> for SuperAdmin users, and every existing query treats <code>@TenantId = 0</code> as
+        "no filter" by design (cross-tenant support access). The workspace service must preserve this behavior rather than
+        special-case it away — but the response DTO itself must still never include a raw <code>TenantId</code> or
+        internal <code>dbName</code> field, matching the "zero tenant/dbName leakage in responses" rule in Section 09.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">07</span></div>
+</section>
+
+<!-- ============ PAGE 8 — CHILD RESOURCES ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 06</div>
+    <div class="sec-title">Workspace Child Resources</div>
+    <div class="sec-sub">Paged tabs and the client-rail typeahead search.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>Paging, sorting, filtering conventions</h3>
+      <p>
+        These reuse the pagination contract already implemented in <code>SparePartsControllerBase</code>
+        (<code>NormalizeOptionalPagination</code>, <code>ApplyPaginationHeaders</code> &rarr; <code>X-Page</code>,
+        <code>X-Page-Size</code>, <code>X-Total-Count</code> response headers) and the same pattern
+        <code>CustomersController.GetAll</code> already uses for <code>page</code>/<code>pageSize</code>/<code>search</code>.
+        No new pagination mechanism is introduced.
+      </p>
+      <table>
+        <tr><th>Resource</th><th>Route</th><th>Query params</th><th>Backed by</th></tr>
+        <tr><td>Invoices</td><td><code>GET /api/clients/{id}/invoices</code></td><td><code>page, pageSize, sort=date_desc|amount_desc, status</code></td><td><code>IInvoiceService</code> + new <code>customerId</code> filter overload</td></tr>
+        <tr><td>Payments</td><td><code>GET /api/clients/{id}/payments</code></td><td><code>page, pageSize, sort=date_desc</code></td><td><code>IPaymentService.GetHistory</code> + <code>customerId</code> filter overload</td></tr>
+        <tr><td>Quotes</td><td><code>GET /api/clients/{id}/quotes</code></td><td><code>page, pageSize, status</code></td><td><code>QuotesService.GetAll</code> + <code>customerId</code> filter overload</td></tr>
+        <tr><td>Part requests</td><td><code>GET /api/clients/{id}/part-requests</code></td><td><code>page, pageSize, status</code></td><td><code>PartRequestsService.GetAll</code> + <code>customerId</code> filter overload</td></tr>
+        <tr><td>Timeline</td><td><code>GET /api/clients/{id}/timeline</code></td><td><code>page, pageSize, types=invoice,payment,message,quote</code></td><td>new <code>ClientTimelineService</code> — UNION ALL over the above, ordered by event date, itself paged in SQL (not merged client-side)</td></tr>
+      </table>
+      <p>Default <code>pageSize</code> is 25, max is 100 (existing controllers cap at 500; the workspace UI is a side panel, not a bulk export, so a tighter ceiling is intentional and set at the controller level for these routes only).</p>
+
+      <h3>Client-rail typeahead search</h3>
+      <table>
+        <tr><th style="width:120px;">Method</th><th>Route</th><th>Query params</th></tr>
+        <tr><td><code>GET</code></td><td><code>/api/clients/search</code></td><td><code>q</code> (min 2 chars), <code>take</code> (default 10, max 25)</td></tr>
+      </table>
+      <pre>GET /api/clients/search?q=al+raw&amp;take=10
+
+200 OK
+[
+  { "customerId": 47, "name": "Al Rawi Motors", "phone": "+961 3 555 214", "balance": 3420.75, "currencyCode": "USD" },
+  { "customerId": 203, "name": "Rawad Auto Parts", "phone": "+961 71 220 890", "balance": 0.00, "currencyCode": "USD" }
+]</pre>
+      <p>
+        Reuses <code>CustomersService.GetAll(search, ...)</code>'s existing <code>search</code> matching (already used by
+        <code>CustomersController.GetAll</code>) rather than introducing a second search implementation — the only new
+        surface is the route shape and a tighter default page size suited to a debounced, keystroke-driven UI. The
+        frontend is responsible for debouncing (250&ndash;300ms is standard); the backend guarantees the endpoint is cheap
+        enough (single indexed <code>LIKE</code> prefix scan, Section 07) and rate-limited (Section 09) to tolerate being
+        called on every keystroke if a client-side debounce is ever skipped.
+      </p>
+
+      <div class="callout">
+        None of these six new routes duplicate business logic. Each is a thin controller method that calls the existing
+        service with one additional <code>customerId</code> (or, for search, <code>search</code>) parameter — the SQL
+        `WHERE` clause gains one more <code>AND</code> term, nothing else changes about how tenant filtering or DTO
+        shaping works.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">08</span></div>
+</section>
+
+<!-- ============ PAGE 9 — DATA LAYER ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 07</div>
+    <div class="sec-title">Data Layer — Aggregate SQL Shapes</div>
+    <div class="sec-sub">Aging buckets, daily P&amp;L, top movers; covering indexes; parameterization rules.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>Aging bucket computation (single customer)</h3>
+      <p>Narrowed from the existing tenant-wide query in <code>CustomersService.GetAging()</code> — same CTE shape, one added predicate:</p>
+      <pre>WITH SaleBalances AS (
+    SELECT t.CustomerId, t.TransactionDate,
+           ISNULL(t.TotalAmount,0) - ISNULL(t.PaidAmount,0) AS Balance
+    FROM dbo.Transactions t
+    INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId
+    WHERE tt.TypeKey = N'Sale'
+      AND t.CustomerId = @CustomerId
+      AND (@TenantId = 0 OR t.TenantId = @TenantId)
+)
+SELECT
+    ISNULL(SUM(CASE WHEN DATEDIFF(DAY, TransactionDate, SYSUTCDATETIME()) &lt; 1  THEN Balance ELSE 0 END), 0) AS [Current],
+    ISNULL(SUM(CASE WHEN DATEDIFF(DAY, TransactionDate, SYSUTCDATETIME()) BETWEEN 1  AND 30 THEN Balance ELSE 0 END), 0) AS Days1To30,
+    ISNULL(SUM(CASE WHEN DATEDIFF(DAY, TransactionDate, SYSUTCDATETIME()) BETWEEN 31 AND 60 THEN Balance ELSE 0 END), 0) AS Days31To60,
+    ISNULL(SUM(CASE WHEN DATEDIFF(DAY, TransactionDate, SYSUTCDATETIME()) BETWEEN 61 AND 90 THEN Balance ELSE 0 END), 0) AS Days61To90,
+    ISNULL(SUM(CASE WHEN DATEDIFF(DAY, TransactionDate, SYSUTCDATETIME()) &gt; 90 THEN Balance ELSE 0 END), 0) AS Over90Days
+FROM SaleBalances;</pre>
+
+      <h3>Daily P&amp;L / top movers</h3>
+      <p>
+        Unchanged from <code>OwnerCockpitService.LoadDailyOperatingExpenses</code> and <code>LoadProfitPerPart</code> —
+        both already compute exactly "daily P&amp;L" and "top movers" (profit-per-part, top 6, ordered by profit desc). The
+        Dashboard's new trend series reuses the same <code>Transactions</code> + <code>TransactionTypes</code> join shape,
+        grouped by transaction date instead of summed to one row:
+      </p>
+      <pre>SELECT
+    CAST(t.TransactionDate AS DATE) AS SaleDate,
+    SUM(CASE WHEN t.IsReturn = 1 THEN -t.DisplayTotalAmount ELSE t.DisplayTotalAmount END) AS Amount
+FROM dbo.Transactions t
+INNER JOIN dbo.TransactionTypes tt ON tt.Id = t.TransactionTypeId AND tt.TypeKey = @SaleTypeKey
+WHERE t.TransactionDate >= @RangeStart AND t.TransactionDate &lt; @RangeEndExclusive
+  AND (@TenantId = 0 OR t.TenantId = @TenantId)
+GROUP BY CAST(t.TransactionDate AS DATE)
+ORDER BY SaleDate;</pre>
+
+      <h3>Covering indexes required</h3>
+      <table>
+        <tr><th>Table</th><th>Index</th><th>Serves</th></tr>
+        <tr><td><code>dbo.Transactions</code></td><td><code>IX_Transactions_Tenant_Type_Date</code><br><code>(TenantId, TransactionTypeId, TransactionDate) INCLUDE (TotalAmount, PaidAmount, TotalCounterAmount, PaidCounterAmount, IsReturn, CustomerId)</code></td><td>Dashboard trend series, daily summary, unpaid-transactions panel — all filter by tenant+type+date range.</td></tr>
+        <tr><td><code>dbo.Transactions</code></td><td><code>IX_Transactions_Tenant_Customer</code><br><code>(TenantId, CustomerId) INCLUDE (TotalAmount, PaidAmount, TransactionDate)</code></td><td>Per-customer aging query and workspace invoices/payments filters.</td></tr>
+        <tr><td><code>dbo.Stock</code></td><td><code>IX_Stock_Tenant_Part</code><br><code>(TenantId, PartId) INCLUDE (Quantity)</code></td><td>Stock-value and low-stock aggregates (already implied by existing joins; verify it exists before shipping Section 09's SQL).</td></tr>
+        <tr><td><code>dbo.Customers</code></td><td><code>IX_Customers_Tenant_Name</code><br><code>(TenantId, Name) INCLUDE (Phone)</code></td><td>Client-rail typeahead search prefix scans.</td></tr>
+      </table>
+
+      <h3>Parameterization rules (non-negotiable, already the codebase norm)</h3>
+      <ul>
+        <li>Every predicate is a Dapper anonymous-object parameter (<code>@TenantId</code>, <code>@CustomerId</code>, <code>@BusinessDate</code>, ...) — never string-concatenated. All SQL shown above and in the existing services follows this without exception.</li>
+        <li><code>TenantId</code> is <strong>always</strong> sourced from <code>ITenantContext.TenantId</code> / <code>CurrentTenantId</code> — resolved server-side by <code>TenantResolutionMiddleware</code> from the JWT <code>tenant_id</code> claim — and is never accepted as a controller input parameter on any new endpoint.</li>
+        <li><code>customerId</code> route values are validated to belong to the resolved tenant inside the service before any child query runs (Section 05) — the SQL predicate alone is not treated as the authorization boundary; the explicit ownership check happens first so a mismatched customer produces a uniform 404, not a partial/empty 200.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">09</span></div>
+</section>
+
+<!-- ============ PAGE 10 — PERFORMANCE ENGINEERING ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 08</div>
+    <div class="sec-title">Performance Engineering</div>
+    <div class="sec-sub">N+1 elimination, compression, ETag polling, and the SignalR-vs-polling call.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <div class="grid-2">
+        <div class="card">
+          <h4>N+1 elimination</h4>
+          <p>
+            The existing <code>OwnerCockpitService</code> queries already avoid N+1 by design — every "top N" list
+            (profit-per-part, profit-per-car, unpaid transactions) is one set-based query with <code>TOP</code>, not a
+            loop of per-row lookups. The new workspace/timeline endpoints follow the same rule explicitly: the timeline is
+            one <code>UNION ALL</code> across invoice/payment/quote/message sources ordered and paged in SQL, not four
+            separate calls stitched together in C# or JS.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Response compression</h4>
+          <p>
+            <code>AddResponseCompression</code> (Brotli primary, gzip fallback) is enabled for
+            <code>application/json</code> on both new controllers. The dashboard payload (Section 03) is roughly 3&ndash;6&nbsp;KB
+            uncompressed for typical shops; compression is cheap here and mainly benefits the parts-catalog-heavy legacy
+            endpoints this report does not touch — included for completeness since it applies at the middleware pipeline
+            level, not per-controller.
+          </p>
+        </div>
+      </div>
+
+      <h3>ETag / If-None-Match for dashboard polling</h3>
+      <p>
+        The cache entry (Section 04) already computes a weak ETag from tenant id + business date + a content hash of the
+        aggregate. <code>DashboardController</code> checks <code>Request.Headers.IfNoneMatch</code> against the cached
+        ETag before touching the DB at all: identical value &rarr; <code>304 Not Modified</code> with no body, matching
+        value in the cache but client ETag stale &rarr; serve cached body with fresh headers, no match at all &rarr; full
+        pipeline (Fig. 1). This means a polling client on a quiet dashboard costs ~10ms and zero DB round trips per poll.
+      </p>
+
+      <h3>SignalR vs. polling — recommendation</h3>
+      <table>
+        <tr><th></th><th>ETag polling (recommended)</th><th>SignalR push</th></tr>
+        <tr><td>Infra cost</td><td>None — reuses existing HTTP/YARP path, no new NuGet package, no WebSocket passthrough config needed in IIS/YARP.</td><td>Requires a hub, WebSocket/SSE support verified through YARP + IIS (not currently configured), and a new NuGet dependency (ask-before-install per CLAUDE.md).</td></tr>
+        <tr><td>Correctness under multi-tab / multi-device</td><td>Simple — each tab polls independently, cache does the dedup.</td><td>Requires per-tenant group management to avoid cross-tenant broadcast bugs — a real risk given this app's tenant-leakage concerns.</td></tr>
+        <tr><td>Latency to see a new sale on-screen</td><td>30&ndash;60s poll interval (dashboard "Live updates" pill already implies this UX today).</td><td>Sub-second.</td></tr>
+        <tr><td>Server cost at scale</td><td>Near-zero marginal cost thanks to ETag 304s.</td><td>Persistent connections per open dashboard tab.</td></tr>
+      </table>
+      <div class="callout perf">
+        <strong>Recommendation: keep polling, powered by ETag.</strong> A spare-parts shop dashboard does not need
+        sub-second push — the existing UI already frames refresh as "Live updates: just now" on a manual/interval basis,
+        and a 30&ndash;60 second poll with 304 responses gets ~95% of the perceived benefit of SignalR at close to zero
+        infrastructure risk. Revisit SignalR only if a future requirement needs true real-time collaboration (e.g. two
+        cashiers editing the same invoice concurrently) — that is a different problem from dashboard freshness and should
+        not be justified by this screen alone.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">10</span></div>
+</section>
+
+<!-- ============ PAGE 11 — SECURITY ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 09</div>
+    <div class="sec-title">Security Architecture</div>
+    <div class="sec-sub">Authorize coverage, capability checks, zero tenant leakage, production-safe errors, rate limiting.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <div class="grid-2">
+        <div class="card">
+          <h4>Global [Authorize] coverage</h4>
+          <p>
+            Both new controllers carry <code>[Authorize]</code> at the class level, exactly like every controller
+            surveyed (<code>CustomersController</code>, <code>InvoicesController</code>, <code>PaymentsController</code>,
+            <code>QuotesController</code>, <code>PartRequestsController</code>, <code>OwnerCockpitController</code>). No
+            method-level <code>[AllowAnonymous]</code> is used anywhere in this proposal — the only anonymous endpoints in
+            the existing codebase are inbound webhooks (<code>PaymentsController.Webhook</code>,
+            <code>CommunicationsController.RecordInbound</code>), both protected by a shared-secret/signature check
+            instead of a JWT, which is the correct pattern for server-to-server callbacks and is not replicated here since
+            neither new endpoint accepts external callbacks.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Role / capability checks</h4>
+          <p>
+            Read endpoints (<code>/summary</code>, <code>/workspace</code>, child lists, <code>/search</code>) require
+            only authentication, matching how <code>CustomersController.GetAll</code> and
+            <code>OwnerCockpitController.GetDashboard</code> work today — any authenticated tenant user can view their own
+            shop's dashboard. Any future write action surfaced from the workspace (e.g. "receive payment", Section 10)
+            reuses the existing <code>AuthorizationPolicies.AdminOrManager</code> policy already applied to
+            <code>QuotesController.Delete</code> and <code>PartRequestsController.Delete</code> where the existing payment
+            service requires it — this report does not introduce a new role model.
+          </p>
+        </div>
+      </div>
+
+      <h3>Zero tenant / dbName leakage in responses</h3>
+      <ul>
+        <li>No DTO in Section 03 or 05 includes <code>tenantId</code>, <code>dbName</code>, connection string fragments, or internal schema names — the same discipline already visible in <code>OwnerCockpitDashboardDto</code> and <code>CustomerAgingDto</code>, neither of which exposes tenant identifiers.</li>
+        <li>The 404-for-cross-tenant rule (Section 05) prevents an authenticated user from distinguishing "customer doesn't exist" from "customer belongs to another tenant" via response shape, status code, or timing-sensitive error text.</li>
+        <li><code>cacheMeta.cacheKey</code> in the example payloads (Section 03/05) is illustrative for this report only — the shipped DTO must <strong>not</strong> include the raw cache key or tenant id in the wire response; it is shown here to document the caching design, and will be stripped before implementation (flagged explicitly so it isn't copy-pasted as-is).</li>
+      </ul>
+
+      <h3>Production-safe error contract</h3>
+      <p>
+        Both new endpoints rely entirely on the existing <code>ApiExceptionMiddleware</code> — no new exception handling
+        is introduced. A cross-tenant or missing customer throws <code>NotFoundException</code> &rarr; mapped to
+        <code>404</code> with envelope <code>{ code: "not_found", message: "...", traceId: "..." }</code>; any unexpected
+        failure becomes a generic <code>{ code: "internal_error", message: "An unexpected server error occurred.", traceId }</code>
+        with the real exception (including stack trace) written only to <code>IExceptionLogWriter</code>, never to the
+        response body — matching the current middleware's <code>WriteError</code> method exactly.
+      </p>
+
+      <h3>Rate limiting on search</h3>
+      <p>
+        <code>/api/clients/search</code> is a debounced-typeahead endpoint reachable on every keystroke, and it is the one
+        new route in this report with meaningfully different abuse characteristics from the rest (query volume, not
+        payload size). It is placed under a new named policy alongside the existing
+        <code>AuthRateLimitPolicy</code> already registered in <code>SparePartsApiComposition.AddRateLimiter</code>:
+      </p>
+      <pre>opt.AddPolicy("ClientSearchPolicy", httpCtx =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpCtx.User.FindFirst(TenantResolutionMiddleware.TenantIdClaimType)?.Value ?? "anon",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,          // ~1/sec sustained, generous for fast typing across multiple staff
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        }));</pre>
+      <p>Partitioned by tenant (not just IP, unlike the existing auth limiter) so one busy shop cannot exhaust another tenant's search budget behind a shared NAT/proxy IP.</p>
+
+      <h3>Security headers at the YARP layer</h3>
+      <p>
+        <code>SecurityHeadersMiddleware</code> already applies <code>X-Content-Type-Options: nosniff</code>,
+        <code>X-Frame-Options: DENY</code>, a restrictive <code>Content-Security-Policy</code>
+        (<code>default-src 'none'; frame-ancestors 'none'</code>), <code>Referrer-Policy: no-referrer</code>, and HSTS
+        over HTTPS to every API response, including these new endpoints, with no changes required. CORS is already
+        whitelist-based via <code>Cors:AllowedOrigins</code> configuration
+        (<code>SparePartsApiComposition</code>) rather than <code>AllowAnyOrigin</code> in non-development environments —
+        this report does not request any change to that YARP/CORS configuration, per the ask-before-editing rule for
+        routing configs.
+      </p>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">11</span></div>
+</section>
+
+<!-- ============ PAGE 12 — SEQUENCE DIAGRAMS ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 10</div>
+    <div class="sec-title">Sequence Diagrams</div>
+    <div class="sec-sub">First load, cached refresh, and workspace open → tab navigation → receive-payment.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <div class="figure">
+        <div class="fig-title"><span>Figure 3 — Dashboard first load vs. refresh (cache hit)</span><span class="fnum">FIG. 03</span></div>
+        <svg viewBox="0 0 780 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#26262c"></path></marker>
+          </defs>
+          <g font-family="Inter, sans-serif" font-size="9.5">
+            <text x="10" y="16" font-weight="800" fill="#16161a">Browser</text>
+            <text x="230" y="16" font-weight="800" fill="#16161a">YARP</text>
+            <text x="380" y="16" font-weight="800" fill="#16161a">DashboardController</text>
+            <text x="620" y="16" font-weight="800" fill="#16161a">Cache / SQL</text>
+            <line x1="30" y1="22" x2="30" y2="232" stroke="#d8d8de"></line>
+            <line x1="250" y1="22" x2="250" y2="232" stroke="#d8d8de"></line>
+            <line x1="470" y1="22" x2="470" y2="232" stroke="#d8d8de"></line>
+            <line x1="660" y1="22" x2="660" y2="232" stroke="#d8d8de"></line>
+
+            <text x="34" y="38" fill="#6b6b74">First load</text>
+            <line x1="30" y1="44" x2="250" y2="44" stroke="#16161a" marker-end="url(#a3)"></line>
+            <text x="35" y="41" fill="#26262c">GET /dashboard/summary</text>
+            <line x1="250" y1="58" x2="470" y2="58" stroke="#16161a" marker-end="url(#a3)"></line>
+            <text x="255" y="55" fill="#26262c">forward + JWT validated + headers</text>
+            <line x1="470" y1="74" x2="660" y2="74" stroke="#f97316" marker-end="url(#a3)"></line>
+            <text x="475" y="71" fill="#c2410c">cache miss → 3 parallel queries (Fig. 1)</text>
+            <line x1="660" y1="90" x2="470" y2="90" stroke="#f97316" marker-end="url(#a3)"></line>
+            <line x1="470" y1="106" x2="250" y2="106" stroke="#16a34a" marker-end="url(#a3)"></line>
+            <text x="255" y="103" fill="#166534">200 OK + ETag (~300ms)</text>
+            <line x1="250" y1="120" x2="30" y2="120" stroke="#16a34a" marker-end="url(#a3)"></line>
+
+            <text x="34" y="142" fill="#6b6b74">Refresh, 40s later</text>
+            <line x1="30" y1="148" x2="250" y2="148" stroke="#16161a" marker-end="url(#a3)"></line>
+            <text x="35" y="145" fill="#26262c">GET /dashboard/summary, If-None-Match</text>
+            <line x1="250" y1="162" x2="470" y2="162" stroke="#16161a" marker-end="url(#a3)"></line>
+            <line x1="470" y1="178" x2="660" y2="178" stroke="#2563eb" marker-end="url(#a3)"></line>
+            <text x="475" y="175" fill="#1e3a8a">cache hit, ETag matches — no query</text>
+            <line x1="660" y1="192" x2="470" y2="192" stroke="#2563eb" marker-end="url(#a3)"></line>
+            <line x1="470" y1="206" x2="250" y2="206" stroke="#16a34a" marker-end="url(#a3)"></line>
+            <text x="255" y="203" fill="#166534">304 Not Modified (~10ms)</text>
+            <line x1="250" y1="220" x2="30" y2="220" stroke="#16a34a" marker-end="url(#a3)"></line>
+          </g>
+        </svg>
+      </div>
+
+      <div class="figure">
+        <div class="fig-title"><span>Figure 4 — Workspace open → tab navigation → receive-payment (optimistic UI)</span><span class="fnum">FIG. 04</span></div>
+        <svg viewBox="0 0 780 250" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#26262c"></path></marker>
+          </defs>
+          <g font-family="Inter, sans-serif" font-size="9.5">
+            <text x="10" y="16" font-weight="800" fill="#16161a">Client rail</text>
+            <text x="200" y="16" font-weight="800" fill="#16161a">Workspace UI</text>
+            <text x="430" y="16" font-weight="800" fill="#16161a">API</text>
+            <text x="640" y="16" font-weight="800" fill="#16161a">SQL / Cache</text>
+            <line x1="30" y1="22" x2="30" y2="242" stroke="#d8d8de"></line>
+            <line x1="230" y1="22" x2="230" y2="242" stroke="#d8d8de"></line>
+            <line x1="450" y1="22" x2="450" y2="242" stroke="#d8d8de"></line>
+            <line x1="650" y1="22" x2="650" y2="242" stroke="#d8d8de"></line>
+
+            <line x1="30" y1="38" x2="230" y2="38" stroke="#16161a" marker-end="url(#a4)"></line>
+            <text x="35" y="35" fill="#26262c">select "Al Rawi Motors"</text>
+            <line x1="230" y1="52" x2="450" y2="52" stroke="#16161a" marker-end="url(#a4)"></line>
+            <text x="235" y="49" fill="#26262c">GET /clients/47/workspace</text>
+            <line x1="450" y1="66" x2="650" y2="66" stroke="#f97316" marker-end="url(#a4)"></line>
+            <line x1="650" y1="80" x2="450" y2="80" stroke="#f97316" marker-end="url(#a4)"></line>
+            <line x1="450" y1="94" x2="230" y2="94" stroke="#16a34a" marker-end="url(#a4)"></line>
+            <text x="235" y="91" fill="#166534">header + aging + KPIs render</text>
+
+            <line x1="30" y1="112" x2="230" y2="112" stroke="#16161a" marker-end="url(#a4)"></line>
+            <text x="35" y="109" fill="#26262c">click "Invoices" tab</text>
+            <line x1="230" y1="126" x2="450" y2="126" stroke="#16161a" marker-end="url(#a4)"></line>
+            <text x="235" y="123" fill="#26262c">GET /clients/47/invoices?page=1</text>
+            <line x1="450" y1="140" x2="230" y2="140" stroke="#16a34a" marker-end="url(#a4)"></line>
+            <text x="235" y="137" fill="#166534">paged invoice rows</text>
+
+            <line x1="30" y1="158" x2="230" y2="158" stroke="#16161a" marker-end="url(#a4)"></line>
+            <text x="35" y="155" fill="#26262c">"Receive Payment" $500</text>
+            <text x="235" y="170" fill="#d97706" font-weight="700">optimistic: balance -$500 shown instantly</text>
+            <line x1="230" y1="182" x2="450" y2="182" stroke="#16161a" marker-end="url(#a4)"></line>
+            <text x="235" y="179" fill="#26262c">POST /payments (existing IPaymentService)</text>
+            <line x1="450" y1="196" x2="650" y2="196" stroke="#2563eb" marker-end="url(#a4)"></line>
+            <text x="455" y="193" fill="#1e3a8a">commit + InvalidateClient(tenant,47)</text>
+            <line x1="650" y1="210" x2="450" y2="210" stroke="#2563eb" marker-end="url(#a4)"></line>
+            <line x1="450" y1="224" x2="230" y2="224" stroke="#16a34a" marker-end="url(#a4)"></line>
+            <text x="235" y="221" fill="#166534">201 Created → confirm optimistic state; on error, roll back and toast</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">12</span></div>
+</section>
+
+<!-- ============ PAGE 13 — VERSIONING & ROLLOUT ============ -->
+<section class="page">
+  <div class="page-content">
+    <div class="sec-eyebrow">Section 11</div>
+    <div class="sec-title">Versioning &amp; Rollout</div>
+    <div class="sec-sub">Ship new endpoints alongside existing ones — WPF and mobile migrate later, on their own schedule.</div>
+    <div class="rule"></div>
+
+    <div class="content-body">
+      <h3>Additive-only rule</h3>
+      <p>
+        Every endpoint in this report is <strong>new</strong>: <code>/api/dashboard/summary</code>,
+        <code>/api/clients/{id}/workspace</code>, <code>/api/clients/{id}/invoices</code>,
+        <code>/api/clients/{id}/payments</code>, <code>/api/clients/{id}/quotes</code>,
+        <code>/api/clients/{id}/part-requests</code>, <code>/api/clients/{id}/timeline</code>,
+        <code>/api/clients/search</code>. Not one existing route
+        (<code>/api/owner-cockpit</code>, <code>/api/customers</code>, <code>/api/customers/aging</code>,
+        <code>/api/invoices</code>, <code>/api/payments/history</code>, <code>/api/quotes</code>,
+        <code>/api/partrequests</code>) is removed, renamed, or given a breaking response-shape change. WPF and the
+        React Native mobile app keep calling exactly what they call today until each is explicitly migrated by its owning
+        dev-desktop-wpf / dev-mobile-rn agent — this report does not touch those projects, per the coordination boundary
+        in this agent's scope.
+      </p>
+
+      <h3>Rollout sequence</h3>
+      <table>
+        <tr><th>Step</th><th>Change</th><th>Risk</th></tr>
+        <tr><td>1</td><td>Add covering indexes (Section 07) in a migration — additive, no data change, safe to deploy ahead of code.</td><td>Low — index creation only; run during low-traffic window given table sizes.</td></tr>
+        <tr><td>2</td><td>Ship <code>ClientWorkspaceController</code>/<code>Service</code> and <code>DashboardController</code>/<code>Service</code> behind their new routes, reusing existing services as described.</td><td>Low — purely additive controllers; existing controllers untouched.</td></tr>
+        <tr><td>3</td><td>Add <code>IDashboardCacheInvalidator</code> calls to the write paths that already commit sales/payments (Section 04).</td><td>Medium — touches existing service commit paths; requires the build/test pass this agent already runs after every change.</td></tr>
+        <tr><td>4</td><td>React web dashboard-view.js and a new client-workspace-view.js switch to the new endpoints (coordinated with dev-web-react, not performed by this agent).</td><td>Low — frontend-only swap once contracts are stable; old endpoints remain as fallback during the swap.</td></tr>
+        <tr><td>5</td><td>WPF / mobile migrate to the workspace endpoints on their own timeline, replacing their current per-screen calls where useful.</td><td>None to backend — additive endpoints impose no deadline on other clients.</td></tr>
+      </table>
+
+      <h3>Deprecation posture</h3>
+      <p>
+        None of the endpoints this report supersedes in spirit (<code>/api/owner-cockpit</code>,
+        tenant-wide <code>/api/customers/aging</code>) are deprecated by this proposal. They remain fully supported: the
+        new dashboard service composes <code>OwnerCockpitService</code> rather than forking it, so both routes stay
+        correct and in sync by construction. If a future report chooses to formally deprecate
+        <code>/api/owner-cockpit</code> once every consumer has migrated, that is a separate, explicit decision — out of
+        scope here, and not something this report unilaterally recommends.
+      </p>
+
+      <div class="callout ok">
+        <strong>Net effect:</strong> the Dashboard's perceived "chattiness" drops from 7 requests to 1 (plus 2 unrelated
+        reference-data calls that already exist app-wide), the Client Workspace goes from "does not exist as a backend
+        concept" to a header call + up to 5 independently-pageable tabs, and every number in both screens is produced by
+        SQL that already carries this codebase's tenant-isolation guarantee — with zero changes to any currently shipping
+        endpoint.
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts &middot; Ignition Design Package &middot; 04 System Architecture</span><span class="pg">13</span></div>
+</section>
+
+</body>
+</html>

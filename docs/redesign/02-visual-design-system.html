@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SpareParts · Ignition — Report 02 Visual Design Language</title>
+<style>
+* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --carbon:#0a0a0b; --surface:#131316; --elevated:#1b1b1f; --elevated2:#232328;
+  --orange:#f97316; --orange-l:#fb923c; --orange-d:#ea580c;
+  --amber:#fbbf24; --green:#22c55e; --red:#ef4444; --blue:#38bdf8;
+  --tprimary:#fafafa; --tsecondary:#a1a1aa; --tmuted:#6b6b74;
+  --line:#26262b;
+  --disp:'Plus Jakarta Sans',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#e7e7ea;font-family:var(--body);}
+.page{
+  width:210mm;min-height:292mm;background:#fff;margin:0 auto;position:relative;
+  padding:14mm 14mm 20mm 14mm;page-break-after:always;overflow:hidden;
+}
+.page:last-child{page-break-after:auto;}
+.footer{
+  position:absolute;bottom:8mm;left:14mm;right:14mm;display:flex;justify-content:space-between;
+  font-family:var(--body);font-size:8px;letter-spacing:.04em;color:#9a9aa2;border-top:1px solid #e5e5e9;padding-top:3mm;text-transform:uppercase;
+}
+h1,h2,h3,h4{font-family:var(--disp);margin:0;color:#111114;}
+p{font-family:var(--body);color:#4b4b55;line-height:1.55;}
+.eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--orange-d);font-weight:700;}
+.section-title{font-size:22px;font-weight:800;letter-spacing:-.03em;color:#111114;margin-top:2px;}
+.section-sub{font-size:10.5px;color:#7a7a85;margin-top:4px;max-width:150mm;}
+
+/* ============ COVER ============ */
+.cover{background:var(--carbon);color:var(--tprimary);padding:0;}
+.cover-inner{position:relative;height:264mm;padding:20mm;display:flex;flex-direction:column;justify-content:space-between;}
+.cover-glow{position:absolute;top:-120px;right:-120px;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(249,115,22,.35),rgba(249,115,22,0) 70%);filter:blur(4px);}
+.cover-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,black,transparent 75%);}
+.cover-top{position:relative;display:flex;align-items:center;gap:10px;}
+.cover-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--orange-l),var(--orange-d));display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:800;color:#0a0a0b;font-size:17px;box-shadow:0 6px 20px rgba(249,115,22,.4);}
+.cover-brandline{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:#c8c8cf;text-transform:uppercase;}
+.cover-mid{position:relative;}
+.cover-kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--orange-l);text-transform:uppercase;margin-bottom:18px;}
+.cover-title{font-family:var(--disp);font-weight:800;font-size:64px;letter-spacing:-.04em;line-height:.98;margin:0 0 10px 0;}
+.cover-title span{color:var(--orange);}
+.cover-subtitle{font-family:var(--disp);font-weight:600;font-size:21px;color:#d4d4d8;letter-spacing:-.01em;max-width:130mm;}
+.cover-desc{margin-top:16px;font-size:12px;color:#9a9aa5;max-width:120mm;line-height:1.7;}
+.cover-bottom{position:relative;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;}
+.cover-meta div{font-family:var(--mono);font-size:9.5px;color:#8b8b93;letter-spacing:.05em;}
+.cover-meta strong{display:block;color:#fafafa;font-family:var(--body);font-size:12px;font-weight:600;margin-bottom:2px;}
+.cover-swatches{display:flex;gap:6px;}
+.sw{width:22px;height:22px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.4);}
+
+/* ============ TOC ============ */
+.toc-list{margin-top:10mm;}
+.toc-row{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid #eee;}
+.toc-num{font-family:var(--mono);color:var(--orange-d);font-weight:700;font-size:12px;width:22px;}
+.toc-label{font-family:var(--disp);font-weight:700;font-size:13.5px;color:#17171b;flex:1;}
+.toc-desc{font-size:10px;color:#8a8a92;max-width:70mm;text-align:right;}
+.toc-page{font-family:var(--mono);font-size:11px;color:#b3b3ba;width:20px;text-align:right;}
+
+/* ============ GENERIC CONTENT ============ */
+.content-head{margin-bottom:9mm;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8mm;}
+.card{background:#f7f7f9;border:1px solid #ececef;border-radius:12px;padding:10px 12px;}
+.card h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8a8a92;margin-bottom:6px;}
+table.spec{width:100%;border-collapse:collapse;font-size:9.5px;}
+table.spec th{text-align:left;font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:#8a8a92;padding:5px 6px;border-bottom:1px solid #ddd;}
+table.spec td{padding:5px 6px;border-bottom:1px solid #eee;font-family:var(--body);color:#333;vertical-align:middle;}
+table.spec td.mono{font-family:var(--mono);font-size:9px;color:#555;}
+
+/* color ramp chips */
+.ramp{display:flex;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.15);margin-bottom:3px;}
+.ramp div{flex:1;height:30px;position:relative;}
+.ramp div span{position:absolute;bottom:2px;left:3px;font-family:var(--mono);font-size:6px;color:rgba(255,255,255,.85);}
+.ramp-label{font-family:var(--mono);font-size:8.5px;color:#8a8a92;margin:6px 0 3px;text-transform:uppercase;letter-spacing:.06em;}
+
+/* type scale */
+.type-row{display:flex;align-items:baseline;gap:14px;padding:8px 0;border-bottom:1px solid #eee;}
+.type-meta{font-family:var(--mono);font-size:8px;color:#9a9aa2;width:110px;flex-shrink:0;}
+.type-sample{font-family:var(--disp);color:#111;}
+
+/* elevation cards */
+.elev-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6mm;margin-top:4mm;}
+.elev-card{background:var(--surface);border-radius:14px;height:70px;display:flex;align-items:flex-end;padding:8px;}
+.elev-label{color:#e5e5ea;font-family:var(--mono);font-size:8px;}
+
+/* dark mockup frame wrapper */
+.mockframe{background:var(--carbon);border-radius:14px;padding:6mm;box-shadow:0 10px 40px rgba(0,0,0,.25);}
+.mockcaption{display:flex;justify-content:space-between;align-items:center;margin-bottom:4mm;}
+.mockcaption .eyebrow{color:var(--orange-l);}
+
+/* footer chip legend */
+.legend-strip{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:#5a5a62;font-family:var(--mono);}
+.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+
+@media print{
+  body{background:#fff;}
+  .page{box-shadow:none;margin:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- PAGE 1 — COVER -->
+<!-- ============================================================ -->
+<div class="page cover">
+  <div class="cover-inner">
+    <div class="cover-glow"></div>
+    <div class="cover-grid"></div>
+    <div class="cover-top">
+      <div class="cover-mark">S</div>
+      <div class="cover-brandline">SpareParts&nbsp;&nbsp;·&nbsp;&nbsp;Multi-Tenant Auto Parts Platform</div>
+    </div>
+    <div class="cover-mid">
+      <div class="cover-kicker">Ignition Design Package · Report 02 of 6</div>
+      <h1 class="cover-title">Visual Design<br><span>Language.</span></h1>
+      <div class="cover-subtitle">The complete Ignition token system, iconography, and high-fidelity hero mockups for the Dashboard and the new unified Client Workspace.</div>
+      <p class="cover-desc">Carbon black surfaces. Brake-caliper orange ignition. Plus Jakarta Sans precision type. A dark-first system engineered to read as a genuinely new application — not a re-skin of Aurora — across React web, WPF desktop, and React Native mobile.</p>
+    </div>
+    <div class="cover-bottom">
+      <div class="cover-meta">
+        <div><strong>Report 02 — Visual Design Language</strong>Design vision · tokens · hero mockups · iconography</div>
+      </div>
+      <div class="cover-meta" style="text-align:right;">
+        <div><strong>dev-graphic-designer</strong>Visual Design Agent</div>
+      </div>
+      <div class="cover-meta" style="text-align:right;">
+        <div><strong>2 July 2026</strong>SpareParts Ignition Package</div>
+      </div>
+    </div>
+    <div class="cover-bottom" style="border-top:none;padding-top:0;margin-top:-6px;">
+      <div class="cover-swatches">
+        <div class="sw" style="background:#0a0a0b;"></div>
+        <div class="sw" style="background:#131316;"></div>
+        <div class="sw" style="background:#f97316;"></div>
+        <div class="sw" style="background:#fbbf24;"></div>
+        <div class="sw" style="background:#22c55e;"></div>
+        <div class="sw" style="background:#ef4444;"></div>
+        <div class="sw" style="background:#38bdf8;"></div>
+      </div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 2 — TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">Report 02 · Visual Design Language</div>
+  <div class="section-title">Table of Contents</div>
+  <div class="section-sub">Twelve sections covering design rationale, the full token system, before/after proof, four hero mockups, iconography, data-visualization rules, and the cross-platform token mapping table.</div>
+  <div class="toc-list">
+    <div class="toc-row"><div class="toc-num">01</div><div class="toc-label">Design Vision — Ignition</div><div class="toc-desc">Why carbon + orange, what it communicates</div><div class="toc-page">03</div></div>
+    <div class="toc-row"><div class="toc-num">02</div><div class="toc-label">Color System — Dark Mode</div><div class="toc-desc">Full ramps, usage rules, semantic colors</div><div class="toc-page">04</div></div>
+    <div class="toc-row"><div class="toc-num">03</div><div class="toc-label">Color System — Light Mode</div><div class="toc-desc">Full ramps for the light surface variant</div><div class="toc-page">05</div></div>
+    <div class="toc-row"><div class="toc-num">04</div><div class="toc-label">Typography, Spacing &amp; Radii</div><div class="toc-desc">Type scale, 4/8 spacing grid, radius tokens</div><div class="toc-page">06</div></div>
+    <div class="toc-row"><div class="toc-num">05</div><div class="toc-label">Elevation &amp; Motion</div><div class="toc-desc">4 shadow levels, duration/easing tokens</div><div class="toc-page">07</div></div>
+    <div class="toc-row"><div class="toc-num">06</div><div class="toc-label">Before → After</div><div class="toc-desc">Current Apex/Aurora dashboard vs. Ignition</div><div class="toc-page">08</div></div>
+    <div class="toc-row"><div class="toc-num">07</div><div class="toc-label">Hero Figure A — Dashboard (Desktop)</div><div class="toc-desc">Full command-center mockup, real data</div><div class="toc-page">09</div></div>
+    <div class="toc-row"><div class="toc-num">08</div><div class="toc-label">Hero Figure B — Client Workspace (Desktop)</div><div class="toc-desc">Customer 360, aging, invoices, timeline</div><div class="toc-page">10</div></div>
+    <div class="toc-row"><div class="toc-num">09</div><div class="toc-label">Mobile Variants</div><div class="toc-desc">Dashboard &amp; Client Workspace, narrow layout</div><div class="toc-page">11</div></div>
+    <div class="toc-row"><div class="toc-num">10</div><div class="toc-label">Light-Mode Dashboard Variant</div><div class="toc-desc">Full light-surface rendition</div><div class="toc-page">12</div></div>
+    <div class="toc-row"><div class="toc-num">11</div><div class="toc-label">Iconography</div><div class="toc-desc">Stroke spec + 12-icon reference set</div><div class="toc-page">13</div></div>
+    <div class="toc-row"><div class="toc-num">12</div><div class="toc-label">Data Visualization Style</div><div class="toc-desc">Chart palette, gridlines, empty states</div><div class="toc-page">14</div></div>
+    <div class="toc-row"><div class="toc-num">13</div><div class="toc-label">Cross-Platform Token Mapping</div><div class="toc-desc">CSS vars → WPF ResourceDictionary → RN theme.js</div><div class="toc-page">15</div></div>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>02</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 3 — DESIGN VISION -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">01 · Design Vision</div>
+  <div class="section-title">Ignition</div>
+  <div class="section-sub">Why carbon black and brake-caliper orange communicate exactly what a spare-parts shop owner needs to feel at 7am on a Monday.</div>
+
+  <div style="margin-top:8mm;display:grid;grid-template-columns:1.15fr .85fr;gap:9mm;">
+    <div>
+      <p><strong style="color:#111;">Aurora — the system we are replacing — was a dark navy dashboard trying to look like fintech software.</strong> Deep blue-black (#080c14), a cool teal accent, soft glassmorphism. It is competent, but it is generic: it could be a banking app, a logistics app, a CRM. Nothing about it says <em>auto parts</em>. And because the shop owner's mental model of quality software is "did it change," a navy-to-navy restyle reads as nothing happening at all.</p>
+      <p><strong style="color:#111;">Ignition starts from the object, not the industry template.</strong> A brake caliper is painted safety orange for one reason: so a mechanic can find it instantly, under a car, in bad light, in a hurry. That is precisely the job this dashboard does all day — surface the number that matters (today's negative P&L, the client with 91 overdue days, the part at zero stock) inside a wall of otherwise-neutral data. Carbon black is not a mood, it's a canvas: matte, low-glare, the color of a tool bench, the color of a dashboard cluster at night. Orange is not a brand color, it's an alert color repurposed as the single accent — used sparingly enough that when it appears, it means "look here."</p>
+      <p>Typography reinforces the same idea. <strong style="color:#111;">Plus Jakarta Sans</strong>, tightened to −0.04em tracking, gives headings a machined, slightly technical edge — closer to a dashboard cluster typeface than a SaaS marketing font. <strong style="color:#111;">Inter</strong> carries body copy because it disappears at small sizes, which matters across dense tables of parts and invoices. <strong style="color:#111;">JetBrains Mono</strong> is reserved exclusively for tabular numerals — prices, quantities, aging buckets — so every column of digits lines up like a parts catalog, not like prose.</p>
+      <p>Shape follows the same restraint-with-one-exception logic: cards are borderless, separated only by layered shadow and a one-shade surface shift (carbon → surface → elevated), at a generous 16px radius that reads as confident rather than playful. The one place geometry gets sharp is status: pill badges, hard accent underlines, a 2px orange rail on the active nav item — precision marks, not decoration.</p>
+      <p>The result should be unmistakable in a screenshot from across the room: <strong style="color:#111;">if it isn't carbon black with one orange accent and machined type, it isn't Ignition.</strong> That is the bar for "impress me" — not a new color variable, a different application.</p>
+    </div>
+    <div>
+      <div class="mockframe" style="padding:8mm 6mm;">
+        <svg width="100%" viewBox="0 0 260 340">
+          <rect width="260" height="340" fill="#0a0a0b" rx="10"/>
+          <circle cx="205" cy="55" r="70" fill="#f97316" opacity="0.18"/>
+          <circle cx="205" cy="55" r="34" fill="none" stroke="#f97316" stroke-width="1.5" opacity="0.5"/>
+          <!-- caliper icon abstraction -->
+          <g transform="translate(60,40)">
+            <rect x="0" y="30" width="90" height="46" rx="10" fill="#f97316"/>
+            <rect x="10" y="18" width="70" height="16" rx="6" fill="#fb923c"/>
+            <circle cx="20" cy="53" r="6" fill="#0a0a0b"/>
+            <circle cx="70" cy="53" r="6" fill="#0a0a0b"/>
+            <rect x="30" y="42" width="30" height="22" rx="4" fill="#0a0a0b" opacity=".35"/>
+          </g>
+          <text x="20" y="145" font-family="Plus Jakarta Sans" font-weight="800" font-size="15" fill="#fafafa" letter-spacing="-0.5">Find it instantly.</text>
+          <text x="20" y="165" font-family="Inter" font-size="8.5" fill="#a1a1aa">Orange marks exactly one thing on</text>
+          <text x="20" y="177" font-family="Inter" font-size="8.5" fill="#a1a1aa">the screen: what needs attention.</text>
+          <line x1="20" y1="196" x2="240" y2="196" stroke="#26262b"/>
+          <text x="20" y="216" font-family="JetBrains Mono" font-size="8" fill="#6b6b74" letter-spacing="1">CARBON</text>
+          <rect x="20" y="224" width="60" height="16" rx="4" fill="#0a0a0b" stroke="#26262b"/>
+          <text x="90" y="216" font-family="JetBrains Mono" font-size="8" fill="#6b6b74" letter-spacing="1">SURFACE</text>
+          <rect x="90" y="224" width="60" height="16" rx="4" fill="#131316" stroke="#26262b"/>
+          <text x="160" y="216" font-family="JetBrains Mono" font-size="8" fill="#6b6b74" letter-spacing="1">ELEVATED</text>
+          <rect x="160" y="224" width="60" height="16" rx="4" fill="#1b1b1f" stroke="#26262b"/>
+          <text x="20" y="260" font-family="JetBrains Mono" font-size="8" fill="#6b6b74" letter-spacing="1">IGNITION ORANGE</text>
+          <rect x="20" y="268" width="220" height="18" rx="5" fill="#f97316"/>
+          <text x="130" y="281" font-family="JetBrains Mono" font-size="8.5" fill="#0a0a0b" text-anchor="middle" font-weight="700">#F97316</text>
+          <text x="20" y="312" font-family="Plus Jakarta Sans" font-weight="700" font-size="10.5" fill="#fafafa">Aa</text>
+          <text x="40" y="312" font-family="Inter" font-size="9" fill="#a1a1aa">Plus Jakarta Sans / Inter</text>
+          <text x="20" y="326" font-family="JetBrains Mono" font-size="8.5" fill="#f97316">128.40</text>
+          <text x="60" y="326" font-family="Inter" font-size="8" fill="#6b6b74">JetBrains Mono — tabular figures</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>03</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 4 — COLOR SYSTEM DARK -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">02 · Color System</div>
+  <div class="section-title">Dark Mode — Primary Surface</div>
+  <div class="section-sub">The default application surface. Three-step elevation, one accent, four semantic states, full neutral and orange ramps.</div>
+
+  <div class="ramp-label">Neutral / carbon ramp — backgrounds &amp; borders</div>
+  <div class="ramp">
+    <div style="background:#000000;"><span>000</span></div>
+    <div style="background:#0a0a0b;"><span>0A0A0B carbon</span></div>
+    <div style="background:#131316;"><span>131316 surface</span></div>
+    <div style="background:#1b1b1f;"><span>1B1B1F elevated</span></div>
+    <div style="background:#232328;"><span>232328 elevated-2</span></div>
+    <div style="background:#26262b;"><span>26262B line</span></div>
+    <div style="background:#3a3a42;"><span>3A3A42 line-strong</span></div>
+    <div style="background:#6b6b74;"><span>6B6B74 muted</span></div>
+    <div style="background:#a1a1aa;color:#000;"><span>A1A1AA secondary</span></div>
+    <div style="background:#fafafa;color:#000;"><span>FAFAFA primary</span></div>
+  </div>
+
+  <div class="ramp-label">Ignition orange ramp — the single accent, 50→900</div>
+  <div class="ramp">
+    <div style="background:#fff7ed;color:#000;"><span>50</span></div>
+    <div style="background:#ffedd5;color:#000;"><span>100</span></div>
+    <div style="background:#fed7aa;color:#000;"><span>200</span></div>
+    <div style="background:#fdba74;color:#000;"><span>300</span></div>
+    <div style="background:#fb923c;color:#000;"><span>400</span></div>
+    <div style="background:#f97316;"><span>500 base</span></div>
+    <div style="background:#ea580c;"><span>600</span></div>
+    <div style="background:#c2410c;"><span>700</span></div>
+    <div style="background:#9a3412;"><span>800</span></div>
+    <div style="background:#7c2d12;"><span>900</span></div>
+  </div>
+
+  <div class="ramp-label">Semantic status colors</div>
+  <div class="ramp">
+    <div style="background:#22c55e;"><span>#22C55E success</span></div>
+    <div style="background:#fbbf24;color:#000;"><span>#FBBF24 warning</span></div>
+    <div style="background:#ef4444;"><span>#EF4444 danger</span></div>
+    <div style="background:#38bdf8;color:#000;"><span>#38BDF8 info</span></div>
+  </div>
+
+  <table class="spec" style="margin-top:6mm;">
+    <tr><th>Token</th><th>Hex</th><th>Usage rule</th></tr>
+    <tr><td>surface.carbon</td><td class="mono">#0A0A0B</td><td>App shell base — behind rail, behind command bar, page canvas</td></tr>
+    <tr><td>surface.default</td><td class="mono">#131316</td><td>Cards, panels, table rows — first elevation step off carbon</td></tr>
+    <tr><td>surface.elevated</td><td class="mono">#1B1B1F</td><td>Popovers, dropdowns, modals, hover state on cards</td></tr>
+    <tr><td>surface.elevated2</td><td class="mono">#232328</td><td>Active/pressed states, nested widgets inside elevated panels</td></tr>
+    <tr><td>border.default</td><td class="mono">#26262B</td><td>Hairline dividers — used sparingly; prefer shadow over border for cards</td></tr>
+    <tr><td>border.strong</td><td class="mono">#3A3A42</td><td>Input focus rings (paired with orange), table header rules</td></tr>
+    <tr><td>text.primary</td><td class="mono">#FAFAFA</td><td>Headings, values, primary body text</td></tr>
+    <tr><td>text.secondary</td><td class="mono">#A1A1AA</td><td>Labels, captions, secondary metadata</td></tr>
+    <tr><td>text.muted</td><td class="mono">#6B6B74</td><td>Placeholder text, disabled state, timestamps</td></tr>
+    <tr><td>accent.orange</td><td class="mono">#F97316</td><td>Primary CTA fill, active nav rail, focus ring, links, chart primary series — the ONE accent</td></tr>
+    <tr><td>accent.orange-hover</td><td class="mono">#EA580C</td><td>Hover/pressed state of orange elements</td></tr>
+    <tr><td>status.warning</td><td class="mono">#FBBF24</td><td>Low-stock badges, margin-watch flags, "attention soon"</td></tr>
+    <tr><td>status.success</td><td class="mono">#22C55E</td><td>Paid, in-stock, positive delta, "all clear"</td></tr>
+    <tr><td>status.danger</td><td class="mono">#EF4444</td><td>Overdue, negative P&amp;L, out-of-stock, failed message</td></tr>
+    <tr><td>status.info</td><td class="mono">#38BDF8</td><td>Informational badges, secondary chart series, links inside dark tables</td></tr>
+  </table>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>04</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 5 — COLOR SYSTEM LIGHT -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">03 · Color System</div>
+  <div class="section-title">Light Mode</div>
+  <div class="section-sub">Same structure, inverted elevation direction (white → down to grey), same single orange accent recalibrated for AA contrast on white.</div>
+
+  <div class="ramp-label">Neutral / paper ramp — backgrounds &amp; borders</div>
+  <div class="ramp">
+    <div style="background:#ffffff;color:#000;border:1px solid #eee;"><span>FFFFFF base</span></div>
+    <div style="background:#f7f7f8;color:#000;"><span>F7F7F8 surface</span></div>
+    <div style="background:#efeff1;color:#000;"><span>EFEFF1 elevated</span></div>
+    <div style="background:#e4e4e8;color:#000;"><span>E4E4E8 elevated-2</span></div>
+    <div style="background:#dcdce1;color:#000;"><span>DCDCE1 line</span></div>
+    <div style="background:#c2c2ca;color:#000;"><span>C2C2CA line-strong</span></div>
+    <div style="background:#8b8b94;"><span>8B8B94 muted</span></div>
+    <div style="background:#52525b;"><span>52525B secondary</span></div>
+    <div style="background:#111114;"><span>111114 primary</span></div>
+  </div>
+
+  <div class="ramp-label">Ignition orange ramp — light-surface calibration</div>
+  <div class="ramp">
+    <div style="background:#fff7ed;color:#000;border:1px solid #eee;"><span>50</span></div>
+    <div style="background:#ffedd5;color:#000;"><span>100</span></div>
+    <div style="background:#fdba74;color:#000;"><span>300</span></div>
+    <div style="background:#fb923c;color:#000;"><span>400</span></div>
+    <div style="background:#ea580c;"><span>600 base (light)</span></div>
+    <div style="background:#c2410c;"><span>700</span></div>
+    <div style="background:#9a3412;"><span>800</span></div>
+    <div style="background:#7c2d12;"><span>900</span></div>
+  </div>
+  <p style="font-size:9.5px;color:#8a8a92;margin-top:2px;">Note: on light backgrounds the accent base shifts one step darker (#EA580C, ramp 600) rather than #F97316 (ramp 500) — #F97316 on white fails AA for text/icon-on-white at small sizes; it remains valid as a fill behind white text.</p>
+
+  <div class="ramp-label">Semantic status colors — light mode</div>
+  <div class="ramp">
+    <div style="background:#16a34a;"><span>#16A34A success</span></div>
+    <div style="background:#d97706;"><span>#D97706 warning</span></div>
+    <div style="background:#dc2626;"><span>#DC2626 danger</span></div>
+    <div style="background:#0284c7;"><span>#0284C7 info</span></div>
+  </div>
+
+  <table class="spec" style="margin-top:6mm;">
+    <tr><th>Token</th><th>Dark value</th><th>Light value</th><th>Usage rule</th></tr>
+    <tr><td>surface.canvas</td><td class="mono">#0A0A0B</td><td class="mono">#FFFFFF</td><td>Outermost app background</td></tr>
+    <tr><td>surface.default</td><td class="mono">#131316</td><td class="mono">#F7F7F8</td><td>Cards, table rows</td></tr>
+    <tr><td>surface.elevated</td><td class="mono">#1B1B1F</td><td class="mono">#EFEFF1</td><td>Popovers, modals</td></tr>
+    <tr><td>text.primary</td><td class="mono">#FAFAFA</td><td class="mono">#111114</td><td>Headings and values</td></tr>
+    <tr><td>text.secondary</td><td class="mono">#A1A1AA</td><td class="mono">#52525B</td><td>Labels and captions</td></tr>
+    <tr><td>border.default</td><td class="mono">#26262B</td><td class="mono">#DCDCE1</td><td>Hairlines</td></tr>
+    <tr><td>accent.orange</td><td class="mono">#F97316</td><td class="mono">#EA580C</td><td>CTA fill, active states, links</td></tr>
+  </table>
+  <p style="margin-top:4mm;">Rule of thumb across both modes: <strong style="color:#111;">orange never fills more than roughly 8% of a screen's surface area.</strong> It marks the primary action and active/critical states only — inventory panels, tables, and charts otherwise use the neutral ramp plus the four semantic colors so orange retains its "look here" weight.</p>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>05</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 6 — TYPE / SPACING / RADII -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">04 · Foundations</div>
+  <div class="section-title">Typography, Spacing &amp; Radii</div>
+  <div class="section-sub">A ten-step type scale on a 1.25 ratio, an 4/8px spacing grid, and a restrained three-step radius system plus pill.</div>
+
+  <div class="card" style="margin-top:6mm;">
+    <h4>Type Scale</h4>
+    <div class="type-row"><div class="type-meta">display-xl / 800</div><div class="type-sample" style="font-size:34px;letter-spacing:-.04em;">$18,420.00</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">44/34 · -0.04em</div></div>
+    <div class="type-row"><div class="type-meta">display-lg / 800</div><div class="type-sample" style="font-size:26px;letter-spacing:-.035em;">Dashboard</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">32/26 · -0.035em</div></div>
+    <div class="type-row"><div class="type-meta">heading-md / 700</div><div class="type-sample" style="font-size:18px;letter-spacing:-.02em;">Garage Elie Motors</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">24/18 · -0.02em</div></div>
+    <div class="type-row"><div class="type-meta">heading-sm / 700</div><div class="type-sample" style="font-size:14px;letter-spacing:-.01em;">Action Queue</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">20/14 · -0.01em</div></div>
+    <div class="type-row"><div class="type-meta">body-md / 400 Inter</div><div class="type-sample" style="font-family:'Inter';font-size:13px;font-weight:400;">3 open transactions waiting for payment</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">20/13</div></div>
+    <div class="type-row"><div class="type-meta">body-sm / 400 Inter</div><div class="type-sample" style="font-family:'Inter';font-size:11.5px;font-weight:400;color:#555;">Last synced 2 minutes ago</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">16/11.5</div></div>
+    <div class="type-row"><div class="type-meta">label / 600 caps</div><div class="type-sample" style="font-family:'Inter';font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#777;">Overdue 90+ days</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">14/10 · +0.08em</div></div>
+    <div class="type-row" style="border-bottom:none;"><div class="type-meta">mono-num / 500 JB Mono</div><div class="type-sample" style="font-family:'JetBrains Mono';font-size:13px;font-weight:500;color:#c2410c;">1,284,600 LBP</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:#9a9aa2;">18/13 tabular-nums</div></div>
+  </div>
+
+  <div class="two-col" style="margin-top:6mm;">
+    <div class="card">
+      <h4>Spacing Scale (4px base)</h4>
+      <table class="spec">
+        <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+        <tr><td>space-1</td><td class="mono">4px</td><td>icon-to-label gaps</td></tr>
+        <tr><td>space-2</td><td class="mono">8px</td><td>tight stacks, chip padding</td></tr>
+        <tr><td>space-3</td><td class="mono">12px</td><td>card internal padding (compact)</td></tr>
+        <tr><td>space-4</td><td class="mono">16px</td><td>default card padding, gutter</td></tr>
+        <tr><td>space-6</td><td class="mono">24px</td><td>section gaps</td></tr>
+        <tr><td>space-8</td><td class="mono">32px</td><td>panel-to-panel on dashboard grid</td></tr>
+        <tr><td>space-12</td><td class="mono">48px</td><td>page top margin under command bar</td></tr>
+        <tr><td>space-18</td><td class="mono">72px</td><td>icon-rail width (fixed)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4>Radii &amp; Grid</h4>
+      <table class="spec">
+        <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+        <tr><td>radius-sm</td><td class="mono">8px</td><td>chips, inputs, small buttons</td></tr>
+        <tr><td>radius-md</td><td class="mono">12px</td><td>nested widgets, table cells (grouped)</td></tr>
+        <tr><td>radius-lg</td><td class="mono">16px</td><td>cards, panels — the default</td></tr>
+        <tr><td>radius-xl</td><td class="mono">24px</td><td>hero/metric-band container, modals</td></tr>
+        <tr><td>radius-pill</td><td class="mono">999px</td><td>status badges, avatar, filter pills</td></tr>
+        <tr><td>grid</td><td class="mono">12-col</td><td>24px gutter, max content 1440px</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>06</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 7 — ELEVATION / MOTION -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">05 · Foundations</div>
+  <div class="section-title">Elevation &amp; Motion</div>
+  <div class="section-sub">Four shadow levels layered on carbon surfaces, plus the motion tokens governing hover, panel entry, and chart transitions.</div>
+
+  <div class="elev-row">
+    <div class="elev-card" style="box-shadow:0 1px 2px rgba(0,0,0,.5);"><div class="elev-label">L0 · resting<br>0 1px 2px rgba(0,0,0,.5)</div></div>
+    <div class="elev-card" style="box-shadow:0 4px 14px rgba(0,0,0,.45),0 1px 3px rgba(0,0,0,.5);"><div class="elev-label">L1 · card<br>0 4px 14px rgba(0,0,0,.45)</div></div>
+    <div class="elev-card" style="box-shadow:0 12px 28px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4);"><div class="elev-label">L2 · popover/dropdown<br>0 12px 28px rgba(0,0,0,.5)</div></div>
+    <div class="elev-card" style="box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(249,115,22,.08);"><div class="elev-label">L3 · modal<br>0 24px 60px rgba(0,0,0,.6)</div></div>
+  </div>
+
+  <table class="spec" style="margin-top:8mm;">
+    <tr><th>Level</th><th>Token</th><th>Shadow value (dark mode)</th><th>Shadow value (light mode)</th><th>Applies to</th></tr>
+    <tr><td>L0</td><td class="mono">--shadow-0</td><td class="mono">0 1px 2px rgba(0,0,0,.5)</td><td class="mono">0 1px 2px rgba(17,17,20,.06)</td><td>Table rows, inline chips</td></tr>
+    <tr><td>L1</td><td class="mono">--shadow-1</td><td class="mono">0 4px 14px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.5)</td><td class="mono">0 2px 8px rgba(17,17,20,.06), 0 1px 2px rgba(17,17,20,.04)</td><td>Default cards, KPI tiles</td></tr>
+    <tr><td>L2</td><td class="mono">--shadow-2</td><td class="mono">0 12px 28px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.4)</td><td class="mono">0 8px 24px rgba(17,17,20,.1)</td><td>Dropdowns, command palette, toasts</td></tr>
+    <tr><td>L3</td><td class="mono">--shadow-3</td><td class="mono">0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(249,115,22,.08)</td><td class="mono">0 24px 48px rgba(17,17,20,.16)</td><td>Modals, full-screen client workspace panel</td></tr>
+  </table>
+
+  <div class="card" style="margin-top:8mm;">
+    <h4>Motion Tokens</h4>
+    <table class="spec">
+      <tr><th>Token</th><th>Value</th><th>Use</th></tr>
+      <tr><td>duration-instant</td><td class="mono">80ms</td><td>Icon color/opacity swaps, checkbox toggle</td></tr>
+      <tr><td>duration-fast</td><td class="mono">140ms</td><td>Button hover/press, badge fade-in</td></tr>
+      <tr><td>duration-base</td><td class="mono">220ms</td><td>Card hover-lift, tab underline slide</td></tr>
+      <tr><td>duration-panel</td><td class="mono">320ms</td><td>Modal/drawer enter, client workspace tab switch</td></tr>
+      <tr><td>duration-chart</td><td class="mono">600ms</td><td>Sales trend line draw-in, KPI count-up</td></tr>
+      <tr><td>ease-standard</td><td class="mono">cubic-bezier(.4,0,.2,1)</td><td>Default for all UI transitions</td></tr>
+      <tr><td>ease-out-back</td><td class="mono">cubic-bezier(.34,1.56,.64,1)</td><td>Success confirmation pop (payment recorded, etc.)</td></tr>
+    </table>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>07</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 8 — BEFORE / AFTER -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">06 · Proof of Change</div>
+  <div class="section-title">Before → After</div>
+  <div class="section-sub">The current live "Apex/Aurora" dashboard (graphite-blue #11161c, brick-red #c23a32 accent, Manrope type) next to the new Ignition dashboard. Same data, unmistakably different application.</div>
+
+  <div class="two-col" style="margin-top:6mm;">
+    <div>
+      <div class="mockcaption"><span class="eyebrow" style="color:#c23a32;">CURRENT · REJECTED</span></div>
+      <svg width="100%" viewBox="0 0 380 260" style="border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.15);">
+        <rect width="380" height="260" fill="#11161c"/>
+        <rect width="52" height="260" fill="#0d1117"/>
+        <circle cx="26" cy="20" r="9" fill="#c23a32"/>
+        <rect x="12" y="42" width="28" height="22" rx="5" fill="#171d25"/>
+        <rect x="12" y="70" width="28" height="22" rx="5" fill="#1e2530"/>
+        <rect x="12" y="98" width="28" height="22" rx="5" fill="#171d25"/>
+        <rect x="12" y="126" width="28" height="22" rx="5" fill="#171d25"/>
+        <text x="66" y="24" font-family="Manrope" font-weight="800" font-size="12" fill="#eef1f5">Welcome back, Admin</text>
+        <text x="66" y="37" font-family="Inter" font-size="6.5" fill="#8b96a3">Here's what's happening today.</text>
+        <rect x="290" y="10" width="78" height="18" rx="9" fill="#171d25"/>
+        <text x="298" y="22" font-family="Inter" font-size="6" fill="#8b96a3">All Warehouses</text>
+        <!-- kpi row -->
+        <g font-family="Manrope">
+          <rect x="66" y="46" width="72" height="46" rx="6" fill="#171d25" stroke="#2b3340"/>
+          <circle cx="78" cy="58" r="7" fill="#c23a3226"/>
+          <text x="74" y="61" font-size="6" fill="#d6453b">$</text>
+          <text x="72" y="78" font-size="7" font-weight="800" fill="#eef1f5">$1,240</text>
+          <text x="72" y="86" font-size="5" fill="#8b96a3">Sales Today</text>
+
+          <rect x="142" y="46" width="72" height="46" rx="6" fill="#171d25" stroke="#2b3340"/>
+          <circle cx="154" cy="58" r="7" fill="#b8893f26"/>
+          <text x="72" y="78" font-size="7" font-weight="800" fill="#eef1f5"></text>
+          <text x="148" y="78" font-size="7" font-weight="800" fill="#eef1f5">$318</text>
+          <text x="148" y="86" font-size="5" fill="#8b96a3">Profit Today</text>
+
+          <rect x="218" y="46" width="72" height="46" rx="6" fill="#171d25" stroke="#2b3340"/>
+          <circle cx="230" cy="58" r="7" fill="#2f946126"/>
+          <text x="224" y="78" font-size="7" font-weight="800" fill="#eef1f5">$8,900</text>
+          <text x="224" y="86" font-size="5" fill="#8b96a3">Cash Balance</text>
+
+          <rect x="294" y="46" width="72" height="46" rx="6" fill="#171d25" stroke="#2b3340"/>
+          <circle cx="306" cy="58" r="7" fill="#c23a3226"/>
+          <text x="300" y="78" font-size="7" font-weight="800" fill="#eef1f5">$4,110</text>
+          <text x="300" y="86" font-size="5" fill="#8b96a3">Customer Debt</text>
+        </g>
+        <!-- command panel -->
+        <rect x="66" y="100" width="300" height="34" rx="7" fill="#171d25" stroke="#2b3340"/>
+        <text x="76" y="113" font-family="Inter" font-size="6" fill="#8b96a3">Smart Search / Command Center</text>
+        <rect x="76" y="118" width="220" height="10" rx="4" fill="#141a21"/>
+        <rect x="300" y="118" width="56" height="10" rx="4" fill="#c23a32"/>
+        <!-- panels -->
+        <rect x="66" y="140" width="145" height="72" rx="7" fill="#171d25" stroke="#2b3340"/>
+        <text x="74" y="153" font-family="Manrope" font-size="6.5" font-weight="700" fill="#eef1f5">Sales Overview</text>
+        <polyline points="74,200 90,190 106,196 122,178 138,184 154,168 170,175 186,160" fill="none" stroke="#c23a32" stroke-width="2"/>
+        <rect x="219" y="140" width="147" height="72" rx="7" fill="#171d25" stroke="#2b3340"/>
+        <text x="227" y="153" font-family="Manrope" font-size="6.5" font-weight="700" fill="#eef1f5">Recent Activity</text>
+        <rect x="227" y="160" width="130" height="10" rx="3" fill="#1e2530"/>
+        <rect x="227" y="174" width="130" height="10" rx="3" fill="#1e2530"/>
+        <rect x="227" y="188" width="130" height="10" rx="3" fill="#1e2530"/>
+        <rect x="66" y="218" width="300" height="30" rx="7" fill="#0d1117"/>
+        <text x="76" y="236" font-family="Inter" font-size="6" fill="#8b96a3">Sales Today · Profit Today · Open Invoices · Overdue · Low Stock</text>
+      </svg>
+      <p style="font-size:9px;color:#8a8a92;margin-top:4px;">Manrope display type, graphite-blue surfaces, brick-red/gold accent split, rounded 6px cards — reads as generic B2B SaaS.</p>
+    </div>
+    <div>
+      <div class="mockcaption"><span class="eyebrow">NEW · IGNITION</span></div>
+      <svg width="100%" viewBox="0 0 380 260" style="border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.25);">
+        <rect width="380" height="260" fill="#0a0a0b"/>
+        <rect width="34" height="260" fill="#0a0a0b" stroke="#18181b"/>
+        <rect x="7" y="12" width="20" height="20" rx="6" fill="#f97316"/>
+        <rect x="9" y="46" width="16" height="16" rx="5" fill="#1b1b1f"/>
+        <rect x="9" y="70" width="16" height="16" rx="5" fill="#f97316"/>
+        <rect x="9" y="94" width="16" height="16" rx="5" fill="#1b1b1f"/>
+        <rect x="9" y="118" width="16" height="16" rx="5" fill="#1b1b1f"/>
+        <text x="44" y="26" font-family="Plus Jakarta Sans" font-weight="800" font-size="13" fill="#fafafa" letter-spacing="-0.5">Welcome back, Ralph</text>
+        <text x="44" y="39" font-family="Inter" font-size="6.5" fill="#a1a1aa">Here's what's happening today.</text>
+        <rect x="300" y="8" width="72" height="20" rx="10" fill="#131316"/>
+        <circle cx="312" cy="18" r="2.5" fill="#22c55e"/>
+        <text x="318" y="21" font-family="JetBrains Mono" font-size="5.5" fill="#a1a1aa">LIVE</text>
+        <!-- KPI band -->
+        <rect x="44" y="46" width="328" height="50" rx="12" fill="#131316"/>
+        <line x1="126" y1="54" x2="126" y2="88" stroke="#26262b"/>
+        <line x1="208" y1="54" x2="208" y2="88" stroke="#26262b"/>
+        <line x1="290" y1="54" x2="290" y2="88" stroke="#26262b"/>
+        <text x="54" y="62" font-family="JetBrains Mono" font-size="5.5" fill="#6b6b74" letter-spacing=".5">SALES TODAY</text>
+        <text x="54" y="80" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#fafafa">$1,240.00</text>
+        <text x="136" y="62" font-family="JetBrains Mono" font-size="5.5" fill="#6b6b74" letter-spacing=".5">PROFIT TODAY</text>
+        <text x="136" y="80" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#22c55e">$318.00</text>
+        <text x="218" y="62" font-family="JetBrains Mono" font-size="5.5" fill="#6b6b74" letter-spacing=".5">CASH BALANCE</text>
+        <text x="218" y="80" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#fafafa">$8,900.00</text>
+        <text x="300" y="62" font-family="JetBrains Mono" font-size="5.5" fill="#6b6b74" letter-spacing=".5">RECEIVABLES</text>
+        <text x="300" y="80" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#f97316">$4,110.00</text>
+        <!-- command bar -->
+        <rect x="44" y="102" width="328" height="16" rx="8" fill="#131316" stroke="#26262b"/>
+        <circle cx="56" cy="110" r="2.4" fill="#6b6b74"/>
+        <text x="64" y="113" font-family="Inter" font-size="6" fill="#6b6b74">Search parts, OEM code, client, invoice…</text>
+        <rect x="330" y="105" width="34" height="10" rx="4" fill="#1b1b1f"/>
+        <text x="336" y="112" font-family="JetBrains Mono" font-size="5.5" fill="#a1a1aa">Ctrl K</text>
+        <!-- panels -->
+        <rect x="44" y="124" width="158" height="88" rx="16" fill="#131316"/>
+        <text x="54" y="138" font-family="Plus Jakarta Sans" font-size="7" font-weight="700" fill="#fafafa">Sales Trend · 7d</text>
+        <polyline points="54,190 72,178 90,184 108,160 126,168 144,146 162,152 180,132" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="180" cy="132" r="3" fill="#0a0a0b" stroke="#f97316" stroke-width="2"/>
+        <rect x="206" y="124" width="166" height="88" rx="16" fill="#131316"/>
+        <text x="216" y="138" font-family="Plus Jakarta Sans" font-size="7" font-weight="700" fill="#fafafa">Action Queue</text>
+        <rect x="216" y="146" width="4" height="14" rx="2" fill="#ef4444"/>
+        <rect x="224" y="146" width="138" height="14" rx="4" fill="#1b1b1f"/>
+        <rect x="216" y="164" width="4" height="14" rx="2" fill="#fbbf24"/>
+        <rect x="224" y="164" width="138" height="14" rx="4" fill="#1b1b1f"/>
+        <rect x="216" y="182" width="4" height="14" rx="2" fill="#38bdf8"/>
+        <rect x="224" y="182" width="138" height="14" rx="4" fill="#1b1b1f"/>
+        <rect x="44" y="220" width="328" height="28" rx="14" fill="#131316"/>
+        <text x="56" y="237" font-family="JetBrains Mono" font-size="6" fill="#a1a1aa">SALES $1,240 · PROFIT $318 · OVERDUE $4,110 · LOW STOCK 6</text>
+      </svg>
+      <p style="font-size:9px;color:#8a8a92;margin-top:4px;">Carbon canvas, single orange accent, Plus Jakarta Sans display type, tabular JetBrains Mono figures, borderless 16px-radius cards — reads as a new application.</p>
+    </div>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>08</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 9 — HERO A: DASHBOARD DESKTOP -->
+<!-- ============================================================ -->
+<div class="page" style="padding:10mm 8mm;">
+  <div class="eyebrow">07 · Hero Figure A</div>
+  <div class="section-title" style="font-size:19px;">New Dashboard — Full Desktop Screen</div>
+  <div class="section-sub" style="margin-bottom:4mm;">Icon rail, command bar with global search, full-width KPI metric band, action queue, sales trend, low-stock &amp; receivables panels. Data reflects real SpareParts entities: parts, clients, LBP/USD dual currency, aging buckets.</div>
+
+  <div class="mockframe" style="padding:5mm;">
+  <svg width="100%" viewBox="0 0 1360 860" font-family="Inter">
+    <defs>
+      <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f97316" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="kpiEdge" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#fb923c"/>
+      </linearGradient>
+    </defs>
+    <rect width="1360" height="860" fill="#0a0a0b"/>
+
+    <!-- ICON RAIL 72px -->
+    <rect x="0" y="0" width="72" height="860" fill="#0a0a0b"/>
+    <line x1="72" y1="0" x2="72" y2="860" stroke="#1b1b1f"/>
+    <rect x="18" y="20" width="36" height="36" rx="10" fill="#f97316"/>
+    <text x="36" y="44" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="17" fill="#0a0a0b">S</text>
+    <g fill="#a1a1aa">
+      <rect x="16" y="88" width="40" height="40" rx="12" fill="#1b1b1f"/>
+      <path d="M28 108h16M36 100v16" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" transform="translate(0,0)"/>
+      <rect x="28" y="98" width="16" height="16" rx="3" fill="none" stroke="#f97316" stroke-width="1.6"/>
+      <text x="36" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#f97316">DASH</text>
+
+      <rect x="16" y="156" width="40" height="40" rx="12" fill="none"/>
+      <rect x="26" y="166" width="20" height="16" rx="2" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <text x="36" y="208" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#6b6b74">SALES</text>
+
+      <rect x="16" y="224" width="40" height="40" rx="12" fill="none"/>
+      <rect x="24" y="234" width="24" height="18" rx="2" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <line x1="24" y1="240" x2="48" y2="240" stroke="#6b6b74" stroke-width="1.2"/>
+      <text x="36" y="276" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#6b6b74">PARTS</text>
+
+      <rect x="16" y="292" width="40" height="40" rx="12" fill="none"/>
+      <circle cx="30" cy="308" r="6" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <path d="M36 314l6 6" stroke="#6b6b74" stroke-width="1.6" stroke-linecap="round"/>
+      <text x="36" y="344" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#6b6b74">FIND</text>
+
+      <rect x="16" y="360" width="40" height="40" rx="12" fill="none"/>
+      <circle cx="36" cy="374" r="6" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <path d="M28 388c0-6 4-9 8-9s8 3 8 9" stroke="#6b6b74" stroke-width="1.6" fill="none"/>
+      <text x="36" y="412" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#6b6b74">CLIENTS</text>
+
+      <rect x="16" y="428" width="40" height="40" rx="12" fill="none"/>
+      <rect x="25" y="438" width="22" height="16" rx="2" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <line x1="25" y1="443" x2="47" y2="443" stroke="#6b6b74" stroke-width="1.2"/>
+      <text x="36" y="480" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#6b6b74">FINANCE</text>
+    </g>
+    <g fill="#a1a1aa">
+      <rect x="16" y="760" width="40" height="40" rx="12" fill="none"/>
+      <circle cx="36" cy="780" r="7" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <path d="M36 771v3M36 786v3M27 780h3M42 780h3" stroke="#6b6b74" stroke-width="1.6"/>
+      <circle cx="36" cy="818" r="15" fill="#1b1b1f"/>
+      <text x="36" y="822" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#fafafa">RM</text>
+    </g>
+
+    <!-- COMMAND BAR -->
+    <rect x="72" y="0" width="1288" height="64" fill="#0a0a0b"/>
+    <line x1="72" y1="64" x2="1360" y2="64" stroke="#1b1b1f"/>
+    <rect x="100" y="16" width="560" height="32" rx="10" fill="#131316" stroke="#26262b"/>
+    <circle cx="120" cy="32" r="5.5" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+    <line x1="124" y1="36" x2="129" y2="41" stroke="#6b6b74" stroke-width="1.6"/>
+    <text x="138" y="36" font-family="Inter" font-size="11" fill="#6b6b74">Search parts, OEM code, clients, invoices…</text>
+    <rect x="600" y="22" width="46" height="20" rx="5" fill="#1b1b1f"/>
+    <text x="608" y="36" font-family="JetBrains Mono" font-size="9.5" fill="#a1a1aa">Ctrl K</text>
+    <rect x="1080" y="16" width="118" height="32" rx="16" fill="#f97316"/>
+    <text x="1100" y="37" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#0a0a0b">+ New Sale</text>
+    <circle cx="1226" cy="32" r="16" fill="#131316"/>
+    <path d="M1220 28c0-4 2-6 6-6s6 2 6 6c0 5 2 6 2 6h-16s2-1 2-6z" fill="none" stroke="#a1a1aa" stroke-width="1.4"/>
+    <circle cx="1234" cy="24" r="3.4" fill="#ef4444"/>
+    <text x="1232.5" y="26.5" font-family="JetBrains Mono" font-size="5.5" fill="#fff" text-anchor="middle">4</text>
+    <circle cx="1276" cy="32" r="15" fill="#1b1b1f"/>
+    <text x="1276" y="36" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#fafafa">RM</text>
+    <text x="1298" y="29" font-family="Inter" font-weight="600" font-size="10.5" fill="#fafafa">Ralph M.</text>
+    <text x="1298" y="41" font-family="Inter" font-size="8.5" fill="#6b6b74">Owner / Admin</text>
+
+    <!-- PAGE HEAD -->
+    <text x="100" y="102" font-family="Plus Jakarta Sans" font-weight="800" font-size="24" letter-spacing="-0.8" fill="#fafafa">Welcome back, Ralph</text>
+    <text x="100" y="122" font-family="Inter" font-size="11.5" fill="#a1a1aa">Tuesday, July 2 2026 — here's what's happening across the shop today.</text>
+    <rect x="1150" y="88" width="140" height="26" rx="13" fill="#131316" stroke="#26262b"/>
+    <text x="1166" y="105" font-family="Inter" font-size="9.5" fill="#a1a1aa">All Warehouses ▾</text>
+    <circle cx="1300" cy="90" r="3" fill="#22c55e"/>
+    <text x="1220" y="128" font-family="JetBrains Mono" font-size="8.5" fill="#6b6b74">LIVE · updated 2 min ago</text>
+
+    <!-- KPI METRIC BAND (full width, 6 metrics) -->
+    <rect x="100" y="146" width="1190" height="104" rx="20" fill="#131316"/>
+    <rect x="100" y="146" width="4" height="104" rx="2" fill="url(#kpiEdge)"/>
+    <!-- dividers -->
+    <line x1="298" y1="166" x2="298" y2="226" stroke="#26262b"/>
+    <line x1="496" y1="166" x2="496" y2="226" stroke="#26262b"/>
+    <line x1="694" y1="166" x2="694" y2="226" stroke="#26262b"/>
+    <line x1="892" y1="166" x2="892" y2="226" stroke="#26262b"/>
+    <line x1="1090" y1="166" x2="1090" y2="226" stroke="#26262b"/>
+
+    <g font-family="JetBrains Mono">
+      <text x="132" y="180" font-size="8.5" letter-spacing="1.2" fill="#6b6b74">SALES TODAY</text>
+      <text x="132" y="212" font-size="22" font-weight="700" fill="#fafafa">$2,418.00</text>
+      <text x="132" y="230" font-size="8.5" fill="#22c55e">▲ 12.4% vs yesterday</text>
+
+      <text x="330" y="180" font-size="8.5" letter-spacing="1.2" fill="#6b6b74">PROFIT TODAY</text>
+      <text x="330" y="212" font-size="22" font-weight="700" fill="#22c55e">$612.40</text>
+      <text x="330" y="230" font-size="8.5" fill="#22c55e">▲ 8.1% vs yesterday</text>
+
+      <text x="528" y="180" font-size="8.5" letter-spacing="1.2" fill="#6b6b74">CASH BALANCE</text>
+      <text x="528" y="212" font-size="22" font-weight="700" fill="#fafafa">$14,860.00</text>
+      <text x="528" y="230" font-size="8.5" fill="#a1a1aa">↔ steady</text>
+
+      <text x="726" y="180" font-size="8.5" letter-spacing="1.2" fill="#6b6b74">RECEIVABLES</text>
+      <text x="726" y="212" font-size="22" font-weight="700" fill="#f97316">$8,240.50</text>
+      <text x="726" y="230" font-size="8.5" fill="#ef4444">▲ 3 overdue 90+ d</text>
+
+      <text x="924" y="180" font-size="8.5" letter-spacing="1.2" fill="#6b6b74">SUPPLIER DEBT</text>
+      <text x="924" y="212" font-size="22" font-weight="700" fill="#fafafa">$5,120.00</text>
+      <text x="924" y="230" font-size="8.5" fill="#a1a1aa">2 POs due this week</text>
+
+      <text x="1122" y="180" font-size="8.5" letter-spacing="1.2" fill="#6b6b74">STOCK VALUE</text>
+      <text x="1122" y="212" font-size="22" font-weight="700" fill="#fafafa">$96,340</text>
+      <text x="1122" y="230" font-size="8.5" fill="#fbbf24">6 items low stock</text>
+    </g>
+
+    <!-- ROW 2: Sales trend (left, wide) + Action Queue (right) -->
+    <rect x="100" y="268" width="700" height="270" rx="16" fill="#131316"/>
+    <text x="128" y="300" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#fafafa">Sales Trend</text>
+    <text x="128" y="318" font-family="Inter" font-size="9.5" fill="#6b6b74">Last 7 days · gross sales, USD</text>
+    <text x="740" y="300" text-anchor="end" font-family="JetBrains Mono" font-size="16" font-weight="700" fill="#fafafa">$14,206.00</text>
+    <text x="740" y="316" text-anchor="end" font-family="Inter" font-size="9" fill="#22c55e">Peak Sat · $2,610.00</text>
+    <!-- chart grid -->
+    <g stroke="#1b1b1f">
+      <line x1="128" y1="360" x2="760" y2="360"/>
+      <line x1="128" y1="404" x2="760" y2="404"/>
+      <line x1="128" y1="448" x2="760" y2="448"/>
+      <line x1="128" y1="492" x2="760" y2="492"/>
+    </g>
+    <g font-family="JetBrains Mono" font-size="8" fill="#6b6b74">
+      <text x="118" y="363" text-anchor="end">3K</text>
+      <text x="118" y="407" text-anchor="end">2K</text>
+      <text x="118" y="451" text-anchor="end">1K</text>
+      <text x="118" y="495" text-anchor="end">0</text>
+    </g>
+    <path d="M148,470 L228,440 L308,455 L388,392 L468,410 L548,340 L628,360 L708,300 L708,500 L148,500 Z" fill="url(#areaFill)"/>
+    <polyline points="148,470 228,440 308,455 388,392 468,410 548,340 628,360 708,300" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="708" cy="300" r="5" fill="#0a0a0b" stroke="#f97316" stroke-width="2.4"/>
+    <rect x="660" y="266" width="96" height="34" rx="8" fill="#1b1b1f" stroke="#26262b"/>
+    <text x="708" y="280" text-anchor="middle" font-family="Inter" font-size="8" fill="#a1a1aa">Sat, Jun 27</text>
+    <text x="708" y="293" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#fafafa">$2,610.00</text>
+    <g font-family="Inter" font-size="8.5" fill="#6b6b74">
+      <text x="148" y="514">Mon</text><text x="228" y="514">Tue</text><text x="308" y="514">Wed</text><text x="388" y="514">Thu</text>
+      <text x="468" y="514">Fri</text><text x="548" y="514">Sat</text><text x="628" y="514">Sun</text><text x="700" y="514">Today</text>
+    </g>
+
+    <!-- Action Queue -->
+    <rect x="816" y="268" width="444" height="270" rx="16" fill="#131316"/>
+    <text x="844" y="300" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#fafafa">Action Queue</text>
+    <text x="1220" y="300" text-anchor="end" font-family="Inter" font-size="9.5" fill="#f97316">View all →</text>
+
+    <!-- item 1 danger -->
+    <rect x="844" y="314" width="388" height="52" rx="12" fill="#1b1b1f"/>
+    <rect x="844" y="314" width="3" height="52" rx="1.5" fill="#ef4444"/>
+    <rect x="858" y="324" width="34" height="16" rx="6" fill="#ef444422"/>
+    <text x="875" y="335" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ef4444">P&amp;L</text>
+    <text x="900" y="332" font-family="Inter" font-weight="600" font-size="10.5" fill="#fafafa">Daily profit is negative</text>
+    <text x="900" y="346" font-family="Inter" font-size="8.5" fill="#a1a1aa">Rent &amp; labor payments above gross profit today</text>
+    <text x="1220" y="336" text-anchor="end" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ef4444">-$186.00</text>
+
+    <!-- item 2 danger receivables -->
+    <rect x="844" y="374" width="388" height="52" rx="12" fill="#1b1b1f"/>
+    <rect x="844" y="374" width="3" height="52" rx="1.5" fill="#ef4444"/>
+    <rect x="858" y="384" width="70" height="16" rx="6" fill="#ef444422"/>
+    <text x="893" y="395" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ef4444">RECEIVABLES</text>
+    <text x="940" y="392" font-family="Inter" font-weight="600" font-size="10.5" fill="#fafafa">Garage Elie Motors — 91 days overdue</text>
+    <text x="940" y="406" font-family="Inter" font-size="8.5" fill="#a1a1aa">Invoice INV-10482 · follow up on unpaid balance</text>
+    <text x="1220" y="396" text-anchor="end" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ef4444">$1,860.00</text>
+
+    <!-- item 3 warning -->
+    <rect x="844" y="434" width="388" height="52" rx="12" fill="#1b1b1f"/>
+    <rect x="844" y="434" width="3" height="52" rx="1.5" fill="#fbbf24"/>
+    <rect x="858" y="444" width="52" height="16" rx="6" fill="#fbbf2422"/>
+    <text x="884" y="455" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#fbbf24">MARGIN</text>
+    <text x="920" y="452" font-family="Inter" font-weight="600" font-size="10.5" fill="#fafafa">4 parts show currency-rate pressure</text>
+    <text x="920" y="466" font-family="Inter" font-size="8.5" fill="#a1a1aa">Alternator OEM 12317-646-115 among them</text>
+    <text x="1220" y="456" text-anchor="end" font-family="Inter" font-size="9.5" fill="#fbbf24">Review →</text>
+
+    <!-- item 4 info -->
+    <rect x="844" y="494" width="388" height="34" rx="12" fill="#1b1b1f"/>
+    <rect x="844" y="494" width="3" height="34" rx="1.5" fill="#38bdf8"/>
+    <text x="858" y="514" font-family="Inter" font-size="9.5" fill="#a1a1aa">2 WhatsApp reminders failed delivery — retry?</text>
+    <text x="1220" y="514" text-anchor="end" font-family="Inter" font-size="9.5" fill="#38bdf8">Retry →</text>
+
+    <!-- ROW 3: Low stock (left) + Receivables aging (right) -->
+    <rect x="100" y="556" width="560" height="248" rx="16" fill="#131316"/>
+    <text x="128" y="588" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#fafafa">Low Stock Alerts</text>
+    <text x="600" y="588" text-anchor="end" font-family="Inter" font-size="9.5" fill="#f97316">Reorder →</text>
+
+    <g font-family="JetBrains Mono" font-size="7.5" fill="#6b6b74">
+      <text x="128" y="608">PART</text><text x="360" y="608">FITMENT</text><text x="480" y="608" text-anchor="end">ON HAND</text><text x="600" y="608" text-anchor="end">MIN</text>
+    </g>
+    <line x1="128" y1="616" x2="600" y2="616" stroke="#26262b"/>
+    <!-- rows -->
+    <g font-family="Inter">
+      <text x="128" y="636" font-size="10" fill="#fafafa" font-weight="600">Brake Pad Set — Front</text>
+      <text x="360" y="636" font-size="8.5" fill="#a1a1aa">BMW W205 / C300</text>
+      <text x="470" y="636" font-size="10" text-anchor="end" fill="#ef4444" font-family="JetBrains Mono">1</text>
+      <text x="600" y="636" font-size="10" text-anchor="end" fill="#6b6b74" font-family="JetBrains Mono">5</text>
+
+      <text x="128" y="662" font-size="10" fill="#fafafa" font-weight="600">Ignition Coil N54</text>
+      <text x="360" y="662" font-size="8.5" fill="#a1a1aa">BMW 335i E90</text>
+      <text x="470" y="662" font-size="10" text-anchor="end" fill="#ef4444" font-family="JetBrains Mono">0</text>
+      <text x="600" y="662" font-size="10" text-anchor="end" fill="#6b6b74" font-family="JetBrains Mono">4</text>
+
+      <text x="128" y="688" font-size="10" fill="#fafafa" font-weight="600">Oil Filter D58</text>
+      <text x="360" y="688" font-size="8.5" fill="#a1a1aa">Mercedes W164 ML350</text>
+      <text x="470" y="688" font-size="10" text-anchor="end" fill="#fbbf24" font-family="JetBrains Mono">2</text>
+      <text x="600" y="688" font-size="10" text-anchor="end" fill="#6b6b74" font-family="JetBrains Mono">6</text>
+
+      <text x="128" y="714" font-size="10" fill="#fafafa" font-weight="600">Timing Belt Kit</text>
+      <text x="360" y="714" font-size="8.5" fill="#a1a1aa">Toyota Corolla 2015-18</text>
+      <text x="470" y="714" font-size="10" text-anchor="end" fill="#fbbf24" font-family="JetBrains Mono">3</text>
+      <text x="600" y="714" font-size="10" text-anchor="end" fill="#6b6b74" font-family="JetBrains Mono">8</text>
+
+      <text x="128" y="740" font-size="10" fill="#fafafa" font-weight="600">Alternator 120A</text>
+      <text x="360" y="740" font-size="8.5" fill="#a1a1aa">Honda CR-V 2017-21</text>
+      <text x="470" y="740" font-size="10" text-anchor="end" fill="#ef4444" font-family="JetBrains Mono">0</text>
+      <text x="600" y="740" font-size="10" text-anchor="end" fill="#6b6b74" font-family="JetBrains Mono">3</text>
+
+      <text x="128" y="766" font-size="10" fill="#fafafa" font-weight="600">Radiator Assembly</text>
+      <text x="360" y="766" font-size="8.5" fill="#a1a1aa">Kia Sportage 2016-20</text>
+      <text x="470" y="766" font-size="10" text-anchor="end" fill="#fbbf24" font-family="JetBrains Mono">2</text>
+      <text x="600" y="766" font-size="10" text-anchor="end" fill="#6b6b74" font-family="JetBrains Mono">5</text>
+    </g>
+
+    <!-- Receivables aging panel -->
+    <rect x="676" y="556" width="584" height="248" rx="16" fill="#131316"/>
+    <text x="704" y="588" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#fafafa">Receivables Aging</text>
+    <text x="1232" y="588" text-anchor="end" font-family="Inter" font-size="9.5" fill="#f97316">Open aging →</text>
+    <text x="704" y="608" font-family="Inter" font-size="9" fill="#a1a1aa">Total outstanding</text>
+    <text x="1232" y="608" text-anchor="end" font-family="JetBrains Mono" font-size="13" font-weight="700" fill="#f97316">$8,240.50</text>
+
+    <!-- stacked bar -->
+    <rect x="704" y="620" width="528" height="22" rx="6" fill="#1b1b1f"/>
+    <rect x="704" y="620" width="238" height="22" fill="#22c55e"/>
+    <rect x="942" y="620" width="132" height="22" fill="#fbbf24"/>
+    <rect x="1074" y="620" width="90" height="22" fill="#f97316"/>
+    <rect x="1164" y="620" width="68" height="22" rx="0" fill="#ef4444"/>
+    <g font-family="JetBrains Mono" font-size="7.5" fill="#6b6b74">
+      <circle cx="710" cy="660" r="3.5" fill="#22c55e"/><text x="718" y="663">CURRENT $3,720</text>
+      <circle cx="820" cy="660" r="3.5" fill="#fbbf24"/><text x="828" y="663">1-30D $2,060</text>
+      <circle cx="920" cy="660" r="3.5" fill="#f97316"/><text x="928" y="663">31-60D $1,400</text>
+      <circle cx="1030" cy="660" r="3.5" fill="#ef4444"/><text x="1038" y="663">90+D $1,060</text>
+    </g>
+
+    <line x1="704" y1="678" x2="1232" y2="678" stroke="#26262b"/>
+    <g font-family="Inter">
+      <text x="704" y="700" font-size="10" font-weight="600" fill="#fafafa">Garage Elie Motors</text>
+      <text x="1000" y="700" font-size="8.5" fill="#ef4444">91 days overdue</text>
+      <text x="1232" y="700" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$1,860.00</text>
+
+      <text x="704" y="722" font-size="10" font-weight="600" fill="#fafafa">Nabil Auto Service</text>
+      <text x="1000" y="722" font-size="8.5" fill="#fbbf24">42 days overdue</text>
+      <text x="1232" y="722" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$940.00</text>
+
+      <text x="704" y="744" font-size="10" font-weight="600" fill="#fafafa">Beirut Fleet Rentals</text>
+      <text x="1000" y="744" font-size="8.5" fill="#fbbf24">28 days overdue</text>
+      <text x="1232" y="744" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$1,120.00</text>
+
+      <text x="704" y="766" font-size="10" font-weight="600" fill="#fafafa">Sami Karam Motors</text>
+      <text x="1000" y="766" font-size="8.5" fill="#a1a1aa">Current</text>
+      <text x="1232" y="766" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$620.00</text>
+
+      <text x="704" y="788" font-size="10" font-weight="600" fill="#fafafa">Rania Trading Co.</text>
+      <text x="1000" y="788" font-size="8.5" fill="#a1a1aa">Current</text>
+      <text x="1232" y="788" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$480.00</text>
+    </g>
+  </svg>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>09</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 10 — HERO B: CLIENT WORKSPACE DESKTOP -->
+<!-- ============================================================ -->
+<div class="page" style="padding:10mm 8mm;">
+  <div class="eyebrow">08 · Hero Figure B</div>
+  <div class="section-title" style="font-size:19px;">New Client Workspace — Full Desktop Screen</div>
+  <div class="section-sub" style="margin-bottom:4mm;">Unified customer 360: client list rail, identity + balance + risk header, tabbed record (Overview, Invoices, Payments, Quotes, Part Requests, Vehicles, Timeline), aging bar and activity feed — replaces the fragmented Contacts / Aging / Invoices views.</div>
+
+  <div class="mockframe" style="padding:5mm;">
+  <svg width="100%" viewBox="0 0 1360 860" font-family="Inter">
+    <defs>
+      <linearGradient id="riskEdge" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#f97316"/>
+      </linearGradient>
+    </defs>
+    <rect width="1360" height="860" fill="#0a0a0b"/>
+
+    <!-- ICON RAIL -->
+    <rect x="0" y="0" width="72" height="860" fill="#0a0a0b"/>
+    <line x1="72" y1="0" x2="72" y2="860" stroke="#1b1b1f"/>
+    <rect x="18" y="20" width="36" height="36" rx="10" fill="#f97316"/>
+    <text x="36" y="44" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="17" fill="#0a0a0b">S</text>
+    <g fill="#a1a1aa">
+      <rect x="16" y="88" width="40" height="40" rx="12" fill="none"/>
+      <rect x="28" y="98" width="16" height="16" rx="3" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      <rect x="16" y="224" width="40" height="40" rx="12" fill="#1b1b1f"/>
+      <circle cx="30" cy="240" r="6" fill="none" stroke="#f97316" stroke-width="1.8"/>
+      <path d="M22 254c0-6 4-9 8-9s8 3 8 9" stroke="#f97316" stroke-width="1.8" fill="none"/>
+      <text x="36" y="276" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#f97316">CLIENTS</text>
+    </g>
+    <circle cx="36" cy="818" r="15" fill="#1b1b1f"/>
+    <text x="36" y="822" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#fafafa">RM</text>
+
+    <!-- COMMAND BAR -->
+    <rect x="72" y="0" width="1288" height="56" fill="#0a0a0b"/>
+    <line x1="72" y1="56" x2="1360" y2="56" stroke="#1b1b1f"/>
+    <text x="100" y="34" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#fafafa">Client Workspace</text>
+    <rect x="240" y="16" width="360" height="26" rx="8" fill="#131316" stroke="#26262b"/>
+    <circle cx="256" cy="29" r="4.5" fill="none" stroke="#6b6b74" stroke-width="1.4"/>
+    <text x="270" y="33" font-family="Inter" font-size="9.5" fill="#6b6b74">Search clients…</text>
+    <rect x="1080" y="14" width="120" height="28" rx="14" fill="#f97316"/>
+    <text x="1100" y="32" font-family="Plus Jakarta Sans" font-weight="700" font-size="10.5" fill="#0a0a0b">+ New Client</text>
+    <circle cx="1276" cy="28" r="14" fill="#1b1b1f"/>
+    <text x="1276" y="32" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="9.5" fill="#fafafa">RM</text>
+
+    <!-- CLIENT LIST RAIL -->
+    <rect x="72" y="56" width="256" height="804" fill="#0a0a0b"/>
+    <line x1="328" y1="56" x2="328" y2="860" stroke="#1b1b1f"/>
+    <text x="96" y="82" font-family="JetBrains Mono" font-size="8" letter-spacing="1" fill="#6b6b74">156 CLIENTS · SORTED BY RISK</text>
+
+    <!-- selected client row -->
+    <rect x="88" y="94" width="224" height="60" rx="12" fill="#1b1b1f"/>
+    <rect x="88" y="94" width="3" height="60" rx="1.5" fill="#f97316"/>
+    <circle cx="112" cy="118" r="16" fill="#f9731633"/>
+    <text x="112" y="122" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#f97316">GE</text>
+    <text x="136" y="115" font-family="Inter" font-weight="700" font-size="10.5" fill="#fafafa">Garage Elie Motors</text>
+    <text x="136" y="128" font-family="Inter" font-size="8.5" fill="#a1a1aa">Bourj Hammoud · Fleet</text>
+    <rect x="136" y="134" width="46" height="13" rx="6" fill="#ef444422"/>
+    <text x="159" y="143" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#ef4444">HIGH RISK</text>
+    <text x="300" y="128" text-anchor="end" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#ef4444">$1,860</text>
+
+    <!-- other client rows -->
+    <g font-family="Inter">
+      <circle cx="112" cy="180" r="16" fill="#38bdf822"/><text x="112" y="184" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#38bdf8">NA</text>
+      <text x="136" y="177" font-weight="700" font-size="10.5" fill="#fafafa">Nabil Auto Service</text>
+      <text x="136" y="190" font-size="8.5" fill="#a1a1aa">Dora · Retail</text>
+      <text x="300" y="182" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fbbf24">$940</text>
+
+      <circle cx="112" cy="228" r="16" fill="#38bdf822"/><text x="112" y="232" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#38bdf8">BF</text>
+      <text x="136" y="225" font-weight="700" font-size="10.5" fill="#fafafa">Beirut Fleet Rentals</text>
+      <text x="136" y="238" font-size="8.5" fill="#a1a1aa">Jal el Dib · Fleet</text>
+      <text x="300" y="230" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fbbf24">$1,120</text>
+
+      <circle cx="112" cy="276" r="16" fill="#22c55e22"/><text x="112" y="280" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#22c55e">SK</text>
+      <text x="136" y="273" font-weight="700" font-size="10.5" fill="#fafafa">Sami Karam Motors</text>
+      <text x="136" y="286" font-size="8.5" fill="#a1a1aa">Zahle · Retail</text>
+      <text x="300" y="278" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#a1a1aa">$620</text>
+
+      <circle cx="112" cy="324" r="16" fill="#22c55e22"/><text x="112" y="328" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#22c55e">RT</text>
+      <text x="136" y="321" font-weight="700" font-size="10.5" fill="#fafafa">Rania Trading Co.</text>
+      <text x="136" y="334" font-size="8.5" fill="#a1a1aa">Achrafieh · Wholesale</text>
+      <text x="300" y="326" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#a1a1aa">$480</text>
+
+      <circle cx="112" cy="372" r="16" fill="#22c55e22"/><text x="112" y="376" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10" fill="#22c55e">JT</text>
+      <text x="136" y="369" font-weight="700" font-size="10.5" fill="#fafafa">Joe Touma Garage</text>
+      <text x="136" y="382" font-size="8.5" fill="#a1a1aa">Furn el Chebbak · Retail</text>
+      <text x="300" y="374" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#a1a1aa">$0</text>
+    </g>
+    <g font-family="Inter" opacity="0.55">
+      <text x="136" y="418" font-size="10" fill="#a1a1aa">Chady Spare Parts Depot</text>
+      <text x="136" y="450" font-size="10" fill="#a1a1aa">Elie Karam — Private</text>
+      <text x="136" y="482" font-size="10" fill="#a1a1aa">Antelias Motors Group</text>
+    </g>
+
+    <!-- MAIN COLUMN: header -->
+    <rect x="352" y="78" width="984" height="118" rx="16" fill="#131316"/>
+    <rect x="352" y="78" width="4" height="118" rx="2" fill="url(#riskEdge)"/>
+    <circle cx="404" cy="136" r="30" fill="#f9731622"/>
+    <text x="404" y="143" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="17" fill="#f97316">GE</text>
+    <text x="452" y="118" font-family="Plus Jakarta Sans" font-weight="800" font-size="20" letter-spacing="-0.5" fill="#fafafa">Garage Elie Motors</text>
+    <rect x="640" y="102" width="80" height="18" rx="9" fill="#ef444422"/>
+    <text x="680" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ef4444">HIGH RISK</text>
+    <text x="452" y="136" font-family="Inter" font-size="10" fill="#a1a1aa">Fleet Account · Bourj Hammoud, Beirut · +961 3 456 789</text>
+    <text x="452" y="152" font-family="Inter" font-size="10" fill="#a1a1aa">Client since Mar 2021 · Tax ID LB-994271 · 8 vehicles on file</text>
+
+    <line x1="452" y1="164" x2="452" y2="184" stroke="#26262b"/>
+    <text x="452" y="172" font-family="Inter" font-size="8" fill="#6b6b74">Preferred contact: WhatsApp</text>
+    <text x="452" y="184" font-family="Inter" font-size="8" fill="#6b6b74">Loyalty tier: Gold · 2,140 pts</text>
+
+    <!-- balance block right side of header -->
+    <line x1="900" y1="94" x2="900" y2="182" stroke="#26262b"/>
+    <text x="922" y="108" font-family="JetBrains Mono" font-size="8" letter-spacing="1" fill="#6b6b74">TOTAL BALANCE</text>
+    <text x="922" y="136" font-family="JetBrains Mono" font-size="24" font-weight="700" fill="#ef4444">$1,860.00</text>
+    <text x="922" y="152" font-family="Inter" font-size="9" fill="#a1a1aa">Credit limit $2,500.00 · 74% used</text>
+    <rect x="922" y="160" width="180" height="6" rx="3" fill="#1b1b1f"/>
+    <rect x="922" y="160" width="133" height="6" rx="3" fill="#ef4444"/>
+    <rect x="1160" y="96" width="150" height="28" rx="14" fill="#f97316"/>
+    <text x="1235" y="114" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="10.5" fill="#0a0a0b">Record Payment</text>
+    <rect x="1160" y="130" width="150" height="26" rx="13" fill="#1b1b1f" stroke="#26262b"/>
+    <text x="1235" y="147" text-anchor="middle" font-family="Inter" font-size="9.5" fill="#fafafa">Send Statement</text>
+
+    <!-- TABS -->
+    <g font-family="Inter" font-weight="600" font-size="10.5">
+      <text x="368" y="222" fill="#fafafa">Overview</text>
+      <rect x="365" y="228" width="52" height="2.5" rx="1" fill="#f97316"/>
+      <text x="440" y="222" fill="#6b6b74">Invoices</text>
+      <text x="510" y="222" fill="#6b6b74">Payments</text>
+      <text x="586" y="222" fill="#6b6b74">Quotes</text>
+      <text x="646" y="222" fill="#6b6b74">Part Requests</text>
+      <text x="742" y="222" fill="#6b6b74">Vehicles</text>
+      <text x="808" y="222" fill="#6b6b74">Loyalty</text>
+      <text x="870" y="222" fill="#6b6b74">Timeline</text>
+    </g>
+    <line x1="352" y1="238" x2="1336" y2="238" stroke="#1b1b1f"/>
+
+    <!-- Aging bar -->
+    <rect x="352" y="254" width="646" height="90" rx="16" fill="#131316"/>
+    <text x="376" y="280" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Aging Breakdown</text>
+    <text x="974" y="280" text-anchor="end" font-family="Inter" font-size="9" fill="#f97316">Full statement →</text>
+    <rect x="376" y="292" width="598" height="20" rx="6" fill="#1b1b1f"/>
+    <rect x="376" y="292" width="0" height="20" fill="#22c55e"/>
+    <rect x="376" y="292" width="150" height="20" fill="#fbbf24"/>
+    <rect x="526" y="292" width="120" height="20" fill="#f97316"/>
+    <rect x="646" y="292" width="328" height="20" fill="#ef4444"/>
+    <g font-family="JetBrains Mono" font-size="8" fill="#6b6b74">
+      <text x="376" y="330">CURRENT $0</text>
+      <text x="480" y="330" fill="#fbbf24">1-30D $460</text>
+      <text x="580" y="330" fill="#f97316">31-60D $370</text>
+      <text x="700" y="330" fill="#ef4444">90+D $1,030</text>
+    </g>
+
+    <!-- Vehicles mini panel -->
+    <rect x="1010" y="254" width="326" height="90" rx="16" fill="#131316"/>
+    <text x="1034" y="280" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Vehicles on File</text>
+    <text x="1310" y="280" text-anchor="end" font-family="Inter" font-size="9" fill="#f97316">8 total →</text>
+    <text x="1034" y="300" font-family="Inter" font-size="9.5" fill="#fafafa">BMW 335i E90 · 2011</text>
+    <text x="1034" y="313" font-family="Inter" font-size="9.5" fill="#fafafa">Mercedes W205 C300 · 2018</text>
+    <text x="1034" y="326" font-family="Inter" font-size="9.5" fill="#fafafa">Toyota Hiace · 2016</text>
+    <text x="1034" y="339" font-family="Inter" font-size="8.5" fill="#6b6b74">+5 more vehicles</text>
+
+    <!-- Invoice table -->
+    <rect x="352" y="360" width="646" height="270" rx="16" fill="#131316"/>
+    <text x="376" y="392" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Recent Invoices</text>
+    <text x="974" y="392" text-anchor="end" font-family="Inter" font-size="9" fill="#f97316">View all invoices →</text>
+    <g font-family="JetBrains Mono" font-size="7.5" fill="#6b6b74">
+      <text x="376" y="412">INVOICE</text><text x="520" y="412">DATE</text><text x="620" y="412">STATUS</text><text x="974" y="412" text-anchor="end">AMOUNT</text>
+    </g>
+    <line x1="376" y1="420" x2="974" y2="420" stroke="#26262b"/>
+    <g font-family="Inter">
+      <text x="376" y="442" font-size="10" font-weight="600" fill="#fafafa">INV-10482</text>
+      <text x="520" y="442" font-size="9" fill="#a1a1aa">Apr 2, 2026</text>
+      <rect x="620" y="431" width="60" height="16" rx="8" fill="#ef444422"/><text x="650" y="442" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ef4444">OVERDUE</text>
+      <text x="974" y="442" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$1,030.00</text>
+
+      <text x="376" y="470" font-size="10" font-weight="600" fill="#fafafa">INV-10365</text>
+      <text x="520" y="470" font-size="9" fill="#a1a1aa">Mar 14, 2026</text>
+      <rect x="620" y="459" width="60" height="16" rx="8" fill="#fbbf2422"/><text x="650" y="470" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#fbbf24">PARTIAL</text>
+      <text x="974" y="470" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$460.00</text>
+
+      <text x="376" y="498" font-size="10" font-weight="600" fill="#fafafa">INV-10298</text>
+      <text x="520" y="498" font-size="9" fill="#a1a1aa">Feb 27, 2026</text>
+      <rect x="620" y="487" width="60" height="16" rx="8" fill="#fbbf2422"/><text x="650" y="498" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#fbbf24">DUE SOON</text>
+      <text x="974" y="498" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#fafafa">$370.00</text>
+
+      <text x="376" y="526" font-size="10" font-weight="600" fill="#fafafa">INV-10201</text>
+      <text x="520" y="526" font-size="9" fill="#a1a1aa">Jan 30, 2026</text>
+      <rect x="620" y="515" width="46" height="16" rx="8" fill="#22c55e22"/><text x="643" y="526" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#22c55e">PAID</text>
+      <text x="974" y="526" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#6b6b74">$820.00</text>
+
+      <text x="376" y="554" font-size="10" font-weight="600" fill="#fafafa">INV-10144</text>
+      <text x="520" y="554" font-size="9" fill="#a1a1aa">Jan 12, 2026</text>
+      <rect x="620" y="543" width="46" height="16" rx="8" fill="#22c55e22"/><text x="643" y="554" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#22c55e">PAID</text>
+      <text x="974" y="554" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#6b6b74">$1,150.00</text>
+
+      <text x="376" y="582" font-size="10" font-weight="600" fill="#fafafa">INV-10089</text>
+      <text x="520" y="582" font-size="9" fill="#a1a1aa">Dec 18, 2025</text>
+      <rect x="620" y="571" width="46" height="16" rx="8" fill="#22c55e22"/><text x="643" y="582" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#22c55e">PAID</text>
+      <text x="974" y="582" text-anchor="end" font-family="JetBrains Mono" font-size="10" fill="#6b6b74">$640.00</text>
+    </g>
+    <text x="376" y="608" font-family="Inter" font-size="8.5" fill="#6b6b74">Showing 6 of 34 invoices</text>
+
+    <!-- Activity timeline -->
+    <rect x="1010" y="360" width="326" height="270" rx="16" fill="#131316"/>
+    <text x="1034" y="392" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Activity Timeline</text>
+    <line x1="1050" y1="404" x2="1050" y2="612" stroke="#26262b"/>
+
+    <circle cx="1050" cy="412" r="4" fill="#ef4444"/>
+    <text x="1064" y="410" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Payment reminder sent</text>
+    <text x="1064" y="422" font-family="Inter" font-size="8" fill="#6b6b74">WhatsApp · Jun 30, 2026</text>
+
+    <circle cx="1050" cy="446" r="4" fill="#f97316"/>
+    <text x="1064" y="444" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Invoice INV-10482 issued</text>
+    <text x="1064" y="456" font-family="Inter" font-size="8" fill="#6b6b74">$1,030.00 · Apr 2, 2026</text>
+
+    <circle cx="1050" cy="480" r="4" fill="#38bdf8"/>
+    <text x="1064" y="478" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Quote Q-2216 approved</text>
+    <text x="1064" y="490" font-family="Inter" font-size="8" fill="#6b6b74">Brake service package · Mar 28</text>
+
+    <circle cx="1050" cy="514" r="4" fill="#22c55e"/>
+    <text x="1064" y="512" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Payment received</text>
+    <text x="1064" y="524" font-family="Inter" font-size="8" fill="#6b6b74">$820.00 against INV-10201 · Feb 2</text>
+
+    <circle cx="1050" cy="548" r="4" fill="#a1a1aa"/>
+    <text x="1064" y="546" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Part request opened</text>
+    <text x="1064" y="558" font-family="Inter" font-size="8" fill="#6b6b74">Rear diff mount, W205 · Jan 20</text>
+
+    <circle cx="1050" cy="582" r="4" fill="#a1a1aa"/>
+    <text x="1064" y="580" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Vehicle added</text>
+    <text x="1064" y="592" font-family="Inter" font-size="8" fill="#6b6b74">Toyota Hiace 2016 · Jan 12</text>
+  </svg>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>10</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 11 — MOBILE VARIANTS -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">09 · Mobile Variants</div>
+  <div class="section-title">Narrow Layout — Dashboard &amp; Client Workspace</div>
+  <div class="section-sub">Icon rail collapses to a bottom tab bar; KPI band becomes a horizontal scroll snap; client list rail becomes a full-screen list that pushes to a detail screen. Touch targets increase to 44px minimum (WPF/web use 32-36px pointer targets — mobile is a deliberate divergence for touch ergonomics).</div>
+
+  <div class="two-col" style="margin-top:6mm;gap:10mm;">
+    <div>
+      <div class="mockcaption"><span class="eyebrow">DASHBOARD · MOBILE</span></div>
+      <div class="mockframe" style="padding:4mm;">
+      <svg width="100%" viewBox="0 0 300 620">
+        <rect width="300" height="620" rx="22" fill="#0a0a0b"/>
+        <rect x="18" y="14" width="120" height="8" rx="4" fill="#1b1b1f"/>
+        <text x="18" y="52" font-family="Plus Jakarta Sans" font-weight="800" font-size="17" letter-spacing="-.5" fill="#fafafa">Hi, Ralph</text>
+        <text x="18" y="68" font-family="Inter" font-size="9" fill="#a1a1aa">Tue, Jul 2 · shop overview</text>
+        <circle cx="270" cy="52" r="16" fill="#1b1b1f"/>
+        <path d="M264 48c0-3 2-5 6-5s6 2 6 5c0 4 2 5 2 5h-16s2-1 2-5z" fill="none" stroke="#a1a1aa" stroke-width="1.2"/>
+        <circle cx="278" cy="42" r="3" fill="#ef4444"/>
+
+        <!-- kpi scroll -->
+        <rect x="18" y="86" width="130" height="76" rx="14" fill="#131316"/>
+        <rect x="18" y="86" width="3" height="76" fill="#f97316"/>
+        <text x="34" y="108" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">SALES TODAY</text>
+        <text x="34" y="132" font-family="JetBrains Mono" font-size="17" font-weight="700" fill="#fafafa">$2,418</text>
+        <text x="34" y="148" font-family="Inter" font-size="7.5" fill="#22c55e">▲ 12.4%</text>
+
+        <rect x="156" y="86" width="126" height="76" rx="14" fill="#131316" opacity=".55"/>
+        <text x="172" y="108" font-family="JetBrains Mono" font-size="7" fill="#6b6b74">RECEIVABLES</text>
+        <text x="172" y="132" font-family="JetBrains Mono" font-size="15" font-weight="700" fill="#f97316">$8,240</text>
+
+        <circle cx="140" cy="176" r="2.4" fill="#f97316"/><circle cx="150" cy="176" r="2.4" fill="#3a3a42"/><circle cx="160" cy="176" r="2.4" fill="#3a3a42"/>
+
+        <!-- action queue -->
+        <text x="18" y="204" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Action Queue</text>
+        <rect x="18" y="214" width="264" height="46" rx="12" fill="#131316"/>
+        <rect x="18" y="214" width="3" height="46" fill="#ef4444"/>
+        <text x="32" y="234" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">Garage Elie Motors — 91d overdue</text>
+        <text x="32" y="248" font-family="JetBrains Mono" font-size="9.5" fill="#ef4444">$1,860.00</text>
+
+        <rect x="18" y="264" width="264" height="46" rx="12" fill="#131316"/>
+        <rect x="18" y="264" width="3" height="46" fill="#fbbf24"/>
+        <text x="32" y="284" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">4 parts: currency-rate pressure</text>
+        <text x="32" y="298" font-family="Inter" font-size="8.5" fill="#a1a1aa">Review margin watch →</text>
+
+        <!-- chart -->
+        <text x="18" y="336" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Sales Trend · 7d</text>
+        <rect x="18" y="346" width="264" height="110" rx="14" fill="#131316"/>
+        <polyline points="34,420 66,404 98,412 130,384 162,394 194,362 226,372 258,344" fill="none" stroke="#f97316" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="258" cy="344" r="4" fill="#0a0a0b" stroke="#f97316" stroke-width="2"/>
+
+        <text x="18" y="480" font-family="Plus Jakarta Sans" font-weight="700" font-size="12.5" fill="#fafafa">Low Stock</text>
+        <rect x="18" y="490" width="264" height="34" rx="10" fill="#131316"/>
+        <text x="32" y="510" font-family="Inter" font-size="9.5" fill="#fafafa">Brake Pad Set — Front</text>
+        <text x="270" y="510" text-anchor="end" font-family="JetBrains Mono" font-size="9.5" fill="#ef4444">1 left</text>
+        <rect x="18" y="528" width="264" height="34" rx="10" fill="#131316"/>
+        <text x="32" y="548" font-family="Inter" font-size="9.5" fill="#fafafa">Ignition Coil N54</text>
+        <text x="270" y="548" text-anchor="end" font-family="JetBrains Mono" font-size="9.5" fill="#ef4444">0 left</text>
+
+        <!-- bottom tab bar -->
+        <rect x="0" y="574" width="300" height="46" fill="#0a0a0b"/>
+        <line x1="0" y1="574" x2="300" y2="574" stroke="#1b1b1f"/>
+        <circle cx="50" cy="597" r="16" fill="#f9731622"/>
+        <rect x="42" y="589" width="16" height="16" rx="4" fill="none" stroke="#f97316" stroke-width="1.6"/>
+        <rect x="120" y="589" width="16" height="16" rx="4" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+        <circle cx="176" cy="597" r="17" fill="#f97316"/>
+        <path d="M176 590v14M169 597h14" stroke="#0a0a0b" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="222" cy="597" r="6" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+        <rect x="266" y="589" width="16" height="16" rx="8" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      </svg>
+      </div>
+    </div>
+    <div>
+      <div class="mockcaption"><span class="eyebrow">CLIENT WORKSPACE · MOBILE</span></div>
+      <div class="mockframe" style="padding:4mm;">
+      <svg width="100%" viewBox="0 0 300 620">
+        <rect width="300" height="620" rx="22" fill="#0a0a0b"/>
+        <path d="M20 44l-8 8 8 8" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="40" y="56" font-family="Inter" font-size="9.5" fill="#a1a1aa">All Clients</text>
+
+        <!-- header card -->
+        <rect x="18" y="70" width="264" height="132" rx="16" fill="#131316"/>
+        <rect x="18" y="70" width="264" height="3" rx="1.5" fill="url(#riskEdge2)"/>
+        <defs><linearGradient id="riskEdge2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs>
+        <circle cx="52" cy="110" r="24" fill="#f9731622"/>
+        <text x="52" y="116" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="13" fill="#f97316">GE</text>
+        <text x="88" y="102" font-family="Plus Jakarta Sans" font-weight="800" font-size="14.5" fill="#fafafa">Garage Elie Motors</text>
+        <rect x="88" y="110" width="70" height="15" rx="7.5" fill="#ef444422"/>
+        <text x="123" y="120.5" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ef4444">HIGH RISK</text>
+        <text x="88" y="136" font-family="Inter" font-size="8.5" fill="#a1a1aa">Fleet · Bourj Hammoud</text>
+
+        <line x1="32" y1="150" x2="268" y2="150" stroke="#26262b"/>
+        <text x="32" y="170" font-family="JetBrains Mono" font-size="7.5" fill="#6b6b74">TOTAL BALANCE</text>
+        <text x="32" y="192" font-family="JetBrains Mono" font-size="20" font-weight="700" fill="#ef4444">$1,860.00</text>
+        <rect x="180" y="168" width="86" height="28" rx="14" fill="#f97316"/>
+        <text x="223" y="186" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="9.5" fill="#0a0a0b">Pay</text>
+
+        <!-- tab pills -->
+        <rect x="18" y="214" width="70" height="24" rx="12" fill="#f97316"/>
+        <text x="53" y="230" text-anchor="middle" font-family="Inter" font-weight="700" font-size="9" fill="#0a0a0b">Overview</text>
+        <rect x="94" y="214" width="60" height="24" rx="12" fill="#1b1b1f"/>
+        <text x="124" y="230" text-anchor="middle" font-family="Inter" font-size="9" fill="#a1a1aa">Invoices</text>
+        <rect x="160" y="214" width="60" height="24" rx="12" fill="#1b1b1f"/>
+        <text x="190" y="230" text-anchor="middle" font-family="Inter" font-size="9" fill="#a1a1aa">Quotes</text>
+        <rect x="226" y="214" width="56" height="24" rx="12" fill="#1b1b1f"/>
+        <text x="254" y="230" text-anchor="middle" font-family="Inter" font-size="9" fill="#a1a1aa">More</text>
+
+        <!-- aging -->
+        <text x="18" y="266" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#fafafa">Aging</text>
+        <rect x="18" y="274" width="264" height="16" rx="6" fill="#1b1b1f"/>
+        <rect x="18" y="274" width="60" height="16" fill="#fbbf24"/>
+        <rect x="78" y="274" width="52" height="16" fill="#f97316"/>
+        <rect x="130" y="274" width="152" height="16" fill="#ef4444"/>
+
+        <!-- invoices list -->
+        <text x="18" y="318" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#fafafa">Recent Invoices</text>
+        <rect x="18" y="326" width="264" height="42" rx="12" fill="#131316"/>
+        <text x="32" y="344" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">INV-10482</text>
+        <rect x="32" y="350" width="56" height="13" rx="6.5" fill="#ef444422"/><text x="60" y="359.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#ef4444">OVERDUE</text>
+        <text x="270" y="352" text-anchor="end" font-family="JetBrains Mono" font-size="10.5" fill="#fafafa">$1,030</text>
+
+        <rect x="18" y="374" width="264" height="42" rx="12" fill="#131316"/>
+        <text x="32" y="392" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">INV-10365</text>
+        <rect x="32" y="398" width="48" height="13" rx="6.5" fill="#fbbf2422"/><text x="56" y="407.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#fbbf24">PARTIAL</text>
+        <text x="270" y="400" text-anchor="end" font-family="JetBrains Mono" font-size="10.5" fill="#fafafa">$460</text>
+
+        <rect x="18" y="422" width="264" height="42" rx="12" fill="#131316"/>
+        <text x="32" y="440" font-family="Inter" font-weight="600" font-size="9.5" fill="#fafafa">INV-10201</text>
+        <rect x="32" y="446" width="38" height="13" rx="6.5" fill="#22c55e22"/><text x="51" y="455.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#22c55e">PAID</text>
+        <text x="270" y="448" text-anchor="end" font-family="JetBrains Mono" font-size="10.5" fill="#6b6b74">$820</text>
+
+        <text x="18" y="490" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#fafafa">Timeline</text>
+        <circle cx="24" cy="508" r="3.4" fill="#ef4444"/>
+        <text x="36" y="511" font-family="Inter" font-size="9" fill="#fafafa">Payment reminder sent</text>
+        <circle cx="24" cy="530" r="3.4" fill="#f97316"/>
+        <text x="36" y="533" font-family="Inter" font-size="9" fill="#fafafa">Invoice INV-10482 issued</text>
+        <circle cx="24" cy="552" r="3.4" fill="#22c55e"/>
+        <text x="36" y="555" font-family="Inter" font-size="9" fill="#fafafa">Payment received $820</text>
+
+        <rect x="0" y="574" width="300" height="46" fill="#0a0a0b"/>
+        <line x1="0" y1="574" x2="300" y2="574" stroke="#1b1b1f"/>
+        <rect x="42" y="589" width="16" height="16" rx="4" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+        <circle cx="130" cy="597" r="16" fill="#f9731622"/>
+        <circle cx="130" cy="592" r="5" fill="none" stroke="#f97316" stroke-width="1.6"/>
+        <path d="M122 606c0-5 4-8 8-8s8 3 8 8" stroke="#f97316" stroke-width="1.6" fill="none"/>
+        <circle cx="176" cy="597" r="17" fill="#f97316"/>
+        <path d="M176 590v14M169 597h14" stroke="#0a0a0b" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="222" cy="597" r="6" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+        <rect x="266" y="589" width="16" height="16" rx="8" fill="none" stroke="#6b6b74" stroke-width="1.6"/>
+      </svg>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top:5mm;font-size:9.5px;color:#8a8a92;">Mobile-specific divergences (documented per the platform rule): bottom tab bar replaces the icon rail; minimum tap target 44×44px vs 32px pointer targets on web/WPF; KPI band becomes horizontally scrollable with snap + dot pagination instead of a fixed 6-up grid; the command bar's Ctrl K hint is replaced by a full-width tap-to-search field.</p>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>11</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 12 — LIGHT MODE DASHBOARD -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">10 · Light-Mode Variant</div>
+  <div class="section-title">Dashboard — Light Mode</div>
+  <div class="section-sub">Full light-surface rendition of the same dashboard: paper white canvas, orange recalibrated to ramp-600 for AA contrast, identical layout and data.</div>
+
+  <div style="margin-top:5mm;border-radius:14px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.12);border:1px solid #eee;">
+  <svg width="100%" viewBox="0 0 1360 560" font-family="Inter">
+    <rect width="1360" height="560" fill="#ffffff"/>
+    <rect x="0" y="0" width="72" height="560" fill="#ffffff"/>
+    <line x1="72" y1="0" x2="72" y2="560" stroke="#efeff1"/>
+    <rect x="18" y="18" width="36" height="36" rx="10" fill="#ea580c"/>
+    <text x="36" y="42" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="800" font-size="17" fill="#fff">S</text>
+    <rect x="16" y="86" width="40" height="40" rx="12" fill="#fff7ed"/>
+    <rect x="28" y="96" width="16" height="16" rx="3" fill="none" stroke="#ea580c" stroke-width="1.6"/>
+    <rect x="16" y="222" width="40" height="40" rx="12" fill="none"/>
+    <circle cx="30" cy="238" r="6" fill="none" stroke="#8b8b94" stroke-width="1.6"/>
+    <rect x="16" y="290" width="40" height="40" rx="12" fill="none"/>
+    <rect x="26" y="300" width="20" height="16" rx="2" fill="none" stroke="#8b8b94" stroke-width="1.6"/>
+
+    <rect x="72" y="0" width="1288" height="60" fill="#ffffff"/>
+    <line x1="72" y1="60" x2="1360" y2="60" stroke="#efeff1"/>
+    <rect x="100" y="14" width="480" height="30" rx="10" fill="#f7f7f8" stroke="#dcdce1"/>
+    <circle cx="118" cy="29" r="5" fill="none" stroke="#8b8b94" stroke-width="1.4"/>
+    <text x="132" y="33" font-family="Inter" font-size="10" fill="#8b8b94">Search parts, OEM code, clients, invoices…</text>
+    <rect x="1080" y="14" width="118" height="30" rx="15" fill="#ea580c"/>
+    <text x="1100" y="34" font-family="Plus Jakarta Sans" font-weight="700" font-size="11.5" fill="#fff">+ New Sale</text>
+    <circle cx="1266" cy="29" r="14" fill="#f7f7f8"/>
+    <text x="1266" y="33" text-anchor="middle" font-family="Plus Jakarta Sans" font-weight="700" font-size="9.5" fill="#111114">RM</text>
+
+    <text x="100" y="96" font-family="Plus Jakarta Sans" font-weight="800" font-size="22" letter-spacing="-.7" fill="#111114">Welcome back, Ralph</text>
+    <text x="100" y="115" font-family="Inter" font-size="10.5" fill="#52525b">Tuesday, July 2 2026 — here's what's happening across the shop today.</text>
+
+    <!-- KPI band -->
+    <rect x="100" y="136" width="1190" height="96" rx="20" fill="#f7f7f8" stroke="#efeff1"/>
+    <rect x="100" y="136" width="4" height="96" rx="2" fill="#ea580c"/>
+    <line x1="298" y1="154" x2="298" y2="212" stroke="#dcdce1"/>
+    <line x1="496" y1="154" x2="496" y2="212" stroke="#dcdce1"/>
+    <line x1="694" y1="154" x2="694" y2="212" stroke="#dcdce1"/>
+    <line x1="892" y1="154" x2="892" y2="212" stroke="#dcdce1"/>
+    <line x1="1090" y1="154" x2="1090" y2="212" stroke="#dcdce1"/>
+    <g font-family="JetBrains Mono">
+      <text x="132" y="168" font-size="8" letter-spacing="1" fill="#8b8b94">SALES TODAY</text>
+      <text x="132" y="196" font-size="19" font-weight="700" fill="#111114">$2,418.00</text>
+      <text x="330" y="168" font-size="8" letter-spacing="1" fill="#8b8b94">PROFIT TODAY</text>
+      <text x="330" y="196" font-size="19" font-weight="700" fill="#16a34a">$612.40</text>
+      <text x="528" y="168" font-size="8" letter-spacing="1" fill="#8b8b94">CASH BALANCE</text>
+      <text x="528" y="196" font-size="19" font-weight="700" fill="#111114">$14,860.00</text>
+      <text x="726" y="168" font-size="8" letter-spacing="1" fill="#8b8b94">RECEIVABLES</text>
+      <text x="726" y="196" font-size="19" font-weight="700" fill="#ea580c">$8,240.50</text>
+      <text x="924" y="168" font-size="8" letter-spacing="1" fill="#8b8b94">SUPPLIER DEBT</text>
+      <text x="924" y="196" font-size="19" font-weight="700" fill="#111114">$5,120.00</text>
+      <text x="1122" y="168" font-size="8" letter-spacing="1" fill="#8b8b94">STOCK VALUE</text>
+      <text x="1122" y="196" font-size="19" font-weight="700" fill="#111114">$96,340</text>
+    </g>
+
+    <!-- sales trend + action queue -->
+    <rect x="100" y="252" width="700" height="270" rx="16" fill="#f7f7f8" stroke="#efeff1"/>
+    <text x="128" y="284" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#111114">Sales Trend</text>
+    <text x="128" y="302" font-family="Inter" font-size="9.5" fill="#8b8b94">Last 7 days · gross sales, USD</text>
+    <g stroke="#e4e4e8">
+      <line x1="128" y1="344" x2="760" y2="344"/><line x1="128" y1="388" x2="760" y2="388"/>
+      <line x1="128" y1="432" x2="760" y2="432"/><line x1="128" y1="476" x2="760" y2="476"/>
+    </g>
+    <path d="M148,454 L228,424 L308,439 L388,376 L468,394 L548,324 L628,344 L708,284 L708,484 L148,484 Z" fill="#ea580c" opacity="0.12"/>
+    <polyline points="148,454 228,424 308,439 388,376 468,394 548,324 628,344 708,284" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="708" cy="284" r="5" fill="#fff" stroke="#ea580c" stroke-width="2.4"/>
+    <g font-family="Inter" font-size="8.5" fill="#8b8b94">
+      <text x="148" y="498">Mon</text><text x="228" y="498">Tue</text><text x="308" y="498">Wed</text><text x="388" y="498">Thu</text>
+      <text x="468" y="498">Fri</text><text x="548" y="498">Sat</text><text x="628" y="498">Sun</text><text x="700" y="498">Today</text>
+    </g>
+
+    <rect x="816" y="252" width="444" height="270" rx="16" fill="#f7f7f8" stroke="#efeff1"/>
+    <text x="844" y="284" font-family="Plus Jakarta Sans" font-weight="700" font-size="14" fill="#111114">Action Queue</text>
+    <rect x="844" y="298" width="388" height="50" rx="12" fill="#ffffff" stroke="#efeff1"/>
+    <rect x="844" y="298" width="3" height="50" rx="1.5" fill="#dc2626"/>
+    <text x="900" y="317" font-family="Inter" font-weight="600" font-size="10.5" fill="#111114">Garage Elie Motors — 91 days overdue</text>
+    <text x="900" y="331" font-family="Inter" font-size="8.5" fill="#52525b">Invoice INV-10482 · follow up</text>
+    <text x="1220" y="320" text-anchor="end" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#dc2626">$1,030.00</text>
+
+    <rect x="844" y="356" width="388" height="50" rx="12" fill="#ffffff" stroke="#efeff1"/>
+    <rect x="844" y="356" width="3" height="50" rx="1.5" fill="#d97706"/>
+    <text x="900" y="375" font-family="Inter" font-weight="600" font-size="10.5" fill="#111114">4 parts show currency-rate pressure</text>
+    <text x="900" y="389" font-family="Inter" font-size="8.5" fill="#52525b">Review margin watch</text>
+
+    <rect x="844" y="414" width="388" height="50" rx="12" fill="#ffffff" stroke="#efeff1"/>
+    <rect x="844" y="414" width="3" height="50" rx="1.5" fill="#0284c7"/>
+    <text x="900" y="433" font-family="Inter" font-weight="600" font-size="10.5" fill="#111114">2 WhatsApp reminders failed</text>
+    <text x="900" y="447" font-family="Inter" font-size="8.5" fill="#52525b">Retry delivery</text>
+  </svg>
+  </div>
+  <p style="margin-top:4mm;font-size:9.5px;color:#8a8a92;">All structural rules (72px rail, KPI band, borderless 16px cards, JetBrains Mono figures) carry over unchanged — only the surface/text ramp and orange calibration switch per the light-mode token table on page 5.</p>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>12</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 13 — ICONOGRAPHY -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">11 · Iconography</div>
+  <div class="section-title">Stroke Style &amp; Reference Set</div>
+  <div class="section-sub">A single geometric stroke family used across all three platforms — no filled icons except status dots and the active-state accent fill.</div>
+
+  <div class="card" style="margin-top:5mm;">
+    <h4>Stroke Specification</h4>
+    <table class="spec">
+      <tr><td style="width:140px;">Grid</td><td>24×24px artboard, 20×20 live area, 2px safe margin</td></tr>
+      <tr><td>Stroke weight</td><td>1.75px at 24px size (scales proportionally: 1.5px at 20px, 2px at 32px)</td></tr>
+      <tr><td>Corners</td><td>Round joins and round caps throughout — no mitered/sharp joins</td></tr>
+      <tr><td>Fill</td><td>None by default (stroke-only); accent-filled variant reserved for active nav state and status dots</td></tr>
+      <tr><td>Color (dark)</td><td>#A1A1AA default, #FAFAFA on hover/active label, #F97316 when representing the active/selected icon</td></tr>
+      <tr><td>Color (light)</td><td>#52525B default, #111114 hover/active label, #EA580C active icon</td></tr>
+      <tr><td>Optical sizes</td><td>14px (inline/table), 16px (buttons), 20px (nav rail), 28px (empty-state illustration accents)</td></tr>
+    </table>
+  </div>
+
+  <div class="ramp-label" style="margin-top:6mm;">Reference 12-icon set</div>
+  <svg width="100%" height="150" viewBox="0 0 620 150">
+    <g stroke="#111114" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <!-- dashboard/grid -->
+      <g transform="translate(10,10)"><rect width="12" height="12" rx="2.5"/><rect x="18" width="12" height="12" rx="2.5"/><rect y="18" width="12" height="12" rx="2.5"/><rect x="18" y="18" width="12" height="12" rx="2.5"/></g>
+      <!-- cart/sales -->
+      <g transform="translate(62,8)"><path d="M0 2h4l4 18h16l4-13H8"/><circle cx="10" cy="26" r="2"/><circle cx="20" cy="26" r="2"/></g>
+      <!-- box/parts -->
+      <g transform="translate(114,8)"><path d="M2 8l13-7 13 7-13 7-13-7z"/><path d="M2 8v14l13 7 13-7V8"/><path d="M15 15v14"/></g>
+      <!-- link/compatibility -->
+      <g transform="translate(168,10)"><path d="M4 14a6 6 0 018 0l2 2"/><path d="M22 12a6 6 0 01-8 0l-2-2"/><rect x="0" y="10" width="10" height="8" rx="4"/><rect x="16" y="8" width="10" height="8" rx="4"/></g>
+      <!-- car/donor -->
+      <g transform="translate(220,12)"><path d="M2 14l3-8h16l3 8"/><rect x="0" y="14" width="26" height="8" rx="2"/><circle cx="7" cy="24" r="2.4"/><circle cx="19" cy="24" r="2.4"/></g>
+      <!-- bank/finance -->
+      <g transform="translate(276,10)"><path d="M0 8l13-7 13 7"/><path d="M2 8v14M8 8v14M18 8v14M24 8v14"/><path d="M0 24h26"/></g>
+      <!-- users/clients -->
+      <g transform="translate(330,10)"><circle cx="8" cy="7" r="5"/><path d="M0 24c0-6 4-9 8-9s8 3 8 9"/><circle cx="21" cy="10" r="4"/><path d="M15 24c0-4.5 3-7 6-7"/></g>
+      <!-- bell/notification -->
+      <g transform="translate(384,8)"><path d="M12 2a6 6 0 016 6v5l3 5H3l3-5V8a6 6 0 016-6z"/><path d="M9 22a3 3 0 006 0"/></g>
+      <!-- search -->
+      <g transform="translate(436,10)"><circle cx="9" cy="9" r="8"/><path d="M20 20l-6-6"/></g>
+      <!-- clipboard/requests -->
+      <g transform="translate(486,6)"><rect x="2" y="3" width="18" height="24" rx="3"/><rect x="7" width="8" height="6" rx="1.5"/><path d="M6 13h10M6 18h10M6 23h6"/></g>
+      <!-- wallet/payments -->
+      <g transform="translate(538,10)"><rect x="0" y="2" width="24" height="18" rx="3"/><path d="M0 8h24"/><circle cx="18" cy="14" r="2"/></g>
+      <!-- warning/stock alert -->
+      <g transform="translate(586,8)"><path d="M11 2L1 22h20L11 2z"/><path d="M11 10v6"/><circle cx="11" cy="19" r="0.6" fill="#111114"/></g>
+    </g>
+    <g font-family="JetBrains Mono" font-size="7" fill="#8a8a92">
+      <text x="10" y="46">dashboard</text><text x="62" y="46">sales</text><text x="114" y="46">parts</text><text x="168" y="46">compat</text>
+      <text x="220" y="46">donor</text><text x="276" y="46">finance</text><text x="330" y="46">clients</text><text x="384" y="46">alerts</text>
+      <text x="436" y="46">search</text><text x="486" y="46">requests</text><text x="538" y="46">payments</text><text x="586" y="46">low-stock</text>
+    </g>
+  </svg>
+  <p style="margin-top:8mm;font-size:9.5px;color:#8a8a92;">React web renders these as inline SVG (existing <span class="mono" style="font-family:'JetBrains Mono';">CockpitIcons.js</span> icon map is restructured 1:1 to this stroke spec). WPF uses the same paths as <span class="mono" style="font-family:'JetBrains Mono';">Path</span> geometry resources in the replacement resource dictionary. React Native renders via <span class="mono" style="font-family:'JetBrains Mono';">react-native-svg</span> with the identical path data — one icon source of truth, three renderers.</p>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>13</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 14 — DATA VIZ -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">12 · Data Visualization</div>
+  <div class="section-title">Chart Palette, Gridlines &amp; Empty States</div>
+  <div class="section-sub">Charts sit on the surface (#131316) or elevated (#1B1B1F) layer, never directly on carbon — this keeps gridlines legible without raising overall screen brightness.</div>
+
+  <div class="two-col" style="margin-top:6mm;">
+    <div class="card">
+      <h4>Series Palette (ordered)</h4>
+      <table class="spec">
+        <tr><th>Order</th><th>Color</th><th>Use</th></tr>
+        <tr><td>1 · primary</td><td class="mono">#F97316</td><td>The metric being emphasized (sales trend, primary bar)</td></tr>
+        <tr><td>2 · comparison</td><td class="mono">#38BDF8</td><td>Prior period / comparison series</td></tr>
+        <tr><td>3 · positive</td><td class="mono">#22C55E</td><td>Profit, paid, in-stock segments</td></tr>
+        <tr><td>4 · caution</td><td class="mono">#FBBF24</td><td>Aging 1-60 days, low-stock threshold line</td></tr>
+        <tr><td>5 · critical</td><td class="mono">#EF4444</td><td>Aging 90+, out-of-stock, overdue</td></tr>
+        <tr><td>6 · neutral fill</td><td class="mono">#3A3A42</td><td>Category "other" bucket, disabled series</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h4>Gridline &amp; Axis Rules</h4>
+      <table class="spec">
+        <tr><td>Gridlines</td><td>#1B1B1F on surface panels, 1px, horizontal only (no vertical gridlines on time-series)</td></tr>
+        <tr><td>Axis labels</td><td>JetBrains Mono 8px, #6B6B74, right-aligned on Y, centered on X</td></tr>
+        <tr><td>Zero line</td><td>#26262B, 1px solid (never dashed — dashed is reserved for forecast/projection)</td></tr>
+        <tr><td>Area fill</td><td>Linear gradient, series color at 35% opacity → 0% opacity over the chart height</td></tr>
+        <tr><td>Data point</td><td>4px radius, carbon fill + 2.4px series-color stroke; peak point 5px + label callout</td></tr>
+        <tr><td>Tooltip</td><td>Elevated surface (#1B1B1F), L2 shadow, 8px radius, JetBrains Mono value</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ramp-label" style="margin-top:6mm;">Applied example — stacked aging bar + empty state</div>
+  <svg width="100%" height="150" viewBox="0 0 900 150">
+    <rect width="430" height="150" rx="14" fill="#131316"/>
+    <text x="20" y="26" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#fafafa">Receivables Aging — stacked</text>
+    <rect x="20" y="44" width="390" height="22" rx="6" fill="#1b1b1f"/>
+    <rect x="20" y="44" width="150" height="22" fill="#22c55e"/>
+    <rect x="170" y="44" width="100" height="22" fill="#fbbf24"/>
+    <rect x="270" y="44" width="70" height="22" fill="#f97316"/>
+    <rect x="340" y="44" width="70" height="22" fill="#ef4444"/>
+    <g font-family="JetBrains Mono" font-size="8" fill="#a1a1aa">
+      <circle cx="26" cy="90" r="4" fill="#22c55e"/><text x="36" y="93">Current</text>
+      <circle cx="106" cy="90" r="4" fill="#fbbf24"/><text x="116" y="93">1-30d</text>
+      <circle cx="176" cy="90" r="4" fill="#f97316"/><text x="186" y="93">31-60d</text>
+      <circle cx="256" cy="90" r="4" fill="#ef4444"/><text x="266" y="93">90+d</text>
+    </g>
+    <text x="20" y="126" font-family="Inter" font-size="9" fill="#6b6b74">Segment order is fixed left→right: current → 1-30 → 31-60 → 61-90 → 90+.</text>
+    <text x="20" y="140" font-family="Inter" font-size="9" fill="#6b6b74">Never reorder by value — the eye must scan risk left-to-right consistently.</text>
+
+    <rect x="460" y="0" width="440" height="150" rx="14" fill="#131316"/>
+    <text x="480" y="26" font-family="Plus Jakarta Sans" font-weight="700" font-size="12" fill="#fafafa">Empty state — no chart data</text>
+    <circle cx="680" cy="82" r="30" fill="#1b1b1f"/>
+    <path d="M665 88l10-16 8 10 12-18" stroke="#3a3a42" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="680" y="128" text-anchor="middle" font-family="Inter" font-weight="600" font-size="10.5" fill="#a1a1aa">No sales recorded yet today</text>
+    <text x="680" y="142" text-anchor="middle" font-family="Inter" font-size="9" fill="#6b6b74">Chart fills in as invoices are posted</text>
+  </svg>
+  <p style="margin-top:5mm;font-size:9.5px;color:#8a8a92;">Empty states never show a literal blank panel: a muted icon (stroke #3A3A42 on #1B1B1F) plus a one-line explanation and, where relevant, a primary CTA in orange. This applies identically to the Dashboard sales trend, Client Workspace invoice table, and any report-builder chart with zero rows.</p>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>14</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE 15 — CROSS-PLATFORM TOKEN MAPPING -->
+<!-- ============================================================ -->
+<div class="page">
+  <div class="eyebrow">13 · Cross-Platform Application</div>
+  <div class="section-title">Token Mapping — Web, WPF, Mobile</div>
+  <div class="section-sub">One token system, three implementations. This table is the contract dev-web-react, dev-desktop-wpf, and dev-mobile-rn build against.</div>
+
+  <table class="spec" style="margin-top:5mm;">
+    <tr><th>Ignition token</th><th>React web — CSS custom property</th><th>WPF — ResourceDictionary key</th><th>React Native — theme.js</th></tr>
+    <tr><td>Carbon canvas</td><td class="mono">--ig-bg-canvas: #0a0a0b</td><td class="mono">IgBrushCanvas (SolidColorBrush #0A0A0B)</td><td class="mono">colors.bgCanvas = '#0A0A0B'</td></tr>
+    <tr><td>Surface</td><td class="mono">--ig-bg-surface: #131316</td><td class="mono">IgBrushSurface</td><td class="mono">colors.bgSurface</td></tr>
+    <tr><td>Elevated</td><td class="mono">--ig-bg-elevated: #1b1b1f</td><td class="mono">IgBrushElevated</td><td class="mono">colors.bgElevated</td></tr>
+    <tr><td>Elevated-2</td><td class="mono">--ig-bg-elevated-2: #232328</td><td class="mono">IgBrushElevated2</td><td class="mono">colors.bgElevated2</td></tr>
+    <tr><td>Border default</td><td class="mono">--ig-border: #26262b</td><td class="mono">IgBrushBorder</td><td class="mono">colors.border</td></tr>
+    <tr><td>Text primary</td><td class="mono">--ig-text-primary: #fafafa</td><td class="mono">IgBrushTextPrimary</td><td class="mono">colors.textPrimary</td></tr>
+    <tr><td>Text secondary</td><td class="mono">--ig-text-secondary: #a1a1aa</td><td class="mono">IgBrushTextSecondary</td><td class="mono">colors.textSecondary</td></tr>
+    <tr><td>Text muted</td><td class="mono">--ig-text-muted: #6b6b74</td><td class="mono">IgBrushTextMuted</td><td class="mono">colors.textMuted</td></tr>
+    <tr><td>Accent orange</td><td class="mono">--ig-accent: #f97316</td><td class="mono">IgBrushAccent</td><td class="mono">colors.accent</td></tr>
+    <tr><td>Accent hover</td><td class="mono">--ig-accent-hover: #ea580c</td><td class="mono">IgBrushAccentHover</td><td class="mono">colors.accentHover</td></tr>
+    <tr><td>Success</td><td class="mono">--ig-success: #22c55e</td><td class="mono">IgBrushSuccess</td><td class="mono">colors.success</td></tr>
+    <tr><td>Warning</td><td class="mono">--ig-warning: #fbbf24</td><td class="mono">IgBrushWarning</td><td class="mono">colors.warning</td></tr>
+    <tr><td>Danger</td><td class="mono">--ig-danger: #ef4444</td><td class="mono">IgBrushDanger</td><td class="mono">colors.danger</td></tr>
+    <tr><td>Info</td><td class="mono">--ig-info: #38bdf8</td><td class="mono">IgBrushInfo</td><td class="mono">colors.info</td></tr>
+    <tr><td>Display font</td><td class="mono">--ig-font-display: 'Plus Jakarta Sans'</td><td class="mono">IgFontDisplay (FontFamily, packaged .ttf)</td><td class="mono">fonts.display: 'PlusJakartaSans-Bold'</td></tr>
+    <tr><td>Body font</td><td class="mono">--ig-font-body: 'Inter'</td><td class="mono">IgFontBody</td><td class="mono">fonts.body: 'Inter-Regular'</td></tr>
+    <tr><td>Mono font</td><td class="mono">--ig-font-mono: 'JetBrains Mono'</td><td class="mono">IgFontMono</td><td class="mono">fonts.mono: 'JetBrainsMono-Medium'</td></tr>
+    <tr><td>Radius lg</td><td class="mono">--ig-radius-lg: 16px</td><td class="mono">IgCornerRadiusLg (CornerRadius 16)</td><td class="mono">radii.lg = 16</td></tr>
+    <tr><td>Radius pill</td><td class="mono">--ig-radius-pill: 999px</td><td class="mono">IgCornerRadiusPill (CornerRadius 999)</td><td class="mono">radii.pill = 999</td></tr>
+    <tr><td>Shadow L1</td><td class="mono">--ig-shadow-1 (box-shadow)</td><td class="mono">IgShadowL1 (DropShadowEffect, BlurRadius 14)</td><td class="mono">shadows.l1 (elevation:4 / shadowRadius:14)</td></tr>
+    <tr><td>Space-4</td><td class="mono">--ig-space-4: 16px</td><td class="mono">IgSpace4 (Thickness 16)</td><td class="mono">spacing.space4 = 16</td></tr>
+    <tr><td>Duration base</td><td class="mono">--ig-duration-base: 220ms</td><td class="mono">IgDurationBase (Duration 0:0:0.22)</td><td class="mono">motion.durationBase = 220</td></tr>
+    <tr><td>Icon rail width</td><td class="mono">--ig-rail-w: 72px</td><td class="mono">IgRailWidth (GridLength 72)</td><td class="mono">layout.railW = 72 (n/a — bottom tabs used instead)</td></tr>
+  </table>
+
+  <div class="card" style="margin-top:6mm;">
+    <h4>Implementation notes for the platform agents</h4>
+    <p style="font-size:10px;margin:4px 0;">React web (dev-web-react): replace the <span class="mono" style="font-family:'JetBrains Mono';">:root</span> block in <span class="mono" style="font-family:'JetBrains Mono';">styles.css</span> wholesale with the <span class="mono" style="font-family:'JetBrains Mono';">--ig-*</span> variables above; component class names (<span class="mono" style="font-family:'JetBrains Mono';">.ck-*</span>) can stay, only the token values and a handful of radius/shadow rules need to change given the app already reads from CSS custom properties.</p>
+    <p style="font-size:10px;margin:4px 0;">WPF (dev-desktop-wpf): a new <span class="mono" style="font-family:'JetBrains Mono';">IgnitionTheme.xaml</span> resource dictionary replaces whichever theme is currently merged in <span class="mono" style="font-family:'JetBrains Mono';">App.xaml</span>; keys above are exact 1:1 replacements for existing brush/geometry keys so styles/templates referencing <span class="mono" style="font-family:'JetBrains Mono';">DynamicResource</span> repaint without template rewrites where structure is unchanged.</p>
+    <p style="font-size:10px;margin:4px 0;">React Native (dev-mobile-rn): export the same values as a flat <span class="mono" style="font-family:'JetBrains Mono';">theme.js</span> object; bottom-tab layout and 44px touch targets are the only intentional deviations from the desktop spec, called out explicitly on page 11.</p>
+  </div>
+  <div class="footer"><span>SpareParts · Ignition Design Package · 02 Visual Design Language</span><span>15</span></div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SpareParts · Ignition — Report 05: Workflow Optimization</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
+
+:root{
+  --carbon:#0a0a0b; --carbon2:#131316; --carbon3:#1b1b1f;
+  --orange:#f97316; --orange-soft:#fff3e8; --orange-line:#fdba74;
+  --ink:#17181c; --ink2:#4b4e57; --ink3:#8a8d96;
+  --line:#e6e7ea; --panel:#f6f6f8; --good:#16a34a; --bad:#dc2626;
+}
+html,body{ margin:0; padding:0; background:#2a2a2e; font-family:'Plus Jakarta Sans','Segoe UI',Arial,sans-serif; color:var(--ink); }
+.mono{ font-family:'JetBrains Mono',Consolas,monospace; }
+
+.page{
+  width:210mm; min-height:292mm; margin:8mm auto; padding:14mm 14mm 20mm 14mm;
+  background:#ffffff; position:relative; page-break-after:always;
+  box-shadow:0 10px 40px rgba(0,0,0,.45);
+}
+.page.dark{ background:var(--carbon); color:#f5f5f6; }
+
+@media print{
+  html,body{ background:#fff; }
+  .page{ margin:0; box-shadow:none; }
+  @page{ size:A4 portrait; margin:0; }
+}
+
+/* ---------- typography ---------- */
+h1{ font-size:26px; font-weight:800; letter-spacing:-.5px; margin:0 0 4px; }
+h2{ font-size:17px; font-weight:800; letter-spacing:-.3px; margin:22px 0 8px; color:var(--ink); }
+h3{ font-size:12.5px; font-weight:700; margin:16px 0 6px; color:var(--ink); }
+p{ font-size:10.5px; line-height:1.6; color:var(--ink2); margin:0 0 8px; }
+li{ font-size:10.5px; line-height:1.6; color:var(--ink2); margin-bottom:4px; }
+ul,ol{ margin:4px 0 10px; padding-left:18px; }
+strong{ color:var(--ink); }
+
+.kicker{
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--orange); font-weight:700; margin-bottom:6px;
+}
+.section-no{
+  display:inline-block; background:var(--carbon); color:#fff; font-family:'JetBrains Mono',monospace;
+  font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px; margin-right:8px; vertical-align:2px;
+}
+.pill{
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:8.5px; font-weight:700;
+  padding:2px 8px; border-radius:999px; letter-spacing:.5px;
+}
+.pill.before{ background:#fee2e2; color:#b91c1c; }
+.pill.after{ background:#dcfce7; color:#15803d; }
+.pill.code{ background:var(--panel); color:var(--ink2); border:1px solid var(--line); }
+.pill.orange{ background:var(--orange-soft); color:#c2410c; border:1px solid var(--orange-line); }
+
+code, .coderef{
+  font-family:'JetBrains Mono',monospace; font-size:9px; background:var(--panel);
+  border:1px solid var(--line); border-radius:4px; padding:1px 4px; color:#334155; white-space:nowrap;
+}
+
+/* ---------- tables ---------- */
+table{ width:100%; border-collapse:collapse; margin:8px 0 14px; }
+th{
+  font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; text-transform:uppercase;
+  text-align:left; color:var(--ink3); padding:6px 7px; border-bottom:2px solid var(--carbon);
+}
+td{ font-size:9.5px; line-height:1.45; padding:6px 7px; border-bottom:1px solid var(--line); color:var(--ink2); vertical-align:top; }
+td b{ color:var(--ink); }
+tr.total td{ border-top:2px solid var(--carbon); border-bottom:none; font-weight:700; color:var(--ink); background:var(--orange-soft); }
+td.num, th.num{ text-align:right; font-family:'JetBrains Mono',monospace; }
+td.good{ color:var(--good); font-weight:700; }
+td.bad{ color:var(--bad); font-weight:700; }
+
+/* ---------- cards / callouts ---------- */
+.callout{
+  background:var(--orange-soft); border-left:4px solid var(--orange); border-radius:0 10px 10px 0;
+  padding:10px 14px; margin:10px 0 14px;
+}
+.callout p{ margin:0; font-size:10px; }
+.panelbox{
+  background:var(--panel); border-radius:12px; padding:12px 14px; margin:8px 0 12px;
+  box-shadow:0 1px 3px rgba(10,10,11,.06);
+}
+.panelbox h3{ margin-top:0; }
+.grid2{ display:flex; gap:12px; }
+.grid2 > *{ flex:1; }
+.statband{ display:flex; gap:10px; margin:12px 0 16px; }
+.stat{
+  flex:1; background:var(--carbon); color:#fff; border-radius:14px; padding:12px 14px;
+  box-shadow:0 4px 14px rgba(10,10,11,.25);
+}
+.stat .v{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--orange); }
+.stat .l{ font-size:8.5px; letter-spacing:1.2px; text-transform:uppercase; color:#b3b5bd; margin-top:3px; font-family:'JetBrains Mono',monospace; }
+
+.figure{ margin:10px 0 14px; }
+.figure .cap{
+  font-family:'JetBrains Mono',monospace; font-size:8.5px; color:var(--ink3);
+  margin-top:5px; letter-spacing:.4px;
+}
+.figure svg{ width:100%; height:auto; display:block; }
+
+/* ---------- footer ---------- */
+.foot{
+  position:absolute; left:14mm; right:14mm; bottom:8mm; display:flex; justify-content:space-between;
+  font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--ink3);
+  border-top:1px solid var(--line); padding-top:5px; letter-spacing:.6px;
+}
+.dark .foot{ border-top-color:#26262b; color:#6f7178; }
+
+/* ---------- cover ---------- */
+.cover{ display:flex; flex-direction:column; justify-content:space-between; }
+.cover .top{ margin-top:8mm; }
+.cover .brand{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:4px; color:#b3b5bd; }
+.cover .title{ font-size:46px; font-weight:800; letter-spacing:-1.5px; line-height:1.05; margin:18px 0 10px; color:#fff; }
+.cover .title em{ font-style:normal; color:var(--orange); }
+.cover .sub{ font-size:13px; color:#b3b5bd; max-width:130mm; line-height:1.7; }
+.cover .meta{ margin-bottom:6mm; }
+.cover .meta div{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#8a8d96; margin-bottom:6px; }
+.cover .meta b{ color:#f5f5f6; font-weight:600; }
+.cover .rule{ height:3px; width:64px; background:var(--orange); border-radius:2px; margin:22px 0; }
+.coverchips{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+.coverchips span{
+  border:1px solid #2c2c32; background:var(--carbon2); color:#c9cbd2; border-radius:999px;
+  padding:5px 12px; font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:1px;
+}
+
+/* ---------- TOC ---------- */
+.toc-row{ display:flex; align-items:baseline; gap:10px; padding:9px 2px; border-bottom:1px solid var(--line); }
+.toc-row .n{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--orange); font-weight:700; width:26px; }
+.toc-row .t{ font-size:11.5px; font-weight:700; color:var(--ink); }
+.toc-row .d{ font-size:9px; color:var(--ink3); flex:1; }
+.toc-row .p{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink3); }
+
+.kbd{
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:8.5px; font-weight:700;
+  background:var(--carbon); color:#fff; border-radius:5px; padding:2px 6px; margin:0 1px;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ PAGE 1 · COVER -->
+<section class="page dark cover">
+  <div class="top">
+    <div class="brand">SPAREPARTS &nbsp;·&nbsp; IGNITION DESIGN PACKAGE</div>
+    <div class="rule"></div>
+    <div class="kicker">REPORT 05 — OF 06</div>
+    <div class="title">Workflow<br><em>Optimization</em></div>
+    <div class="sub">
+      Proving the Ignition redesign makes real daily work measurably faster. Task inventory,
+      click-path analysis before vs after, the Action Queue as a workflow engine, Client Workspace
+      operational flows, speed mechanics, and the telemetry plan that verifies every projection.
+    </div>
+    <div class="coverchips">
+      <span>ACTION QUEUE</span><span>CLIENT WORKSPACE</span><span>CTRL+K PALETTE</span>
+      <span>−55% STEPS / DAY</span><span>~98 MIN SAVED / SHOP / DAY</span>
+    </div>
+  </div>
+  <div class="meta">
+    <div>AUTHOR &nbsp;&nbsp;<b>workflow-optimization — Workflow Agent</b></div>
+    <div>DATE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>2 July 2026</b></div>
+    <div>SCOPE &nbsp;&nbsp;&nbsp;&nbsp;<b>Dashboard redesign + unified Client Workspace — React web app</b></div>
+    <div>BASIS &nbsp;&nbsp;&nbsp;&nbsp;<b>Code audit of src/SpareParts.Web.React/wwwroot/js/views (74 registered screens)</b></div>
+  </div>
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Cover</span></div>
+</section>
+
+<!-- ============================================================ PAGE 2 · TOC -->
+<section class="page">
+  <div class="kicker">REPORT 05 — WORKFLOW OPTIMIZATION</div>
+  <h1>Contents</h1>
+  <p style="max-width:150mm;">Every claim in this report is grounded in the current code of the React web app.
+  Where a number is a projection, the assumption is stated and Section 8 defines the telemetry event that will confirm or refute it.</p>
+
+  <div class="toc-row"><span class="n">01</span><span class="t">Executive Summary</span><span class="d">Where daily time is lost today, and the projected gains</span><span class="p">p. 3</span></div>
+  <div class="toc-row"><span class="n">02</span><span class="t">Task Inventory</span><span class="d">The 10 highest-frequency daily tasks — who, how often</span><span class="p">p. 4</span></div>
+  <div class="toc-row"><span class="n">03</span><span class="t">Click-Path Analysis — Before vs After</span><span class="d">Step counts derived from the real navigation structure</span><span class="p">p. 5–6</span></div>
+  <div class="toc-row"><span class="n">F1–F3</span><span class="t">Flow Figures</span><span class="d">Swimlane diagrams: counter sale · receive payment · chase overdue</span><span class="p">p. 7–8</span></div>
+  <div class="toc-row"><span class="n">04</span><span class="t">The Action Queue as a Workflow Engine</span><span class="d">Prioritization, lifecycle, deep-link contract</span><span class="p">p. 9–10</span></div>
+  <div class="toc-row"><span class="n">05</span><span class="t">Client Workspace Operational Flows</span><span class="d">Payment, invoice-from-context, collection worklist, follow-ups</span><span class="p">p. 11</span></div>
+  <div class="toc-row"><span class="n">06</span><span class="t">Speed Mechanics</span><span class="d">Ctrl+K grammar, keyboard-first counter sale, barcode, recents</span><span class="p">p. 12</span></div>
+  <div class="toc-row"><span class="n">07</span><span class="t">Cross-Device Workflow</span><span class="d">Phone vs desktop split; offline notes for the counter</span><span class="p">p. 13</span></div>
+  <div class="toc-row"><span class="n">08</span><span class="t">Adoption &amp; Rollout</span><span class="d">Side-by-side period, telemetry, success metrics with targets</span><span class="p">p. 14</span></div>
+  <div class="toc-row"><span class="n">F5</span><span class="t">A Day in the Life — Before vs After</span><span class="d">Timeline of administrative overhead across one shop day</span><span class="p">p. 15</span></div>
+
+  <h2 style="margin-top:26px;">Figures</h2>
+  <table>
+    <tr><th style="width:14mm;">Fig.</th><th>Title</th><th style="width:22mm;">Page</th></tr>
+    <tr><td class="mono">F1</td><td>Counter sale to a known client — swimlane, today vs Ignition</td><td class="mono">7</td></tr>
+    <tr><td class="mono">F2</td><td>Minutes saved per task per day (projected)</td><td class="mono">7</td></tr>
+    <tr><td class="mono">F3</td><td>Receive a payment against balance — swimlane</td><td class="mono">8</td></tr>
+    <tr><td class="mono">F4</td><td>Chase overdue receivables — swimlane</td><td class="mono">8</td></tr>
+    <tr><td class="mono">F5</td><td>Action Queue item lifecycle — state diagram</td><td class="mono">10</td></tr>
+    <tr><td class="mono">F6</td><td>A day in the life — administrative overhead timeline</td><td class="mono">15</td></tr>
+  </table>
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 2 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 3 · §1 EXEC SUMMARY -->
+<section class="page">
+  <div class="kicker">SECTION 01</div>
+  <h1><span class="section-no">01</span>Executive Summary</h1>
+
+  <p>SpareParts today is <strong>feature-rich but navigation-heavy</strong>. The web app registers
+  <strong>74 screens</strong> in <code>screen-registry.js</code>, and the work of a single business moment —
+  one client, one sale, one payment — is scattered across many of them. A counter sale lives in
+  <code>invoices-view.js</code>, the client’s balance in <code>contacts-view.js</code>, their overdue buckets in
+  <code>customer-aging-view.js</code>, their quotes in <code>quotes-view.js</code>, their reminders in two different
+  screens, and payment receipt has <strong>no direct flow at all</strong> — the invoice list offers only
+  <em>View Profit / Send Invoice / Reminder</em> actions, so a payment received after invoicing means a manual
+  journal entry in Accounting.</p>
+
+  <h3>Where time is lost today (from the code, not from opinion)</h3>
+  <ul>
+    <li><strong>Fragmented client context.</strong> Contacts is a read-only two-column list capped at 100 rows with
+      no search, no row click-through, and no create form. Answering “what does Elie owe and why?” takes three screens.</li>
+    <li><strong>Dropdown-driven data entry.</strong> The POS customer picker is a plain <code>&lt;select&gt;</code> fed by
+      <code>/api/customers?page=1&amp;pageSize=100</code>; the part picker is a <code>&lt;select&gt;</code> over the
+      <em>entire catalog</em> (<code>api.list("/api/parts")</code>). Every invoice line is a scroll-and-hunt exercise.</li>
+    <li><strong>Dead-end search.</strong> The dashboard “Smart Search” input discards what you type — its
+      Enter handler navigates to Inventory without passing the query — so every lookup is typed twice.</li>
+    <li><strong>An action queue that can’t act.</strong> <code>buildActionQueue()</code> already computes 6 real business
+      signals (negative P&amp;L, unpaid receivables, red stock segments, currency-squeezed margins, failed messages,
+      no-sales-yet), but caps at 4 items, links only to whole screens with no entity context, and forgets everything on refresh.</li>
+    <li><strong>Blind messaging.</strong> Payment reminders fire with no preview; delivery failures surface only as a
+      filtered list on the dashboard, disconnected from the client they belong to.</li>
+  </ul>
+
+  <div class="statband">
+    <div class="stat"><div class="v">799 → 358</div><div class="l">UI steps per shop-day</div></div>
+    <div class="stat"><div class="v">−55%</div><div class="l">Step reduction</div></div>
+    <div class="stat"><div class="v">~98 min</div><div class="l">Saved per shop per day</div></div>
+    <div class="stat"><div class="v">95s → 30s</div><div class="l">Counter sale, 2 lines</div></div>
+  </div>
+
+  <h3>What the redesign changes</h3>
+  <p><strong>The Dashboard becomes a work tool.</strong> The Action Queue is promoted from a 4-item hint list to the
+  organizing principle of the screen: every item is scored by <em>severity × money at stake</em>, has a lifecycle
+  (appears → acted → resolved/dismissed), and deep-links into the exact action — not just a screen.</p>
+  <p><strong>One screen per client.</strong> The Client Workspace merges Contacts + Customer Aging + per-screen
+  invoice/quote/request lookups into a single customer-360 view where a payment can be received, an invoice raised,
+  a quote drafted, and a WhatsApp reminder previewed and sent — without navigating away.</p>
+  <p><strong>Keyboard-first speed.</strong> A global <span class="kbd">Ctrl</span><span class="kbd">K</span> palette with a
+  terse grammar (<code>inv eli</code> → new invoice for Elie) plus barcode-wedge entry collapses the two highest-frequency
+  tasks — counter sales and stock checks — to seconds.</p>
+
+  <div class="callout"><p><strong>Bottom line:</strong> across the 10 highest-frequency tasks, projected daily savings are
+  ~47 min for counter staff, ~43 min for the owner, and ~8 min on quoting — roughly <strong>1.6 hours per shop per day</strong>,
+  or one full working month per year. Section 8 defines the time-on-task telemetry that will verify these numbers during
+  the side-by-side rollout; no projection ships unmeasured.</p></div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 3 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 4 · §2 TASK INVENTORY -->
+<section class="page">
+  <div class="kicker">SECTION 02</div>
+  <h1><span class="section-no">02</span>Task Inventory</h1>
+  <p>The ten tasks below account for the overwhelming majority of daily interactions with the app. Frequencies are
+  planning assumptions for a typical single-location spare-parts shop (owner + 1–2 counter staff); the telemetry plan
+  in Section 8 replaces these assumptions with measured counts during rollout.</p>
+
+  <table>
+    <tr>
+      <th style="width:8mm;">#</th><th>Task</th><th style="width:30mm;">Primary role</th>
+      <th class="num" style="width:20mm;">Freq / day</th><th>Where it lives in today’s UI</th>
+    </tr>
+    <tr><td class="mono">T1</td><td><b>Morning review</b> — “what needs my attention today?”</td><td>Owner</td><td class="num">1</td><td>Dashboard + Accounting + Customer Aging + Stock + WhatsApp (KPI cards link to whole screens)</td></tr>
+    <tr><td class="mono">T2</td><td><b>Counter sale to a known client</b> (typical 2 lines)</td><td>Counter staff</td><td class="num">25</td><td>POS / Sales — create panel with customer <code>&lt;select&gt;</code> and full-catalog part <code>&lt;select&gt;</code></td></tr>
+    <tr><td class="mono">T3</td><td><b>Counter sale to a new client</b> (create client first)</td><td>Counter staff</td><td class="num">3</td><td>No create form in Contacts; detour via Management, then back to POS (lookup list loads once on mount)</td></tr>
+    <tr><td class="mono">T4</td><td><b>Receive a payment against balance</b> (after invoicing)</td><td>Owner / cashier</td><td class="num">6</td><td>No direct flow — invoice rows have no “receive payment” action; manual journal in Accounting</td></tr>
+    <tr><td class="mono">T5</td><td><b>Chase overdue receivables</b> (batch of ~5 clients)</td><td>Owner</td><td class="num">1</td><td>Customer Aging (buckets only) cross-referenced against POS/Sales invoice search, per client</td></tr>
+    <tr><td class="mono">T6</td><td><b>Check if a part is in stock + price it</b> (phone/walk-in ask)</td><td>Counter staff</td><td class="num">30</td><td>Inventory screen; dashboard search box discards the typed query on Enter</td></tr>
+    <tr><td class="mono">T7</td><td><b>Create quote → convert to invoice → send</b></td><td>Owner / sales</td><td class="num">4</td><td>Quotes screen (convert needs re-click confirm), then POS/Sales screen to find and send the new invoice</td></tr>
+    <tr><td class="mono">T8</td><td><b>End-of-day cash check</b></td><td>Owner</td><td class="num">1</td><td>Dashboard cash KPI + Accounting tabs; no register/day-close concept — manual arithmetic</td></tr>
+    <tr><td class="mono">T9</td><td><b>Follow up a part request</b> (quote-ready or source gap)</td><td>Counter staff</td><td class="num">5</td><td>Part Requests screen → Inventory to verify stock → WhatsApp to message the customer</td></tr>
+    <tr><td class="mono">T10</td><td><b>Send a WhatsApp payment reminder</b> (ad hoc)</td><td>Owner</td><td class="num">4</td><td>Customer Aging “Send Reminder” (no preview) or per-invoice “Reminder” in POS/Sales; delivery status only on dashboard</td></tr>
+  </table>
+
+  <h3>Why these ten</h3>
+  <p>They map one-to-one onto the signals the existing dashboard already computes in
+  <code>buildActionQueue()</code> — receivables (T4, T5, T10), sales flow (T2, T3, T7), stock health (T6, T9),
+  daily P&amp;L and cash (T1, T8), and message failures (T10). The redesign does not invent new work; it shortens the
+  paths to work the system already knows about.</p>
+
+  <div class="panelbox">
+    <h3>Role load at a glance (executions/day × current path length)</h3>
+    <p style="margin:0;"><b>Counter staff</b> carry the volume: T2 + T6 alone are ~55 executions/day of scroll-heavy
+    dropdown UI. <b>The owner</b> carries the fragmentation: T1, T4, T5, T8, T10 each span 2–4 screens with manual
+    cross-referencing. The optimization targets are therefore different — <em>keystrokes</em> for the counter,
+    <em>context assembly</em> for the owner — and Sections 5–6 address them separately.</p>
+  </div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 4 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 5 · §3 CLICK PATH A -->
+<section class="page">
+  <div class="kicker">SECTION 03</div>
+  <h1><span class="section-no">03</span>Click-Path Analysis — Before vs After</h1>
+
+  <h3>Method</h3>
+  <p>A <strong>step</strong> is one user interaction: a navigation (sidebar click + screen load), a click/tap, a scroll-hunt
+  inside a dropdown, or a typed field committed with Enter. Timing uses keystroke-level constants: navigation + load ≈ 6 s,
+  dropdown scroll-find ≈ 8 s, click ≈ 2 s, typed field ≈ 4 s, palette command ≈ 2 s, plus reading time where stated.
+  “Before” paths are traced from the actual view code; “after” paths from the Ignition interaction specs (Reports 01–03).</p>
+
+  <table>
+    <tr><th style="width:9mm;">#</th><th style="width:62mm;">Before — today’s path (traced from code)</th><th style="width:56mm;">After — Ignition path</th><th class="num" style="width:17mm;">Steps</th><th class="num" style="width:17mm;">Time</th></tr>
+    <tr>
+      <td class="mono"><b>T1</b></td>
+      <td>Dashboard renders 8 KPI cards + 8 bottom stats + 9 snapshot cards; interpreting them requires visiting Accounting, Customer Aging, Reorder, WhatsApp. Queue caps at 4 items, links to whole screens. <span class="pill before">6 screens · 22 steps</span></td>
+      <td>Single dashboard: KPI band + ranked Action Queue (severity × money). Read queue top-to-bottom; open 1–2 deep links that land on the exact action. <span class="pill after">1 screen · 5 steps</span></td>
+      <td class="num">22 → 5</td><td class="num">12 → 4 min</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T2</b></td>
+      <td>Navigate POS/Sales → open customer <code>&lt;select&gt;</code>, scroll ≤100 names → pick → per line: open full-catalog part <code>&lt;select&gt;</code>, hunt, pick, qty, price, “Add Line” (×2) → paid amount → Create Invoice. <span class="pill before">15 steps</span></td>
+      <td><span class="kbd">Ctrl+K</span> → <code>inv eli</code> ↵ (draft opens, client set, cursor in scan field) → scan/type code ↵ → qty ↵ → scan line 2 ↵ → tender ↵ (defaults to total). <span class="pill after">7 steps</span></td>
+      <td class="num">15 → 7</td><td class="num">95 → 30 s</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T3</b></td>
+      <td>Contacts has <b>no create form</b> (read-only lists). Detour: Management workspace → create client → back to POS → customer list was loaded once on mount, so reload the screen → then run T2. <span class="pill before">~18 steps</span></td>
+      <td>In the same palette flow: unknown name → “Create ‘Nabil Fakhry’ as new client” inline → phone ↵ → sale continues with the new client attached. <span class="pill after">9 steps</span></td>
+      <td class="num">18 → 9</td><td class="num">4 min → 75 s</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T4</b></td>
+      <td>Invoice rows expose only <em>View Profit / Send Invoice / Reminder</em>; <code>paidAmount</code> is set at creation only. Later payment ⇒ Accounting → find party ledger → manual journal (debit cash, credit A/R) → post → verify. <span class="pill before">12 steps</span></td>
+      <td>Client Workspace → <b>Receive Payment</b> (amount pre-filled with balance, allocation oldest-first) → confirm → receipt prints, aging pill re-colors in place. <span class="pill after">4 steps</span></td>
+      <td class="num">12 → 4</td><td class="num">3 min → 30 s</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T5</b></td>
+      <td>Customer Aging shows buckets but not the invoices behind them. Per client (×5): search POS/Sales, cross-reference amounts, back, “Send Reminder” blind (no preview), verify delivery on dashboard. <span class="pill before">~21 steps</span></td>
+      <td>Queue item “3 invoices overdue — Garage Elie Motors” → Client Workspace payments tab shows the exact invoices; reminder pre-drafted with them listed → preview → send → “next client”. <span class="pill after">8 steps</span></td>
+      <td class="num">21 → 8</td><td class="num">15 → 5 min</td>
+    </tr>
+  </table>
+
+  <div class="callout"><p><strong>Grounded detail worth repeating:</strong> the current dashboard search box
+  (<code>ck-cmd-input</code>) navigates to Inventory on Enter <em>without passing the query</em> — the user retypes every
+  search. In Ignition, <span class="kbd">Ctrl+K</span> answers stock/price questions inline without leaving the current
+  screen at all (T6, next page).</p></div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 5 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 6 · §3 CLICK PATH B + SUMMARY -->
+<section class="page">
+  <div class="kicker">SECTION 03 — CONTINUED</div>
+  <h1>Click-Path Analysis — Tasks 6–10 &amp; Summary</h1>
+
+  <table>
+    <tr><th style="width:9mm;">#</th><th style="width:62mm;">Before — today’s path</th><th style="width:56mm;">After — Ignition path</th><th class="num" style="width:17mm;">Steps</th><th class="num" style="width:17mm;">Time</th></tr>
+    <tr>
+      <td class="mono"><b>T6</b></td>
+      <td>Navigate to Inventory (dashboard search discards the query) → type search → Enter → scan result row for price + stock. <span class="pill before">4–5 steps</span></td>
+      <td><span class="kbd">Ctrl+K</span> → <code>part n54 coil</code> → result card inline: price, stock by warehouse, margin flag. No navigation. <span class="pill after">2 steps</span></td>
+      <td class="num">5 → 2</td><td class="num">20 → 8 s</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T7</b></td>
+      <td>Quotes screen → search → open detail → “Convert to Invoice” → re-click “Confirm Convert” (warning path for non-catalog lines) → navigate POS/Sales → search the new invoice → “Send Invoice”. <span class="pill before">13 steps</span></td>
+      <td>Client Workspace quotes tab → open quote → <b>Convert &amp; Send</b> (one action: converts, previews the WhatsApp invoice message, sends) → confirm. <span class="pill after">6 steps</span></td>
+      <td class="num">13 → 6</td><td class="num">3 min → 60 s</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T8</b></td>
+      <td>Dashboard cash KPI → Accounting → locate cash account across tabs → pull today’s invoice paid totals from POS/Sales → manual arithmetic on paper/calculator. <span class="pill before">10 steps</span></td>
+      <td>Day-Close card on dashboard: opening cash + receipts − payouts = expected drawer; variance highlighted; one click to drill into any line. <span class="pill after">3 steps</span></td>
+      <td class="num">10 → 3</td><td class="num">8 → 2 min</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T9</b></td>
+      <td>Part Requests screen → open row → Inventory to verify stock/price → back → WhatsApp screen to message the requester. <span class="pill before">9 steps</span></td>
+      <td>Queue item “Quote-ready request” (signal already computed as <code>quoteReadyRequests</code> today) deep-links to the request with live stock and a drafted quote message. <span class="pill after">4 steps</span></td>
+      <td class="num">9 → 4</td><td class="num">2 min → 45 s</td>
+    </tr>
+    <tr>
+      <td class="mono"><b>T10</b></td>
+      <td>Customer Aging → search client → “Send Reminder” fires <code>accountBalanceReminder</code> with no preview → dashboard recent-messages list to check for “fail” status. <span class="pill before">7 steps</span></td>
+      <td>Client Workspace messages tab → template with live balance + invoice list → edit if needed → send; delivery status lands back on the same thread. <span class="pill after">3 steps</span></td>
+      <td class="num">7 → 3</td><td class="num">90 → 30 s</td>
+    </tr>
+  </table>
+
+  <h2>Daily summary — steps and minutes, weighted by frequency</h2>
+  <table>
+    <tr><th>#</th><th>Task</th><th style="width:22mm;">Role</th><th class="num">Freq</th><th class="num">Steps before</th><th class="num">Steps after</th><th class="num">Δ steps/day</th><th class="num">Saved/day</th></tr>
+    <tr><td class="mono">T1</td><td>Morning review</td><td>Owner</td><td class="num">1</td><td class="num">22</td><td class="num">5</td><td class="num good">−17</td><td class="num good">8 min</td></tr>
+    <tr><td class="mono">T2</td><td>Counter sale — known client</td><td>Counter</td><td class="num">25</td><td class="num">375</td><td class="num">175</td><td class="num good">−200</td><td class="num good">27 min</td></tr>
+    <tr><td class="mono">T3</td><td>Counter sale — new client</td><td>Counter</td><td class="num">3</td><td class="num">54</td><td class="num">27</td><td class="num good">−27</td><td class="num good">8 min</td></tr>
+    <tr><td class="mono">T4</td><td>Receive payment vs balance</td><td>Owner/cashier</td><td class="num">6</td><td class="num">72</td><td class="num">24</td><td class="num good">−48</td><td class="num good">15 min</td></tr>
+    <tr><td class="mono">T5</td><td>Chase overdue (batch of 5)</td><td>Owner</td><td class="num">1</td><td class="num">21</td><td class="num">8</td><td class="num good">−13</td><td class="num good">10 min</td></tr>
+    <tr><td class="mono">T6</td><td>Stock check + price</td><td>Counter</td><td class="num">30</td><td class="num">120</td><td class="num">60</td><td class="num good">−60</td><td class="num good">6 min</td></tr>
+    <tr><td class="mono">T7</td><td>Quote → invoice → send</td><td>Sales</td><td class="num">4</td><td class="num">52</td><td class="num">24</td><td class="num good">−28</td><td class="num good">8 min</td></tr>
+    <tr><td class="mono">T8</td><td>End-of-day cash check</td><td>Owner</td><td class="num">1</td><td class="num">10</td><td class="num">3</td><td class="num good">−7</td><td class="num good">6 min</td></tr>
+    <tr><td class="mono">T9</td><td>Part-request follow-up</td><td>Counter</td><td class="num">5</td><td class="num">45</td><td class="num">20</td><td class="num good">−25</td><td class="num good">6 min</td></tr>
+    <tr><td class="mono">T10</td><td>WhatsApp payment reminder</td><td>Owner</td><td class="num">4</td><td class="num">28</td><td class="num">12</td><td class="num good">−16</td><td class="num good">4 min</td></tr>
+    <tr class="total"><td></td><td>Total per shop-day</td><td></td><td class="num">80</td><td class="num">799</td><td class="num">358</td><td class="num">−441 (−55%)</td><td class="num">~98 min</td></tr>
+  </table>
+  <p><b>By role:</b> counter staff ≈ 47 min/day · owner ≈ 43 min/day · sales/quoting ≈ 8 min/day. Over a 6-day week
+  that is ~9.8 hours per shop; over a year, roughly one working month recovered.</p>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 6 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 7 · FIG 1 + FIG 2 -->
+<section class="page">
+  <div class="kicker">FLOW FIGURES</div>
+  <h1>Figure 1 — Counter Sale to a Known Client</h1>
+
+  <div class="figure">
+  <svg viewBox="0 0 760 292" xmlns="http://www.w3.org/2000/svg" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8a8d96"/></marker>
+      <marker id="arrO" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f97316"/></marker>
+    </defs>
+    <!-- BEFORE lane -->
+    <rect x="0" y="0" width="760" height="140" rx="14" fill="#f4f4f6"/>
+    <text x="16" y="24" font-size="11" font-weight="800" fill="#17181c">TODAY</text>
+    <text x="16" y="38" font-size="9" fill="#b91c1c" font-family="JetBrains Mono, monospace">15 interactions · ~95 s · 1 screen, 2 dropdown hunts</text>
+    <g font-size="8.6" fill="#4b4e57">
+      <rect x="16"  y="52" width="96" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="24" y="70">Sidebar →</text><text x="24" y="82" font-weight="700" fill="#17181c">POS / Sales</text>
+      <rect x="124" y="52" width="106" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="132" y="66">Customer &lt;select&gt;</text><text x="132" y="78" font-weight="700" fill="#17181c">scroll ≤100 names</text><text x="132" y="90">pick client</text>
+      <rect x="242" y="52" width="112" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="250" y="66">Part &lt;select&gt; over</text><text x="250" y="78" font-weight="700" fill="#17181c">entire catalog</text><text x="250" y="90">hunt + pick</text>
+      <rect x="366" y="52" width="100" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="374" y="66">Qty · verify price</text><text x="374" y="78" font-weight="700" fill="#17181c">“Add Line”</text>
+      <rect x="478" y="52" width="88" height="46" rx="8" fill="#fff" stroke="#fdba74" stroke-dasharray="4 3"/><text x="486" y="70" font-weight="700" fill="#c2410c">repeat ×2</text><text x="486" y="82">per line</text>
+      <rect x="578" y="52" width="80" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="586" y="70">Paid</text><text x="586" y="82" font-weight="700" fill="#17181c">amount</text>
+      <rect x="670" y="52" width="76" height="46" rx="8" fill="#17181c"/><text x="678" y="70" fill="#fff">Create</text><text x="678" y="82" fill="#fff" font-weight="700">Invoice</text>
+    </g>
+    <g stroke="#8a8d96" stroke-width="1.2">
+      <line x1="112" y1="75" x2="122" y2="75" marker-end="url(#arr)"/><line x1="230" y1="75" x2="240" y2="75" marker-end="url(#arr)"/>
+      <line x1="354" y1="75" x2="364" y2="75" marker-end="url(#arr)"/><line x1="466" y1="75" x2="476" y2="75" marker-end="url(#arr)"/>
+      <line x1="566" y1="75" x2="576" y2="75" marker-end="url(#arr)"/><line x1="658" y1="75" x2="668" y2="75" marker-end="url(#arr)"/>
+    </g>
+    <text x="16" y="122" font-size="8.4" fill="#8a8d96" font-family="JetBrains Mono, monospace">friction: dropdown scroll-hunts scale with catalog size; price + stock verified per line after selection</text>
+
+    <!-- AFTER lane -->
+    <rect x="0" y="152" width="760" height="140" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="16" y="176" font-size="11" font-weight="800" fill="#17181c">IGNITION</text>
+    <text x="16" y="190" font-size="9" fill="#15803d" font-family="JetBrains Mono, monospace">7 interactions · ~30 s · zero navigation, keyboard-only</text>
+    <g font-size="8.6" fill="#4b4e57">
+      <rect x="16"  y="204" width="82" height="46" rx="8" fill="#0a0a0b"/><text x="24" y="226" fill="#fff" font-weight="700">Ctrl + K</text><text x="24" y="238" fill="#b3b5bd">anywhere</text>
+      <rect x="110" y="204" width="120" height="46" rx="8" fill="#fff" stroke="#fdba74"/><text x="118" y="222" font-family="JetBrains Mono, monospace" font-weight="700" fill="#c2410c">inv eli ↵</text><text x="118" y="234">draft opens, client set,</text><text x="118" y="246">cursor in scan field</text>
+      <rect x="242" y="204" width="118" height="46" rx="8" fill="#fff" stroke="#fdba74"/><text x="250" y="222" font-weight="700" fill="#17181c">scan / type code ↵</text><text x="250" y="234">line added at list price,</text><text x="250" y="246">stock shown inline</text>
+      <rect x="372" y="204" width="76" height="46" rx="8" fill="#fff" stroke="#fdba74"/><text x="380" y="226" font-weight="700" fill="#17181c">qty ↵</text><text x="380" y="238">if ≠ 1</text>
+      <rect x="460" y="204" width="92" height="46" rx="8" fill="#fff" stroke="#fdba74" stroke-dasharray="4 3"/><text x="468" y="226" font-weight="700" fill="#c2410c">scan line 2 ↵</text>
+      <rect x="564" y="204" width="88" height="46" rx="8" fill="#fff" stroke="#fdba74"/><text x="572" y="222" font-weight="700" fill="#17181c">tender ↵</text><text x="572" y="234">defaults to total,</text><text x="572" y="246">cash</text>
+      <rect x="664" y="204" width="82" height="46" rx="8" fill="#f97316"/><text x="672" y="226" fill="#fff" font-weight="700">posted +</text><text x="672" y="238" fill="#fff">receipt</text>
+    </g>
+    <g stroke="#f97316" stroke-width="1.2">
+      <line x1="98" y1="227" x2="108" y2="227" marker-end="url(#arrO)"/><line x1="230" y1="227" x2="240" y2="227" marker-end="url(#arrO)"/>
+      <line x1="360" y1="227" x2="370" y2="227" marker-end="url(#arrO)"/><line x1="448" y1="227" x2="458" y2="227" marker-end="url(#arrO)"/>
+      <line x1="552" y1="227" x2="562" y2="227" marker-end="url(#arrO)"/><line x1="652" y1="227" x2="662" y2="227" marker-end="url(#arrO)"/>
+    </g>
+    <text x="16" y="276" font-size="8.4" fill="#c2410c" font-family="JetBrains Mono, monospace">×25 sales/day → 65 s saved per sale → ~27 min/day at the counter</text>
+  </svg>
+  <div class="cap">FIG 1 · Swimlane — counter sale to a known client (2 lines), traced from invoices-view.js vs Ignition keyboard-first flow.</div>
+  </div>
+
+  <h2 style="margin-top:8px;">Figure 2 — Minutes Saved per Task per Day (projected)</h2>
+  <div class="figure">
+  <svg viewBox="0 0 760 236" xmlns="http://www.w3.org/2000/svg" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <g font-size="9" fill="#4b4e57" font-family="JetBrains Mono, monospace">
+      <!-- bars: max 27 -> scale x20 px per min, origin x=190 -->
+      <g transform="translate(0,6)">
+        <text x="182" y="12" text-anchor="end">T2 counter sale</text><rect x="190" y="2" width="540" height="14" rx="7" fill="#f97316"/><text x="700" y="12" fill="#fff" font-weight="700" text-anchor="end">27</text>
+        <text x="182" y="34" text-anchor="end">T4 receive payment</text><rect x="190" y="24" width="300" height="14" rx="7" fill="#fb923c"/><text x="480" y="34" fill="#fff" font-weight="700" text-anchor="end">15</text>
+        <text x="182" y="56" text-anchor="end">T5 chase overdue</text><rect x="190" y="46" width="200" height="14" rx="7" fill="#fb923c"/><text x="380" y="56" fill="#fff" font-weight="700" text-anchor="end">10</text>
+        <text x="182" y="78" text-anchor="end">T1 morning review</text><rect x="190" y="68" width="160" height="14" rx="7" fill="#fdba74"/><text x="340" y="78" fill="#7c2d12" font-weight="700" text-anchor="end">8</text>
+        <text x="182" y="100" text-anchor="end">T3 new-client sale</text><rect x="190" y="90" width="160" height="14" rx="7" fill="#fdba74"/><text x="340" y="100" fill="#7c2d12" font-weight="700" text-anchor="end">8</text>
+        <text x="182" y="122" text-anchor="end">T7 quote→invoice</text><rect x="190" y="112" width="160" height="14" rx="7" fill="#fdba74"/><text x="340" y="122" fill="#7c2d12" font-weight="700" text-anchor="end">8</text>
+        <text x="182" y="144" text-anchor="end">T6 stock check</text><rect x="190" y="134" width="120" height="14" rx="7" fill="#fed7aa"/><text x="300" y="144" fill="#7c2d12" font-weight="700" text-anchor="end">6</text>
+        <text x="182" y="166" text-anchor="end">T8 day-close cash</text><rect x="190" y="156" width="120" height="14" rx="7" fill="#fed7aa"/><text x="300" y="166" fill="#7c2d12" font-weight="700" text-anchor="end">6</text>
+        <text x="182" y="188" text-anchor="end">T9 request follow-up</text><rect x="190" y="178" width="120" height="14" rx="7" fill="#fed7aa"/><text x="300" y="188" fill="#7c2d12" font-weight="700" text-anchor="end">6</text>
+        <text x="182" y="210" text-anchor="end">T10 WA reminder</text><rect x="190" y="200" width="80" height="14" rx="7" fill="#fed7aa"/><text x="260" y="210" fill="#7c2d12" font-weight="700" text-anchor="end">4</text>
+      </g>
+      <line x1="190" y1="2" x2="190" y2="222" stroke="#e6e7ea"/>
+      <text x="742" y="230" text-anchor="end" fill="#8a8d96">minutes saved / shop / day · total ≈ 98</text>
+    </g>
+  </svg>
+  <div class="cap">FIG 2 · Projected minutes saved per day, per task — weighted by execution frequency (Section 3 summary table).</div>
+  </div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 7 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 8 · FIG 3 + FIG 4 -->
+<section class="page">
+  <div class="kicker">FLOW FIGURES — CONTINUED</div>
+  <h1>Figure 3 — Receive a Payment Against Balance</h1>
+  <div class="figure">
+  <svg viewBox="0 0 760 262" xmlns="http://www.w3.org/2000/svg" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <defs>
+      <marker id="arr2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8a8d96"/></marker>
+      <marker id="arrO2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f97316"/></marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="126" rx="14" fill="#f4f4f6"/>
+    <text x="16" y="24" font-size="11" font-weight="800" fill="#17181c">TODAY</text>
+    <text x="16" y="38" font-size="9" fill="#b91c1c" font-family="JetBrains Mono, monospace">12 interactions · ~3 min · no direct flow exists — invoice rows offer no “receive payment”</text>
+    <g font-size="8.6" fill="#4b4e57">
+      <rect x="16"  y="50" width="88" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="24" y="68">Sidebar →</text><text x="24" y="80" font-weight="700" fill="#17181c">Accounting</text>
+      <rect x="116" y="50" width="106" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="124" y="68">hunt tabs for the</text><text x="124" y="80" font-weight="700" fill="#17181c">party ledger</text>
+      <rect x="234" y="50" width="112" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="242" y="64">open</text><text x="242" y="76" font-weight="700" fill="#17181c">Manual Journal</text><text x="242" y="88">screen</text>
+      <rect x="358" y="50" width="128" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="366" y="64">pick accounts by hand:</text><text x="366" y="76" font-weight="700" fill="#17181c">debit Cash / credit A-R</text><text x="366" y="88">type amount + memo</text>
+      <rect x="498" y="50" width="74" height="46" rx="8" fill="#17181c"/><text x="506" y="72" fill="#fff" font-weight="700">Post</text>
+      <rect x="584" y="50" width="160" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="592" y="64">re-open ledger / aging to</text><text x="592" y="76" font-weight="700" fill="#17181c">verify the balance moved</text><text x="592" y="88">(error-prone, skippable)</text>
+    </g>
+    <g stroke="#8a8d96" stroke-width="1.2">
+      <line x1="104" y1="73" x2="114" y2="73" marker-end="url(#arr2)"/><line x1="222" y1="73" x2="232" y2="73" marker-end="url(#arr2)"/>
+      <line x1="346" y1="73" x2="356" y2="73" marker-end="url(#arr2)"/><line x1="486" y1="73" x2="496" y2="73" marker-end="url(#arr2)"/>
+      <line x1="572" y1="73" x2="582" y2="73" marker-end="url(#arr2)"/>
+    </g>
+    <rect x="0" y="138" width="760" height="118" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="16" y="162" font-size="11" font-weight="800" fill="#17181c">IGNITION</text>
+    <text x="16" y="176" font-size="9" fill="#15803d" font-family="JetBrains Mono, monospace">4 interactions · ~30 s · from anywhere in the app</text>
+    <g font-size="8.6" fill="#4b4e57">
+      <rect x="16"  y="188" width="150" height="48" rx="8" fill="#0a0a0b"/><text x="24" y="206" fill="#fff" font-weight="700" font-family="JetBrains Mono, monospace">Ctrl+K  pay elie 250</text><text x="24" y="220" fill="#b3b5bd">or queue deep-link, or</text><text x="24" y="231" fill="#b3b5bd">workspace action bar</text>
+      <rect x="180" y="188" width="190" height="48" rx="8" fill="#fff" stroke="#fdba74"/><text x="188" y="204" font-weight="700" fill="#17181c">Payment sheet — pre-filled</text><text x="188" y="217">amount defaults to balance;</text><text x="188" y="229">allocation oldest-invoice-first, editable</text>
+      <rect x="384" y="188" width="96" height="48" rx="8" fill="#fff" stroke="#fdba74"/><text x="392" y="210" font-weight="700" fill="#17181c">Confirm ↵</text><text x="392" y="223">journal posted</text>
+      <rect x="494" y="188" width="250" height="48" rx="8" fill="#f97316"/><text x="502" y="206" fill="#fff" font-weight="700">Receipt prints · aging pill re-colors in place</text><text x="502" y="220" fill="#ffedd5">related queue item auto-resolves on next signal check</text>
+    </g>
+    <g stroke="#f97316" stroke-width="1.2">
+      <line x1="166" y1="212" x2="178" y2="212" marker-end="url(#arrO2)"/><line x1="370" y1="212" x2="382" y2="212" marker-end="url(#arrO2)"/>
+      <line x1="480" y1="212" x2="492" y2="212" marker-end="url(#arrO2)"/>
+    </g>
+  </svg>
+  <div class="cap">FIG 3 · Swimlane — receiving a payment after invoicing. Today’s path is a manual journal; Ignition makes it a first-class one-sheet action.</div>
+  </div>
+
+  <h1 style="margin-top:10px;">Figure 4 — Chase Overdue Receivables (5 clients)</h1>
+  <div class="figure">
+  <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <defs>
+      <marker id="arr3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8a8d96"/></marker>
+      <marker id="arrO3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f97316"/></marker>
+    </defs>
+    <rect x="0" y="0" width="760" height="124" rx="14" fill="#f4f4f6"/>
+    <text x="16" y="24" font-size="11" font-weight="800" fill="#17181c">TODAY</text>
+    <text x="16" y="38" font-size="9" fill="#b91c1c" font-family="JetBrains Mono, monospace">~21 interactions · ~15 min · buckets don’t show invoices; reminders are blind</text>
+    <g font-size="8.6" fill="#4b4e57">
+      <rect x="16"  y="50" width="104" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="24" y="68" font-weight="700" fill="#17181c">Customer Aging</text><text x="24" y="80">read bucket totals</text>
+      <rect x="132" y="50" width="96" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="140" y="68">search client,</text><text x="140" y="80" font-weight="700" fill="#17181c">note balance</text>
+      <rect x="240" y="50" width="110" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="248" y="64">POS/Sales screen</text><text x="248" y="76" font-weight="700" fill="#17181c">search invoices,</text><text x="248" y="88">cross-reference</text>
+      <rect x="362" y="50" width="96" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="370" y="68">back to Aging,</text><text x="370" y="80" font-weight="700" fill="#17181c">Send Reminder</text>
+      <rect x="470" y="50" width="104" height="46" rx="8" fill="#fff" stroke="#e6e7ea"/><text x="478" y="64">no preview —</text><text x="478" y="76" font-weight="700" fill="#17181c">check delivery on</text><text x="478" y="88">dashboard list</text>
+      <rect x="586" y="50" width="158" height="46" rx="8" fill="#fff" stroke="#b91c1c" stroke-dasharray="4 3"/><text x="594" y="70" font-weight="700" fill="#b91c1c">repeat ×5 clients</text><text x="594" y="84" fill="#4b4e57">context rebuilt each time</text>
+    </g>
+    <g stroke="#8a8d96" stroke-width="1.2">
+      <line x1="120" y1="73" x2="130" y2="73" marker-end="url(#arr3)"/><line x1="228" y1="73" x2="238" y2="73" marker-end="url(#arr3)"/>
+      <line x1="350" y1="73" x2="360" y2="73" marker-end="url(#arr3)"/><line x1="458" y1="73" x2="468" y2="73" marker-end="url(#arr3)"/>
+      <line x1="574" y1="73" x2="584" y2="73" marker-end="url(#arr3)"/>
+    </g>
+    <rect x="0" y="136" width="760" height="108" rx="14" fill="#fff7ed" stroke="#fdba74"/>
+    <text x="16" y="160" font-size="11" font-weight="800" fill="#17181c">IGNITION</text>
+    <text x="16" y="174" font-size="9" fill="#15803d" font-family="JetBrains Mono, monospace">~8 interactions · ~5 min for all 5 clients · worklist advances automatically</text>
+    <g font-size="8.6" fill="#4b4e57">
+      <rect x="16"  y="184" width="186" height="48" rx="8" fill="#0a0a0b"/><text x="24" y="200" fill="#f97316" font-weight="700">Queue: “3 invoices overdue —</text><text x="24" y="212" fill="#f97316" font-weight="700">Garage Elie Motors · $1,240”</text><text x="24" y="226" fill="#b3b5bd">scored by bucket × amount</text>
+      <rect x="216" y="184" width="168" height="48" rx="8" fill="#fff" stroke="#fdba74"/><text x="224" y="200" font-weight="700" fill="#17181c">Client Workspace · Payments tab</text><text x="224" y="213">the exact invoices, aged and listed —</text><text x="224" y="226">no cross-referencing</text>
+      <rect x="398" y="184" width="168" height="48" rx="8" fill="#fff" stroke="#fdba74"/><text x="406" y="200" font-weight="700" fill="#17181c">Reminder pre-drafted</text><text x="406" y="213">invoice numbers + balance in the text;</text><text x="406" y="226">preview → edit → send / log call</text>
+      <rect x="580" y="184" width="164" height="48" rx="8" fill="#f97316"/><text x="588" y="203" fill="#fff" font-weight="700">“Next client →” advances</text><text x="588" y="217" fill="#ffedd5">worklist; item resolves when</text><text x="588" y="229" fill="#ffedd5">payment lands or promise logged</text>
+    </g>
+    <g stroke="#f97316" stroke-width="1.2">
+      <line x1="202" y1="208" x2="214" y2="208" marker-end="url(#arrO3)"/><line x1="384" y1="208" x2="396" y2="208" marker-end="url(#arrO3)"/>
+      <line x1="566" y1="208" x2="578" y2="208" marker-end="url(#arrO3)"/>
+    </g>
+  </svg>
+  <div class="cap">FIG 4 · Swimlane — the daily collections pass. The aging table becomes a self-advancing worklist driven by the Action Queue.</div>
+  </div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 8 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 9 · §4 ACTION QUEUE A -->
+<section class="page">
+  <div class="kicker">SECTION 04</div>
+  <h1><span class="section-no">04</span>The Action Queue as a Workflow Engine</h1>
+
+  <h3>What exists today — the honest baseline</h3>
+  <p><code>buildActionQueue()</code> in <code>dashboard-view.js</code> already detects six signals and renders them as cards.
+  That is a genuinely good foundation — and exactly why the redesign keeps the concept and fixes the mechanics:</p>
+  <table>
+    <tr><th>Today’s behavior (from code)</th><th>Consequence</th><th>Ignition change</th></tr>
+    <tr><td>Fixed insertion order; <code>tasks.slice(0, 4)</code> caps the list</td><td>A $12 failed message can display while a $4,000 receivable is cut off</td><td>Score-ranked list, no hard cap; overflow groups by category</td></tr>
+    <tr><td>Items carry only <code>view: "accounting"</code> etc.</td><td>Deep link lands on a whole screen; user re-finds the entity</td><td>Deep-link contract carries entity, tab, action, and a pre-drafted payload</td></tr>
+    <tr><td>Recomputed from scratch on every load; no state</td><td>No memory of what was acted on or dismissed; same items nag daily</td><td>Persistent item identity: <code>ruleKey + entityId</code>; lifecycle survives refresh</td></tr>
+    <tr><td>Aggregate items only (“14 open transactions”)</td><td>Not actionable without manual triage</td><td>Per-entity items (“Garage Elie Motors · 3 invoices · $1,240”), worklist-able</td></tr>
+  </table>
+
+  <h3>Prioritization: severity × money at stake</h3>
+  <p>Every item gets a score when signals are evaluated. Score determines order; nothing is silently dropped.</p>
+  <div class="panelbox">
+    <p class="mono" style="font-size:10px; color:#17181c; margin-bottom:6px;"><b>score = S × (1 + log₁₀(1 + money_at_stake_usd)) × A</b></p>
+    <p style="margin:0;"><b>S — severity class:</b> S1 blocking/losing money now = 100 (negative daily P&amp;L, day-close variance) ·
+    S2 money waiting = 60 (overdue receivables, quote-ready requests, currency-squeezed margins) ·
+    S3 hygiene = 30 (red stock segments, failed messages, expiring quotes) ·
+    S4 informational = 10 (no sales yet today).<br>
+    <b>money_at_stake</b> — the receivable balance, quote value, or margin exposure attached to the entity; items with no
+    monetary dimension use their category’s median so they are ordered, not zeroed.<br>
+    <b>A — age boost:</b> +10% per day unresolved, capped at 2× — items that linger rise, they don’t fade.</p>
+  </div>
+  <p><b>Worked example:</b> “Garage Elie Motors, 3 invoices 30+ days, $1,240” → 60 × (1 + log₁₀(1241)) × 1.0 ≈ <b>246</b>.
+  “1 failed WhatsApp message ($0 attached, category median $80)” → 30 × (1 + log₁₀(81)) ≈ <b>87</b>. The receivable
+  outranks the retry, in that order, every time — which matches how the owner actually triages.</p>
+
+  <h3>Signal catalog and deep-link targets</h3>
+  <table>
+    <tr><th>Signal (rule key)</th><th style="width:16mm;">Class</th><th>Deep link — where the click lands</th></tr>
+    <tr><td>Negative daily P&amp;L <span class="pill code">exists today</span></td><td class="mono">S1</td><td>Dashboard P&amp;L drill-down: expense breakdown, biggest delta highlighted</td></tr>
+    <tr><td>Day-close cash variance <span class="pill orange">new</span></td><td class="mono">S1</td><td>Day-Close card → unmatched receipts list</td></tr>
+    <tr><td>Overdue receivables per client <span class="pill code">exists (aggregate)</span></td><td class="mono">S2</td><td><b>Client Workspace · payments tab · reminder pre-drafted</b> with the exact invoices</td></tr>
+    <tr><td>Quote-ready part requests <span class="pill code">computed, not queued</span></td><td class="mono">S2</td><td>Request detail with live stock + drafted quote message</td></tr>
+    <tr><td>Currency-squeezed margins <span class="pill code">exists today</span></td><td class="mono">S2</td><td>Repricing sheet filtered to the affected parts, suggested price pre-filled</td></tr>
+    <tr><td>Red stock segments <span class="pill code">exists today</span></td><td class="mono">S3</td><td>Stock view filtered to the red segment, dead-stock action panel open</td></tr>
+    <tr><td>Failed customer messages <span class="pill code">exists today</span></td><td class="mono">S3</td><td>The client’s message thread, failed message selected, “Retry” focused</td></tr>
+    <tr><td>Quotes expiring ≤3 days <span class="pill orange">new</span></td><td class="mono">S3</td><td>Quote detail with follow-up message drafted</td></tr>
+    <tr><td>Low stock below min <span class="pill code">snapshot card today</span></td><td class="mono">S3</td><td>Reorder Center pre-filtered to the flagged parts</td></tr>
+    <tr><td>No sales posted yet <span class="pill code">exists today</span></td><td class="mono">S4</td><td>POS draft, focused, ready to scan</td></tr>
+  </table>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 9 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 10 · §4 B LIFECYCLE -->
+<section class="page">
+  <div class="kicker">SECTION 04 — CONTINUED</div>
+  <h1>Item Lifecycle &amp; Deep-Link Contract</h1>
+
+  <div class="figure">
+  <svg viewBox="0 0 760 264" xmlns="http://www.w3.org/2000/svg" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <defs>
+      <marker id="arrL" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#4b4e57"/></marker>
+      <marker id="arrLO" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#f97316"/></marker>
+    </defs>
+    <!-- states -->
+    <g font-size="9.5">
+      <rect x="20" y="30" width="120" height="52" rx="12" fill="#131316"/><text x="80" y="52" fill="#fff" font-weight="800" text-anchor="middle">DETECTED</text><text x="80" y="68" fill="#b3b5bd" text-anchor="middle" font-size="8">signal rule fires on refresh</text>
+      <rect x="180" y="30" width="120" height="52" rx="12" fill="#131316"/><text x="240" y="52" fill="#fff" font-weight="800" text-anchor="middle">SCORED</text><text x="240" y="68" fill="#b3b5bd" text-anchor="middle" font-size="8">severity × money × age</text>
+      <rect x="340" y="30" width="120" height="52" rx="12" fill="#f97316"/><text x="400" y="52" fill="#fff" font-weight="800" text-anchor="middle">QUEUED</text><text x="400" y="68" fill="#ffedd5" text-anchor="middle" font-size="8">visible, ranked, badged</text>
+      <rect x="500" y="30" width="120" height="52" rx="12" fill="#131316"/><text x="560" y="52" fill="#fff" font-weight="800" text-anchor="middle">ACTED</text><text x="560" y="68" fill="#b3b5bd" text-anchor="middle" font-size="8">deep link opened / action run</text>
+      <rect x="416" y="150" width="140" height="52" rx="12" fill="#dcfce7" stroke="#16a34a"/><text x="486" y="172" fill="#15803d" font-weight="800" text-anchor="middle">RESOLVED</text><text x="486" y="188" fill="#3f6212" text-anchor="middle" font-size="8">signal re-check passes</text>
+      <rect x="590" y="150" width="150" height="52" rx="12" fill="#f4f4f6" stroke="#c9cbd2"/><text x="665" y="172" fill="#4b4e57" font-weight="800" text-anchor="middle">DISMISSED</text><text x="665" y="188" fill="#8a8d96" text-anchor="middle" font-size="8">snoozed 1d / 7d, reason logged</text>
+      <rect x="20" y="150" width="220" height="52" rx="12" fill="#fff7ed" stroke="#fdba74"/><text x="130" y="172" fill="#c2410c" font-weight="800" text-anchor="middle">RE-EVALUATED NEXT REFRESH</text><text x="130" y="188" fill="#9a3412" text-anchor="middle" font-size="8">identity = ruleKey + entityId → state persists</text>
+    </g>
+    <!-- arrows -->
+    <g stroke="#4b4e57" stroke-width="1.4" fill="none">
+      <line x1="140" y1="56" x2="178" y2="56" marker-end="url(#arrL)"/>
+      <line x1="300" y1="56" x2="338" y2="56" marker-end="url(#arrL)"/>
+      <line x1="460" y1="56" x2="498" y2="56" marker-end="url(#arrL)"/>
+      <path d="M560,82 L560,140 L500,168 " stroke="#16a34a" marker-end="url(#arrL)"/>
+      <path d="M620,56 L700,56 L700,146" stroke="#8a8d96" marker-end="url(#arrL)"/>
+      <path d="M416,176 L246,176" stroke="#f97316" marker-end="url(#arrLO)"/>
+      <path d="M590,190 L246,190" stroke="#8a8d96" stroke-dasharray="4 3" marker-end="url(#arrL)"/>
+      <path d="M80,150 L80,110 L80,86" stroke="#f97316" marker-end="url(#arrLO)"/>
+    </g>
+    <g font-size="8" fill="#4b4e57" font-family="JetBrains Mono, monospace">
+      <text x="536" y="120">payment lands /</text><text x="536" y="130">stock fixed / msg sent</text>
+      <text x="646" y="46">snooze</text>
+      <text x="290" y="170" fill="#c2410c">resolved items leave the queue</text>
+      <text x="290" y="202" fill="#8a8d96">snooze expiry re-queues with age boost</text>
+      <text x="6" y="120" fill="#c2410c">loop</text>
+    </g>
+    <!-- contrast note -->
+    <rect x="20" y="222" width="724" height="34" rx="10" fill="#f4f4f6"/>
+    <text x="34" y="243" font-size="8.6" fill="#4b4e57" font-family="JetBrains Mono, monospace">contrast with today: buildActionQueue() is stateless — every refresh recomputes, nothing is remembered, acted ≡ never happened</text>
+  </svg>
+  <div class="cap">FIG 5 · Action Queue item lifecycle. Persistence is keyed by ruleKey + entityId so acting or snoozing survives refresh and re-login.</div>
+  </div>
+
+  <h3>The deep-link contract</h3>
+  <p>Every queue item carries a structured target instead of today’s bare <code>view</code> string:</p>
+  <div class="panelbox">
+    <p class="mono" style="font-size:9.5px; color:#17181c; margin:0;">
+    { view: "client-workspace", entityId: 412, tab: "payments",<br>
+    &nbsp;&nbsp;action: "send-reminder", draft: { template: "AgingReminder", invoiceIds: [8811, 8873, 8901] } }
+    </p>
+  </div>
+  <ul>
+    <li><b>view + entityId</b> — lands inside the entity, not on a list screen. “3 invoices overdue for Garage Elie Motors”
+    opens <em>that client’s</em> workspace, payments tab — never the generic aging table.</li>
+    <li><b>action + draft</b> — the target screen opens with the action sheet already populated: reminder text drafted with
+    the exact invoice numbers, payment sheet pre-filled with the balance, reorder list pre-checked.</li>
+    <li><b>Round trip</b> — completing the action emits an event (<code>queue_item_acted</code>); the next signal evaluation
+    flips the item to RESOLVED if the underlying condition cleared. The queue is therefore a closed loop: it can tell the
+    owner not just what needs doing, but what <em>got done</em> today — which becomes the day-close summary.</li>
+  </ul>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 10 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 11 · §5 CLIENT WORKSPACE -->
+<section class="page">
+  <div class="kicker">SECTION 05</div>
+  <h1><span class="section-no">05</span>Client Workspace — Operational Flows</h1>
+
+  <p>The Client Workspace replaces three partial views — Contacts (read-only list, no search, no detail),
+  Customer Aging (buckets without invoices), and per-screen lookups in POS/Sales, Quotes and Part Requests — with one
+  screen per client: identity header (name, phone, WhatsApp status, balance, aging pill), an action bar
+  (<b>New Invoice · Receive Payment · New Quote · Send Reminder</b>), and tabs
+  (Overview · Invoices · Payments · Quotes · Requests · Messages · Activity). Four flows carry the daily load:</p>
+
+  <div class="grid2">
+    <div class="panelbox">
+      <h3>1 · Receive payment without leaving the screen</h3>
+      <p style="margin:0;">Action bar → payment sheet slides over the tab area. Amount defaults to full balance; typing a
+      partial amount shows oldest-first allocation across open invoices, editable per line. Confirm posts the journal
+      entry behind the scenes (same double-entry the manual journal produces today — cash debit, A/R credit), prints a
+      receipt, and the header balance + aging pill update in place. <b>4 steps, ~30 s</b>, versus a 12-step manual
+      journal today.</p>
+    </div>
+    <div class="panelbox">
+      <h3>2 · Invoice from client context</h3>
+      <p style="margin:0;">“New Invoice” opens the same keyboard-first POS draft as <span class="kbd">Ctrl+K</span>
+      <code>inv</code>, with the client pre-filled — no customer dropdown at all (today’s POS makes the operator scroll a
+      <code>&lt;select&gt;</code> capped at 100 rows even when they arrived from a client’s record). On post, the invoice
+      appears at the top of the Invoices tab and the balance updates without a reload.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panelbox">
+      <h3>3 · Aging-driven collection worklist</h3>
+      <p style="margin:0;">The Payments tab shows the client’s open invoices <em>aged inline</em> (the join the owner does
+      by hand today between customer-aging-view and invoices-view). In worklist mode — entered from the queue item or the
+      aging screen’s “Start collections” — the workspace advances client-to-client sorted by bucket × amount, logging an
+      outcome per client: <em>reminder sent · promise-to-pay (date) · dispute · unreachable</em>. Outcomes feed the next
+      day’s queue: a broken promise re-queues at higher score.</p>
+    </div>
+    <div class="panelbox">
+      <h3>4 · Communication follow-ups with templates</h3>
+      <p style="margin:0;">The Messages tab is the client’s whole thread: invoices sent, reminders, quote follow-ups —
+      with delivery status per message, replacing today’s blind fire-and-forget (aging’s “Send Reminder” posts
+      <code>accountBalanceReminder</code> with no preview; failures surface only on the dashboard). Templates —
+      <em>AgingReminder, InvoiceCopy, QuoteFollowUp, RequestQuote</em> — render with live data for preview and edit before
+      send. A failed message shows inline with one-click retry, and raises an S3 queue item pointing back to this exact thread.</p>
+    </div>
+  </div>
+
+  <h3>What this eliminates, screen by screen</h3>
+  <table>
+    <tr><th>Today’s fragment</th><th>Grounded limitation</th><th>Absorbed into</th></tr>
+    <tr><td><code>contacts-view.js</code></td><td>Two static lists (customers/suppliers), <code>pageSize=100</code>, name + phone + opening balance only; no search, no row click, no create form</td><td>Workspace directory with type-ahead; header identity card; inline “new client” (also reachable from the sale flow)</td></tr>
+    <tr><td><code>customer-aging-view.js</code></td><td>Buckets and totals, but no invoice drill-down; reminder without preview</td><td>Payments tab (aged invoice list) + worklist mode + previewed reminders</td></tr>
+    <tr><td><code>invoices-view.js</code> lookups</td><td>Finding one client’s invoices means a text search over all invoices; no receive-payment action on rows</td><td>Invoices tab, pre-filtered; Receive Payment in the action bar</td></tr>
+    <tr><td><code>quotes-view.js</code> lookups</td><td>Quotes found by global search; convert and send live on two different screens</td><td>Quotes tab with Convert &amp; Send as one previewed action</td></tr>
+    <tr><td><code>part-requests-view.js</code> lookups</td><td>Requests not linked to the requester’s history or balance</td><td>Requests tab beside the client’s invoices and credit position</td></tr>
+  </table>
+
+  <div class="callout"><p><b>Design guardrail:</b> the workspace adds no new data-entry concepts. Every action reuses an
+  existing API flow (<code>/api/sales</code>, <code>/api/quotes/{id}/convert</code>, <code>/api/communications/send</code>,
+  journal posting) — it relocates the entry point next to the client, which is where the operator already is mentally.</p></div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 11 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 12 · §6 SPEED MECHANICS -->
+<section class="page">
+  <div class="kicker">SECTION 06</div>
+  <h1><span class="section-no">06</span>Speed Mechanics</h1>
+
+  <h3>Global <span class="kbd">Ctrl</span><span class="kbd">K</span> command palette — the grammar</h3>
+  <p>One input, available on every screen, replacing the dashboard’s query-discarding search box. Verbs are 1–4
+  characters; arguments are fuzzy-matched with type-ahead. Enter always executes the top match; results render inline
+  where the answer is informational (stock/price) instead of navigating.</p>
+  <table>
+    <tr><th style="width:40mm;">Command</th><th>Result</th></tr>
+    <tr><td class="mono"><b>inv eli</b></td><td>New invoice draft, client “Garage Elie Motors” attached, cursor in the scan/code field</td></tr>
+    <tr><td class="mono"><b>inv</b></td><td>Walk-in sale draft (today’s default customer option, minus the dropdown)</td></tr>
+    <tr><td class="mono"><b>pay eli 250</b></td><td>Payment sheet for Elie, $250 pre-filled, oldest-first allocation shown</td></tr>
+    <tr><td class="mono"><b>part n54 coil</b> / <b>part 11427566327</b></td><td>Inline result card: price, stock by warehouse, margin flag — no navigation (T6 in 2 steps)</td></tr>
+    <tr><td class="mono"><b>q eli</b></td><td>New quote for Elie, same line-builder as invoices</td></tr>
+    <tr><td class="mono"><b>c eli</b></td><td>Open Elie’s Client Workspace (overview tab)</td></tr>
+    <tr><td class="mono"><b>cust + Nabil Fakhry</b></td><td>Inline client create (name + phone), returns to whatever flow invoked it</td></tr>
+    <tr><td class="mono"><b>wa eli</b></td><td>Elie’s message thread with template picker</td></tr>
+    <tr><td class="mono"><b>#8811</b></td><td>Invoice 8811 detail (works for quote and request numbers too)</td></tr>
+    <tr><td class="mono"><b>&gt; reorder</b></td><td>Navigate to any of the registered screens by fuzzy name — the long tail of the 74-screen registry stays reachable without sidebar archaeology</td></tr>
+  </table>
+
+  <div class="grid2">
+    <div class="panelbox">
+      <h3>Keyboard-first counter sale</h3>
+      <p style="margin:0;">The POS draft is an input loop, not a form: scan field → qty → scan field. Tab/Enter only;
+      the mouse is never required. Price edits are <span class="kbd">F4</span> on the focused line; tender defaults to
+      exact total and cash (today’s free-text “payment method” input becomes a 1-key choice: <b>C</b>ash / <b>T</b>ransfer /
+      on <b>A</b>ccount). Target: 2-line sale in ~30 s (Fig 1).</p>
+    </div>
+    <div class="panelbox">
+      <h3>Barcode flow tie-in</h3>
+      <p style="margin:0;">Scanners act as keyboard wedges: a scan anywhere in the palette or the POS scan field resolves
+      by barcode → internal code → OEM code (the same identifiers the dashboard already lists as search tabs). A scan on
+      the dashboard opens the part card; a scan inside a draft adds a line. The existing Barcode Mode screen
+      (<code>barcode-mode-view.js</code>) remains for camera-based scanning on mobile.</p>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panelbox">
+      <h3>Recents &amp; favorites</h3>
+      <p style="margin:0;">The palette’s empty state shows the last 5 clients, last 5 parts, and pinned actions — because
+      counter traffic is heavily repeat business, most lookups become two keystrokes (<span class="kbd">Ctrl+K</span>,
+      <span class="kbd">↵</span>). Recents are per-user and local-first, so they cost no API round-trip.</p>
+    </div>
+    <div class="panelbox">
+      <h3>Latency budget</h3>
+      <p style="margin:0;">Palette matching runs against a cached client + part index (the app already ships the full
+      parts list to the browser via <code>api.list("/api/parts")</code> on dashboard and POS load — Ignition reuses that
+      as a versioned cache instead of a per-screen refetch). Budget: &lt;50 ms keystroke-to-result on cached data;
+      stock quantities revalidate async and patch the card.</p>
+    </div>
+  </div>
+
+  <div class="callout"><p><b>Why keyboard-first pays for itself:</b> T2 + T6 run ~55 times a day. Every second shaved off
+  their loop saves nearly a minute a day; the palette shaves ~65 s and ~12 s respectively. No other single mechanism in
+  this package moves the daily total more.</p></div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 12 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 13 · §7 CROSS-DEVICE -->
+<section class="page">
+  <div class="kicker">SECTION 07</div>
+  <h1><span class="section-no">07</span>Cross-Device Workflow</h1>
+
+  <h3>What the owner checks from a phone</h3>
+  <p>The owner’s phone sessions are short, frequent, and read-mostly-plus-approve. The mobile web layout keeps exactly
+  two blocks above the fold:</p>
+  <ul>
+    <li><b>KPI band</b> — Sales today, Profit today, Cash, Overdue receivables. Four numbers, full-width, tap-to-drill.</li>
+    <li><b>Action Queue</b> — the same scored list as desktop. Phone-appropriate actions per item: approve a pre-drafted
+    reminder (one tap — the draft was composed by the deep-link contract, not on the phone), snooze, or “flag for desk”
+    which pins the item to the top of the desktop queue.</li>
+  </ul>
+  <p>Also phone-friendly: receiving a payment (the 4-step sheet works one-handed), checking a part’s stock/price via the
+  palette in search-first mode, and the day-close summary card in the evening.</p>
+
+  <h3>What stays desktop-only</h3>
+  <table>
+    <tr><th>Kept on desktop</th><th>Why</th></tr>
+    <tr><td>Line-item invoice and quote building</td><td>Barcode wedge + numeric keypad + printer live at the counter; multi-line entry on a phone is slower than walking to the desk</td></tr>
+    <tr><td>Manual journal entries, report builder, schema tools</td><td>Dense, error-sensitive, low-frequency — no mobile payoff</td></tr>
+    <tr><td>Bulk stock operations, reorder confirmation, stock arrival</td><td>Physically happens at the shelf/desk with the goods present</td></tr>
+    <tr><td>Collections worklist (full mode)</td><td>Requires the aged-invoice detail view; the phone gets the approve/snooze slice of it</td></tr>
+  </table>
+
+  <h3>Offline &amp; poor connectivity at the shop counter</h3>
+  <div class="panelbox">
+    <p style="margin:0;"><b>Reality:</b> counter connectivity drops in exactly the moments that matter (a queue of
+    customers). The failure mode to design out is “the sale stops because the spinner spins.”</p>
+  </div>
+  <ul>
+    <li><b>Read path is cache-first.</b> The parts index (already fully client-side today) and the client directory are
+    versioned local caches. Stock lookups and price checks answer instantly from cache with a “as of 10:42” badge; a
+    background revalidation patches quantities when the network returns.</li>
+    <li><b>Write path is queue-and-sync.</b> Invoice posts, payment receipts and reminder sends enqueue locally with an
+    optimistic receipt (marked “pending sync”). On reconnect, the queue drains in order; the server remains authoritative —
+    a stock rejection (the same validation <code>/api/sales</code> performs today) surfaces as a red queue item on the
+    dashboard rather than a silent loss.</li>
+    <li><b>Barcode keeps working.</b> Scans resolve against the local index, so the input loop never blocks on network.</li>
+    <li><b>Visible state, no mystery.</b> A connectivity chip in the command bar shows pending-sync count; tapping it lists
+    queued writes. Nothing auto-retries invisibly past 3 attempts without surfacing.</li>
+    <li><b>Out of scope for offline:</b> journal entries, conversions, and anything multi-user-sensitive — these fail fast
+    with a clear “needs connection” message instead of queuing.</li>
+  </ul>
+
+  <div class="callout"><p><b>Cross-device rule of thumb:</b> the phone decides and approves; the desktop composes and
+  executes. Both share one Action Queue state, so an item acted on from the phone is resolved on the desktop and vice
+  versa — one to-do list for the business, not one per device.</p></div>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 13 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 14 · §8 ADOPTION -->
+<section class="page">
+  <div class="kicker">SECTION 08</div>
+  <h1><span class="section-no">08</span>Adoption &amp; Rollout</h1>
+
+  <h3>Side-by-side period (weeks 1–4)</h3>
+  <p>The new Dashboard and Client Workspace register as additional screens alongside the existing ones — the
+  screen-registry pattern makes this a two-line addition, and legacy screens stay reachable via
+  <span class="kbd">Ctrl+K</span> <code>&gt; screen-name</code> throughout. Week 1–2: new screens are opt-in (a “Try the
+  new dashboard” banner). Week 3–4: new screens become the default; legacy screens remain one command away. Removal of the
+  legacy Contacts/Aging screens happens only after the success gate below is met — not on a calendar date.</p>
+
+  <h3>Telemetry — verifying this report’s projections</h3>
+  <p>Every number in Section 3 becomes a measured distribution. Events are lightweight client-side beacons with
+  <code>tenantId, userId(role), taskId, ts</code>:</p>
+  <table>
+    <tr><th style="width:48mm;">Event</th><th>Fires when</th><th>Verifies</th></tr>
+    <tr><td class="mono">task_start / task_complete</td><td>Task boundary heuristics: e.g. T2 = first palette/POS interaction → invoice posted; T4 = payment sheet open → posted</td><td>Time-on-task p50/p90 per task id (T1–T10) — the core before/after claim</td></tr>
+    <tr><td class="mono">screen_view</td><td>Every navigation, with source (sidebar / palette / deep-link)</td><td>Screens-per-task; navigation share of session time</td></tr>
+    <tr><td class="mono">palette_used</td><td>Command executed, with verb + result kind</td><td>Adoption of the fast paths; verb frequency tunes the grammar</td></tr>
+    <tr><td class="mono">queue_item_shown / acted / resolved / dismissed</td><td>Lifecycle transitions (Fig 5)</td><td>Queue precision — are we surfacing things people act on?</td></tr>
+    <tr><td class="mono">reminder_previewed / edited / sent</td><td>Messages tab + worklist</td><td>Whether previews change content (they should — blind sends are today’s norm)</td></tr>
+    <tr><td class="mono">sync_queue_depth</td><td>Offline write queue high-water mark, daily</td><td>Whether the offline design carries real counter load</td></tr>
+  </table>
+
+  <h3>Success metrics — targets to hit before legacy retirement</h3>
+  <table>
+    <tr><th>Metric</th><th class="num" style="width:34mm;">Baseline (today, est.)</th><th class="num" style="width:34mm;">Target (week 6)</th></tr>
+    <tr><td>Counter sale (T2) time-on-task, p50</td><td class="num">~95 s</td><td class="num good">≤ 35 s</td></tr>
+    <tr><td>Receive payment (T4) time-on-task, p50</td><td class="num">~3 min</td><td class="num good">≤ 45 s</td></tr>
+    <tr><td>Stock check (T6) answered without leaving current screen</td><td class="num">0%</td><td class="num good">≥ 80%</td></tr>
+    <tr><td>Sales initiated via palette or workspace (vs sidebar+dropdown)</td><td class="num">0%</td><td class="num good">≥ 60%</td></tr>
+    <tr><td>Queue items resolved same-day</td><td class="num">n/a (no lifecycle)</td><td class="num good">≥ 70%</td></tr>
+    <tr><td>Queue items dismissed as irrelevant</td><td class="num">n/a</td><td class="num good">≤ 15% (precision guard)</td></tr>
+    <tr><td>Overdue &gt;30d receivables balance</td><td class="num">baseline captured wk 0</td><td class="num good">−20% by day 60</td></tr>
+    <tr><td>Reminder delivery failures resolved within 24 h</td><td class="num">untracked</td><td class="num good">≥ 90%</td></tr>
+    <tr><td>Screens visited per session, p50</td><td class="num">measured wk 1</td><td class="num good">−40%</td></tr>
+  </table>
+
+  <h3>Training &amp; rollback</h3>
+  <ul>
+    <li><b>Training is one laminated card:</b> the palette grammar table from Section 6. The palette also teaches itself —
+    empty state shows the top 6 verbs with examples, and slash-help (<code>?</code>) lists everything.</li>
+    <li><b>Rollback criteria:</b> if week-4 p50 for T2 exceeds 60 s, or queue dismissal rate exceeds 30%, the default flips
+    back to legacy while the specific mechanism is reworked. Telemetry keeps flowing either way, so the comparison is
+    honest in both directions.</li>
+  </ul>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 14 of 15</span></div>
+</section>
+
+<!-- ============================================================ PAGE 15 · FIG 6 DAY IN LIFE + CLOSE -->
+<section class="page">
+  <div class="kicker">A DAY IN THE LIFE</div>
+  <h1>Figure 6 — One Shop Day, Before vs After</h1>
+  <p>Administrative overhead (navigation, dropdown hunts, cross-referencing, re-keying) across a 08:00–18:00 day for the
+  whole shop, aggregated from the Section 3 table. Selling, stocking and customer conversation are untouched — this is
+  purely the UI tax.</p>
+
+  <div class="figure">
+  <svg viewBox="0 0 760 330" xmlns="http://www.w3.org/2000/svg" font-family="Plus Jakarta Sans, Arial, sans-serif">
+    <!-- time axis -->
+    <g font-size="8" fill="#8a8d96" font-family="JetBrains Mono, monospace">
+      <text x="70" y="14">08:00</text><text x="202" y="14">10:00</text><text x="334" y="14">12:00</text>
+      <text x="466" y="14">14:00</text><text x="598" y="14">16:00</text><text x="720" y="14">18:00</text>
+      <line x1="80" y1="20" x2="80" y2="300" stroke="#e6e7ea"/><line x1="212" y1="20" x2="212" y2="300" stroke="#e6e7ea"/>
+      <line x1="344" y1="20" x2="344" y2="300" stroke="#e6e7ea"/><line x1="476" y1="20" x2="476" y2="300" stroke="#e6e7ea"/>
+      <line x1="608" y1="20" x2="608" y2="300" stroke="#e6e7ea"/><line x1="740" y1="20" x2="740" y2="300" stroke="#e6e7ea"/>
+    </g>
+
+    <!-- BEFORE band -->
+    <text x="12" y="52" font-size="10" font-weight="800" fill="#17181c">TODAY</text>
+    <text x="12" y="66" font-size="8.5" fill="#b91c1c" font-family="JetBrains Mono, monospace">~98 min UI tax</text>
+    <rect x="80" y="76" width="660" height="34" rx="8" fill="#f4f4f6"/>
+    <!-- segments (scaled: 660px = 600min, 1.1px/min) -->
+    <g font-size="7.6" fill="#fff">
+      <rect x="80"  y="76" width="14" height="34" fill="#b91c1c"/>            <!-- morning review 12m -->
+      <rect x="100" y="76" width="10" height="34" fill="#dc2626"/>            <!-- collections part 15m spread -->
+      <rect x="140" y="76" width="9"  height="34" fill="#ef4444"/>
+      <rect x="176" y="76" width="8"  height="34" fill="#f87171"/>            <!-- sales admin morning -->
+      <rect x="214" y="76" width="9"  height="34" fill="#ef4444"/>
+      <rect x="256" y="76" width="8"  height="34" fill="#f87171"/>
+      <rect x="300" y="76" width="10" height="34" fill="#dc2626"/>            <!-- payments -->
+      <rect x="352" y="76" width="9"  height="34" fill="#ef4444"/>
+      <rect x="396" y="76" width="8"  height="34" fill="#f87171"/>
+      <rect x="436" y="76" width="10" height="34" fill="#dc2626"/>
+      <rect x="482" y="76" width="9"  height="34" fill="#ef4444"/>
+      <rect x="524" y="76" width="8"  height="34" fill="#f87171"/>
+      <rect x="566" y="76" width="9"  height="34" fill="#ef4444"/>
+      <rect x="610" y="76" width="8"  height="34" fill="#f87171"/>
+      <rect x="652" y="76" width="7"  height="34" fill="#ef4444"/>
+      <rect x="692" y="76" width="10" height="34" fill="#b91c1c"/>            <!-- eod 8m -->
+    </g>
+    <g font-size="7.8" fill="#4b4e57">
+      <text x="80"  y="124">12m morning review (6 screens)</text>
+      <text x="300" y="124">payments = manual journals, sales = dropdown hunts, reminders = blind + re-verify</text>
+      <text x="676" y="124">8m cash math</text>
+    </g>
+
+    <!-- AFTER band -->
+    <text x="12" y="170" font-size="10" font-weight="800" fill="#17181c">IGNITION</text>
+    <text x="12" y="184" font-size="8.5" fill="#15803d" font-family="JetBrains Mono, monospace">~41 min UI tax</text>
+    <rect x="80" y="194" width="660" height="34" rx="8" fill="#fff7ed" stroke="#fdba74"/>
+    <g>
+      <rect x="80"  y="194" width="5" height="34" fill="#f97316"/>            <!-- 4m review -->
+      <rect x="120" y="194" width="6" height="34" fill="#fb923c"/>            <!-- collections 5m -->
+      <rect x="180" y="194" width="4" height="34" fill="#fdba74"/>
+      <rect x="250" y="194" width="4" height="34" fill="#fdba74"/>
+      <rect x="320" y="194" width="5" height="34" fill="#fb923c"/>
+      <rect x="390" y="194" width="4" height="34" fill="#fdba74"/>
+      <rect x="460" y="194" width="4" height="34" fill="#fdba74"/>
+      <rect x="530" y="194" width="5" height="34" fill="#fb923c"/>
+      <rect x="600" y="194" width="4" height="34" fill="#fdba74"/>
+      <rect x="660" y="194" width="4" height="34" fill="#fdba74"/>
+      <rect x="710" y="194" width="3" height="34" fill="#f97316"/>            <!-- 2m day close -->
+    </g>
+    <g font-size="7.8" fill="#4b4e57">
+      <text x="80"  y="242">4m queue review</text>
+      <text x="300" y="242">sales ~30 s each · payments ~30 s · reminders previewed, tracked, resolved</text>
+      <text x="676" y="242">2m day-close card</text>
+    </g>
+
+    <!-- delta -->
+    <rect x="80" y="266" width="660" height="44" rx="12" fill="#0a0a0b"/>
+    <text x="100" y="286" font-size="10" fill="#fff" font-weight="800">Recovered: ~57 min of owner + counter attention per day</text>
+    <text x="100" y="300" font-size="8.4" fill="#b3b5bd" font-family="JetBrains Mono, monospace">…and the remaining 41 min is work-shaped (queue-driven), not navigation-shaped</text>
+    <text x="700" y="295" font-size="18" fill="#f97316" font-weight="800" font-family="JetBrains Mono, monospace" text-anchor="end">−58%</text>
+  </svg>
+  <div class="cap">FIG 6 · Administrative overhead across one shop day. Red/orange blocks are minutes spent on UI mechanics rather than customers.</div>
+  </div>
+
+  <h2>Closing</h2>
+  <p>The redesign wins not by adding capability — nearly every flow in this report re-uses an API the app already has —
+  but by <strong>collapsing distance</strong>: between a signal and its action (Action Queue deep links), between a client
+  and everything about them (Client Workspace), and between an intent and its execution
+  (<span class="kbd">Ctrl+K</span>). The projections total ~98 minutes a day; the telemetry in Section 8 exists so that
+  six weeks after rollout, that number is no longer a projection.</p>
+  <p style="font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--ink3);">END OF REPORT 05 — NEXT: REPORT 06.</p>
+
+  <div class="foot"><span>SpareParts · Ignition Design Package · 05 Workflow Optimization</span><span>Page 15 of 15</span></div>
+</section>
+
+</body>
+</html>
