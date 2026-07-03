@@ -7,6 +7,9 @@ public sealed class UserNotificationService : IUserNotificationService
     public void Show(string message, string title, NotificationKind kind = NotificationKind.Info)
         => CustomMessageBox.Show(message, title, ToVisualKind(kind));
 
+    public bool Confirm(string message, string title)
+        => CustomMessageBox.ShowConfirmation(message, title);
+
     private static string ToVisualKind(NotificationKind kind)
         => kind switch
         {

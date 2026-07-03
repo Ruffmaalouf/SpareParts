@@ -1,151 +1,89 @@
 import { featureModules } from "../core/config.js";
 import { ScreenRegistry } from "../core/screen-registry.js";
-import { ActivityLogView } from "./activity-log-view.js";
-import { AdminBillingView } from "./admin-billing-view.js";
-import { BillingView } from "./billing-view.js";
-import { CarTwinWorkspaceView } from "./car-twin-workspace-view.js";
-import { ContactsView } from "./contacts-view.js";
-import { CustomerAgingView } from "./customer-aging-view.js";
-import { SupplierAgingView } from "./supplier-aging-view.js";
-import { DashboardView } from "./dashboard-view.js";
-import { QuotesView } from "./quotes-view.js";
-import { DeadStockView } from "./dead-stock-view.js";
-import { ExpiryAlertsView } from "./expiry-alerts-view.js";
-import { GrowthLabView } from "./growth-lab-view.js";
-import { InventoryView } from "./inventory-view.js";
-import { InvoicesView } from "./invoices-view.js";
-import { SalesReturnsView } from "./sales-returns-view.js";
-import { LoyaltyView } from "./loyalty-view.js";
-import { ManagementWorkspaceView } from "./management-view.js";
-import { PartCompatibilityView } from "./part-compatibility-view.js";
-import { PartPassportWorkspaceView } from "./part-passport-workspace-view.js";
-import { PartRequestsView } from "./part-requests-view.js";
-import { ReorderView } from "./reorder-view.js";
-import { RepairPrepBoardView } from "./repair-prep-board-view.js";
-import { ShipmentsView } from "./shipments-view.js";
-import { AccountingView } from "./accounting-view.js";
-import { BarcodeModeView } from "./barcode-mode-view.js";
-import { SettingsView } from "./settings-view.js";
-import { StockArrivalTheaterView } from "./stock-arrival-theater-view.js";
-import { UsedCarsView } from "./used-cars-view.js";
-import { WarrantyView } from "./warranty-view.js";
-import { WhatsAppView } from "./whatsapp-view.js";
-import { createModuleView } from "./module-workspace-view.js";
-import { MyGarageView } from "./my-garage-view.js";
-import { NeedBoardView } from "./needboard-view.js";
-import { WatchlistView } from "./watchlist-view.js";
-import { SellerReputationView } from "./seller-reputation-view.js";
-import { SellerVerificationView } from "./seller-verification-view.js";
-import { SymptomSearchView } from "./symptom-search-view.js";
-import { MechanicDeskView } from "./mechanic-desk-view.js";
-import { GarageStockView } from "./garage-stock-view.js";
-import { PartReserveView } from "./part-reserve-view.js";
-import { PartReelView } from "./part-reel-view.js";
-import { WhatsAppSellingView } from "./whatsapp-selling-view.js";
-import { HalfCutView } from "./halfcut-view.js";
-import { CarCrushView } from "./car-crush-view.js";
-import { EscrowView } from "./escrow-view.js";
-import { MarketPriceView } from "./market-price-view.js";
-import { ListingBoostView } from "./listing-boost-view.js";
-import { ReferralView } from "./referral-view.js";
-import { VoiceSearchView } from "./voice-search-view.js";
-import { DoesItFitView } from "./does-it-fit-view.js";
-import { PriceGeniusView } from "./price-genius-view.js";
-import { ConditionScannerView } from "./condition-scanner-view.js";
-import { CommunityGuardView } from "./community-guard-view.js";
-import { LiveInspectionView } from "./live-inspection-view.js";
-import { QrTagView } from "./qr-tag-view.js";
-import { PartGenealogyView } from "./part-genealogy-view.js";
-import { DismantlerForecastView } from "./dismantler-forecast-view.js";
-import { RegionalDemandView } from "./regional-demand-view.js";
-import { MechanicTrustView } from "./mechanic-trust-view.js";
-import { NewVsUsedView } from "./new-vs-used-view.js";
-import { YardTourView } from "./yard-tour-view.js";
-import { NegotiationView } from "./negotiation-view.js";
-import { InstantOfferView } from "./instant-offer-view.js";
-import { PartInsuranceView } from "./part-insurance-view.js";
-import { KareemView } from "./kareem-view.js";
-import { ArFinderView } from "./ar-finder-view.js";
-import { PriceReportView } from "./price-report-view.js";
-import { ApiPlatformView } from "./api-platform-view.js";
 
+// Code-splitting: every view module below is imported lazily (dynamic
+// import()) instead of eagerly at app start, so signing in only downloads
+// the screens the user actually opens instead of all ~70 views up front.
+// Each `load` function is only invoked by ScreenRegistry.resolveAsync() the
+// first time its screen is opened, and the resolved component is cached for
+// the rest of the session.
 function moduleByKey(key) {
   return featureModules.find((module) => module.key === key);
 }
 
 export const screenRegistry = new ScreenRegistry([
-  { key: "dashboard", label: "Dashboard", component: DashboardView },
-  { key: "invoices", label: "POS / Sales", component: InvoicesView },
-  { key: "sales-returns", label: "Sales Returns", component: SalesReturnsView },
-  { key: "inventory", label: "Parts", component: InventoryView },
-  { key: "part-passport", label: "Part Passport", component: PartPassportWorkspaceView },
-  { key: "compatibility", label: "Compatibility", component: PartCompatibilityView },
-  { key: "part-requests", label: "Part Requests", component: PartRequestsView },
-  { key: "contacts", label: "Contacts", component: ContactsView },
-  { key: "management", label: "Management", component: ManagementWorkspaceView },
-  { key: "billing", label: "Billing & Subscription", component: BillingView },
-  { key: "settings", label: "Settings", component: SettingsView },
-  { key: "purchase-parts", label: "Part Purchases", component: createModuleView(moduleByKey("purchase-parts")) },
-  { key: "used-car-purchases", label: "Used Car Purchases", component: createModuleView(moduleByKey("used-car-purchases")) },
-  { key: "used-car-wholesale", label: "Used Car Wholesale", component: createModuleView(moduleByKey("used-car-wholesale")) },
-  { key: "stock-arrival", label: "Stock Arrival", component: StockArrivalTheaterView },
-  { key: "used-cars", label: "Used Cars", component: UsedCarsView },
-  { key: "car-twin", label: "Vehicle Digital Twin", component: CarTwinWorkspaceView },
-  { key: "repair-prep", label: "Repair / Prep", component: RepairPrepBoardView },
-  { key: "stock", label: "Stock", component: createModuleView(moduleByKey("stock")) },
-  { key: "dead-stock", label: "Dead Stock", component: DeadStockView },
-  { key: "growth-lab", label: "Money Finder", component: GrowthLabView },
-  { key: "accounting", label: "Accounting", component: AccountingView },
-  { key: "manual-journal", label: "Manual Journal", component: createModuleView(moduleByKey("manual-journal")) },
-  { key: "report-builder", label: "Report Builder", component: createModuleView(moduleByKey("report-builder")) },
-  { key: "whatsapp", label: "WhatsApp", component: WhatsAppView },
-  { key: "business-assistant", label: "AI Assistant", component: createModuleView(moduleByKey("business-assistant")) },
-  { key: "ar", label: "AR Search", component: BarcodeModeView },
-  { key: "reorder", label: "Reorder Center", component: ReorderView },
-  { key: "expiry-alerts", label: "Expiry Alerts", component: ExpiryAlertsView },
-  { key: "loyalty", label: "Loyalty", component: LoyaltyView },
-  { key: "warranty", label: "Warranty & Returns", component: WarrantyView },
-  { key: "shipments", label: "Shipments", component: ShipmentsView },
-  { key: "activity-log", label: "Activity Log", component: ActivityLogView },
-  { key: "quotes", label: "Quotes / Estimates", component: QuotesView },
-  { key: "customer-aging", label: "Customer Aging", component: CustomerAgingView },
-  { key: "supplier-aging", label: "Supplier Aging", component: SupplierAgingView },
-  { key: "admin-billing", label: "Pricing & Subscriptions", component: AdminBillingView },
-  { key: "my-garage", label: "My Garage", component: MyGarageView },
-  { key: "needboard", label: "NeedBoard", component: NeedBoardView },
-  { key: "watchlist", label: "WatchPart", component: WatchlistView },
-  { key: "seller-reputation", label: "Shop Reputation", component: SellerReputationView },
-  { key: "seller-verification", label: "Seller Verification", component: SellerVerificationView },
-  { key: "symptom-search", label: "Symptom Finder", component: SymptomSearchView },
-  { key: "mechanic-desk", label: "Mechanic Desk", component: MechanicDeskView },
-  { key: "garage-stock", label: "Garage Stock", component: GarageStockView },
-  { key: "part-reserve", label: "Part Reservations", component: PartReserveView },
-  { key: "part-reel", label: "Part Reels", component: PartReelView },
-  { key: "whatsapp-selling", label: "WhatsApp Selling", component: WhatsAppSellingView },
-  { key: "halfcut", label: "Half-Cut Showcase", component: HalfCutView },
-  { key: "car-crush", label: "CarCrush", component: CarCrushView },
-  { key: "escrow", label: "Escrow / Protection", component: EscrowView },
-  { key: "market-price", label: "Market Price Index", component: MarketPriceView },
-  { key: "listing-boost", label: "Boost Listings", component: ListingBoostView },
-  { key: "referral", label: "Referral Program", component: ReferralView },
-  { key: "voice-search", label: "Voice Search", component: VoiceSearchView },
-  { key: "does-it-fit", label: "Does It Fit?", component: DoesItFitView },
-  { key: "price-genius", label: "PriceGenius AI", component: PriceGeniusView },
-  { key: "condition-scanner", label: "Condition Scanner", component: ConditionScannerView },
-  { key: "community-guard", label: "CommunityGuard", component: CommunityGuardView },
-  { key: "live-inspection", label: "Live Inspection", component: LiveInspectionView },
-  { key: "qr-tag", label: "QR Tag System", component: QrTagView },
-  { key: "part-genealogy", label: "Part Genealogy", component: PartGenealogyView },
-  { key: "dismantler-forecast", label: "Dismantler Forecast", component: DismantlerForecastView },
-  { key: "regional-demand", label: "Regional Demand Map", component: RegionalDemandView },
-  { key: "mechanic-trust", label: "MechanicTrust Network", component: MechanicTrustView },
-  { key: "new-vs-used", label: "New vs Used", component: NewVsUsedView },
-  { key: "yard-tour", label: "Live Yard Tour", component: YardTourView },
-  { key: "negotiation", label: "AI Negotiation Bot", component: NegotiationView },
-  { key: "instant-offer", label: "InstantOffer", component: InstantOfferView },
-  { key: "part-insurance", label: "Part Insurance Add-On", component: PartInsuranceView },
-  { key: "kareem", label: "AutoChat Kareem", component: KareemView },
-  { key: "ar-finder", label: "AR Parts Finder", component: ArFinderView },
-  { key: "price-report", label: "B2B Price Report", component: PriceReportView },
-  { key: "api-platform", label: "API Platform", component: ApiPlatformView }
+  { key: "dashboard", label: "Dashboard", load: () => import("./dashboard-view.js").then((m) => m.DashboardView) },
+  { key: "invoices", label: "POS / Sales", load: () => import("./invoices-view.js").then((m) => m.InvoicesView) },
+  { key: "sales-returns", label: "Sales Returns", load: () => import("./sales-returns-view.js").then((m) => m.SalesReturnsView) },
+  { key: "inventory", label: "Parts", load: () => import("./inventory-view.js").then((m) => m.InventoryView) },
+  { key: "part-passport", label: "Part Passport", load: () => import("./part-passport-workspace-view.js").then((m) => m.PartPassportWorkspaceView) },
+  { key: "compatibility", label: "Compatibility", load: () => import("./part-compatibility-view.js").then((m) => m.PartCompatibilityView) },
+  { key: "part-requests", label: "Part Requests", load: () => import("./part-requests-view.js").then((m) => m.PartRequestsView) },
+  { key: "contacts", label: "Contacts", load: () => import("./contacts-view.js").then((m) => m.ContactsView) },
+  { key: "management", label: "Management", load: () => import("./management-view.js").then((m) => m.ManagementWorkspaceView) },
+  { key: "billing", label: "Billing & Subscription", load: () => import("./billing-view.js").then((m) => m.BillingView) },
+  { key: "settings", label: "Settings", load: () => import("./settings-view.js").then((m) => m.SettingsView) },
+  { key: "purchase-parts", label: "Part Purchases", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("purchase-parts"))) },
+  { key: "used-car-purchases", label: "Used Car Purchases", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("used-car-purchases"))) },
+  { key: "used-car-wholesale", label: "Used Car Wholesale", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("used-car-wholesale"))) },
+  { key: "stock-arrival", label: "Stock Arrival", load: () => import("./stock-arrival-theater-view.js").then((m) => m.StockArrivalTheaterView) },
+  { key: "used-cars", label: "Used Cars", load: () => import("./used-cars-view.js").then((m) => m.UsedCarsView) },
+  { key: "car-twin", label: "Vehicle Digital Twin", load: () => import("./car-twin-workspace-view.js").then((m) => m.CarTwinWorkspaceView) },
+  { key: "repair-prep", label: "Repair / Prep", load: () => import("./repair-prep-board-view.js").then((m) => m.RepairPrepBoardView) },
+  { key: "stock", label: "Stock", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("stock"))) },
+  { key: "dead-stock", label: "Dead Stock", load: () => import("./dead-stock-view.js").then((m) => m.DeadStockView) },
+  { key: "growth-lab", label: "Money Finder", load: () => import("./growth-lab-view.js").then((m) => m.GrowthLabView) },
+  { key: "accounting", label: "Accounting", load: () => import("./accounting-view.js").then((m) => m.AccountingView) },
+  { key: "manual-journal", label: "Manual Journal", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("manual-journal"))) },
+  { key: "report-builder", label: "Report Builder", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("report-builder"))) },
+  { key: "whatsapp", label: "WhatsApp", load: () => import("./whatsapp-view.js").then((m) => m.WhatsAppView) },
+  { key: "business-assistant", label: "AI Assistant", load: () => import("./module-workspace-view.js").then((m) => m.createModuleView(moduleByKey("business-assistant"))) },
+  { key: "ar", label: "AR Search", load: () => import("./barcode-mode-view.js").then((m) => m.BarcodeModeView) },
+  { key: "reorder", label: "Reorder Center", load: () => import("./reorder-view.js").then((m) => m.ReorderView) },
+  { key: "expiry-alerts", label: "Expiry Alerts", load: () => import("./expiry-alerts-view.js").then((m) => m.ExpiryAlertsView) },
+  { key: "loyalty", label: "Loyalty", load: () => import("./loyalty-view.js").then((m) => m.LoyaltyView) },
+  { key: "warranty", label: "Warranty & Returns", load: () => import("./warranty-view.js").then((m) => m.WarrantyView) },
+  { key: "shipments", label: "Shipments", load: () => import("./shipments-view.js").then((m) => m.ShipmentsView) },
+  { key: "activity-log", label: "Activity Log", load: () => import("./activity-log-view.js").then((m) => m.ActivityLogView) },
+  { key: "quotes", label: "Quotes / Estimates", load: () => import("./quotes-view.js").then((m) => m.QuotesView) },
+  { key: "customer-aging", label: "Customer Aging", load: () => import("./customer-aging-view.js").then((m) => m.CustomerAgingView) },
+  { key: "supplier-aging", label: "Supplier Aging", load: () => import("./supplier-aging-view.js").then((m) => m.SupplierAgingView) },
+  { key: "admin-billing", label: "Pricing & Subscriptions", load: () => import("./admin-billing-view.js").then((m) => m.AdminBillingView) },
+  { key: "my-garage", label: "My Garage", load: () => import("./my-garage-view.js").then((m) => m.MyGarageView) },
+  { key: "needboard", label: "NeedBoard", load: () => import("./needboard-view.js").then((m) => m.NeedBoardView) },
+  { key: "watchlist", label: "WatchPart", load: () => import("./watchlist-view.js").then((m) => m.WatchlistView) },
+  { key: "seller-reputation", label: "Shop Reputation", load: () => import("./seller-reputation-view.js").then((m) => m.SellerReputationView) },
+  { key: "seller-verification", label: "Seller Verification", load: () => import("./seller-verification-view.js").then((m) => m.SellerVerificationView) },
+  { key: "symptom-search", label: "Symptom Finder", load: () => import("./symptom-search-view.js").then((m) => m.SymptomSearchView) },
+  { key: "mechanic-desk", label: "Mechanic Desk", load: () => import("./mechanic-desk-view.js").then((m) => m.MechanicDeskView) },
+  { key: "garage-stock", label: "Garage Stock", load: () => import("./garage-stock-view.js").then((m) => m.GarageStockView) },
+  { key: "part-reserve", label: "Part Reservations", load: () => import("./part-reserve-view.js").then((m) => m.PartReserveView) },
+  { key: "part-reel", label: "Part Reels", load: () => import("./part-reel-view.js").then((m) => m.PartReelView) },
+  { key: "whatsapp-selling", label: "WhatsApp Selling", load: () => import("./whatsapp-selling-view.js").then((m) => m.WhatsAppSellingView) },
+  { key: "halfcut", label: "Half-Cut Showcase", load: () => import("./halfcut-view.js").then((m) => m.HalfCutView) },
+  { key: "car-crush", label: "CarCrush", load: () => import("./car-crush-view.js").then((m) => m.CarCrushView) },
+  { key: "escrow", label: "Escrow / Protection", load: () => import("./escrow-view.js").then((m) => m.EscrowView) },
+  { key: "market-price", label: "Market Price Index", load: () => import("./market-price-view.js").then((m) => m.MarketPriceView) },
+  { key: "listing-boost", label: "Boost Listings", load: () => import("./listing-boost-view.js").then((m) => m.ListingBoostView) },
+  { key: "referral", label: "Referral Program", load: () => import("./referral-view.js").then((m) => m.ReferralView) },
+  { key: "voice-search", label: "Voice Search", load: () => import("./voice-search-view.js").then((m) => m.VoiceSearchView) },
+  { key: "does-it-fit", label: "Does It Fit?", load: () => import("./does-it-fit-view.js").then((m) => m.DoesItFitView) },
+  { key: "price-genius", label: "PriceGenius AI", load: () => import("./price-genius-view.js").then((m) => m.PriceGeniusView) },
+  { key: "condition-scanner", label: "Condition Scanner", load: () => import("./condition-scanner-view.js").then((m) => m.ConditionScannerView) },
+  { key: "community-guard", label: "CommunityGuard", load: () => import("./community-guard-view.js").then((m) => m.CommunityGuardView) },
+  { key: "live-inspection", label: "Live Inspection", load: () => import("./live-inspection-view.js").then((m) => m.LiveInspectionView) },
+  { key: "qr-tag", label: "QR Tag System", load: () => import("./qr-tag-view.js").then((m) => m.QrTagView) },
+  { key: "part-genealogy", label: "Part Genealogy", load: () => import("./part-genealogy-view.js").then((m) => m.PartGenealogyView) },
+  { key: "dismantler-forecast", label: "Dismantler Forecast", load: () => import("./dismantler-forecast-view.js").then((m) => m.DismantlerForecastView) },
+  { key: "regional-demand", label: "Regional Demand Map", load: () => import("./regional-demand-view.js").then((m) => m.RegionalDemandView) },
+  { key: "mechanic-trust", label: "MechanicTrust Network", load: () => import("./mechanic-trust-view.js").then((m) => m.MechanicTrustView) },
+  { key: "new-vs-used", label: "New vs Used", load: () => import("./new-vs-used-view.js").then((m) => m.NewVsUsedView) },
+  { key: "yard-tour", label: "Live Yard Tour", load: () => import("./yard-tour-view.js").then((m) => m.YardTourView) },
+  { key: "negotiation", label: "AI Negotiation Bot", load: () => import("./negotiation-view.js").then((m) => m.NegotiationView) },
+  { key: "instant-offer", label: "InstantOffer", load: () => import("./instant-offer-view.js").then((m) => m.InstantOfferView) },
+  { key: "part-insurance", label: "Part Insurance Add-On", load: () => import("./part-insurance-view.js").then((m) => m.PartInsuranceView) },
+  { key: "kareem", label: "AutoChat Kareem", load: () => import("./kareem-view.js").then((m) => m.KareemView) },
+  { key: "ar-finder", label: "AR Parts Finder", load: () => import("./ar-finder-view.js").then((m) => m.ArFinderView) },
+  { key: "price-report", label: "B2B Price Report", load: () => import("./price-report-view.js").then((m) => m.PriceReportView) },
+  { key: "api-platform", label: "API Platform", load: () => import("./api-platform-view.js").then((m) => m.ApiPlatformView) }
 ]);

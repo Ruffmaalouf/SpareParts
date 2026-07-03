@@ -201,6 +201,7 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 _all = await _crudApi.GetAllAsync<WarehouseDto>("api/warehouses");
+                SetLoadError(false);
                 await ApplyExternalSelectionAsync(SelectedWarehouseId);
             }
             catch (Exception ex)
@@ -211,6 +212,27 @@ namespace SpareParts.Desktop.Wpf
                 ClosePopup();
                 SelectedWarehouseId = null;
                 System.Diagnostics.Debug.WriteLine($"[WarehouseSearch] load failed: {ex.Message}");
+                SetLoadError(true);
+                CustomMessageBox.Show(
+                    $"Could not load warehouses: {ex.Message}",
+                    "Warehouse Search",
+                    "Error");
+            }
+        }
+
+        private void SetLoadError(bool hasError)
+        {
+            if (hasError)
+            {
+                EmptyStateText.Text = "Couldn't load warehouses. Check your connection and try again.";
+                EmptyState.Visibility = Visibility.Visible;
+                ResultsList.Visibility = Visibility.Collapsed;
+                ResultsPopup.IsOpen = true;
+            }
+            else
+            {
+                EmptyStateText.Text = "No warehouses found";
+                EmptyState.Visibility = Visibility.Collapsed;
             }
         }
 

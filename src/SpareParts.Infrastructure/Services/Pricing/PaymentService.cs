@@ -1,4 +1,5 @@
 using Dapper;
+using Microsoft.Extensions.Logging;
 using SpareParts.Domain.Pricing;
 using SpareParts.Infrastructure.Data;
 using SpareParts.Infrastructure.Interfaces;
@@ -14,17 +15,20 @@ public sealed class PaymentService : IPaymentService
     private readonly IPaymentProviderFactory _providerFactory;
     private readonly ISubscriptionService _subscriptionService;
     private readonly IInvoiceService _invoiceService;
+    private readonly ILogger<PaymentService>? _logger;
 
     public PaymentService(
         ISqlConnectionFactory factory,
         IPaymentProviderFactory providerFactory,
         ISubscriptionService subscriptionService,
-        IInvoiceService invoiceService)
+        IInvoiceService invoiceService,
+        ILogger<PaymentService>? logger = null)
     {
         _factory = factory;
         _providerFactory = providerFactory;
         _subscriptionService = subscriptionService;
         _invoiceService = invoiceService;
+        _logger = logger;
     }
 
     public IReadOnlyList<PaymentDto> GetHistory(int tenantId)
@@ -79,6 +83,9 @@ public sealed class PaymentService : IPaymentService
         {
             UpsertWebhookEvent(session, provider.ProviderCode, eventId, eventType, context.RawBody, WebhookProcessingStatus.Failed, result.Message);
             session.Commit();
+            _logger?.LogWarning(
+                "Payment webhook rejected. Provider={Provider} EventId={EventId} EventType={EventType} Reason={Reason}",
+                provider.ProviderCode, eventId, eventType, result.Message);
             return result;
         }
 
@@ -93,6 +100,9 @@ public sealed class PaymentService : IPaymentService
         {
             UpsertWebhookEvent(session, provider.ProviderCode, eventId, eventType, context.RawBody, WebhookProcessingStatus.Ignored, "No matching payment found.");
             session.Commit();
+            _logger?.LogWarning(
+                "Payment webhook ignored — no matching payment found. Provider={Provider} EventId={EventId} EventType={EventType}",
+                provider.ProviderCode, eventId, eventType);
             return result;
         }
 
@@ -119,6 +129,10 @@ public sealed class PaymentService : IPaymentService
 
         UpsertWebhookEvent(session, provider.ProviderCode, eventId, eventType, context.RawBody, WebhookProcessingStatus.Processed, null);
         session.Commit();
+
+        _logger?.LogInformation(
+            "Payment webhook processed. Provider={Provider} EventId={EventId} EventType={EventType} PaymentId={PaymentId} TenantId={TenantId} Succeeded={Succeeded}",
+            provider.ProviderCode, eventId, eventType, payment.Id, payment.TenantId, result.PaymentSucceeded);
 
         if (result.PaymentSucceeded == true)
         {

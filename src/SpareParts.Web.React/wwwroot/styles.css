@@ -17398,3 +17398,60 @@ code, .mono, .part-code, .oem-code, .vin-code, .invoice-ref, .barcode {
   color: var(--store-ink);
   font-family: var(--font);
 }
+
+/* ── Top-level React error boundary recovery screen ──────────────────── */
+.error-boundary-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg, #090909);
+  color: var(--text, #f2f1ee);
+}
+
+.error-boundary-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 32px;
+  border-radius: 12px;
+  border: 1px solid var(--line, #2a2a2a);
+  background: var(--surface, #131313);
+  text-align: center;
+}
+
+.error-boundary-card strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.error-boundary-card p {
+  color: var(--muted, #9b9b9b);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+/* ── Lazy screen loading fallback (code-split view modules) ─────────── */
+.screen-loading-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 240px;
+  color: var(--muted, #9b9b9b);
+  font-size: 14px;
+}
+
+.screen-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--line, #2a2a2a);
+  border-top-color: var(--accent, #e2231a);
+  animation: screen-loading-spin 0.7s linear infinite;
+}
+
+@keyframes screen-loading-spin {
+  to { transform: rotate(360deg); }
+}

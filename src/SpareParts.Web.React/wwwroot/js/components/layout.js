@@ -68,60 +68,10 @@ export function BrandMark({ label = "Maalouf Auto Parts", size = "", variant = "
   );
 }
 
-export function Sidebar({ screens, view, onView, onLogout, t, user }) {
-  const roleId = Number(user?.roleId ?? user?.RoleId);
-  const visibleScreens = screens.filter((screen) => !superAdminOnlyKeys.has(screen.key) || roleId === SUPER_ADMIN_ROLE_ID);
-  const screenMap = new Map(visibleScreens.map((screen) => [screen.key, screen]));
-  const groupedKeys = new Set(navGroups.flatMap((group) => group.items));
-  const extraScreens = visibleScreens.filter((screen) => !groupedKeys.has(screen.key));
-  const groups = [
-    ...navGroups.map((group) => ({
-      ...group,
-      screens: group.items.map((key) => screenMap.get(key)).filter(Boolean)
-    })),
-    extraScreens.length ? { key: "extra", label: "Other", screens: extraScreens } : null
-  ].filter((group) => group && group.screens.length > 0);
-  const displayName = user?.fullName || user?.name || user?.username || "Administrator";
-
-  return h("aside", { className: "sidebar" },
-    h("div", { className: "sidebar-brand" },
-      h(BrandMark, { size: "small", label: t("login.brand", "Maalouf Auto Parts") }),
-      h("div", null,
-        h("strong", null, t("app.brand", "Maalouf")),
-        h("span", null, t("app.subtitle", "Auto Parts"))
-      ),
-      h("b", { className: "sidebar-live" }, t("common.live", "Live"))
-    ),
-    h("nav", { className: "nav-list", "aria-label": t("nav.admin", "Admin navigation") },
-      groups.map((group) =>
-        h("section", { className: "nav-section", key: group.key },
-          h("span", { className: "nav-section-title" }, t(`nav.${group.key}`, group.label)),
-          group.screens.map(({ key, label }) =>
-            h("button", {
-              key,
-              className: key === view ? "nav-item active" : "nav-item",
-              onClick: () => onView(key),
-              type: "button"
-            },
-              h(NavIcon, { name: key }),
-              h("span", null, t(`screens.${key}`, label))
-            )
-          )
-        )
-      )
-    ),
-    h("footer", { className: "sidebar-footer" },
-      h("div", { className: "user-panel" },
-        h("span", { className: "avatar" }, String(displayName).slice(0, 2).toUpperCase()),
-        h("div", null,
-          h("strong", null, displayName),
-          h("span", null, roleId ? `Role ID ${roleId}` : "Role ID")
-        ),
-        onLogout && h("button", { className: "ghost-button", type: "button", onClick: onLogout }, t("common.signOut", "Sign out"))
-      )
-    )
-  );
-}
+// NOTE: the legacy `Sidebar` component that used to live here was dead code -
+// the app only renders js/components/ui/Sidebar.js (wired in app-shell.js).
+// Removed as part of the dead-code cleanup pass; navGroups/SUPER_ADMIN_ROLE_ID/
+// superAdminOnlyKeys above are still live (consumed by ui/Sidebar.js).
 
 export function ThemePicker({ value, onChange, t }) {
   return h("section", { className: "theme-picker", "aria-label": "WPF theme" },

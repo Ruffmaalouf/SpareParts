@@ -28,6 +28,25 @@
 -- migration inventory and ordering.
 -- ══════════════════════════════════════════════════════════════════════════
 
+-- ── Destructive-DDL opt-in flag ────────────────────────────────────────────
+-- Per project policy, no destructive statement (DROP TABLE, DELETE FROM,
+-- TRUNCATE, etc.) may run unattended without explicit approval. This script
+-- contains one such statement (the legacy dbo.UsedCarParts cleanup below,
+-- guarded further down). It defaults to OFF ('0'), meaning the DROP is
+-- skipped and schema.sql is safe to run unattended (e.g. on every staging
+-- deploy) by default.
+--
+-- :setvar only takes effect when the variable isn't already supplied by the
+-- caller. To intentionally re-enable the drop for a one-off run, invoke
+-- sqlcmd with an override, e.g.:
+--   sqlcmd -i database/schema.sql -v AllowDestructiveDrops="1" ...
+-- NOTE: the current CI deploy step (.github/workflows/deploy-staging.yml)
+-- does not pass -v, so today the drop is always skipped there. Re-enabling
+-- it in CI would require updating that workflow — out of scope here and
+-- not to be changed without separate approval.
+:setvar AllowDestructiveDrops "0"
+GO
+
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 SET QUOTED_IDENTIFIER ON;
@@ -1781,7 +1800,14 @@ BEGIN
        AND ranked.RowNumber = 1
     WHERE p.UsedCarId IS NULL;
 
-    DROP TABLE dbo.UsedCarParts;
+    -- Destructive DDL: only drop the now-migrated legacy table when explicitly
+    -- opted in (see AllowDestructiveDrops flag defined near the top of this
+    -- file). The data-preserving backfill above always runs regardless of this
+    -- flag; only the DROP itself is gated. Defaults to skipped/no-op.
+    IF '$(AllowDestructiveDrops)' = '1'
+    BEGIN
+        DROP TABLE dbo.UsedCarParts;
+    END;
 END;
 
 IF OBJECT_ID('dbo.Parts', 'U') IS NOT NULL

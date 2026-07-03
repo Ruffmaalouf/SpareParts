@@ -1,3 +1,4 @@
+using SpareParts.Desktop.Abstractions.Dialogs;
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Desktop.Wpf.Interfaces;
 using SpareParts.Desktop.Wpf;
@@ -638,7 +639,8 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             IReportBuilderApiClient reportBuilderApi,
             IArRenderingService arRenderingService,
             IArDeviceBridge arDeviceBridge,
-            ManagementViewModel managementVm)
+            ManagementViewModel managementVm,
+            IUserNotificationService notificationService)
         {
             _carCatalogApi = carCatalogApi;
             _partsApi = partsApi;
@@ -670,7 +672,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
             QuotesVm = new QuotesViewModel(crudApi);
             CustomerAgingVm = new CustomerAgingViewModel(crudApi);
             SupplierAgingVm = new SupplierAgingViewModel(crudApi);
-            BillingSubscriptionVm = new BillingSubscriptionViewModel(crudApi);
+            BillingSubscriptionVm = new BillingSubscriptionViewModel(crudApi, notificationService);
             SalesReturnsVm = new SalesReturnsViewModel(crudApi);
             AdminBillingVm = new AdminBillingViewModel(crudApi);
             NeedboardVm = new NeedboardViewModel(crudApi);

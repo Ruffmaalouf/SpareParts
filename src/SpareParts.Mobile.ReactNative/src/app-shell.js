@@ -19,9 +19,11 @@ const { defaultApiBaseUrl, defaultLanguageKey, defaultThemeKey, storageKeys } = 
 const { ApiClient } = require("./core/api-client");
 const { createTranslator, isRtlLanguage } = require("./core/i18n");
 const { MobileSessionStore } = require("./core/session-store");
+const { SecureSessionStorage } = require("./core/secure-storage");
 const { normalizeBaseUrl, normalizeLanguageKey, normalizeThemeKey } = require("./core/formatters");
 const { AppSidebar } = require("./components/app-sidebar");
 const { BottomTabBar } = require("./components/bottom-tab-bar");
+const { ErrorBoundary } = require("./components/error-boundary");
 const { LockedFeatureModal } = require("./components/locked-feature-modal");
 const { PhoneHeaderBar } = require("./components/phone-header-bar");
 const { SmartSearch } = require("./components/smart-search");
@@ -36,7 +38,11 @@ const { isWebAppUser: isWebAppRoleUser } = require("./core/role-policy");
 const { useCallback, useEffect, useMemo, useState } = React;
 const el = React.createElement;
 
-const sessionStore = new MobileSessionStore(AsyncStorage, storageKeys);
+// Sensitive session values (JWT token, user profile) go through
+// SecureSessionStorage (expo-secure-store, encrypted Keychain/Keystore).
+// Non-sensitive preferences (apiBaseUrl, theme, language) stay in
+// AsyncStorage. See src/core/secure-storage.js and src/core/session-store.js.
+const sessionStore = new MobileSessionStore(new SecureSessionStorage(), AsyncStorage, storageKeys);
 const bottomTabKeys = ["dashboard", "invoices", "parts", "management", "settings"];
 const customerTabs = [
   { key: "store-home", label: "Garage", icon: "gauge", description: "Cockpit" },
@@ -274,7 +280,7 @@ function AppContent() {
 }
 
 function App() {
-  return el(SafeAreaProvider, null, el(AppContent));
+  return el(ErrorBoundary, null, el(SafeAreaProvider, null, el(AppContent)));
 }
 
 module.exports = App;

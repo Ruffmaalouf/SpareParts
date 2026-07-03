@@ -245,9 +245,33 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 _allParts = await _partsApi.GetPartsAsync();
+                SetLoadError(false);
                 await ApplyExternalSelectionAsync(SelectedPartId);
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[PartSearch] {ex.Message}"); }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[PartSearch] {ex.Message}");
+                SetLoadError(true);
+                CustomMessageBox.Show(
+                    $"Could not load parts: {ex.Message}",
+                    "Part Search",
+                    "Error");
+            }
+        }
+
+        private void SetLoadError(bool hasError)
+        {
+            CountLabel.Text = hasError ? "load failed — tap search to retry" : CountLabel.Text;
+            EmptyState.Visibility = hasError ? Visibility.Visible : EmptyState.Visibility;
+            if (hasError)
+            {
+                EmptyStateText.Text = "Couldn't load parts. Check your connection and try again.";
+                ResultsPopup.IsOpen = true;
+            }
+            else
+            {
+                EmptyStateText.Text = "No parts found";
+            }
         }
 
         private async Task ApplyExternalSelectionAsync(int? partId)

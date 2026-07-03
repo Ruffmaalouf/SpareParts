@@ -12,6 +12,7 @@ import { createPartNotificationClient } from "./services/notification-service.js
 import { CustomerStorefrontView } from "./views/storefront-view.js";
 import { PartPassportView } from "./views/part-passport-view.js";
 import { screenRegistry } from "./views/screen-registry.js";
+import { LazyScreen } from "./components/LazyScreen.js";
 import { AppShell } from "./components/ui/AppShell.js";
 import { Sidebar } from "./components/ui/Sidebar.js";
 import { Topbar } from "./components/ui/Topbar.js";
@@ -169,7 +170,6 @@ export function App() {
     );
   }
 
-  const ActiveScreen = screenRegistry.resolve(view);
   const activeScreenMeta = screenRegistry.items.find((screen) => screen.key === view);
 
   return h(React.Fragment, null,
@@ -197,17 +197,21 @@ export function App() {
         })
       })
     },
-      h(ActiveScreen, {
-        api,
-        activeView: view,
-        languageKey,
-        themeKey,
-        user,
-        onLanguage: setLanguageKey,
-        onLogout: logout,
-        onTheme: setThemeKey,
-        onView: switchView,
-        t
+      h(LazyScreen, {
+        registry: screenRegistry,
+        screenKey: view,
+        screenProps: {
+          api,
+          activeView: view,
+          languageKey,
+          themeKey,
+          user,
+          onLanguage: setLanguageKey,
+          onLogout: logout,
+          onTheme: setThemeKey,
+          onView: switchView,
+          t
+        }
       })
     ),
     h(NotificationCenter, { notifications, onDismiss: dismissNotification }),

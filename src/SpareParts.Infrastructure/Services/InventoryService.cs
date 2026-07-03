@@ -89,19 +89,13 @@ namespace SpareParts.Infrastructure.Services
                 CreatedByUserId = userId
             };
 
-            try
-            {
-                inventoryRepository.InsertStockMovement(movement);
-            }
-            catch
-            {
-                if (stockId > 0 && quantityChange != 0)
-                {
-                    inventoryRepository.UpdateStockQuantity(stockId, -quantityChange, userId);
-                }
-
-                throw;
-            }
+            // No manual "undo" here: AdjustStock runs inside the caller's ambient DbSession/
+            // transaction. If InsertStockMovement throws, DbSession.Dispose() (or an explicit
+            // Rollback()) rolls back every statement issued on this connection/transaction so
+            // far — including the stock quantity update above — so a manual compensating write
+            // would be redundant and could even double-mutate the row if the transaction is
+            // later retried. Just let the exception propagate and rely on the transaction.
+            inventoryRepository.InsertStockMovement(movement);
         }
     }
 }

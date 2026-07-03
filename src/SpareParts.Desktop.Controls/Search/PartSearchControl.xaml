@@ -268,9 +268,10 @@
                                 Margin="0 24" Visibility="Collapsed">
                         <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets"
                                    FontSize="32" Foreground="#33FFFFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="No parts found"
+                        <TextBlock x:Name="EmptyStateText" Text="No parts found"
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   HorizontalAlignment="Center" Margin="0 10 0 0"/>
+                                   HorizontalAlignment="Center" Margin="0 10 0 0"
+                                   TextWrapping="Wrap" TextAlignment="Center" MaxWidth="240"/>
                     </StackPanel>
 
                     <!-- Footer hint -->

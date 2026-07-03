@@ -43,10 +43,28 @@ namespace SpareParts.Api.Controllers
         public ActionResult<HealthDashboardDto> Get()
         {
             var database = CheckDatabase();
+            var status = database.CanConnect || _sqlConnectionFactory is null ? "ok" : "degraded";
+
+            // Anonymous callers (uptime/monitoring probes) only get a minimal status — no CORS allowed-origins,
+            // migration names, or split-API topology. Those details are only useful for internal diagnostics
+            // and would otherwise disclose infrastructure/tenant topology to unauthenticated callers.
+            // HttpContext (and therefore User) can be null when this controller is invoked without a request
+            // pipeline (e.g. unit tests instantiating the controller directly) — treat that the same as
+            // "not authenticated" rather than throwing, since a missing identity is never a signal of trust.
+            var isAuthenticated = HttpContext?.User?.Identity?.IsAuthenticated == true;
+            if (!isAuthenticated)
+            {
+                return Ok(new HealthDashboardDto
+                {
+                    Status = status,
+                    Utc = DateTime.UtcNow,
+                    Service = _serviceProfile?.ServiceName ?? "SpareParts.Api"
+                });
+            }
 
             var dashboard = new HealthDashboardDto
             {
-                Status = database.CanConnect || _sqlConnectionFactory is null ? "ok" : "degraded",
+                Status = status,
                 Utc = DateTime.UtcNow,
                 Service = _serviceProfile?.ServiceName ?? "SpareParts.Api",
                 Capabilities = (_serviceProfile?.Capabilities ?? [])

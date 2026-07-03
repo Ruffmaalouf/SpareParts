@@ -30,6 +30,7 @@ internal sealed class NullFilePickerService : IFilePickerService
 internal sealed class NullUserNotificationService : IUserNotificationService
 {
     public void Show(string message, string title, NotificationKind kind = NotificationKind.Info) { }
+    public bool Confirm(string message, string title) => true;
 }
 
 internal sealed class NullPartWorkspaceService : IPartWorkspaceService

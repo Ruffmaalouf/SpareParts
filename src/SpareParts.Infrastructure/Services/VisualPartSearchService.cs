@@ -300,6 +300,15 @@ public sealed class VisualPartSearchService
 
     private IReadOnlyList<VisualPartCandidate> QueryPartCandidates()
     {
+        // Anonymous public visual-search callers must resolve to a specific tenant. TenantId == 0 only
+        // means "see all tenants" for an authenticated SuperAdmin — for everyone else (including
+        // unauthenticated requests where TenantResolutionMiddleware never ran and TenantId defaults to 0)
+        // we fail closed and return no candidates instead of leaking every tenant's parts/pricing/stock.
+        if (!_tenantContext.IsSuperAdmin && _tenantContext.TenantId <= 0)
+        {
+            return [];
+        }
+
         using var session = new DbSession(_factory, _tenantContext.TenantId);
         var rows = session.Connection.Query<VisualPartCandidate>(
             """

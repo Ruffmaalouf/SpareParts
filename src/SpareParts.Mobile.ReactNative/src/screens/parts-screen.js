@@ -1,5 +1,5 @@
 const React = require("react");
-const { Linking, Modal, Pressable, ScrollView, Share, Text, View } = require("react-native");
+const { FlatList, Linking, Modal, Pressable, ScrollView, Share, Text, View } = require("react-native");
 const { asRows, money } = require("../core/formatters");
 const { CommunicationPayloadFactory } = require("../core/communication-payload-factory");
 const { Field, ListRow, Panel, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
@@ -341,6 +341,31 @@ function PartsScreen({ api }) {
     setStatus(phone ? t("parts.whatsappOpened", "WhatsApp share opened.") : t("parts.whatsappNoPhone", "WhatsApp share opened without a recipient number."));
   }, [recipientPhone, t]);
 
+  const partKeyExtractor = useCallback((part) => String(part.id), []);
+
+  const renderPartItem = useCallback(({ item: part }) => el(PartCard, {
+    part,
+    matchCount: (demandByPart.get(String(part.id)) || []).length,
+    priority: priorityByPart.get(String(part.id)) || priorityProfile(part, 0),
+    onSend: sendAvailability,
+    onShare: shareAvailability,
+    onListing: generateListing,
+    isGeneratingListing: generatingListingId === part.id
+  }), [demandByPart, generateListing, generatingListingId, priorityByPart, sendAvailability, shareAvailability]);
+
+  const partsListFooter = useMemo(() => {
+    if (visibleParts.length > displayedParts.length) {
+      return el(ListRow, {
+        title: `Showing ${displayedParts.length} of ${visibleParts.length}`,
+        subtitle: "Refine the search to find a specific part."
+      });
+    }
+    if (visibleParts.length === 0) {
+      return el(ListRow, { title: t("parts.noParts", "No parts found"), subtitle: t("parts.tryFilter", "Try a different filter.") });
+    }
+    return null;
+  }, [displayedParts.length, t, visibleParts.length]);
+
   const listingModal = el(Modal, {
     animationType: "slide",
     transparent: true,
@@ -428,27 +453,15 @@ function PartsScreen({ api }) {
     el(StatusText, { value: status }),
     el(Panel, { title: `${t("parts.inventory", "Inventory")} (${visibleParts.length})` },
       el(View, { style: styles.screenListFrameLarge },
-        el(ScrollView, {
+        el(FlatList, {
+          data: displayedParts,
+          keyExtractor: partKeyExtractor,
+          renderItem: renderPartItem,
           nestedScrollEnabled: true,
           showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          displayedParts.map((part) => el(PartCard, {
-            key: String(part.id),
-            part,
-            matchCount: (demandByPart.get(String(part.id)) || []).length,
-            priority: priorityByPart.get(String(part.id)) || priorityProfile(part, 0),
-            onSend: sendAvailability,
-            onShare: shareAvailability,
-            onListing: generateListing,
-            isGeneratingListing: generatingListingId === part.id
-          })),
-          visibleParts.length > displayedParts.length && el(ListRow, {
-            title: `Showing ${displayedParts.length} of ${visibleParts.length}`,
-            subtitle: "Refine the search to find a specific part."
-          }),
-          visibleParts.length === 0 && el(ListRow, { title: t("parts.noParts", "No parts found"), subtitle: t("parts.tryFilter", "Try a different filter.") })
-        )
+          contentContainerStyle: styles.screenListContent,
+          ListFooterComponent: partsListFooter
+        })
       )
     )
   );

@@ -1,3 +1,4 @@
+using SpareParts.Desktop.Abstractions.Dialogs;
 using SpareParts.Desktop.Wpf.Helpers;
 using SpareParts.Domain.Pricing;
 using System;
@@ -7,7 +8,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -49,6 +49,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         };
 
         private readonly ICrudApiClient _crudApi;
+        private readonly IUserNotificationService _notificationService;
         private bool _isLoading;
         private string _status = "Load your billing and subscription details.";
         private Brush _statusBrush = Brushes.LightGray;
@@ -57,9 +58,10 @@ namespace SpareParts.Desktop.Wpf.ViewModels
         private string? _checkoutInstructions;
         private int? _checkoutPaymentId;
 
-        public BillingSubscriptionViewModel(ICrudApiClient crudApi)
+        public BillingSubscriptionViewModel(ICrudApiClient crudApi, IUserNotificationService notificationService)
         {
             _crudApi = crudApi;
+            _notificationService = notificationService;
             LoadCommand = new RelayCommand(_ => LoadAsync().SafeFireAndForget(HandleBackgroundException));
             SelectMonthlyCommand = new RelayCommand(_ => SetBillingCycle("Monthly"));
             SelectYearlyCommand = new RelayCommand(_ => SetBillingCycle("Yearly"));
@@ -331,7 +333,7 @@ namespace SpareParts.Desktop.Wpf.ViewModels
                 ? "Cancel now and downgrade to the Free plan immediately?"
                 : "Cancel at the end of the current billing period?";
 
-            if (MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (!_notificationService.Confirm(message, title))
             {
                 return;
             }

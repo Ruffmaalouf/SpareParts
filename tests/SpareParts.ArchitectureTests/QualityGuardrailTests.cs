@@ -1,5 +1,7 @@
 using System.Reflection;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Configuration;
@@ -305,6 +307,20 @@ public class QualityGuardrailTests
             configuration,
             provider);
 
+        // The dashboard's verbose fields (split-API topology, migration names, CORS origins,
+        // notification wiring) are only returned to authenticated callers. Simulate an
+        // authenticated request pipeline so this test exercises the full dashboard, matching
+        // its intent of asserting coverage of split APIs/DB/migrations/clients/notifications.
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    [new Claim(ClaimTypes.Name, "internal-diagnostics")],
+                    authenticationType: "Test"))
+            }
+        };
+
         var result = controller.Get();
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var dashboard = Assert.IsType<HealthDashboardDto>(ok.Value);
@@ -325,6 +341,78 @@ public class QualityGuardrailTests
         Assert.Equal(SparePartsApiComposition.NotificationsHubPath, dashboard.Notifications.HubPath);
         Assert.True(dashboard.Notifications.SignalRRegistered);
         Assert.True(dashboard.Notifications.WebhookConfigured);
+    }
+
+    [Fact]
+    public void Health_dashboard_for_anonymous_or_missing_context_should_return_minimal_status_without_throwing_or_leaking_topology()
+    {
+        using var database = new InMemorySqliteConnectionFactory();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cors:AllowedOrigins:0"] = "http://localhost:3000"
+            })
+            .Build();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSignalR();
+
+        using var provider = services.BuildServiceProvider();
+
+        // Case 1: no HttpContext at all (e.g. controller constructed directly, no request pipeline).
+        // Must not throw a NullReferenceException, and must fall back to the minimal/anonymous response.
+        var controllerWithoutContext = new HealthController(
+            new ServiceProfile("SpareParts.Inventory.Api", [ServiceCapability.Inventory, ServiceCapability.Health]),
+            database,
+            new CommunicationOptions { Provider = "Webhook", WebhookUrl = "https://example.test/spareparts/communications", TimeoutSeconds = 11 },
+            configuration,
+            provider);
+
+        var resultWithoutContext = controllerWithoutContext.Get();
+        AssertMinimalAnonymousDashboard(resultWithoutContext);
+
+        // Case 2: HttpContext present but with an unauthenticated (anonymous) principal.
+        var controllerAnonymous = new HealthController(
+            new ServiceProfile("SpareParts.Inventory.Api", [ServiceCapability.Inventory, ServiceCapability.Health]),
+            database,
+            new CommunicationOptions { Provider = "Webhook", WebhookUrl = "https://example.test/spareparts/communications", TimeoutSeconds = 11 },
+            configuration,
+            provider)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity()) // unauthenticated identity
+                }
+            }
+        };
+
+        var resultAnonymous = controllerAnonymous.Get();
+        AssertMinimalAnonymousDashboard(resultAnonymous);
+    }
+
+    private static void AssertMinimalAnonymousDashboard(ActionResult<HealthDashboardDto> result)
+    {
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dashboard = Assert.IsType<HealthDashboardDto>(ok.Value);
+
+        Assert.Equal("ok", dashboard.Status);
+        Assert.Equal("SpareParts.Inventory.Api", dashboard.Service);
+
+        // Only Status/Utc/Service are populated for anonymous callers. Every other property is
+        // left at its record default (empty collections / default sub-DTOs) rather than being
+        // filled in from real infrastructure state — so no CORS origins, migration names,
+        // split-API topology, or notification wiring is disclosed to unauthenticated callers.
+        Assert.Empty(dashboard.Capabilities);
+        Assert.Empty(dashboard.SplitApis);
+        Assert.Empty(dashboard.Migrations.Names);
+        Assert.Equal(0, dashboard.Migrations.Count);
+        Assert.Empty(dashboard.ClientConfig.CorsAllowedOrigins);
+        Assert.False(dashboard.Database.CanConnect);
+        Assert.Equal("unknown", dashboard.Database.Status);
+        Assert.False(dashboard.Notifications.SignalRRegistered);
+        Assert.False(dashboard.Notifications.WebhookConfigured);
     }
 
     private static IReadOnlyDictionary<string, FeatureModuleContract> ParseFeatureModules(string relativePath)
@@ -496,7 +584,15 @@ public class QualityGuardrailTests
             "src/SpareParts.Desktop.ViewModels/Management/SupplierManagementViewModel.cs");
         AddDesktopMarker(keys, "management", "src/SpareParts.Desktop.Wpf/Windows/ManagementWindow.xaml");
         AddDesktopMarker(keys, "part-requests", "src/SpareParts.Desktop.ViewModels/Management/PartRequestsManagementViewModel.cs");
-        AddDesktopMarker(keys, "settings", "src/SpareParts.Desktop.Wpf/Themes/DefaultTheme.xaml");
+        // Desktop has no standalone "Settings" screen/window; the equivalent of the web/mobile
+        // Settings screen (theme + language + account) is the Theme toggle/popup hosted directly
+        // in the app's root window, backed by the theme preference persistence layer. Point the
+        // marker at those two stable, non-skin files instead of an individual theme XAML file
+        // (theme skins churn/get renamed regularly, as proven by this very change: DefaultTheme.xaml
+        // was removed long ago in favor of ApexTheme.xaml/AMGTheme.xaml/etc.).
+        AddDesktopMarker(keys, "settings",
+            "src/SpareParts.Desktop.Wpf/Windows/MainWindow.xaml",
+            "src/SpareParts.Desktop.Helpers/Theming/ThemePreferenceStore.cs");
         AddDesktopMarker(keys, "used-cars", "src/SpareParts.Desktop.ViewModels/Management/UsedCarsManagementViewModel.cs");
 
         return keys;

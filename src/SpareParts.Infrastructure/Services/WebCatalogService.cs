@@ -25,6 +25,15 @@ public sealed class WebCatalogService
 
     public IReadOnlyList<WebCatalogPartDto> GetAvailableParts(string? search, int page, int pageSize)
     {
+        // Anonymous public-catalog callers must resolve to a specific tenant. TenantId == 0 only means
+        // "see all tenants" for an authenticated SuperAdmin — for everyone else (including unauthenticated
+        // requests where TenantResolutionMiddleware never ran and TenantId defaults to 0) we fail closed
+        // and return no data instead of leaking every tenant's parts/pricing/stock.
+        if (!_tenantContext.IsSuperAdmin && _tenantContext.TenantId <= 0)
+        {
+            return [];
+        }
+
         var warehouse = ResolveCheckoutWarehouse();
         using var conn = _factory.CreateConnection();
         return conn.Query<WebCatalogPartDto>(

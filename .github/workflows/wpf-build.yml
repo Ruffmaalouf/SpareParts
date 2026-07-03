@@ -73,7 +73,6 @@ jobs:
             --configuration Release `
             --logger "github;collapse-with-annotations=true" `
             --results-directory ./test-results/management
-        continue-on-error: true
 
       - name: Upload test results
         if: always()

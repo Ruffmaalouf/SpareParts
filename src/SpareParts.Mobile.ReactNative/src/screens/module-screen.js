@@ -1,5 +1,5 @@
 const React = require("react");
-const { Image, Pressable, ScrollView, Text, View } = require("react-native");
+const { FlatList, Image, Pressable, ScrollView, Text, View } = require("react-native");
 const ImagePicker = require("expo-image-picker");
 const { asRows, money, rowAmount, rowSubtitle, rowTitle, shortDateTime } = require("../core/formatters");
 const { EmptyState, Field, ListRow, Panel, PrimaryButton, ScreenHeader, ScreenScroll, SecondaryButton, StatusText } = require("../components/ui");
@@ -218,6 +218,62 @@ function PartRequestsModuleScreen({ api, module }) {
   const reservedCount = rows.filter((row) => read(row, "isReserved")).length;
   const reminderCount = rows.filter((row) => read(row, "isReservationReminderDue")).length;
 
+  const partRequestKeyExtractor = useCallback((row, index) => `part-request-${read(row, "id") || index}`, []);
+
+  const renderPartRequestRow = useCallback(({ item: row }) => {
+    const clock = requestClockText(row);
+    return el(View, { style: styles.screenListItem },
+      el(ListRow, {
+        title: rowTitle(row),
+        subtitle: [
+          read(row, "customerName"),
+          read(row, "customerPhone"),
+          requestSignal(row),
+          clock
+        ].filter(Boolean).join(" / "),
+        value: read(row, "reservedQuantity") ? `${read(row, "reservedQuantity")} held` : rowAmount(row)
+      }),
+      read(row, "isReserved")
+        ? el(View, { style: styles.inlineButtons },
+          el(PrimaryButton, {
+            title: t("partRequests.release", "Release"),
+            onPress: () => release(row),
+            disabled: isWorking,
+            compact: true
+          }),
+          el(PrimaryButton, {
+            title: t("partRequests.fulfilled", "Fulfilled"),
+            onPress: () => updateStatus(row, "Fulfilled"),
+            disabled: isWorking,
+            compact: true
+          })
+        )
+        : el(View, { style: styles.inlineButtons },
+          el(PrimaryButton, {
+            title: t("partRequests.reserve", "Reserve"),
+            onPress: () => reserve(row, "AutoRelease"),
+            disabled: isWorking || !read(row, "partId"),
+            compact: true
+          }),
+          el(PrimaryButton, {
+            title: t("partRequests.remindStaff", "Remind Staff"),
+            onPress: () => reserve(row, "StaffReminder"),
+            disabled: isWorking || !read(row, "partId"),
+            compact: true
+          }),
+          el(SecondaryButton, {
+            title: t("partRequests.contacted", "Contacted"),
+            onPress: () => updateStatus(row, "Contacted")
+          })
+        )
+    );
+  }, [isWorking, release, reserve, t, updateStatus]);
+
+  const partRequestListEmpty = useMemo(
+    () => el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) }),
+    [moduleTitle, t]
+  );
+
   return el(ScreenScroll, null,
     el(ScreenHeader, {
       title: moduleTitle,
@@ -241,62 +297,15 @@ function PartRequestsModuleScreen({ api, module }) {
     el(StatusText, { value: status }),
     el(Panel, { title: t("module.preview", "Preview") },
       el(View, { style: styles.screenListFrameLarge || styles.screenListFrame },
-        el(ScrollView, {
+        el(FlatList, {
+          data: rows,
+          keyExtractor: partRequestKeyExtractor,
+          renderItem: renderPartRequestRow,
           nestedScrollEnabled: true,
           showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          rows.map((row, index) => {
-            const id = read(row, "id") || index;
-            const clock = requestClockText(row);
-            return el(View, { key: `part-request-${id}`, style: styles.screenListItem },
-              el(ListRow, {
-                title: rowTitle(row),
-                subtitle: [
-                  read(row, "customerName"),
-                  read(row, "customerPhone"),
-                  requestSignal(row),
-                  clock
-                ].filter(Boolean).join(" / "),
-                value: read(row, "reservedQuantity") ? `${read(row, "reservedQuantity")} held` : rowAmount(row)
-              }),
-              read(row, "isReserved")
-                ? el(View, { style: styles.inlineButtons },
-                  el(PrimaryButton, {
-                    title: t("partRequests.release", "Release"),
-                    onPress: () => release(row),
-                    disabled: isWorking,
-                    compact: true
-                  }),
-                  el(PrimaryButton, {
-                    title: t("partRequests.fulfilled", "Fulfilled"),
-                    onPress: () => updateStatus(row, "Fulfilled"),
-                    disabled: isWorking,
-                    compact: true
-                  })
-                )
-                : el(View, { style: styles.inlineButtons },
-                  el(PrimaryButton, {
-                    title: t("partRequests.reserve", "Reserve"),
-                    onPress: () => reserve(row, "AutoRelease"),
-                    disabled: isWorking || !read(row, "partId"),
-                    compact: true
-                  }),
-                  el(PrimaryButton, {
-                    title: t("partRequests.remindStaff", "Remind Staff"),
-                    onPress: () => reserve(row, "StaffReminder"),
-                    disabled: isWorking || !read(row, "partId"),
-                    compact: true
-                  }),
-                  el(SecondaryButton, {
-                    title: t("partRequests.contacted", "Contacted"),
-                    onPress: () => updateStatus(row, "Contacted")
-                  })
-                )
-            );
-          }),
-          rows.length === 0 && el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) })
-        )
+          contentContainerStyle: styles.screenListContent,
+          ListEmptyComponent: partRequestListEmpty
+        })
       )
     )
   );
@@ -504,6 +513,24 @@ function UsedCarWholesaleModuleScreen({ api, module }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const wholesaleSaleKeyExtractor = useCallback((row, index) => `wholesale-sale-${read(row, "id") || index}`, []);
+
+  const renderWholesaleSaleRow = useCallback(({ item: row }) => el(ListRow, {
+    title: read(row, "saleNumber") || `#${read(row, "id")}`,
+    subtitle: [
+      read(row, "usedCar"),
+      read(row, "buyerName"),
+      read(row, "isForParts") ? t("wholesale.forPartsOnly", "For parts only") : t("wholesale.repairsAmount", "Repairs {amount}", { amount: money(read(row, "repairTotalAmount"), read(row, "currencyCode") || "USD") }),
+      shortDateTime(read(row, "saleDate"))
+    ].filter(Boolean).join(" / "),
+    value: money(read(row, "salePrice"), read(row, "currencyCode") || "USD")
+  }), [t]);
+
+  const wholesaleSalesListEmpty = useMemo(
+    () => el(EmptyState, { text: t("wholesale.noSales", "No wholesale sales recorded yet.") }),
+    [t]
+  );
+
   return el(ScreenScroll, null,
     el(ScreenHeader, {
       title: moduleTitle,
@@ -684,26 +711,15 @@ function UsedCarWholesaleModuleScreen({ api, module }) {
     ),
     el(Panel, { title: t("wholesale.recentSales", "Recent wholesale sales") },
       el(View, { style: styles.screenListFrame },
-        el(ScrollView, {
+        el(FlatList, {
+          data: sales,
+          keyExtractor: wholesaleSaleKeyExtractor,
+          renderItem: renderWholesaleSaleRow,
           nestedScrollEnabled: true,
           showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          sales.map((row, index) =>
-            el(ListRow, {
-              key: `wholesale-sale-${read(row, "id") || index}`,
-              title: read(row, "saleNumber") || `#${read(row, "id")}`,
-              subtitle: [
-                read(row, "usedCar"),
-                read(row, "buyerName"),
-                read(row, "isForParts") ? t("wholesale.forPartsOnly", "For parts only") : t("wholesale.repairsAmount", "Repairs {amount}", { amount: money(read(row, "repairTotalAmount"), read(row, "currencyCode") || "USD") }),
-                shortDateTime(read(row, "saleDate"))
-              ].filter(Boolean).join(" / "),
-              value: money(read(row, "salePrice"), read(row, "currencyCode") || "USD")
-            })
-          ),
-          sales.length === 0 && el(EmptyState, { text: t("wholesale.noSales", "No wholesale sales recorded yet.") })
-        )
+          contentContainerStyle: styles.screenListContent,
+          ListEmptyComponent: wholesaleSalesListEmpty
+        })
       )
     )
   );
@@ -843,6 +859,41 @@ function ReportBuilderModuleScreen({ api, module }) {
   useEffect(() => { loadOverview(); }, [loadOverview]);
   useEffect(() => { loadColumns(); }, [loadColumns]);
 
+  const savedReportKeyExtractor = useCallback((report, index) => `saved-${read(report, "id") || index}`, []);
+  const renderSavedReportRow = useCallback(({ item: report }) => el(Pressable, { onPress: () => runSavedReport(report) },
+    el(ListRow, {
+      title: read(report, "name") || `#${read(report, "id")}`,
+      subtitle: read(report, "tableDisplayName", "tableKey") || t("reports.savedReport", "Saved report"),
+      value: read(report, "isFavorite") ? "*" : ""
+    })
+  ), [runSavedReport, t]);
+  const savedReportsListEmpty = useMemo(
+    () => el(EmptyState, { text: t("reports.noSavedReports", "No saved reports yet.") }),
+    [t]
+  );
+
+  const backgroundRunKeyExtractor = useCallback((run, index) => `run-${read(run, "id") || index}`, []);
+  const renderBackgroundRunRow = useCallback(({ item: run }) => el(ListRow, {
+    title: read(run, "reportName") || `#${read(run, "id")}`,
+    subtitle: read(run, "status") || "-",
+    value: reportCell(read(run, "rowCount"))
+  }), []);
+  const backgroundRunsListEmpty = useMemo(
+    () => el(EmptyState, { text: t("reports.noRuns", "No background runs yet.") }),
+    [t]
+  );
+
+  const resultRowKeyExtractor = useCallback((_row, index) => `result-${index}`, []);
+  const renderResultRow = useCallback(({ item: row, index }) => el(ListRow, {
+    title: reportCell(row[read(resultColumns[0], "columnName", "key")]),
+    subtitle: reportRowText(row, resultColumns.slice(1), t("reports.resultRow", "Report row")),
+    value: String(index + 1)
+  }), [resultColumns, t]);
+  const resultRowsListEmpty = useMemo(
+    () => el(EmptyState, { text: t("reports.noResultRows", "Run a report to see results.") }),
+    [t]
+  );
+
   return el(ScreenScroll, null,
     el(ScreenHeader, {
       title: moduleTitle,
@@ -915,60 +966,41 @@ function ReportBuilderModuleScreen({ api, module }) {
     el(StatusText, { value: status }),
     el(Panel, { title: t("reports.savedReports", "Saved reports") },
       el(View, { style: styles.screenListFrame },
-        el(ScrollView, {
+        el(FlatList, {
+          data: savedReports,
+          keyExtractor: savedReportKeyExtractor,
+          renderItem: renderSavedReportRow,
           nestedScrollEnabled: true,
           showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          savedReports.map((report, index) =>
-            el(Pressable, { key: `saved-${read(report, "id") || index}`, onPress: () => runSavedReport(report) },
-              el(ListRow, {
-                title: read(report, "name") || `#${read(report, "id")}`,
-                subtitle: read(report, "tableDisplayName", "tableKey") || t("reports.savedReport", "Saved report"),
-                value: read(report, "isFavorite") ? "*" : ""
-              })
-            )
-          ),
-          savedReports.length === 0 && el(EmptyState, { text: t("reports.noSavedReports", "No saved reports yet.") })
-        )
+          contentContainerStyle: styles.screenListContent,
+          ListEmptyComponent: savedReportsListEmpty
+        })
       )
     ),
     el(Panel, { title: t("reports.backgroundRuns", "Background runs") },
       el(View, { style: styles.screenListFrame },
-        el(ScrollView, {
+        el(FlatList, {
+          data: backgroundRuns,
+          keyExtractor: backgroundRunKeyExtractor,
+          renderItem: renderBackgroundRunRow,
           nestedScrollEnabled: true,
           showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          backgroundRuns.map((run, index) =>
-            el(ListRow, {
-              key: `run-${read(run, "id") || index}`,
-              title: read(run, "reportName") || `#${read(run, "id")}`,
-              subtitle: read(run, "status") || "-",
-              value: reportCell(read(run, "rowCount"))
-            })
-          ),
-          backgroundRuns.length === 0 && el(EmptyState, { text: t("reports.noRuns", "No background runs yet.") })
-        )
+          contentContainerStyle: styles.screenListContent,
+          ListEmptyComponent: backgroundRunsListEmpty
+        })
       )
     ),
     el(Panel, { title: t("reports.results", "Results") },
       el(View, { style: styles.screenListFrameLarge || styles.screenListFrame },
-        el(ScrollView, {
+        el(FlatList, {
+          data: resultRows,
+          keyExtractor: resultRowKeyExtractor,
+          renderItem: renderResultRow,
           nestedScrollEnabled: true,
           showsVerticalScrollIndicator: true,
-          contentContainerStyle: styles.screenListContent
-        },
-          resultRows.map((row, index) =>
-            el(ListRow, {
-              key: `result-${index}`,
-              title: reportCell(row[read(resultColumns[0], "columnName", "key")]),
-              subtitle: reportRowText(row, resultColumns.slice(1), t("reports.resultRow", "Report row")),
-              value: String(index + 1)
-            })
-          ),
-          resultRows.length === 0 && el(EmptyState, { text: t("reports.noResultRows", "Run a report to see results.") })
-        )
+          contentContainerStyle: styles.screenListContent,
+          ListEmptyComponent: resultRowsListEmpty
+        })
       )
     )
   );
@@ -1516,24 +1548,67 @@ function ModuleScreen({ api, module, onNavigate }) {
 
   const selectedImageUri = selectedRow ? rowImageUri(selectedRow) : "";
 
-  return el(ScreenScroll, null,
+  const moduleRowKeyExtractor = useCallback(
+    (row, index) => `${module.key}-${row.id || row.invoiceId || row.purchaseId || index}`,
+    [module.key]
+  );
+
+  const renderModuleRow = useCallback(({ item: row, index }) => el(PartListCard, {
+    title: rowTitle(row),
+    subtitle: rowSubtitle(row),
+    priceText: rowAmount(row),
+    imageUri: rowImageUri(row),
+    badges: rowStatusTone(row) ? [{ label: read(row, "status") || "", tone: rowStatusTone(row) }] : [],
+    onPress: () => openRow(row, index)
+  }), [openRow]);
+
+  const moduleListHeader = useMemo(() => el(View, { style: { paddingTop: 16, gap: 14 } },
     el(ScreenHeader, { title: moduleTitle, actionTitle: canPreview ? t("common.refresh", "Refresh") : null, onAction: load, loading: isLoading }),
     el(ModuleSummary, { module, moduleTitle, t }),
     el(StatusText, { value: status }),
-    canPreview && el(View, null,
-      el(SectionHeader, { title: t("module.preview", "Preview"), subtitle: `${rows.length}` }),
-      rows.map((row, index) => el(PartListCard, {
-        key: `${module.key}-${row.id || row.invoiceId || row.purchaseId || index}`,
-        title: rowTitle(row),
-        subtitle: rowSubtitle(row),
-        priceText: rowAmount(row),
-        imageUri: rowImageUri(row),
-        badges: rowStatusTone(row) ? [{ label: read(row, "status") || "", tone: rowStatusTone(row) }] : [],
-        onPress: () => openRow(row, index)
-      })),
-      rows.length === 0 && el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) }),
-      el(StickyActionBarSpacer)
-    ),
+    canPreview && el(SectionHeader, { title: t("module.preview", "Preview"), subtitle: `${rows.length}` })
+  ), [canPreview, isLoading, load, module, moduleTitle, rows.length, status, t]);
+
+  const moduleListEmpty = useMemo(() => canPreview
+    ? el(EmptyState, { text: t("module.noRows", "No {title} rows returned.", { title: moduleTitle.toLowerCase() }) })
+    : null, [canPreview, moduleTitle, t]);
+
+  if (!canPreview) {
+    return el(View, { style: styles.screen },
+      el(View, { style: { paddingHorizontal: 16 } }, moduleListHeader),
+      el(BottomSheet, {
+        visible: Boolean(selectedRow),
+        onClose: closeSheet,
+        title: selectedRow ? rowTitle(selectedRow) : ""
+      },
+        selectedRow && el(View, null,
+          Boolean(selectedImageUri) && el(Image, {
+            source: { uri: selectedImageUri },
+            style: { width: "100%", height: 180, borderRadius: 12, marginBottom: 12 },
+            resizeMode: "cover"
+          }),
+          detailFields.map((field) => el(ListRow, { key: field.key, title: field.label, subtitle: field.value }))
+        )
+      ),
+      Boolean(selectedRow) && el(StickyActionBar, {
+        actions: [
+          { key: "close", title: t("common.close", "Close"), variant: "secondary", onPress: closeSheet }
+        ]
+      })
+    );
+  }
+
+  return el(View, { style: styles.screen },
+    el(FlatList, {
+      style: styles.screen,
+      contentContainerStyle: { paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
+      data: rows,
+      keyExtractor: moduleRowKeyExtractor,
+      renderItem: renderModuleRow,
+      ListHeaderComponent: moduleListHeader,
+      ListEmptyComponent: moduleListEmpty,
+      ListFooterComponent: StickyActionBarSpacer
+    }),
     el(BottomSheet, {
       visible: Boolean(selectedRow),
       onClose: closeSheet,

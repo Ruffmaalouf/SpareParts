@@ -233,9 +233,10 @@
                                 Margin="0 24" Visibility="Collapsed">
                         <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets"
                                    FontSize="32" Foreground="#33FFFFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="No customers found"
+                        <TextBlock x:Name="EmptyStateText" Text="No customers found"
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
-                                   HorizontalAlignment="Center" Margin="0 10 0 0"/>
+                                   HorizontalAlignment="Center" Margin="0 10 0 0"
+                                   TextWrapping="Wrap" TextAlignment="Center" MaxWidth="240"/>
                     </StackPanel>
 
                     <Border Grid.Row="2" BorderBrush="#1AFFFFFF" BorderThickness="0 1 0 0"

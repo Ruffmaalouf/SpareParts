@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.RateLimiting;
@@ -28,6 +29,7 @@ public static class SparePartsApiComposition
 {
     public const string NotificationsHubPath = "/hubs/notifications";
     public const string AuthRateLimitPolicy = "auth-login";
+    private const string LoginUsernameItemsKey = "SpareParts.Auth.RateLimitUsername";
 
     public static readonly IReadOnlyList<ServiceProfile> ExpectedServiceProfiles =
     [
@@ -54,6 +56,7 @@ public static class SparePartsApiComposition
     [
         nameof(TenantsMigration),
         nameof(TenantIdMigration),
+        nameof(TenantIdIndexMigration),
         nameof(InvoiceNumberingMigration),
         nameof(AccountingMigration),
         nameof(WebAppUserRoleMigration),
@@ -222,7 +225,20 @@ public static class SparePartsApiComposition
                 };
             });
 
-        builder.Services.AddAuthorization(AuthorizationPolicies.AddRoleIdPolicies);
+        builder.Services.AddAuthorization(options =>
+        {
+            AuthorizationPolicies.AddRoleIdPolicies(options);
+
+            // Framework-level fallback: every endpoint requires an authenticated user unless it explicitly
+            // carries [AllowAnonymous]. This closes off any controller/action that forgets an [Authorize]
+            // attribute. Confirmed safe: every action that is meant to be public (AuthController login/
+            // external-login, HealthController, PricingController, WebCatalogController public actions,
+            // PaymentsController.Webhook, CarBrandsController/CarModelsController image endpoints,
+            // CommunicationsController inbound webhook) already carries [AllowAnonymous].
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
         builder.Services.AddSignalR();
 
         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
@@ -249,7 +265,12 @@ public static class SparePartsApiComposition
 
             opt.AddPolicy(AuthRateLimitPolicy, httpCtx =>
                 RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: httpCtx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    // Partition by IP *and* submitted username so a distributed credential-stuffing attack
+                    // (many IPs hammering one account) is throttled per-account, not just per-source-IP.
+                    // The username is populated into HttpContext.Items by BufferLoginUsernameMiddleware,
+                    // which runs earlier in the pipeline and can safely read the body asynchronously
+                    // (this partition-key factory itself is synchronous and must not touch the request body).
+                    partitionKey: $"{httpCtx.Connection.RemoteIpAddress}|{GetBufferedLoginUsername(httpCtx)}",
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 10,
@@ -258,6 +279,65 @@ public static class SparePartsApiComposition
                         QueueLimit = 0
                     }));
         });
+    }
+
+    private static string GetBufferedLoginUsername(HttpContext httpContext)
+        => httpContext.Items.TryGetValue(LoginUsernameItemsKey, out var value) && value is string username
+            ? username
+            : string.Empty;
+
+    /// <summary>
+    /// Runs before rate limiting so the auth-login partition key can include the submitted username
+    /// (blunting distributed credential-stuffing across many IPs), without the rate limiter's synchronous
+    /// partition-key factory touching the request body directly (Kestrel disallows synchronous body reads).
+    /// Buffers and rewinds the body so downstream MVC model binding still sees the full request.
+    /// </summary>
+    private static async Task BufferLoginUsernameMiddleware(HttpContext context, RequestDelegate next)
+    {
+        if (!HttpMethods.IsPost(context.Request.Method)
+            || !context.Request.Path.StartsWithSegments("/api/auth/login", StringComparison.OrdinalIgnoreCase)
+            || !context.Request.HasJsonContentType())
+        {
+            await next(context);
+            return;
+        }
+
+        try
+        {
+            context.Request.EnableBuffering();
+            using var document = await System.Text.Json.JsonDocument.ParseAsync(
+                context.Request.Body,
+                new System.Text.Json.JsonDocumentOptions { AllowTrailingCommas = true },
+                context.RequestAborted);
+            context.Request.Body.Position = 0;
+
+            if (document.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                foreach (var property in document.RootElement.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, "username", StringComparison.OrdinalIgnoreCase)
+                        && property.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                    {
+                        context.Items[LoginUsernameItemsKey] = property.Value.GetString()?.Trim().ToLowerInvariant() ?? string.Empty;
+                        break;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Malformed/empty body — model binding/validation downstream will reject it anyway.
+            // Fall back to IP-only partitioning for this request.
+        }
+        finally
+        {
+            if (context.Request.Body.CanSeek)
+            {
+                context.Request.Body.Position = 0;
+            }
+        }
+
+        await next(context);
     }
 
     public static void AddCapabilities(this IServiceCollection services, string serviceName, params ServiceCapability[] capabilities)
@@ -270,6 +350,10 @@ public static class SparePartsApiComposition
         services.AddScoped<TenantContext>();
         services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
         services.AddScoped<TenantsService>();
+
+        // Lets Infrastructure-layer services (e.g. PaymentProviderFactory) check IsDevelopment without a
+        // direct dependency on Microsoft.Extensions.Hosting.Abstractions.
+        services.AddSingleton<IRuntimeEnvironment, HostRuntimeEnvironment>();
 
         // Pricing/subscription/payment services are always registered — ISubscriptionLimitService is consulted
         // by feature/limit checks across other capabilities (Inventory, Identity, Sales, ...).
@@ -532,6 +616,7 @@ public static class SparePartsApiComposition
         app.UseMiddleware<SecurityHeadersMiddleware>();
         app.UseMiddleware<ApiExceptionMiddleware>();
         app.UseCors();
+        app.Use(BufferLoginUsernameMiddleware);
         app.UseRateLimiter();
         app.UseAuthentication();
         app.UseMiddleware<WebAppUserRestrictionMiddleware>();
@@ -543,80 +628,99 @@ public static class SparePartsApiComposition
 
     private static void RunMigrations(ISqlConnectionFactory factory)
     {
+        // Ledger table + short-circuit: each migration below only re-executes its full body the
+        // first time it succeeds; afterwards RunOnce sees it recorded in dbo.SchemaMigrations and
+        // skips straight past it. Every migration's own internal idempotency guards (IF OBJECT_ID
+        // IS NULL, IF NOT EXISTS, etc.) are left untouched as a safety net — they still make each
+        // migration safe to re-run if its ledger row is ever missing.
+        //
+        // TenantsMigration and TenantIdMigration intentionally run every startup, unguarded by the
+        // ledger: TenantIdMigration's backfill (`UPDATE ... SET TenantId = @TenantId WHERE TenantId
+        // IS NULL`) must keep running for any new tenant-owned tables/rows created after the first
+        // deploy, not just once ever, and TenantsMigration is cheap/idempotent and precedes it.
         TenantsMigration.EnsureApplied(factory);
         TenantIdMigration.EnsureApplied(factory);
-        InvoiceNumberingMigration.EnsureApplied(factory);
-        AccountingMigration.EnsureApplied(factory);
-        WebAppUserRoleMigration.EnsureApplied(factory);
-        UserRoleIdMigration.EnsureApplied(factory);
-        MenuAccessMigration.EnsureApplied(factory);
-        TransactionTypesMigration.EnsureApplied(factory);
-        PartAveragePriceMigration.EnsureApplied(factory);
-        PartUsedCarMigration.EnsureApplied(factory);
-        CurrencyRatesMigration.EnsureApplied(factory);
-        AppConstantsMigration.EnsureApplied(factory);
-        CarModelsMigration.EnsureApplied(factory);
-        LocationsMigration.EnsureApplied(factory);
-        UsedCarsMigration.EnsureApplied(factory);
-        UsedCarStateEventsMigration.EnsureApplied(factory);
-        UsedCarPartPricingMigration.EnsureApplied(factory);
-        UsedCarTeardownMigration.EnsureApplied(factory);
-        PartMarketingNotificationMigration.EnsureApplied(factory);
-        PartMarkdownMigration.EnsureApplied(factory);
-        TransactionsPaymentReminderMigration.EnsureApplied(factory);
-        UsedCarPurchasesMigration.EnsureApplied(factory);
-        UsedCarWholesaleSalesMigration.EnsureApplied(factory);
-        TransactionsMigration.EnsureApplied(factory);
-        BarcodeScanningMigration.EnsureApplied(factory);
-        PartRequestsMigration.EnsureApplied(factory);
-        PartUsedCarStockMigration.EnsureApplied(factory);
-        UsedCarImagesMigration.EnsureApplied(factory);
-        CommunicationsMigration.EnsureApplied(factory);
-        WhatsAppCampaignsMigration.EnsureApplied(factory);
-        ReportBuilderLinksMigration.EnsureApplied(factory);
-        ReportBuilderAdvancedMigration.EnsureApplied(factory);
-        ReorderRulesMigration.EnsureApplied(factory);
-        PartSubstitutesMigration.EnsureApplied(factory);
-        PartExpiryMigration.EnsureApplied(factory);
-        CustomerLoyaltyMigration.EnsureApplied(factory);
-        CustomerPriceTierMigration.EnsureApplied(factory);
-        WarrantyClaimsMigration.EnsureApplied(factory);
-        SupplierPriceHistoryMigration.EnsureApplied(factory);
-        ShipmentsMigration.EnsureApplied(factory);
-        ActivityLogMigration.EnsureApplied(factory);
-        QuotesMigration.EnsureApplied(factory);
-        CustomerCreditLimitMigration.EnsureApplied(factory);
-        PricingPackagesMigration.EnsureApplied(factory);
-        UserVehiclesMigration.EnsureApplied(factory);
-        NeedBoardMigration.EnsureApplied(factory);
-        WatchlistMigration.EnsureApplied(factory);
-        SellerVerificationMigration.EnsureApplied(factory);
-        MarketplaceFeaturesMigration.EnsureApplied(factory);
-        RepairOrdersMigration.EnsureApplied(factory);
-        GarageStockMigration.EnsureApplied(factory);
-        PartReservationsMigration.EnsureApplied(factory);
-        PartReelsMigration.EnsureApplied(factory);
-        HalfCutsMigration.EnsureApplied(factory);
-        EscrowTransactionsMigration.EnsureApplied(factory);
-        ListingBoostsMigration.EnsureApplied(factory);
-        ReferralsMigration.EnsureApplied(factory);
-        PartCompatibilityMigration.EnsureApplied(factory);
-        Phase2FeatureCodesMigration.EnsureApplied(factory);
-        ConditionCertificatesMigration.EnsureApplied(factory);
-        PartPassportPhotosMigration.EnsureApplied(factory);
-        ContentReportsMigration.EnsureApplied(factory);
-        InspectionRequestsMigration.EnsureApplied(factory);
-        PartGenealogyMigration.EnsureApplied(factory);
-        MechanicProfilesMigration.EnsureApplied(factory);
-        NewVsUsedPricingMigration.EnsureApplied(factory);
-        YardToursMigration.EnsureApplied(factory);
-        NegotiationsMigration.EnsureApplied(factory);
-        InstantOffersMigration.EnsureApplied(factory);
-        InsuranceAddonsMigration.EnsureApplied(factory);
-        ApiKeysMigration.EnsureApplied(factory);
-        Phase3FeatureCodesMigration.EnsureApplied(factory);
-        SalesReturnTypeMigration.EnsureApplied(factory);
-        PartImageEnrichmentMigration.EnsureApplied(factory);
+
+        SchemaMigrationLedger.EnsureTableExists(factory);
+
+        SchemaMigrationLedger.RunOnce(factory, nameof(InvoiceNumberingMigration), InvoiceNumberingMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(AccountingMigration), AccountingMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(WebAppUserRoleMigration), WebAppUserRoleMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UserRoleIdMigration), UserRoleIdMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(MenuAccessMigration), MenuAccessMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(TransactionTypesMigration), TransactionTypesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartAveragePriceMigration), PartAveragePriceMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartUsedCarMigration), PartUsedCarMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(CurrencyRatesMigration), CurrencyRatesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(AppConstantsMigration), AppConstantsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(CarModelsMigration), CarModelsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(LocationsMigration), LocationsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarsMigration), UsedCarsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarStateEventsMigration), UsedCarStateEventsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarPartPricingMigration), UsedCarPartPricingMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarTeardownMigration), UsedCarTeardownMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartMarketingNotificationMigration), PartMarketingNotificationMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartMarkdownMigration), PartMarkdownMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(TransactionsPaymentReminderMigration), TransactionsPaymentReminderMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarPurchasesMigration), UsedCarPurchasesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarWholesaleSalesMigration), UsedCarWholesaleSalesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(TransactionsMigration), TransactionsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(BarcodeScanningMigration), BarcodeScanningMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartRequestsMigration), PartRequestsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartUsedCarStockMigration), PartUsedCarStockMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UsedCarImagesMigration), UsedCarImagesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(CommunicationsMigration), CommunicationsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(WhatsAppCampaignsMigration), WhatsAppCampaignsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ReportBuilderLinksMigration), ReportBuilderLinksMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ReportBuilderAdvancedMigration), ReportBuilderAdvancedMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ReorderRulesMigration), ReorderRulesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartSubstitutesMigration), PartSubstitutesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartExpiryMigration), PartExpiryMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(CustomerLoyaltyMigration), CustomerLoyaltyMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(CustomerPriceTierMigration), CustomerPriceTierMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(WarrantyClaimsMigration), WarrantyClaimsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(SupplierPriceHistoryMigration), SupplierPriceHistoryMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ShipmentsMigration), ShipmentsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ActivityLogMigration), ActivityLogMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(QuotesMigration), QuotesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(CustomerCreditLimitMigration), CustomerCreditLimitMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PricingPackagesMigration), PricingPackagesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(UserVehiclesMigration), UserVehiclesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(NeedBoardMigration), NeedBoardMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(WatchlistMigration), WatchlistMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(SellerVerificationMigration), SellerVerificationMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(MarketplaceFeaturesMigration), MarketplaceFeaturesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(RepairOrdersMigration), RepairOrdersMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(GarageStockMigration), GarageStockMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartReservationsMigration), PartReservationsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartReelsMigration), PartReelsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(HalfCutsMigration), HalfCutsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(EscrowTransactionsMigration), EscrowTransactionsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ListingBoostsMigration), ListingBoostsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ReferralsMigration), ReferralsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartCompatibilityMigration), PartCompatibilityMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(Phase2FeatureCodesMigration), Phase2FeatureCodesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ConditionCertificatesMigration), ConditionCertificatesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartPassportPhotosMigration), PartPassportPhotosMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ContentReportsMigration), ContentReportsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(InspectionRequestsMigration), InspectionRequestsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartGenealogyMigration), PartGenealogyMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(MechanicProfilesMigration), MechanicProfilesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(NewVsUsedPricingMigration), NewVsUsedPricingMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(YardToursMigration), YardToursMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(NegotiationsMigration), NegotiationsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(InstantOffersMigration), InstantOffersMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(InsuranceAddonsMigration), InsuranceAddonsMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(ApiKeysMigration), ApiKeysMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(Phase3FeatureCodesMigration), Phase3FeatureCodesMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(SalesReturnTypeMigration), SalesReturnTypeMigration.EnsureApplied);
+        SchemaMigrationLedger.RunOnce(factory, nameof(PartImageEnrichmentMigration), PartImageEnrichmentMigration.EnsureApplied);
+
+        // TenantIdIndexMigration (fix #3) intentionally runs unguarded by the ledger too: it is
+        // itself fully idempotent (IF NOT EXISTS on sys.indexes) and cheap once indexes exist, and
+        // must remain able to add an index for a table that becomes high-volume later without
+        // requiring a ledger-row reset.
+        TenantIdIndexMigration.EnsureApplied(factory);
     }
 
     private static string ResolveConnectionString(WebApplicationBuilder builder)

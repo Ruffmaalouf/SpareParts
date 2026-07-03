@@ -90,6 +90,8 @@ tmp-*.png
 
 # Local mobile credentials and oversized database dumps
 src/SpareParts.Mobile.ReactNative/.env
+src/SpareParts.Mobile.ReactNative/.env.*
+!src/SpareParts.Mobile.ReactNative/.env.example
 src/SpareParts.Mobile.ReactNative/*.jks
 src/SpareParts.Mobile.ReactNative/credentials/
 docs/DBScrpit.sql

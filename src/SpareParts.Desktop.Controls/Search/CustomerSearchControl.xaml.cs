@@ -222,11 +222,31 @@ namespace SpareParts.Desktop.Wpf
             try
             {
                 _allCustomers = await _crudApi.GetAllAsync<CustomerDto>("api/customers");
+                SetLoadError(false);
                 await ApplyExternalSelectionAsync(SelectedCustomerId);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[CustomerSearch] pre-load: {ex.Message}");
+                SetLoadError(true);
+                CustomMessageBox.Show(
+                    $"Could not load customers: {ex.Message}",
+                    "Customer Search",
+                    "Error");
+            }
+        }
+
+        private void SetLoadError(bool hasError)
+        {
+            if (hasError)
+            {
+                EmptyStateText.Text = "Couldn't load customers. Check your connection and try again.";
+                EmptyState.Visibility = Visibility.Visible;
+                ResultsPopup.IsOpen = true;
+            }
+            else
+            {
+                EmptyStateText.Text = "No customers found";
             }
         }
 

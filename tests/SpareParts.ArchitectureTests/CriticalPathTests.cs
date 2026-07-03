@@ -281,8 +281,16 @@ public class CriticalPathTests
     }
 
     [Fact]
-    public void Rollback_AdjustStock_ShouldCompensateQuantityWhenMovementInsertFails()
+    public void Rollback_AdjustStock_ShouldRelyOnAmbientTransactionInsteadOfManualCompensationWhenMovementInsertFails()
     {
+        // AdjustStock intentionally does NOT manually "undo" the quantity write when
+        // InsertStockMovement fails: it runs inside the caller's ambient DbSession/transaction,
+        // and DbSession.Dispose()/Rollback() rolls back every statement on that connection —
+        // including the stock quantity write above — so a manual compensating write here would
+        // be redundant and could double-mutate the row if the transaction were later retried.
+        // This fake repository has no transaction semantics of its own, so from its point of
+        // view the quantity write performed before the failing insert is still visible; the
+        // real rollback guarantee is covered by DbSession and the SQL Server integration tests.
         var repo = new ThrowOnMovementInsertInventoryRepository();
         var service = new InventoryService();
 
@@ -292,7 +300,7 @@ public class CriticalPathTests
         Assert.Equal("Simulated movement insert failure.", exception.Message);
         var stock = repo.GetStock(10, 1);
         Assert.NotNull(stock);
-        Assert.Equal(0, stock!.Quantity);
+        Assert.Equal(5, stock!.Quantity);
     }
 
     [Fact]
@@ -449,6 +457,47 @@ public class CriticalPathTests
         Assert.Equal(serverEnvelope.Code, clientException.Code);
         Assert.Equal(serverEnvelope.Message, clientException.Message);
         Assert.Equal(serverEnvelope.TraceId, clientException.TraceId);
+    }
+
+    [Fact]
+    public async Task UnmappedException_ShouldFallBackTo500WithGenericMessage_AndNeverLeakStackTraceOrExceptionType()
+    {
+        // Anything that isn't one of the explicitly mapped domain exceptions (ValidationException,
+        // NotFoundException, ConflictException, PlanLockException, ExternalServiceException,
+        // UnauthorizedAccessException) must fall through to a generic 500 response — the client
+        // must never see the real exception type, message, or a .NET stack trace.
+        const string sensitiveDetail = "Column 'dbo.TenantSecrets.ApiKey' violates constraint FK_TenantSecrets_Internal at SqlConnection.Open";
+        var middleware = new ApiExceptionMiddleware(
+            _ => throw new InvalidCastException(sensitiveDetail),
+            NullLogger<ApiExceptionMiddleware>.Instance);
+
+        var context = new DefaultHttpContext();
+        context.TraceIdentifier = "trace-unmapped-500";
+        context.Response.Body = new MemoryStream();
+
+        await middleware.Invoke(context, new NoOpExceptionLogWriter());
+
+        Assert.Equal((int)HttpStatusCode.InternalServerError, context.Response.StatusCode);
+        context.Response.Body.Position = 0;
+        using var reader = new StreamReader(context.Response.Body, Encoding.UTF8, leaveOpen: true);
+        var payload = await reader.ReadToEndAsync();
+
+        var envelope = JsonSerializer.Deserialize<SpareParts.Api.Errors.ApiErrorEnvelope>(payload, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        Assert.NotNull(envelope);
+        Assert.Equal("internal_error", envelope!.Code);
+        Assert.Equal("An unexpected server error occurred.", envelope.Message);
+        Assert.Equal("trace-unmapped-500", envelope.TraceId);
+
+        // The raw response body (not just the parsed envelope) must not contain the exception
+        // message, the exception type name, or any stack-trace-shaped content.
+        Assert.DoesNotContain(sensitiveDetail, payload, StringComparison.Ordinal);
+        Assert.DoesNotContain(nameof(InvalidCastException), payload, StringComparison.Ordinal);
+        Assert.DoesNotContain("at SpareParts.", payload, StringComparison.Ordinal);
+        Assert.DoesNotContain("StackTrace", payload, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void InvokePrivate(object instance, string methodName, object arg)

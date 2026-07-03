@@ -5,12 +5,21 @@ namespace SpareParts.Desktop.Wpf
 {
     public partial class CustomMessageBox : Window
     {
-        public CustomMessageBox(string title, string message, string type = "Info")
+        /// <summary>True once the user has confirmed a Yes/No dialog created via <see cref="ShowConfirmation"/>.</summary>
+        public bool Confirmed { get; private set; }
+
+        public CustomMessageBox(string title, string message, string type = "Info", bool showCancelButton = false)
         {
             InitializeComponent();
             TitleTextBlock.Text = title;
             MessageTextBlock.Text = message;
             SetStyle(type);
+
+            if (showCancelButton)
+            {
+                OkButton.Content = "Yes";
+                CancelButton.Visibility = Visibility.Visible;
+            }
         }
 
         private void SetStyle(string type)
@@ -43,13 +52,35 @@ namespace SpareParts.Desktop.Wpf
 
         private void Ok_Click(object sender, RoutedEventArgs e)
         {
+            Confirmed = true;
+            this.Close();
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Confirmed = false;
             this.Close();
         }
 
         // Static method to show the modern dialog easily
         public static void Show(string message, string title = "System Notification", string type = "Info")
         {
-            var dialog = new CustomMessageBox(title, message, type);
+            ShowDialogInternal(title, message, type, showCancelButton: false);
+        }
+
+        /// <summary>
+        /// Shows a themed Yes/No confirmation dialog and returns true if the user confirmed ("Yes"),
+        /// false otherwise (including closing the dialog without choosing).
+        /// </summary>
+        public static bool ShowConfirmation(string message, string title = "Confirm", string type = "Warning")
+        {
+            var dialog = ShowDialogInternal(title, message, type, showCancelButton: true);
+            return dialog.Confirmed;
+        }
+
+        private static CustomMessageBox ShowDialogInternal(string title, string message, string type, bool showCancelButton)
+        {
+            var dialog = new CustomMessageBox(title, message, type, showCancelButton);
             var owner = Application.Current?.Windows
                 .OfType<Window>()
                 .FirstOrDefault(w => w.IsActive)
@@ -66,6 +97,7 @@ namespace SpareParts.Desktop.Wpf
             }
 
             dialog.ShowDialog();
+            return dialog;
         }
     }
 }

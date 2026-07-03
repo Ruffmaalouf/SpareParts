@@ -1,19 +1,31 @@
 const { defaultApiBaseUrl, shouldUsePackagedApiBaseUrl } = require("./app-config");
 const { normalizeLanguageKey, normalizeThemeKey } = require("./formatters");
 
+/**
+ * MobileSessionStore persists the mobile session across two backing stores:
+ *
+ *  - `secureStorage`: sensitive values only (JWT token, user profile). Must
+ *    be backed by expo-secure-store (Keychain/Keystore encrypted storage),
+ *    never AsyncStorage. Exposes per-key getItem/setItem/removeItem, all
+ *    async (SecureStore has no multiSet/multiGet, unlike AsyncStorage).
+ *  - `prefsStorage`: non-sensitive preferences (apiBaseUrl, theme,
+ *    language). AsyncStorage is fine here since none of these values are
+ *    confidential.
+ */
 class MobileSessionStore {
-  constructor(storage, keys) {
-    this.storage = storage;
+  constructor(secureStorage, prefsStorage, keys) {
+    this.secureStorage = secureStorage;
+    this.prefsStorage = prefsStorage;
     this.keys = keys;
   }
 
   async load() {
     const [apiBaseUrl, token, user, theme, language] = await Promise.all([
-      this.storage.getItem(this.keys.apiBaseUrl),
-      this.storage.getItem(this.keys.token),
-      this.storage.getItem(this.keys.user),
-      this.storage.getItem(this.keys.theme),
-      this.storage.getItem(this.keys.language)
+      this.prefsStorage.getItem(this.keys.apiBaseUrl),
+      this.secureStorage.getItem(this.keys.token),
+      this.secureStorage.getItem(this.keys.user),
+      this.prefsStorage.getItem(this.keys.theme),
+      this.prefsStorage.getItem(this.keys.language)
     ]);
 
     const shouldResetApiBaseUrl = shouldUsePackagedApiBaseUrl(apiBaseUrl);
@@ -22,7 +34,7 @@ class MobileSessionStore {
       : apiBaseUrl || defaultApiBaseUrl;
 
     if (shouldResetApiBaseUrl) {
-      await this.storage.setItem(this.keys.apiBaseUrl, resolvedApiBaseUrl);
+      await this.prefsStorage.setItem(this.keys.apiBaseUrl, resolvedApiBaseUrl);
     }
 
     return {
@@ -35,23 +47,26 @@ class MobileSessionStore {
   }
 
   async save(apiBaseUrl, session) {
-    await this.storage.multiSet([
-      [this.keys.apiBaseUrl, apiBaseUrl],
-      [this.keys.token, session.token],
-      [this.keys.user, JSON.stringify(session)]
+    await Promise.all([
+      this.prefsStorage.setItem(this.keys.apiBaseUrl, apiBaseUrl),
+      this.secureStorage.setItem(this.keys.token, session.token),
+      this.secureStorage.setItem(this.keys.user, JSON.stringify(session))
     ]);
   }
 
   async clear() {
-    await this.storage.multiRemove([this.keys.token, this.keys.user]);
+    await Promise.all([
+      this.secureStorage.removeItem(this.keys.token),
+      this.secureStorage.removeItem(this.keys.user)
+    ]);
   }
 
   async saveTheme(themeKey) {
-    await this.storage.setItem(this.keys.theme, normalizeThemeKey(themeKey));
+    await this.prefsStorage.setItem(this.keys.theme, normalizeThemeKey(themeKey));
   }
 
   async saveLanguage(languageKey) {
-    await this.storage.setItem(this.keys.language, normalizeLanguageKey(languageKey));
+    await this.prefsStorage.setItem(this.keys.language, normalizeLanguageKey(languageKey));
   }
 }
 
