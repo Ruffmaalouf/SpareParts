@@ -24,6 +24,7 @@ const { normalizeBaseUrl, normalizeLanguageKey, normalizeThemeKey } = require(".
 const { AppSidebar } = require("./components/app-sidebar");
 const { BottomTabBar } = require("./components/bottom-tab-bar");
 const { ErrorBoundary } = require("./components/error-boundary");
+const { IgnitionTabBar } = require("./components/ignition-tab-bar");
 const { LockedFeatureModal } = require("./components/locked-feature-modal");
 const { PhoneHeaderBar } = require("./components/phone-header-bar");
 const { SmartSearch } = require("./components/smart-search");
@@ -44,6 +45,10 @@ const el = React.createElement;
 // AsyncStorage. See src/core/secure-storage.js and src/core/session-store.js.
 const sessionStore = new MobileSessionStore(new SecureSessionStorage(), AsyncStorage, storageKeys);
 const bottomTabKeys = ["dashboard", "invoices", "parts", "management", "settings"];
+// Ignition (Phase 3) screens use the Ignition bottom tab bar (Report 01 §12: 5 primary
+// destinations + "More", 44px targets). All other screens keep the existing tab bar —
+// the rollout stays additive/side-by-side per Report 04 §11.
+const ignitionScreenKeys = new Set(["ignition-dashboard", "client-workspace"]);
 const customerTabs = [
   { key: "store-home", label: "Garage", icon: "gauge", description: "Cockpit" },
   { key: "store-parts", label: "Parts", icon: "piston", description: "Fitment" },
@@ -262,14 +267,21 @@ function AppContent() {
                 onLanguage: changeLanguage,
                 onTheme: changeTheme,
                 languageKey,
-                themeKey
+                themeKey,
+                user
               })
           ),
-          el(BottomTabBar, {
-            activeKey: activeBottomKey,
-            tabs: visibleBottomTabs,
-            onSelect: selectScreen
-          })
+          !isCustomerMode && ignitionScreenKeys.has(activeScreen.key)
+            ? el(IgnitionTabBar, {
+              activeKey: activeScreen.key,
+              onSelect: selectScreen,
+              onMore: toggleSidebar
+            })
+            : el(BottomTabBar, {
+              activeKey: activeBottomKey,
+              tabs: visibleBottomTabs,
+              onSelect: selectScreen
+            })
         )
       ),
       el(LockedFeatureModal, { lock: planLock, onClose: dismissPlanLock, onUpgrade: goToBilling })
