@@ -71,7 +71,7 @@ jobs:
         run: |
           dotnet test tests/SpareParts.ManagementTests/SpareParts.ManagementTests.csproj `
             --configuration Release `
-            --logger "github;collapse-with-annotations=true" `
+            --logger "trx;LogFileName=management-tests.trx" `
             --results-directory ./test-results/management
 
       - name: Upload test results

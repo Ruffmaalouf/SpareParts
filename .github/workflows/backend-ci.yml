@@ -56,7 +56,7 @@ jobs:
           dotnet test tests/SpareParts.ArchitectureTests/SpareParts.ArchitectureTests.csproj \
             --configuration Release \
             --no-build \
-            --logger "github;collapse-with-annotations=true" \
+            --logger "trx;LogFileName=architecture-tests.trx" \
             --results-directory ./test-results/architecture
 
       # Integration tests need SQL Server via Docker — skipped in free CI
