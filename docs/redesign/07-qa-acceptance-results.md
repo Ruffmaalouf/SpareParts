@@ -176,8 +176,11 @@ until the next startup backfill, and (b) after backfill stamped to `DefaultTenan
 excludes it for the real owning tenant — the quote silently disappears from the workspace views
 (only a SuperAdmin, `@TenantId = 0`, still sees it). `SalesService`/`CreateSaleHandler` stamp `TenantId` on
 insert; `QuotesService.Create` should do the same.
-**Recommendation (for dev-database / dev-backend-api — do NOT fix in this QA change):** add `TenantId` to the
-`dbo.Quotes` insert, sourced from `ITenantContext.TenantId`, matching the sale/transaction write path.
+**Recommendation:** add `TenantId` to the `dbo.Quotes` insert, sourced from `ITenantContext.TenantId`,
+matching the sale/transaction write path.
+
+**✅ RESOLVED.** `QuotesService.Create` now stamps `TenantId = _tenantContext.TenantId` on insert
+(commit `9753466`), matching `CreateSaleHandler`. New quotes are correctly tenant-scoped immediately.
 
 ### SEC-2 (Low — defense-in-depth) — Dashboard summary services lack the unresolved-tenant guard
 `DashboardService` / `DashboardTrendService` / `DashboardActionQueueService` (and the reused
