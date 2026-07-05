@@ -29,6 +29,7 @@ public static class SparePartsApiComposition
 {
     public const string NotificationsHubPath = "/hubs/notifications";
     public const string AuthRateLimitPolicy = "auth-login";
+    public const string ClientSearchRateLimitPolicy = "client-search";
     private const string LoginUsernameItemsKey = "SpareParts.Auth.RateLimitUsername";
 
     public static readonly IReadOnlyList<ServiceProfile> ExpectedServiceProfiles =
@@ -278,6 +279,23 @@ public static class SparePartsApiComposition
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
                     }));
+
+            // Ignition client-rail typeahead: partition per tenant so one busy tenant's search
+            // traffic can't exhaust the limiter for others (Report 06 §07 — partitioned per tenant).
+            // Requests are authenticated by the time UseRateLimiter runs, so the tenant claim is present;
+            // fall back to the source IP for any unauthenticated edge case.
+            opt.AddPolicy(ClientSearchRateLimitPolicy, httpCtx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpCtx.User.FindFirst(TenantResolutionMiddleware.TenantIdClaimType)?.Value
+                        ?? httpCtx.Connection.RemoteIpAddress?.ToString()
+                        ?? "anonymous",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 30,
+                        Window = TimeSpan.FromSeconds(10),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
         });
     }
 
@@ -354,6 +372,14 @@ public static class SparePartsApiComposition
         // Lets Infrastructure-layer services (e.g. PaymentProviderFactory) check IsDevelopment without a
         // direct dependency on Microsoft.Extensions.Hosting.Abstractions.
         services.AddSingleton<IRuntimeEnvironment, HostRuntimeEnvironment>();
+
+        // Ignition dashboard/client-workspace read caches (per-tenant, short TTL) and their invalidator.
+        // Singletons so the cache is shared across requests; write paths resolve IDashboardCacheInvalidator
+        // to evict on sale/payment commits. Swapping to a distributed cache later replaces only these lines.
+        services.AddMemoryCache();
+        services.AddSingleton<DashboardSummaryCache>();
+        services.AddSingleton<ClientWorkspaceCache>();
+        services.AddSingleton<IDashboardCacheInvalidator, DashboardMemoryCacheInvalidator>();
 
         // Pricing/subscription/payment services are always registered — ISubscriptionLimitService is consulted
         // by feature/limit checks across other capabilities (Inventory, Identity, Sales, ...).
@@ -528,6 +554,10 @@ public static class SparePartsApiComposition
             services.AddScoped<ReportBuilderService>();
             services.AddHostedService<ReportBuilderBackgroundRunHostedService>();
             services.AddScoped<OwnerCockpitService>();
+            services.AddScoped<DashboardActionQueueService>();
+            services.AddScoped<DashboardTrendService>();
+            services.AddScoped<DashboardService>();
+            services.AddScoped<ClientWorkspaceService>();
             services.AddScoped<SmartSearchService>();
             services.AddScoped<GrowthIntelligenceService>();
             services.AddScoped<MarketPriceIndexService>();

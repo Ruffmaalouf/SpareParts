@@ -22,6 +22,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
         private readonly ITenantContext _tenantContext;
+        private readonly IDashboardCacheInvalidator? _cacheInvalidator;
 
         public CreateSaleHandler(
             ISqlConnectionFactory factory,
@@ -32,7 +33,8 @@ namespace SpareParts.Infrastructure.Services
             IInvoiceTotalsCalculator totalsCalculator,
             AccountingSettingsProvider settingsProvider,
             CustomerAccountResolver customerAccountResolver,
-            ITenantContext tenantContext)
+            ITenantContext tenantContext,
+            IDashboardCacheInvalidator? cacheInvalidator = null)
         {
             _factory = factory;
             _inventoryService = inventoryService;
@@ -43,6 +45,7 @@ namespace SpareParts.Infrastructure.Services
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
             _tenantContext = tenantContext;
+            _cacheInvalidator = cacheInvalidator;
         }
 
         public CreateSaleResponse Handle(CreateSaleRequest request, int userId)
@@ -95,6 +98,15 @@ namespace SpareParts.Infrastructure.Services
             var currencyContext = AccountingCurrencyContextResolver.Resolve(session);
 
             session.Commit();
+
+            // Write-path invalidation (Report 04 R4 — "stale money on screen"): a committed sale changes
+            // the tenant's KPIs and this customer's balance, so evict both read caches immediately rather
+            // than waiting out the TTL. Null in unit tests that construct the handler directly.
+            _cacheInvalidator?.InvalidateTenant(_tenantContext.TenantId);
+            if (request.CustomerId is > 0)
+            {
+                _cacheInvalidator?.InvalidateClient(_tenantContext.TenantId, request.CustomerId.Value);
+            }
 
             return new CreateSaleResponse
             {

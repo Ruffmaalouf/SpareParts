@@ -23,6 +23,7 @@ namespace SpareParts.Infrastructure.Services
         private readonly AccountingSettingsProvider _settingsProvider;
         private readonly CustomerAccountResolver _customerAccountResolver;
         private readonly ITenantContext _tenantContext;
+        private readonly IDashboardCacheInvalidator? _cacheInvalidator;
 
         public SalesService(
             ICreateSaleHandler createSaleHandler,
@@ -33,7 +34,8 @@ namespace SpareParts.Infrastructure.Services
             IInvoiceTotalsCalculator totalsCalculator,
             AccountingSettingsProvider settingsProvider,
             CustomerAccountResolver customerAccountResolver,
-            ITenantContext tenantContext)
+            ITenantContext tenantContext,
+            IDashboardCacheInvalidator? cacheInvalidator = null)
         {
             _createSaleHandler = createSaleHandler;
             _factory = factory;
@@ -44,6 +46,7 @@ namespace SpareParts.Infrastructure.Services
             _settingsProvider = settingsProvider;
             _customerAccountResolver = customerAccountResolver;
             _tenantContext = tenantContext;
+            _cacheInvalidator = cacheInvalidator;
         }
 
         public CreateSaleResponse CreateSale(CreateSaleRequest request, int userId)
@@ -117,6 +120,14 @@ namespace SpareParts.Infrastructure.Services
                 userId);
 
             session.Commit();
+
+            // Write-path invalidation (Report 04 R4): a received payment moves the tenant's cash/receivables
+            // KPIs and this customer's balance, so evict both read caches immediately instead of waiting the TTL.
+            _cacheInvalidator?.InvalidateTenant(_tenantContext.TenantId);
+            if (invoice.CustomerId is > 0)
+            {
+                _cacheInvalidator?.InvalidateClient(_tenantContext.TenantId, invoice.CustomerId.Value);
+            }
 
             return new IssueSalePaymentResponse
             {
