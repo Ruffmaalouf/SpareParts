@@ -122,9 +122,9 @@ ORDER BY qi.SortOrder, qi.Id;
         var quoteId = conn.ExecuteScalar<int>(
             """
 INSERT INTO dbo.Quotes
-    (QuoteNumber, QuoteDate, ExpiryDate, CustomerId, CustomerName, CustomerPhone, WarehouseId, Status, Notes, CreatedAt, CreatedByUserId)
+    (QuoteNumber, QuoteDate, ExpiryDate, CustomerId, CustomerName, CustomerPhone, WarehouseId, Status, Notes, CreatedAt, CreatedByUserId, TenantId)
 VALUES
-    (@QuoteNumber, @QuoteDate, @ExpiryDate, @CustomerId, @CustomerName, @CustomerPhone, @WarehouseId, N'Draft', @Notes, SYSUTCDATETIME(), @UserId);
+    (@QuoteNumber, @QuoteDate, @ExpiryDate, @CustomerId, @CustomerName, @CustomerPhone, @WarehouseId, N'Draft', @Notes, SYSUTCDATETIME(), @UserId, @TenantId);
 SELECT CAST(SCOPE_IDENTITY() AS INT);
 """,
             new
@@ -137,7 +137,12 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);
                 CustomerPhone = string.IsNullOrWhiteSpace(request.CustomerPhone) ? null : request.CustomerPhone.Trim(),
                 request.WarehouseId,
                 Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
-                UserId = userId
+                UserId = userId,
+                // Stamp the creating tenant on insert so new quotes are correctly scoped immediately
+                // (SEC-1). Without this the row is TenantId=NULL until TenantIdMigration backfills it to
+                // the default tenant — mis-assigning quotes on a multi-tenant DB and hiding them from the
+                // owning tenant's Ignition Timeline/Quotes tabs. Mirrors CreateSaleHandler's tenant stamping.
+                TenantId = _tenantContext.TenantId
             });
 
         for (var i = 0; i < request.Items.Count; i++)
