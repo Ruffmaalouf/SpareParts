@@ -1,0 +1,113 @@
+/* Ignition design tokens — Report 02 (Visual Design Language) + Report 03 §02.
+   Layer 1 of the four-layer cascade: tokens -> primitives -> components -> views.
+   Every custom property is scoped under .ignition-root so the legacy screens
+   (styles.css / cockpit.css) never see a token change. Dark mode is the default
+   surface; light mode activates via [data-ig-theme="light"] on the root element
+   or on .ignition-root itself. */
+
+.ignition-root {
+  /* Surfaces — carbon three-step elevation (Report 02 §02) */
+  --ig-bg-canvas: #0a0a0b;
+  --ig-bg-surface: #131316;
+  --ig-bg-elevated: #1b1b1f;
+  --ig-bg-elevated-2: #232328;
+  --ig-border: #26262b;
+  --ig-border-strong: #3a3a42;
+
+  /* Text */
+  --ig-text-primary: #fafafa;
+  --ig-text-secondary: #a1a1aa;
+  --ig-text-muted: #6b6b74;
+
+  /* Accent — the ONE orange (Report 02 §02: orange always means "look here") */
+  --ig-accent: #f97316;
+  --ig-accent-hover: #ea580c;
+  --ig-accent-soft: rgba(249, 115, 22, .14);
+  --ig-on-accent: #0a0a0b;
+
+  /* Semantic status */
+  --ig-success: #22c55e;
+  --ig-warning: #fbbf24;
+  --ig-danger: #ef4444;
+  --ig-info: #38bdf8;
+  --ig-success-soft: rgba(34, 197, 94, .14);
+  --ig-warning-soft: rgba(251, 191, 36, .14);
+  --ig-danger-soft: rgba(239, 68, 68, .14);
+  --ig-info-soft: rgba(56, 189, 248, .14);
+
+  /* Typography — strict roles (Report 02 §04) */
+  --ig-font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --ig-font-body: "Inter", sans-serif;
+  --ig-font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
+  --ig-track-display: -0.04em;
+  --ig-track-heading: -0.02em;
+  --ig-track-label: 0.08em;
+
+  /* Spacing — 4/8 grid */
+  --ig-space-1: 4px;
+  --ig-space-2: 8px;
+  --ig-space-3: 12px;
+  --ig-space-4: 16px;
+  --ig-space-6: 24px;
+  --ig-space-8: 32px;
+  --ig-space-12: 48px;
+  --ig-space-18: 72px;
+
+  /* Radii */
+  --ig-radius-sm: 8px;
+  --ig-radius-md: 12px;
+  --ig-radius-lg: 16px;
+  --ig-radius-xl: 24px;
+  --ig-radius-pill: 999px;
+
+  /* Elevation — four shadow levels (Report 02 §05) */
+  --ig-shadow-0: 0 1px 2px rgba(0, 0, 0, .5);
+  --ig-shadow-1: 0 4px 14px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .5);
+  --ig-shadow-2: 0 12px 28px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .4);
+  --ig-shadow-3: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px rgba(249, 115, 22, .08);
+
+  /* Motion */
+  --ig-duration-instant: 80ms;
+  --ig-duration-fast: 140ms;
+  --ig-duration-base: 220ms;
+  --ig-duration-panel: 320ms;
+  --ig-duration-chart: 600ms;
+  --ig-ease-standard: cubic-bezier(.4, 0, .2, 1);
+  --ig-ease-out-back: cubic-bezier(.34, 1.56, .64, 1);
+
+  /* Layout */
+  --ig-rail-w: 72px;
+  --ig-client-rail-w: 280px;
+  --ig-content-max: 1440px;
+}
+
+/* Light mode — inverted elevation, accent recalibrated one ramp step darker
+   (#f97316 on white fails AA for small text; #ea580c passes — Report 02 §03). */
+[data-ig-theme="light"] .ignition-root,
+.ignition-root[data-ig-theme="light"] {
+  --ig-bg-canvas: #ffffff;
+  --ig-bg-surface: #f7f7f8;
+  --ig-bg-elevated: #efeff1;
+  --ig-bg-elevated-2: #e4e4e8;
+  --ig-border: #dcdce1;
+  --ig-border-strong: #c2c2ca;
+  --ig-text-primary: #111114;
+  --ig-text-secondary: #52525b;
+  --ig-text-muted: #8b8b94;
+  --ig-accent: #ea580c;
+  --ig-accent-hover: #c2410c;
+  --ig-accent-soft: rgba(234, 88, 12, .12);
+  --ig-on-accent: #ffffff;
+  --ig-success: #16a34a;
+  --ig-warning: #d97706;
+  --ig-danger: #dc2626;
+  --ig-info: #0284c7;
+  --ig-success-soft: rgba(22, 163, 74, .12);
+  --ig-warning-soft: rgba(217, 119, 6, .12);
+  --ig-danger-soft: rgba(220, 38, 38, .12);
+  --ig-info-soft: rgba(2, 132, 199, .12);
+  --ig-shadow-0: 0 1px 2px rgba(17, 17, 20, .06);
+  --ig-shadow-1: 0 2px 8px rgba(17, 17, 20, .06), 0 1px 2px rgba(17, 17, 20, .04);
+  --ig-shadow-2: 0 8px 24px rgba(17, 17, 20, .1);
+  --ig-shadow-3: 0 24px 48px rgba(17, 17, 20, .16);
+}

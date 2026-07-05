@@ -17,7 +17,10 @@ const railItems = [
 // real screen registry keys. Any registered screen not listed here is appended
 // to a "More" group so every existing route stays reachable.
 const cockpitGroups = [
-  { key: "control", label: "Control Center", items: [{ key: "dashboard", label: "Dashboard" }] },
+  // "Command Center" + "Clients" are the Ignition rebuilds (docs/redesign);
+  // legacy Dashboard/Contacts/Customer Aging keys stay registered and reachable.
+  { key: "control", label: "Control Center", items: [{ key: "dashboard", label: "Dashboard" }, { key: "ignition-dashboard", label: "Command Center" }] },
+  { key: "clients", label: "Clients", items: [{ key: "client-workspace", label: "Clients" }] },
   { key: "sales", label: "Sales", items: [{ key: "invoices", label: "POS / Sales" }, { key: "sales-returns", label: "Sales Returns" }] },
   { key: "parts", label: "Parts & Inventory", items: [{ key: "inventory", label: "Parts & Inventory" }, { key: "part-requests", label: "Part Requests" }] },
   { key: "compatibility", label: "Compatibility", items: [{ key: "compatibility", label: "Compatibility Search" }, { key: "does-it-fit", label: "Vehicle Fitment" }] },
@@ -27,7 +30,8 @@ const cockpitGroups = [
 ];
 
 const keyIcon = {
-  dashboard: "grid", invoices: "cart", "sales-returns": "return", inventory: "box",
+  dashboard: "grid", "ignition-dashboard": "bolt", "client-workspace": "users",
+  invoices: "cart", "sales-returns": "return", inventory: "box",
   "part-requests": "clipboard", compatibility: "search", "does-it-fit": "car",
   "used-cars": "car", stock: "warehouse", "stock-arrival": "pkg", billing: "doc",
   "report-builder": "trend", accounting: "bank", management: "users", settings: "cog"

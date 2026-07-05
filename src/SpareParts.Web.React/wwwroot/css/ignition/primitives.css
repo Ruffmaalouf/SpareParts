@@ -1,0 +1,150 @@
+/* Ignition primitives — Report 03 §02, layer 2 of the cascade.
+   A scoped reset plus layout/focus/a11y utilities. Every rule is prefixed
+   .ignition-root so nothing here can leak into the 68 legacy screens. */
+
+.ignition-root,
+.ignition-root *,
+.ignition-root *::before,
+.ignition-root *::after {
+  box-sizing: border-box;
+}
+
+.ignition-root {
+  background: var(--ig-bg-canvas);
+  color: var(--ig-text-primary);
+  font-family: var(--ig-font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ignition-root h1,
+.ignition-root h2,
+.ignition-root h3,
+.ignition-root h4,
+.ignition-root p {
+  margin: 0;
+}
+
+.ignition-root h1,
+.ignition-root h2 {
+  font-family: var(--ig-font-display);
+  letter-spacing: var(--ig-track-display);
+  font-weight: 800;
+}
+
+.ignition-root h3,
+.ignition-root h4 {
+  font-family: var(--ig-font-display);
+  letter-spacing: var(--ig-track-heading);
+  font-weight: 700;
+}
+
+.ignition-root button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ignition-root input,
+.ignition-root textarea,
+.ignition-root select {
+  font: inherit;
+  color: var(--ig-text-primary);
+  background: var(--ig-bg-elevated);
+  border: 1px solid var(--ig-border);
+  border-radius: var(--ig-radius-sm);
+  padding: var(--ig-space-2) var(--ig-space-3);
+}
+
+.ignition-root input::placeholder,
+.ignition-root textarea::placeholder {
+  color: var(--ig-text-muted);
+}
+
+.ignition-root img,
+.ignition-root svg {
+  max-width: 100%;
+}
+
+/* Layout utilities */
+.ignition-root .ig-grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--ig-space-6);
+  max-width: var(--ig-content-max);
+}
+
+.ignition-root .ig-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-4);
+}
+
+.ignition-root .ig-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ig-space-2);
+}
+
+.ignition-root .ig-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ig-track-label);
+  text-transform: uppercase;
+  color: var(--ig-text-secondary);
+}
+
+.ignition-root .ig-muted {
+  color: var(--ig-text-muted);
+}
+
+/* Focus — :focus-visible only, 2px orange ring (Report 03 §11) */
+.ignition-root :focus-visible {
+  outline: 2px solid var(--ig-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.ignition-root button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Screen-reader-only text */
+.ignition-root .ig-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skeleton pulse + reduced-motion escape hatch (Report 03 §09/§11) */
+.ignition-root .ig-skeleton {
+  background: var(--ig-bg-elevated);
+  border-radius: var(--ig-radius-sm);
+  animation: ig-pulse 1.2s var(--ig-ease-standard) infinite;
+}
+
+@keyframes ig-pulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ignition-root *,
+  .ignition-root *::before,
+  .ignition-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
