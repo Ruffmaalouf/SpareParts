@@ -1,0 +1,822 @@
+/* Ignition component styles — Report 03 §03–§05, layer 3 of the cascade.
+   Every rule is scoped .ignition-root .ig-* — zero blast radius on legacy screens. */
+
+/* CockpitIcons keep their .ck-icn stroke treatment (stroke: currentColor,
+   fill: none from cockpit.css), but inside Ignition the fixed 18px CSS size
+   must yield to each component's explicit width/height attributes. */
+.ignition-root .ck-icn[width] {
+  width: initial;
+  height: initial;
+}
+
+/* ---------- Shared card / button primitives ---------- */
+.ignition-root .ig-card {
+  background: var(--ig-bg-surface);
+  border-radius: var(--ig-radius-lg);
+  box-shadow: var(--ig-shadow-1);
+  padding: var(--ig-space-4);
+}
+
+.ignition-root .ig-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ig-space-2);
+  padding: var(--ig-space-2) var(--ig-space-4);
+  border-radius: var(--ig-radius-sm);
+  font-weight: 600;
+  background: var(--ig-bg-elevated);
+  color: var(--ig-text-primary);
+  transition: background var(--ig-duration-fast) var(--ig-ease-standard);
+}
+
+.ignition-root .ig-btn:hover { background: var(--ig-bg-elevated-2); }
+.ignition-root .ig-btn:disabled { opacity: .5; cursor: default; }
+
+.ignition-root .ig-btn-primary {
+  background: var(--ig-accent);
+  color: var(--ig-on-accent);
+}
+
+.ignition-root .ig-btn-primary:hover { background: var(--ig-accent-hover); }
+
+.ignition-root .ig-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ig-space-1);
+  padding: 2px var(--ig-space-2);
+  border-radius: var(--ig-radius-pill);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ig-track-label);
+  text-transform: uppercase;
+}
+
+.ignition-root .ig-pill-success { background: var(--ig-success-soft); color: var(--ig-success); }
+.ignition-root .ig-pill-warning { background: var(--ig-warning-soft); color: var(--ig-warning); }
+.ignition-root .ig-pill-danger { background: var(--ig-danger-soft); color: var(--ig-danger); }
+.ignition-root .ig-pill-info { background: var(--ig-info-soft); color: var(--ig-info); }
+.ignition-root .ig-pill-neutral { background: var(--ig-bg-elevated); color: var(--ig-text-secondary); }
+.ignition-root .ig-pill-orange { background: var(--ig-accent-soft); color: var(--ig-accent); }
+
+.ignition-root .ig-error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--ig-space-3);
+  padding: var(--ig-space-3) var(--ig-space-4);
+  border-radius: var(--ig-radius-md);
+  background: var(--ig-danger-soft);
+  color: var(--ig-danger);
+  font-weight: 500;
+}
+
+/* ---------- IconRail ---------- */
+.ignition-root .ig-rail {
+  width: var(--ig-rail-w);
+  min-width: var(--ig-rail-w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ig-space-2);
+  padding: var(--ig-space-4) 0;
+  background: var(--ig-bg-canvas);
+  border-right: 1px solid var(--ig-border);
+}
+
+.ignition-root .ig-rail-item {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ig-radius-md);
+  color: var(--ig-text-secondary);
+  transition: background var(--ig-duration-fast) var(--ig-ease-standard), color var(--ig-duration-fast) var(--ig-ease-standard);
+}
+
+.ignition-root .ig-rail-item:hover,
+.ignition-root .ig-rail-item:focus-visible { background: var(--ig-bg-elevated); color: var(--ig-text-primary); }
+
+.ignition-root .ig-rail-item.is-active {
+  background: var(--ig-accent-soft);
+  color: var(--ig-accent);
+}
+
+.ignition-root .ig-rail-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ig-accent);
+}
+
+.ignition-root .ig-rail-flyout {
+  position: absolute;
+  left: 52px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: var(--ig-space-1) var(--ig-space-3);
+  border-radius: var(--ig-radius-sm);
+  background: var(--ig-bg-elevated);
+  box-shadow: var(--ig-shadow-2);
+  color: var(--ig-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ig-duration-fast) var(--ig-ease-standard), transform var(--ig-duration-fast) var(--ig-ease-standard);
+  z-index: 30;
+}
+
+.ignition-root .ig-rail-item:hover .ig-rail-flyout,
+.ignition-root .ig-rail-item:focus-visible .ig-rail-flyout {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.ignition-root .ig-rail-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ig-danger);
+}
+
+/* ---------- CommandBar + CommandPalette ---------- */
+.ignition-root .ig-cmdbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ig-space-3);
+  width: 100%;
+  max-width: 560px;
+  padding: var(--ig-space-2) var(--ig-space-4);
+  border-radius: var(--ig-radius-md);
+  background: var(--ig-bg-surface);
+  border: 1px solid var(--ig-border);
+  color: var(--ig-text-muted);
+  text-align: left;
+  transition: border-color var(--ig-duration-fast) var(--ig-ease-standard);
+}
+
+.ignition-root .ig-cmdbar:hover { border-color: var(--ig-border-strong); }
+
+.ignition-root .ig-cmdbar kbd {
+  margin-left: auto;
+  padding: 1px var(--ig-space-2);
+  border-radius: var(--ig-radius-sm);
+  background: var(--ig-bg-elevated);
+  border: 1px solid var(--ig-border);
+  font-family: var(--ig-font-mono);
+  font-size: 10px;
+  color: var(--ig-text-secondary);
+}
+
+.ignition-root .ig-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+  z-index: 220;
+}
+
+.ignition-root .ig-palette {
+  width: 640px;
+  max-width: calc(100vw - 32px);
+  max-height: 64vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--ig-radius-lg);
+  background: var(--ig-bg-elevated);
+  box-shadow: var(--ig-shadow-3);
+  overflow: hidden;
+}
+
+.ignition-root .ig-palette-input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--ig-border);
+  border-radius: 0;
+  background: transparent;
+  padding: var(--ig-space-4);
+  font-size: 15px;
+}
+
+.ignition-root .ig-palette-results {
+  overflow-y: auto;
+  padding: var(--ig-space-2);
+}
+
+.ignition-root .ig-palette-group {
+  padding: var(--ig-space-2) var(--ig-space-3) var(--ig-space-1);
+}
+
+.ignition-root .ig-palette-option {
+  display: flex;
+  align-items: center;
+  gap: var(--ig-space-3);
+  width: 100%;
+  padding: var(--ig-space-2) var(--ig-space-3);
+  border-radius: var(--ig-radius-sm);
+  text-align: left;
+  color: var(--ig-text-primary);
+}
+
+.ignition-root .ig-palette-option .ig-muted { margin-left: auto; font-size: 11px; }
+
+.ignition-root .ig-palette-option.is-selected,
+.ignition-root .ig-palette-option:hover {
+  background: var(--ig-accent-soft);
+}
+
+.ignition-root .ig-palette-empty,
+.ignition-root .ig-palette-hint {
+  padding: var(--ig-space-4);
+  color: var(--ig-text-muted);
+  font-size: 12px;
+}
+
+.ignition-root .ig-palette-card {
+  margin: var(--ig-space-2);
+  padding: var(--ig-space-4);
+  border-radius: var(--ig-radius-md);
+  background: var(--ig-bg-surface);
+  box-shadow: var(--ig-shadow-1);
+}
+
+/* ---------- KpiTile / KpiBand ---------- */
+.ignition-root .ig-kpi-band {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ig-space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ignition-root .ig-kpi-band.ig-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.ignition-root .ig-kpi-band.ig-cols-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+
+.ignition-root .ig-kpi-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ig-space-1);
+  width: 100%;
+  min-height: 108px;
+  padding: var(--ig-space-4);
+  border-radius: var(--ig-radius-lg);
+  background: var(--ig-bg-surface);
+  box-shadow: var(--ig-shadow-1);
+  text-align: left;
+  transition: transform var(--ig-duration-base) var(--ig-ease-standard), box-shadow var(--ig-duration-base) var(--ig-ease-standard);
+}
+
+.ignition-root button.ig-kpi-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ig-shadow-2);
+}
+
+.ignition-root .ig-kpi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ig-radius-sm);
+}
+
+.ignition-root .ig-kpi-value {
+  font-family: var(--ig-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.ignition-root .ig-kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ig-space-1);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ignition-root .ig-kpi-delta.is-up { color: var(--ig-success); }
+.ignition-root .ig-kpi-delta.is-down { color: var(--ig-danger); }
+.ignition-root .ig-kpi-delta.is-flat { color: var(--ig-text-muted); }
+
+.ignition-root .ig-kpi-spark {
+  position: absolute;
+  right: var(--ig-space-4);
+  bottom: var(--ig-space-3);
+  width: 72px;
+  height: 22px;
+  opacity: .8;
+}
+
+/* ---------- ActionQueueCard ---------- */
+.ignition-root .ig-queue-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ig-space-3);
+  width: 100%;
+  padding: var(--ig-space-3) var(--ig-space-4);
+  border-radius: var(--ig-radius-md);
+  background: var(--ig-bg-surface);
+  box-shadow: var(--ig-shadow-0);
+  text-align: left;
+  border-left: 3px solid var(--ig-border);
+  transition: background var(--ig-duration-fast) var(--ig-ease-standard);
+}
+
+.ignition-root .ig-queue-card:hover { background: var(--ig-bg-elevated); }
+.ignition-root .ig-queue-card.is-danger { border-left-color: var(--ig-danger); }
+.ignition-root .ig-queue-card.is-warning { border-left-color: var(--ig-warning); }
+.ignition-root .ig-queue-card.is-success { border-left-color: var(--ig-success); }
+.ignition-root .ig-queue-card.is-neutral { border-left-color: var(--ig-info); }
+.ignition-root .ig-queue-card.is-acted { opacity: .55; }
+
+.ignition-root .ig-queue-body { flex: 1; min-width: 0; }
+.ignition-root .ig-queue-title { font-weight: 700; }
+.ignition-root .ig-queue-detail { color: var(--ig-text-secondary); font-size: 12px; margin-top: 2px; }
+
+.ignition-root .ig-queue-value {
+  font-family: var(--ig-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ignition-root .ig-queue-dismiss {
+  color: var(--ig-text-muted);
+  padding: 2px 6px;
+  border-radius: var(--ig-radius-sm);
+}
+
+.ignition-root .ig-queue-dismiss:hover { color: var(--ig-text-primary); background: var(--ig-bg-elevated-2); }
+
+/* ---------- InsightPanel ---------- */
+.ignition-root .ig-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-3);
+  background: var(--ig-bg-surface);
+  border-radius: var(--ig-radius-lg);
+  box-shadow: var(--ig-shadow-1);
+  padding: var(--ig-space-4);
+  min-width: 0;
+}
+
+.ignition-root .ig-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ig-space-3);
+}
+
+.ignition-root .ig-panel-head h3 { font-size: 14px; }
+.ignition-root .ig-panel-sub { color: var(--ig-text-muted); font-size: 11px; }
+.ignition-root .ig-panel-foot { margin-top: auto; }
+
+/* ---------- TrendChart ---------- */
+.ignition-root .ig-trend { position: relative; }
+.ignition-root .ig-trend svg { display: block; width: 100%; }
+.ignition-root .ig-trend-axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ig-text-muted);
+  font-size: 10px;
+  margin-top: var(--ig-space-1);
+}
+.ignition-root .ig-trend-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ig-text-muted);
+}
+
+/* ---------- DataGrid ---------- */
+.ignition-root .ig-datagrid-wrap {
+  overflow: auto;
+  border-radius: var(--ig-radius-md);
+}
+
+.ignition-root .ig-datagrid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ignition-root .ig-datagrid th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ig-bg-elevated);
+  color: var(--ig-text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ig-track-label);
+  text-transform: uppercase;
+  text-align: left;
+  padding: var(--ig-space-2) var(--ig-space-3);
+  border-bottom: 1px solid var(--ig-border-strong);
+  white-space: nowrap;
+}
+
+.ignition-root .ig-datagrid th.is-sortable { cursor: pointer; }
+
+.ignition-root .ig-datagrid td {
+  padding: var(--ig-space-2) var(--ig-space-3);
+  border-bottom: 1px solid var(--ig-border);
+  height: 44px;
+}
+
+.ignition-root .ig-datagrid tbody tr:hover td { background: var(--ig-bg-elevated); }
+
+.ignition-root .ig-datagrid .is-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--ig-bg-surface);
+}
+
+.ignition-root .ig-datagrid-num {
+  font-family: var(--ig-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- MoneyText ---------- */
+.ignition-root .ig-money {
+  font-family: var(--ig-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.ignition-root .ig-money.is-negative { color: var(--ig-danger); }
+.ignition-root .ig-money.ig-size-lg { font-size: 20px; font-weight: 600; }
+.ignition-root .ig-money.ig-size-xl { font-size: 28px; font-weight: 700; letter-spacing: var(--ig-track-display); }
+
+/* ---------- QuickActionDock ---------- */
+.ignition-root .ig-dock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ig-space-3);
+}
+
+.ignition-root .ig-dock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ig-space-2);
+  padding: var(--ig-space-3);
+  border-radius: var(--ig-radius-md);
+  background: var(--ig-bg-elevated);
+  font-size: 11px;
+  font-weight: 600;
+  transition: background var(--ig-duration-fast) var(--ig-ease-standard);
+}
+
+.ignition-root .ig-dock-btn:hover { background: var(--ig-bg-elevated-2); }
+
+.ignition-root .ig-dock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--ig-radius-sm);
+  background: var(--ig-accent-soft);
+  color: var(--ig-accent);
+}
+
+/* ---------- ClientRail ---------- */
+.ignition-root .ig-client-rail {
+  width: var(--ig-client-rail-w);
+  min-width: var(--ig-client-rail-w);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-3);
+  background: var(--ig-bg-surface);
+  border-radius: var(--ig-radius-lg);
+  box-shadow: var(--ig-shadow-1);
+  padding: var(--ig-space-3);
+  min-height: 0;
+}
+
+.ignition-root .ig-client-rail-filter {
+  display: flex;
+  gap: var(--ig-space-1);
+  background: var(--ig-bg-elevated);
+  border-radius: var(--ig-radius-sm);
+  padding: 2px;
+}
+
+.ignition-root .ig-client-rail-filter button {
+  flex: 1;
+  padding: var(--ig-space-1) var(--ig-space-2);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ig-text-secondary);
+}
+
+.ignition-root .ig-client-rail-filter button.is-active {
+  background: var(--ig-bg-surface);
+  color: var(--ig-text-primary);
+}
+
+.ignition-root .ig-client-rail-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+}
+
+.ignition-root .ig-client-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ig-space-3);
+  width: 100%;
+  padding: var(--ig-space-2) var(--ig-space-3);
+  border-radius: var(--ig-radius-sm);
+  text-align: left;
+}
+
+.ignition-root .ig-client-row:hover { background: var(--ig-bg-elevated); }
+
+.ignition-root .ig-client-row.is-selected {
+  background: var(--ig-bg-elevated);
+}
+
+.ignition-root .ig-client-row.is-selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ig-accent);
+}
+
+.ignition-root .ig-client-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: var(--ig-radius-pill);
+  background: var(--ig-bg-elevated-2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ig-text-secondary);
+}
+
+.ignition-root .ig-client-row-main { flex: 1; min-width: 0; }
+.ignition-root .ig-client-row-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ignition-root .ig-client-row-sub { color: var(--ig-text-muted); font-size: 11px; }
+
+.ignition-root .ig-overdue-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ig-danger);
+}
+
+/* ---------- ClientHeader ---------- */
+.ignition-root .ig-client-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ig-space-4);
+  background: var(--ig-bg-surface);
+  border-radius: var(--ig-radius-lg);
+  box-shadow: var(--ig-shadow-1);
+  padding: var(--ig-space-4);
+}
+
+.ignition-root .ig-client-header-id { flex: 1; min-width: 220px; }
+.ignition-root .ig-client-header-id h2 { font-size: 20px; }
+.ignition-root .ig-client-header-meta { color: var(--ig-text-secondary); font-size: 12px; margin-top: 2px; }
+.ignition-root .ig-client-header-balance { text-align: right; }
+.ignition-root .ig-client-header-actions { display: flex; flex-wrap: wrap; gap: var(--ig-space-2); }
+
+/* ---------- AgingBar ---------- */
+.ignition-root .ig-aging { display: flex; flex-direction: column; gap: var(--ig-space-2); }
+
+.ignition-root .ig-aging-track {
+  display: flex;
+  height: 12px;
+  border-radius: var(--ig-radius-pill);
+  overflow: hidden;
+  background: var(--ig-bg-elevated);
+}
+
+.ignition-root .ig-aging-seg { min-width: 0; transition: filter var(--ig-duration-fast) var(--ig-ease-standard); }
+.ignition-root .ig-aging-seg:hover { filter: brightness(1.2); }
+.ignition-root .ig-aging-seg.is-current { background: var(--ig-success); }
+.ignition-root .ig-aging-seg.is-d30 { background: var(--ig-info); }
+.ignition-root .ig-aging-seg.is-d60 { background: var(--ig-warning); }
+.ignition-root .ig-aging-seg.is-d90 { background: var(--ig-accent); }
+.ignition-root .ig-aging-seg.is-over90 { background: var(--ig-danger); }
+
+.ignition-root .ig-aging-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ig-space-3);
+  font-size: 11px;
+  color: var(--ig-text-secondary);
+}
+
+.ignition-root .ig-aging-legend .ig-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+/* ---------- ActivityTimeline ---------- */
+.ignition-root .ig-timeline { display: flex; flex-direction: column; gap: var(--ig-space-2); }
+
+.ignition-root .ig-timeline-day {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ig-bg-surface);
+  padding: var(--ig-space-1) 0;
+}
+
+.ignition-root .ig-timeline-event {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ig-space-3);
+  padding: var(--ig-space-2) 0;
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.ignition-root .ig-timeline-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: var(--ig-radius-pill);
+  background: var(--ig-bg-elevated);
+  color: var(--ig-text-secondary);
+}
+
+.ignition-root .ig-timeline-body { flex: 1; min-width: 0; }
+.ignition-root .ig-timeline-title { font-weight: 600; font-size: 12px; }
+.ignition-root .ig-timeline-detail { color: var(--ig-text-secondary); font-size: 11px; }
+.ignition-root .ig-timeline-time { color: var(--ig-text-muted); font-size: 10px; white-space: nowrap; }
+
+/* ---------- TabStrip ---------- */
+.ignition-root .ig-tabstrip {
+  display: flex;
+  gap: var(--ig-space-2);
+  border-bottom: 1px solid var(--ig-border);
+  overflow-x: auto;
+}
+
+.ignition-root .ig-tab {
+  position: relative;
+  padding: var(--ig-space-2) var(--ig-space-3);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--ig-text-secondary);
+  white-space: nowrap;
+}
+
+.ignition-root .ig-tab:hover { color: var(--ig-text-primary); }
+
+.ignition-root .ig-tab[aria-selected="true"] { color: var(--ig-text-primary); }
+
+.ignition-root .ig-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: var(--ig-space-2);
+  right: var(--ig-space-2);
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ig-accent);
+}
+
+.ignition-root .ig-tab-count {
+  margin-left: var(--ig-space-1);
+  padding: 0 6px;
+  border-radius: var(--ig-radius-pill);
+  background: var(--ig-bg-elevated);
+  color: var(--ig-text-muted);
+  font-size: 10px;
+}
+
+/* ---------- Sheet (payment / reminder overlays) ---------- */
+.ignition-root .ig-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 210;
+}
+
+.ignition-root .ig-sheet {
+  width: 420px;
+  max-width: 100vw;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--ig-bg-elevated);
+  box-shadow: var(--ig-shadow-3);
+  animation: ig-sheet-in var(--ig-duration-panel) var(--ig-ease-standard);
+}
+
+@keyframes ig-sheet-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.ignition-root .ig-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ig-space-3);
+  padding: var(--ig-space-4);
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.ignition-root .ig-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--ig-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-4);
+}
+
+.ignition-root .ig-sheet-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ig-space-2);
+  padding: var(--ig-space-4);
+  border-top: 1px solid var(--ig-border);
+}
+
+.ignition-root .ig-alloc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ig-space-3);
+  padding: var(--ig-space-2) 0;
+  border-bottom: 1px solid var(--ig-border);
+  font-size: 12px;
+}
+
+/* ---------- Responsive (Report 03 §08) ---------- */
+@media (max-width: 1279px) {
+  .ignition-root .ig-kpi-band,
+  .ignition-root .ig-kpi-band.ig-cols-6,
+  .ignition-root .ig-kpi-band.ig-cols-8 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ignition-root .ig-client-rail { width: 240px; min-width: 240px; }
+}
+
+@media (max-width: 1023px) {
+  .ignition-root .ig-rail { display: none; }
+  .ignition-root .ig-kpi-band,
+  .ignition-root .ig-kpi-band.ig-cols-6,
+  .ignition-root .ig-kpi-band.ig-cols-8 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ignition-root .ig-client-rail { width: 100%; min-width: 0; max-height: 280px; }
+  .ignition-root .ig-dock { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ignition-root .ig-rail-item,
+  .ignition-root .ig-client-row,
+  .ignition-root .ig-tab { min-height: 44px; }
+}
+
+@media (max-width: 767px) {
+  .ignition-root .ig-kpi-band,
+  .ignition-root .ig-kpi-band.ig-cols-6,
+  .ignition-root .ig-kpi-band.ig-cols-8 {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  .ignition-root .ig-kpi-tile { min-width: 78vw; scroll-snap-align: start; }
+  .ignition-root .ig-dock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ignition-root .ig-sheet { width: 100vw; }
+}

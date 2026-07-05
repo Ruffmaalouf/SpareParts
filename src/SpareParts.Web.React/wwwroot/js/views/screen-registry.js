@@ -13,6 +13,10 @@ function moduleByKey(key) {
 
 export const screenRegistry = new ScreenRegistry([
   { key: "dashboard", label: "Dashboard", load: () => import("./dashboard-view.js").then((m) => m.DashboardView) },
+  // Ignition rebuilds (docs/redesign) — additive, side-by-side with the
+  // legacy dashboard/contacts/customer-aging keys, which stay registered.
+  { key: "ignition-dashboard", label: "Command Center", load: () => import("./ignition-dashboard-view.js").then((m) => m.IgnitionDashboardView) },
+  { key: "client-workspace", label: "Clients", load: () => import("./client-workspace-view.js").then((m) => m.ClientWorkspaceView) },
   { key: "invoices", label: "POS / Sales", load: () => import("./invoices-view.js").then((m) => m.InvoicesView) },
   { key: "sales-returns", label: "Sales Returns", load: () => import("./sales-returns-view.js").then((m) => m.SalesReturnsView) },
   { key: "inventory", label: "Parts", load: () => import("./inventory-view.js").then((m) => m.InventoryView) },
