@@ -1,0 +1,475 @@
+<UserControl x:Class="SpareParts.Desktop.Wpf.IgnitionClientWorkspaceControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+    <!-- Ignition Client Workspace (Report 04 §05-§06, Report 01 §12/§14 drawer client-list).
+         Consumes GET /api/clients/{id}/workspace and the paged child routes via the bound
+         IgnitionClientWorkspaceViewModel. Additive — the legacy contacts/aging views stay live. -->
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/Shared/IgnitionTokens.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="IgBoolToVis"/>
+
+            <Style x:Key="IgCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource IgBrushSurface}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource IgBrushBorder}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource IgCornerRadiusLg}"/>
+                <Setter Property="Padding" Value="{DynamicResource IgSpace4}"/>
+                <Setter Property="Effect" Value="{DynamicResource IgShadowL1}"/>
+            </Style>
+
+            <Style x:Key="IgSectionTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{DynamicResource IgFontDisplay}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{DynamicResource IgBrushTextSecondary}"/>
+                <Setter Property="Margin" Value="0 0 0 10"/>
+            </Style>
+
+            <Style x:Key="IgMutedTextStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{DynamicResource IgFontBody}"/>
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="Foreground" Value="{DynamicResource IgBrushTextMuted}"/>
+            </Style>
+
+            <Style x:Key="IgValueTextStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{DynamicResource IgFontMono}"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="{DynamicResource IgBrushTextPrimary}"/>
+            </Style>
+
+            <Style x:Key="IgKpiLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource IgMutedTextStyle}">
+                <Setter Property="Margin" Value="0 2 0 0"/>
+            </Style>
+
+            <Style x:Key="IgAccentButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource IgBrushAccent}"/>
+                <Setter Property="Foreground" Value="{DynamicResource IgBrushCanvas}"/>
+                <Setter Property="FontFamily" Value="{DynamicResource IgFontBody}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Padding" Value="16 8"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bdr" CornerRadius="{DynamicResource IgCornerRadiusPill}"
+                                    Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bdr" Property="Background" Value="{DynamicResource IgBrushAccentHover}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.55"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="IgSearchRowButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="Padding" Value="10 8"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="row" Background="{TemplateBinding Background}"
+                                    CornerRadius="{DynamicResource IgCornerRadiusLg}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="row" Property="Background" Value="{DynamicResource IgBrushSurface}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="IgColHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource IgMutedTextStyle}">
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Margin" Value="0 0 12 6"/>
+            </Style>
+
+            <Style x:Key="IgCellStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{DynamicResource IgFontBody}"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Foreground" Value="{DynamicResource IgBrushTextPrimary}"/>
+                <Setter Property="Margin" Value="0 0 12 0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource IgBrushCanvas}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Client rail: search + results -->
+        <Border Grid.Column="0" Style="{StaticResource IgCardStyle}" Margin="16 16 8 16">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Clients" Style="{StaticResource IgSectionTitleStyle}"/>
+                <Grid DockPanel.Dock="Top" Margin="0 0 0 12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" MinHeight="34" Padding="8 6" VerticalContentAlignment="Center"
+                             FontFamily="{DynamicResource IgFontBody}" FontSize="12"
+                             Background="{DynamicResource IgBrushSurface}"
+                             Foreground="{DynamicResource IgBrushTextPrimary}"
+                             BorderBrush="{DynamicResource IgBrushBorder}"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="1" Margin="8 0 0 0" Content="Search"
+                            Style="{StaticResource IgAccentButtonStyle}"
+                            Command="{Binding SearchCommand}"/>
+                </Grid>
+
+                <TextBlock DockPanel.Dock="Top" Text="Searching…" Style="{StaticResource IgMutedTextStyle}"
+                           Margin="0 0 0 6"
+                           Visibility="{Binding IsSearching, Converter={StaticResource IgBoolToVis}}"/>
+
+                <ListBox ItemsSource="{Binding SearchResults}" Background="Transparent" BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource IgSearchRowButtonStyle}"
+                                    Command="{Binding DataContext.OpenClientCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Name}" FontFamily="{DynamicResource IgFontBody}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                        <TextBlock Text="{Binding Phone}" Style="{StaticResource IgMutedTextStyle}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                               Text="{Binding Balance, StringFormat={}{0:N2}}"
+                                               FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                               Foreground="{DynamicResource IgBrushTextSecondary}"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Client 360 -->
+        <Grid Grid.Column="1" Margin="8 16 16 16">
+            <!-- Empty state -->
+            <Border Style="{StaticResource IgCardStyle}"
+                    Visibility="{Binding HasNoClient, Converter={StaticResource IgBoolToVis}}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="Select a client" HorizontalAlignment="Center"
+                               FontFamily="{DynamicResource IgFontDisplay}" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource IgBrushTextSecondary}"/>
+                    <TextBlock Text="Search on the left to open a customer's full workspace."
+                               Margin="0 6 0 0" HorizontalAlignment="Center"
+                               Style="{StaticResource IgMutedTextStyle}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Loaded client -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding HasClient, Converter={StaticResource IgBoolToVis}}">
+                <StackPanel>
+                    <!-- Header -->
+                    <Border Style="{StaticResource IgCardStyle}" Margin="0 0 0 12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
+                                    Background="{DynamicResource IgBrushSurface}" VerticalAlignment="Top">
+                                <TextBlock Text="{Binding ClientInitials}" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" FontFamily="{DynamicResource IgFontDisplay}"
+                                           FontSize="20" FontWeight="Bold"
+                                           Foreground="{DynamicResource IgBrushAccent}"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="16 0 0 0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ClientName}" FontFamily="{DynamicResource IgFontDisplay}"
+                                           FontSize="20" FontWeight="Bold"
+                                           Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                <StackPanel Orientation="Horizontal" Margin="0 4 0 0">
+                                    <TextBlock Text="{Binding ClientStateText}" Style="{StaticResource IgMutedTextStyle}"/>
+                                    <TextBlock Text="  ·  " Style="{StaticResource IgMutedTextStyle}"/>
+                                    <TextBlock Text="{Binding ClientSubtitle}" Style="{StaticResource IgMutedTextStyle}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding LastActivityText}" Style="{StaticResource IgMutedTextStyle}"
+                                           Margin="0 2 0 0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding TotalBalanceText}" Style="{StaticResource IgValueTextStyle}"
+                                           HorizontalAlignment="Right"/>
+                                <TextBlock Text="Balance" Style="{StaticResource IgKpiLabelStyle}"
+                                           HorizontalAlignment="Right"/>
+                                <Button Content="Refresh" Margin="0 10 0 0" HorizontalAlignment="Right"
+                                        Style="{StaticResource IgAccentButtonStyle}"
+                                        Command="{Binding RefreshCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- KPI band -->
+                    <Border Style="{StaticResource IgCardStyle}" Margin="0 0 0 12">
+                        <UniformGrid Rows="1" Columns="6">
+                            <StackPanel Margin="0 0 12 0">
+                                <TextBlock Text="{Binding LifetimeRevenueText}" Style="{StaticResource IgValueTextStyle}"/>
+                                <TextBlock Text="Lifetime revenue" Style="{StaticResource IgKpiLabelStyle}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0 0 12 0">
+                                <TextBlock Text="{Binding LifetimeInvoiceCountText}" Style="{StaticResource IgValueTextStyle}"/>
+                                <TextBlock Text="Invoices" Style="{StaticResource IgKpiLabelStyle}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0 0 12 0">
+                                <TextBlock Text="{Binding AverageDaysToPayText}" Style="{StaticResource IgValueTextStyle}"/>
+                                <TextBlock Text="Avg days to pay" Style="{StaticResource IgKpiLabelStyle}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0 0 12 0">
+                                <TextBlock Text="{Binding OpenQuotesText}" Style="{StaticResource IgValueTextStyle}"/>
+                                <TextBlock Text="Open quotes" Style="{StaticResource IgKpiLabelStyle}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0 0 12 0">
+                                <TextBlock Text="{Binding ActivePartRequestsText}" Style="{StaticResource IgValueTextStyle}"/>
+                                <TextBlock Text="Part requests" Style="{StaticResource IgKpiLabelStyle}"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="{Binding LoyaltyText}" Style="{StaticResource IgValueTextStyle}"/>
+                                <TextBlock Text="Loyalty" Style="{StaticResource IgKpiLabelStyle}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Border>
+
+                    <Grid Margin="0 0 0 12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Aging -->
+                        <Border Grid.Column="0" Style="{StaticResource IgCardStyle}" Margin="0 0 6 0">
+                            <StackPanel>
+                                <TextBlock Text="Aging" Style="{StaticResource IgSectionTitleStyle}"/>
+                                <ItemsControl ItemsSource="{Binding AgingBuckets}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0 0 0 8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="90"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                                           Style="{StaticResource IgMutedTextStyle}"
+                                                           VerticalAlignment="Center"/>
+                                                <Border Grid.Column="1" Height="10" CornerRadius="5"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                        Width="{Binding BarWidth}" Background="{Binding BarBrush}"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                                           Margin="10 0 0 0" VerticalAlignment="Center"
+                                                           FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                                           Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Vehicles -->
+                        <Border Grid.Column="1" Style="{StaticResource IgCardStyle}" Margin="6 0 0 0">
+                            <StackPanel>
+                                <TextBlock Text="Vehicles" Style="{StaticResource IgSectionTitleStyle}"/>
+                                <ItemsControl ItemsSource="{Binding Vehicles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0 0 0 6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Year}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Text="{Binding Make}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Text="{Binding Model}" Style="{StaticResource IgCellStyle}"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding PlateNumber}"
+                                                           FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                                           Foreground="{DynamicResource IgBrushTextSecondary}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Tabs -->
+                    <Border Style="{StaticResource IgCardStyle}">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Bottom" Margin="0 10 0 0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Status}"
+                                           Style="{StaticResource IgMutedTextStyle}" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="Load more"
+                                        Style="{StaticResource IgAccentButtonStyle}"
+                                        Command="{Binding LoadMoreCommand}"/>
+                            </Grid>
+
+                            <TabControl Background="Transparent" BorderThickness="0"
+                                        SelectedIndex="{Binding SelectedTabIndex}">
+                                <TabItem Header="Invoices">
+                                    <ItemsControl ItemsSource="{Binding Invoices}" Margin="0 10 0 0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 0 0 6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="140"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding InvoiceNumber}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding IssuedAt, StringFormat=d}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Status}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding TotalAmount, StringFormat={}{0:N2}}"
+                                                               HorizontalAlignment="Right"
+                                                               FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                                               Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </TabItem>
+                                <TabItem Header="Payments">
+                                    <ItemsControl ItemsSource="{Binding Payments}" Margin="0 10 0 0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 0 0 6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="140"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding CreatedAt, StringFormat=d}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Status}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Amount, StringFormat={}{0:N2}}"
+                                                               HorizontalAlignment="Right"
+                                                               FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                                               Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </TabItem>
+                                <TabItem Header="Quotes">
+                                    <ItemsControl ItemsSource="{Binding Quotes}" Margin="0 10 0 0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 0 0 6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="140"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding QuoteNumber}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding QuoteDate, StringFormat=d}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Status}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding TotalAmount, StringFormat={}{0:N2}}"
+                                                               HorizontalAlignment="Right"
+                                                               FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                                               Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </TabItem>
+                                <TabItem Header="Part requests">
+                                    <ItemsControl ItemsSource="{Binding PartRequests}" Margin="0 10 0 0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 0 0 6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="120"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding MatchedPartName}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding AvailableQuantity, StringFormat=Avail {0}}" Style="{StaticResource IgCellStyle}"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding WaitingCustomerCount, StringFormat=Waiting {0}}" Style="{StaticResource IgCellStyle}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </TabItem>
+                                <TabItem Header="Timeline">
+                                    <ItemsControl ItemsSource="{Binding TimelineEvents}" Margin="0 10 0 0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 0 0 8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Date, StringFormat=d}" Style="{StaticResource IgCellStyle}"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Title}" FontFamily="{DynamicResource IgFontBody}"
+                                                                   FontSize="12" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource IgBrushTextPrimary}"/>
+                                                        <TextBlock Text="{Binding Detail}" Style="{StaticResource IgMutedTextStyle}" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Amount, StringFormat={}{0:N2}}"
+                                                               HorizontalAlignment="Right"
+                                                               FontFamily="{DynamicResource IgFontMono}" FontSize="12"
+                                                               Foreground="{DynamicResource IgBrushTextSecondary}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </TabItem>
+                            </TabControl>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

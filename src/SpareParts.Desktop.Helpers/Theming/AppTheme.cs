@@ -8,6 +8,7 @@ namespace SpareParts.Desktop.Wpf
         AMG,
         PorscheRS,
         LamborghiniSC,
-        WorkshopLight
+        WorkshopLight,
+        Ignition
     }
 }
