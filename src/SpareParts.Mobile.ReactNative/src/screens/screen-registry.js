@@ -3,9 +3,11 @@ const { ScreenRegistry } = require("../core/screen-registry");
 const { AccountingScreen } = require("./accounting-screen");
 const { AdminBillingScreen } = require("./admin-billing-screen");
 const { BillingScreen } = require("./billing-screen");
+const { ClientWorkspaceScreen } = require("./client-workspace-screen");
 const { ContactsScreen } = require("./contacts-screen");
 const { DashboardScreen } = require("./dashboard-screen");
 const { DeadStockScreen } = require("./dead-stock-screen");
+const { IgnitionDashboardScreen } = require("./ignition-dashboard-screen");
 const { InvoicesScreen } = require("./invoices-screen");
 const { ManagementScreen } = require("./management-screen");
 const { MechanicModeScreen } = require("./mechanic-mode-screen");
@@ -22,6 +24,10 @@ function moduleByKey(key) {
 
 const screenRegistry = new ScreenRegistry([
   { key: "dashboard", label: "Dashboard", component: DashboardScreen },
+  // Ignition (Phase 3) screens — additive per Report 04 §11: the legacy dashboard and
+  // contacts screens keep working side-by-side while Ignition rolls out.
+  { key: "ignition-dashboard", label: "Ignition Dashboard", component: IgnitionDashboardScreen },
+  { key: "client-workspace", label: "Client Workspace", component: ClientWorkspaceScreen },
   { key: "invoices", label: "POS / Sales", component: InvoicesScreen },
   { key: "sales-returns", label: "Sales Returns", component: createModuleScreen(moduleByKey("sales-returns")) },
   { key: "parts", label: "Parts", component: MechanicModeScreen },

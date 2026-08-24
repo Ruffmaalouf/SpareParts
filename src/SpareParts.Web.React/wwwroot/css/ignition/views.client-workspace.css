@@ -1,0 +1,60 @@
+/* Ignition Client Workspace view layout — Report 03 §07 regions, layer 4.
+   Three regions: ClientRail (left) -> ClientHeader + AgingBar -> TabStrip + tab body. */
+
+#ig-client-workspace {
+  display: flex;
+  gap: var(--ig-space-6);
+  min-height: 100%;
+  padding: var(--ig-space-6);
+  border-radius: var(--ig-radius-lg);
+}
+
+#ig-client-workspace .ig-cw-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-4);
+}
+
+#ig-client-workspace .ig-cw-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-4);
+  background: var(--ig-bg-surface);
+  border-radius: var(--ig-radius-lg);
+  box-shadow: var(--ig-shadow-1);
+  padding: var(--ig-space-4);
+  min-height: 320px;
+}
+
+#ig-client-workspace .ig-cw-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ig-space-3);
+}
+
+#ig-client-workspace .ig-cw-kpis .ig-cw-kpi {
+  background: var(--ig-bg-elevated);
+  border-radius: var(--ig-radius-md);
+  padding: var(--ig-space-3);
+}
+
+#ig-client-workspace .ig-cw-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ig-space-2);
+  color: var(--ig-text-muted);
+  text-align: center;
+  padding: var(--ig-space-12);
+}
+
+#ig-client-workspace .ig-cw-loadmore { align-self: center; }
+
+@media (max-width: 1023px) {
+  #ig-client-workspace { flex-direction: column; padding: var(--ig-space-4); }
+  #ig-client-workspace .ig-cw-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

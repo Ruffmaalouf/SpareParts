@@ -17,6 +17,7 @@ namespace SpareParts.Desktop.Wpf
             { AppTheme.PorscheRS,     new Uri("Themes/PorscheRSTheme.xaml",    UriKind.Relative) },
             { AppTheme.LamborghiniSC, new Uri("Themes/LamboTheme.xaml",        UriKind.Relative) },
             { AppTheme.WorkshopLight, new Uri("Themes/WorkshopLightTheme.xaml", UriKind.Relative) },
+            { AppTheme.Ignition,      new Uri("Themes/IgnitionTheme.xaml",     UriKind.Relative) },
         };
 
         public static AppTheme CurrentTheme { get; private set; } = AppTheme.Default;

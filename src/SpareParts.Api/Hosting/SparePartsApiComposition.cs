@@ -29,6 +29,7 @@ public static class SparePartsApiComposition
 {
     public const string NotificationsHubPath = "/hubs/notifications";
     public const string AuthRateLimitPolicy = "auth-login";
+    public const string ClientSearchRateLimitPolicy = "client-search";
     private const string LoginUsernameItemsKey = "SpareParts.Auth.RateLimitUsername";
 
     public static readonly IReadOnlyList<ServiceProfile> ExpectedServiceProfiles =
@@ -139,7 +140,7 @@ public static class SparePartsApiComposition
         [ServiceCapability.Accounting] = [nameof(AccountsController), nameof(AccountingController)],
         [ServiceCapability.Identity] = [nameof(AuthController), nameof(UsersController), nameof(RolesController), nameof(TenantsController), nameof(SellerReputationController), nameof(SellerVerificationController), nameof(ReferralController), nameof(MechanicTrustController), nameof(ApiPlatformController)],
         [ServiceCapability.Catalog] = [nameof(BrandsController), nameof(CategoriesController), nameof(CarBrandsController), nameof(CarModelsController), nameof(LocationsController), nameof(UsedCarsController), nameof(CurrenciesController), nameof(AppConstantsController), nameof(ExcelImportController), nameof(VehicleProfileController), nameof(PartReelsController), nameof(CarCrushController), nameof(PartCompatibilityController), nameof(ArPartsFinderController)],
-        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController), nameof(MarketPriceController), nameof(VoiceSearchController), nameof(DismantlerForecastController), nameof(RegionalDemandController), nameof(PriceReportController), nameof(KareemController)],
+        [ServiceCapability.Reporting] = [nameof(ReportBuilderController), nameof(OwnerCockpitController), nameof(DashboardController), nameof(ClientWorkspaceController), nameof(BusinessAssistantController), nameof(CommunicationsController), nameof(SearchController), nameof(GrowthController), nameof(ActivityLogController), nameof(MarketPriceController), nameof(VoiceSearchController), nameof(DismantlerForecastController), nameof(RegionalDemandController), nameof(PriceReportController), nameof(KareemController)],
         [ServiceCapability.Health] = [nameof(HealthController)],
         [ServiceCapability.Billing] = [nameof(PricingController), nameof(SubscriptionController), nameof(PaymentsController), nameof(InvoicesController), nameof(AdminPricingController), nameof(AdminSubscriptionsController), nameof(AdminPaymentsController), nameof(AdminInvoicesController)]
     };
@@ -280,6 +281,23 @@ public static class SparePartsApiComposition
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
                     }));
+
+            // Ignition client-rail typeahead: partition per tenant so one busy tenant's search
+            // traffic can't exhaust the limiter for others (Report 06 §07 — partitioned per tenant).
+            // Requests are authenticated by the time UseRateLimiter runs, so the tenant claim is present;
+            // fall back to the source IP for any unauthenticated edge case.
+            opt.AddPolicy(ClientSearchRateLimitPolicy, httpCtx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpCtx.User.FindFirst(TenantResolutionMiddleware.TenantIdClaimType)?.Value
+                        ?? httpCtx.Connection.RemoteIpAddress?.ToString()
+                        ?? "anonymous",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 30,
+                        Window = TimeSpan.FromSeconds(10),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    }));
         });
     }
 
@@ -356,6 +374,14 @@ public static class SparePartsApiComposition
         // Lets Infrastructure-layer services (e.g. PaymentProviderFactory) check IsDevelopment without a
         // direct dependency on Microsoft.Extensions.Hosting.Abstractions.
         services.AddSingleton<IRuntimeEnvironment, HostRuntimeEnvironment>();
+
+        // Ignition dashboard/client-workspace read caches (per-tenant, short TTL) and their invalidator.
+        // Singletons so the cache is shared across requests; write paths resolve IDashboardCacheInvalidator
+        // to evict on sale/payment commits. Swapping to a distributed cache later replaces only these lines.
+        services.AddMemoryCache();
+        services.AddSingleton<DashboardSummaryCache>();
+        services.AddSingleton<ClientWorkspaceCache>();
+        services.AddSingleton<IDashboardCacheInvalidator, DashboardMemoryCacheInvalidator>();
 
         // Pricing/subscription/payment services are always registered — ISubscriptionLimitService is consulted
         // by feature/limit checks across other capabilities (Inventory, Identity, Sales, ...).
@@ -530,6 +556,10 @@ public static class SparePartsApiComposition
             services.AddScoped<ReportBuilderService>();
             services.AddHostedService<ReportBuilderBackgroundRunHostedService>();
             services.AddScoped<OwnerCockpitService>();
+            services.AddScoped<DashboardActionQueueService>();
+            services.AddScoped<DashboardTrendService>();
+            services.AddScoped<DashboardService>();
+            services.AddScoped<ClientWorkspaceService>();
             services.AddScoped<SmartSearchService>();
             services.AddScoped<GrowthIntelligenceService>();
             services.AddScoped<MarketPriceIndexService>();

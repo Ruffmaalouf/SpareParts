@@ -1,0 +1,77 @@
+/* Ignition Dashboard view layout — Report 03 §06 regions, layer 4 of the cascade.
+   Region layout only; all visual values inherit from tokens/components. */
+
+#ig-dashboard {
+  display: flex;
+  min-height: 100%;
+  border-radius: var(--ig-radius-lg);
+  overflow: hidden;
+}
+
+#ig-dashboard .ig-dash-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-6);
+  padding: var(--ig-space-6);
+  max-width: var(--ig-content-max);
+}
+
+#ig-dashboard .ig-dash-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ig-space-4);
+}
+
+#ig-dashboard .ig-dash-topline .ig-dash-title { margin-right: auto; }
+#ig-dashboard .ig-dash-title h1 { font-size: 24px; }
+#ig-dashboard .ig-dash-title p { color: var(--ig-text-secondary); font-size: 12px; margin-top: 2px; }
+
+#ig-dashboard .ig-dash-live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ig-space-2);
+  padding: var(--ig-space-1) var(--ig-space-3);
+  border-radius: var(--ig-radius-pill);
+  background: var(--ig-bg-surface);
+  color: var(--ig-text-secondary);
+  font-size: 11px;
+}
+
+#ig-dashboard .ig-dash-live .ig-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ig-success);
+}
+
+#ig-dashboard .ig-dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--ig-space-6);
+  align-items: start;
+}
+
+#ig-dashboard .ig-dash-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ig-space-6);
+  min-width: 0;
+}
+
+#ig-dashboard .ig-dash-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ig-space-6);
+}
+
+@media (max-width: 1279px) {
+  #ig-dashboard .ig-dash-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 767px) {
+  #ig-dashboard .ig-dash-main { padding: var(--ig-space-4); }
+  #ig-dashboard .ig-dash-panels { grid-template-columns: minmax(0, 1fr); }
+}

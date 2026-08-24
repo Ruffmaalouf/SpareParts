@@ -309,7 +309,7 @@ const featureModules = [
 ];
 
 const navigationGroups = [
-  { title: "Core", keys: ["dashboard", "invoices", "sales-returns", "parts", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
+  { title: "Core", keys: ["dashboard", "ignition-dashboard", "client-workspace", "invoices", "sales-returns", "parts", "part-passport", "compatibility", "contacts", "management", "billing", "settings"] },
   { title: "Operations", keys: ["growth-lab", "part-requests", "purchase-parts", "used-car-purchases", "used-car-wholesale", "stock-arrival", "used-cars", "car-twin", "repair-prep", "stock", "dead-stock", "reorder", "expiry-alerts", "loyalty", "warranty", "shipments", "mechanic-desk", "garage-stock", "part-reserve", "part-reel", "halfcut", "escrow", "listing-boost", "live-inspection", "part-genealogy", "yard-tour", "instant-offer", "part-insurance"] },
   { title: "Finance", keys: ["accounting", "manual-journal", "report-builder", "quotes", "customer-aging", "supplier-aging", "market-price", "price-genius", "price-report", "new-vs-used"] },
   { title: "Tools", keys: ["whatsapp", "whatsapp-selling", "business-assistant", "ar", "activity-log", "voice-search", "symptom-search", "does-it-fit", "condition-scanner", "qr-tag", "ar-finder", "api-platform", "kareem"] },
