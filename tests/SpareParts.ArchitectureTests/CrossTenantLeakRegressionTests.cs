@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using SpareParts.ArchitectureTests.TestDoubles;
+using SpareParts.Domain.WebCatalog;
 using SpareParts.Infrastructure.Interfaces;
 using SpareParts.Infrastructure.Services;
 
@@ -66,6 +67,67 @@ public class CrossTenantLeakRegressionTests
         var service = new WebCatalogService(new ThrowIfCalledSqlConnectionFactory(), salesService: null!, tenantContext);
 
         Assert.Throws<InvalidOperationException>(() => service.GetAvailableParts(search: null, page: 1, pageSize: 20));
+    }
+
+    [Fact]
+    public void WebCatalogService_GetAvailableParts_ShouldProceedPastGuard_ForUnresolvedAnonymousTenant_WhenPublicCatalogTenantConfigured()
+    {
+        // The public storefront must work without a login: an anonymous request has the exact same
+        // shape as the C1 leak (TenantId == 0, IsSuperAdmin == false, IsResolved == false, because
+        // TenantResolutionMiddleware intentionally never runs for unauthenticated callers). When a
+        // single public-catalog tenant is explicitly configured (PublicCatalogOptions.TenantId > 0),
+        // that exact "middleware never ran" shape now resolves to the configured tenant and proceeds
+        // to the database scoped to it — instead of failing closed forever.
+        var tenantContext = new TenantContext { TenantId = 0, IsSuperAdmin = false, IsResolved = false };
+        var publicCatalogOptions = new PublicCatalogOptions { TenantId = 1 };
+        var service = new WebCatalogService(new ThrowIfCalledSqlConnectionFactory(), salesService: null!, tenantContext, publicCatalogOptions);
+
+        Assert.Throws<InvalidOperationException>(() => service.GetAvailableParts(search: null, page: 1, pageSize: 20));
+    }
+
+    [Fact]
+    public void WebCatalogService_GetAvailableParts_ShouldReturnEmpty_ForNegativeTenantId_EvenWhenPublicCatalogTenantConfigured()
+    {
+        // A negative TenantId can only be corrupted/invalid state — it is never the shape of a
+        // genuine anonymous request (that is always exactly 0) — so it must still fail closed even
+        // when a public-catalog tenant is configured.
+        var tenantContext = new TenantContext { TenantId = -1, IsSuperAdmin = false, IsResolved = false };
+        var publicCatalogOptions = new PublicCatalogOptions { TenantId = 1 };
+        var service = new WebCatalogService(new ThrowIfCalledSqlConnectionFactory(), salesService: null!, tenantContext, publicCatalogOptions);
+
+        var result = service.GetAvailableParts(search: null, page: 1, pageSize: 20);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void WebCatalogService_Quote_ShouldThrowValidationException_ForUnresolvedAnonymousTenant_WithoutTouchingDatabase_WhenPublicCatalogTenantNotConfigured()
+    {
+        // Quote (POST /api/web-catalog/checkout/quote) is deliberately [AllowAnonymous] so a
+        // signed-out shopper can validate a promo code before signing in. It shares PriceCart with
+        // Checkout, which guards the exact same anonymous/unresolved shape as GetAvailableParts's C1
+        // fix — but as a thrown ValidationException rather than an empty list, since Quote returns
+        // money fields, not a collection. Without a configured public-catalog tenant this must still
+        // fail closed, before any database call.
+        var tenantContext = new TenantContext { TenantId = 0, IsSuperAdmin = false, IsResolved = false };
+        var service = new WebCatalogService(new ThrowIfCalledSqlConnectionFactory(), salesService: null!, tenantContext);
+        var request = new WebCheckoutQuoteRequest { Items = { new WebCheckoutItemDto { PartId = 1, Quantity = 1 } } };
+
+        Assert.Throws<ValidationException>(() => service.Quote(request));
+    }
+
+    [Fact]
+    public void WebCatalogService_Quote_ShouldProceedPastGuard_ForUnresolvedAnonymousTenant_WhenPublicCatalogTenantConfigured()
+    {
+        // Same anonymous shape as above, but with a public-catalog tenant configured (the real
+        // deployment shape): the request should resolve to that tenant and proceed to the database,
+        // scoped to it, exactly like GetAvailableParts.
+        var tenantContext = new TenantContext { TenantId = 0, IsSuperAdmin = false, IsResolved = false };
+        var publicCatalogOptions = new PublicCatalogOptions { TenantId = 1 };
+        var service = new WebCatalogService(new ThrowIfCalledSqlConnectionFactory(), salesService: null!, tenantContext, publicCatalogOptions);
+        var request = new WebCheckoutQuoteRequest { Items = { new WebCheckoutItemDto { PartId = 1, Quantity = 1 } } };
+
+        Assert.Throws<InvalidOperationException>(() => service.Quote(request));
     }
 
     [Fact]

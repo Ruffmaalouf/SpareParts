@@ -3,29 +3,35 @@
 
     <!-- ═══════════════════════════════════════════════════════════
          APEX  —  Premium automotive workshop color system
-         Carbon-black workspace · racing-red primary
-         · signal green success/live · hazard-amber highlight
+         Graphite-blue workspace · muted brick-red primary
+         · muted green success/live · warm gold highlight
+
+         Values are the Apex design-system foundation tokens, matching
+         the web client's :root and the mobile theme catalog. The x:Key
+         names below are historical (RaceBlack, RacingRed, NeonGreen,
+         SportOrange) and kept so every consuming control keeps binding;
+         only the colours behind them changed.
     ═══════════════════════════════════════════════════════════ -->
 
-    <Color x:Key="ColorRaceBlack">#FF090909</Color>
-    <Color x:Key="ColorPitLane">#FF131313</Color>
-    <Color x:Key="ColorCabin">#FF1C1C1C</Color>
-    <Color x:Key="ColorCockpit">#FF1C1C1C</Color>
-    <Color x:Key="ColorRacingRed">#FFE2231A</Color>
-    <Color x:Key="ColorRedHot">#FFFF4B3E</Color>
-    <Color x:Key="ColorRedDeep">#FFA8160F</Color>
-    <Color x:Key="ColorTextWhite">#FFF2F1EE</Color>
-    <Color x:Key="ColorTextDim">#FF6B6B6B</Color>
-    <Color x:Key="ColorTextMid">#FF9B9B9B</Color>
-    <Color x:Key="ColorMatteBlack">#FF090909</Color>
-    <Color x:Key="ColorGunmetal">#FF131313</Color>
-    <Color x:Key="ColorSlate">#FF1C1C1C</Color>
-    <Color x:Key="ColorSportOrange">#FFFFB400</Color>
-    <Color x:Key="ColorNeonGreen">#FF2BD97E</Color>
-    <Color x:Key="ColorChrome">#FFF2F1EE</Color>
-    <Color x:Key="ColorMuted">#FF6B6B6B</Color>
-    <Color x:Key="ColorSilverMid">#FF9B9B9B</Color>
-    <Color x:Key="ColorCarbonLine">#FF2A2A2A</Color>
+    <Color x:Key="ColorRaceBlack">#FF11161C</Color>
+    <Color x:Key="ColorPitLane">#FF171D25</Color>
+    <Color x:Key="ColorCabin">#FF1E2530</Color>
+    <Color x:Key="ColorCockpit">#FF1E2530</Color>
+    <Color x:Key="ColorRacingRed">#FFC23A32</Color>
+    <Color x:Key="ColorRedHot">#FFD6453B</Color>
+    <Color x:Key="ColorRedDeep">#FF8A2923</Color>
+    <Color x:Key="ColorTextWhite">#FFEEF1F5</Color>
+    <Color x:Key="ColorTextDim">#FF5D6773</Color>
+    <Color x:Key="ColorTextMid">#FF8B96A3</Color>
+    <Color x:Key="ColorMatteBlack">#FF11161C</Color>
+    <Color x:Key="ColorGunmetal">#FF171D25</Color>
+    <Color x:Key="ColorSlate">#FF1E2530</Color>
+    <Color x:Key="ColorSportOrange">#FFB8893F</Color>
+    <Color x:Key="ColorNeonGreen">#FF2F9461</Color>
+    <Color x:Key="ColorChrome">#FFEEF1F5</Color>
+    <Color x:Key="ColorMuted">#FF5D6773</Color>
+    <Color x:Key="ColorSilverMid">#FF8B96A3</Color>
+    <Color x:Key="ColorCarbonLine">#FF2B3340</Color>
 
     <!-- Carbon fibre tile (sidebar, header backgrounds) -->
     <DrawingBrush x:Key="CarbonFiberBrush"
@@ -35,7 +41,7 @@
                   Stretch="None">
         <DrawingBrush.Drawing>
             <DrawingGroup>
-                <GeometryDrawing Brush="#FF090909">
+                <GeometryDrawing Brush="#FF11161C">
                     <GeometryDrawing.Geometry>
                         <RectangleGeometry Rect="0,0,10,10"/>
                     </GeometryDrawing.Geometry>
@@ -43,8 +49,8 @@
                 <GeometryDrawing>
                     <GeometryDrawing.Brush>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#FF1C1C1C" Offset="0"/>
-                            <GradientStop Color="#FF090909" Offset="1"/>
+                            <GradientStop Color="#FF1E2530" Offset="0"/>
+                            <GradientStop Color="#FF11161C" Offset="1"/>
                         </LinearGradientBrush>
                     </GeometryDrawing.Brush>
                     <GeometryDrawing.Geometry>
@@ -76,36 +82,36 @@
 
     <!-- Racing red accent stripe — horizontal gradient fade -->
     <LinearGradientBrush x:Key="RacingStripeBrush" StartPoint="0,0" EndPoint="1,0">
-        <GradientStop Color="#FFE2231A" Offset="0"/>
-        <GradientStop Color="#FFA8160F" Offset="0.6"/>
+        <GradientStop Color="#FFC23A32" Offset="0"/>
+        <GradientStop Color="#FF8A2923" Offset="0.6"/>
         <GradientStop Color="Transparent" Offset="1"/>
     </LinearGradientBrush>
 
     <!-- Sidebar left accent line -->
     <LinearGradientBrush x:Key="SidebarAccentLineBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Color="Transparent"  Offset="0"/>
-        <GradientStop Color="#FFE2231A"    Offset="0.15"/>
-        <GradientStop Color="#FFE2231A"    Offset="0.85"/>
+        <GradientStop Color="#FFC23A32"    Offset="0.15"/>
+        <GradientStop Color="#FFC23A32"    Offset="0.85"/>
         <GradientStop Color="Transparent"  Offset="1"/>
     </LinearGradientBrush>
 
     <!-- Racing red glow drop shadow -->
     <DropShadowEffect x:Key="RedGlowEffect"
-                      Color="#FFE2231A"
+                      Color="#FFC23A32"
                       BlurRadius="20"
                       ShadowDepth="0"
                       Opacity="0.55"/>
 
     <!-- Signal green glow — success / live state -->
     <DropShadowEffect x:Key="NeonGreenGlowEffect"
-                      Color="#FF2BD97E"
+                      Color="#FF2F9461"
                       BlurRadius="18"
                       ShadowDepth="0"
                       Opacity="0.5"/>
 
     <!-- Amber glow — highlight / warning accent -->
     <DropShadowEffect x:Key="OrangeGlowEffect"
-                      Color="#FFFFB400"
+                      Color="#FFB8893F"
                       BlurRadius="18"
                       ShadowDepth="0"
                       Opacity="0.45"/>
@@ -118,8 +124,8 @@
     <SolidColorBrush x:Key="TextPrimaryBrush"       Color="{DynamicResource ColorTextWhite}"/>
     <SolidColorBrush x:Key="TextSecondaryBrush"     Color="{DynamicResource ColorTextMid}"/>
     <SolidColorBrush x:Key="BorderBrush"            Color="{DynamicResource ColorCarbonLine}"/>
-    <SolidColorBrush x:Key="PreloaderOverlayBrush">#CC090909</SolidColorBrush>
-    <SolidColorBrush x:Key="PreloaderCardBrush">#FF131313</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderOverlayBrush">#CC11161C</SolidColorBrush>
+    <SolidColorBrush x:Key="PreloaderCardBrush">#FF171D25</SolidColorBrush>
     <SolidColorBrush x:Key="PreloaderBorderBrush"   Color="{DynamicResource ColorRacingRed}"/>
     <SolidColorBrush x:Key="CardBorderBrush"        Color="{DynamicResource ColorCarbonLine}"/>
     <SolidColorBrush x:Key="CardBgBrush"            Color="{DynamicResource ColorPitLane}"/>
@@ -138,7 +144,7 @@
     </Style>
 
     <!-- Focus-ring brush — used by Button/TextBox/ComboBox focused states -->
-    <SolidColorBrush x:Key="FocusRingBrush" Color="#FFFF4B3E"/>
+    <SolidColorBrush x:Key="FocusRingBrush" Color="#FFD6453B"/>
 
     <!-- Modern input chrome: full rounded border (not just underline), focus glow, hover lift -->
     <Style TargetType="TextBox">
@@ -169,7 +175,7 @@
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
+                                    <DropShadowEffect Color="#FFC23A32" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -211,7 +217,7 @@
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="bdr" Property="Effect">
                                 <Setter.Value>
-                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
+                                    <DropShadowEffect Color="#FFC23A32" BlurRadius="12" ShadowDepth="0" Opacity="0.45"/>
                                 </Setter.Value>
                             </Setter>
                         </Trigger>
@@ -243,19 +249,19 @@
                                 BorderThickness="2"
                                 Opacity="0"/>
                         <Border x:Name="bdr" CornerRadius="2"
-                                BorderBrush="#40E2231A" BorderThickness="1"
+                                BorderBrush="#40C23A32" BorderThickness="1"
                                 RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>
                                 <ScaleTransform x:Name="bdrScale" ScaleX="1" ScaleY="1"/>
                             </Border.RenderTransform>
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF4B3E" Offset="0"/>
-                                    <GradientStop Color="#FFE2231A" Offset="1"/>
+                                    <GradientStop Color="#FFD6453B" Offset="0"/>
+                                    <GradientStop Color="#FFC23A32" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.Effect>
-                                <DropShadowEffect Color="#FFE2231A" BlurRadius="14"
+                                <DropShadowEffect Color="#FFC23A32" BlurRadius="14"
                                                   ShadowDepth="0" Opacity="0.35"/>
                             </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -269,8 +275,8 @@
                             <Setter TargetName="bdr" Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="#FFFF4B3E" Offset="0"/>
-                                        <GradientStop Color="#FFE2231A" Offset="1"/>
+                                        <GradientStop Color="#FFD6453B" Offset="0"/>
+                                        <GradientStop Color="#FFC23A32" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -280,7 +286,7 @@
                             <Setter TargetName="bdr" Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="#FFA8160F" Offset="0"/>
+                                        <GradientStop Color="#FF8A2923" Offset="0"/>
                                         <GradientStop Color="#FF7A0F0A" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
@@ -360,11 +366,11 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bdr" Property="Background"  Value="#10E2231A"/>
+                            <Setter TargetName="bdr" Property="Background"  Value="#10C23A32"/>
                             <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="bdr" Property="Background" Value="#1AE2231A"/>
+                            <Setter TargetName="bdr" Property="Background" Value="#1AC23A32"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="focusRing" Property="Opacity" Value="0.85"/>
@@ -608,10 +614,10 @@
                             <Setter TargetName="rowBdr" Property="Background" Value="#08FFFFFF"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="rowBdr" Property="Background" Value="#0FE2231A"/>
+                            <Setter TargetName="rowBdr" Property="Background" Value="#0FC23A32"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="rowBdr" Property="Background" Value="#1AE2231A"/>
+                            <Setter TargetName="rowBdr" Property="Background" Value="#1AC23A32"/>
                             <Setter TargetName="selectionBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             <Setter Property="Foreground" Value="White"/>
                         </Trigger>
@@ -660,7 +666,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="headerBdr" Property="Background" Value="#FF1C1C1C"/>
+                            <Setter TargetName="headerBdr" Property="Background" Value="#FF1E2530"/>
                             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                         </Trigger>
                         <Trigger Property="SortDirection" Value="Ascending">
@@ -749,7 +755,7 @@
                                        MinWidth="6" MinHeight="40">
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Border CornerRadius="3" Background="#66E2231A"/>
+                                            <Border CornerRadius="3" Background="#66C23A32"/>
                                         </ControlTemplate>
                                     </Thumb.Template>
                                 </Thumb>
@@ -941,11 +947,11 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0AE2231A"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0AC23A32"/>
                             <Setter TargetName="ContentSite" Property="Opacity" Value="0.9"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background"  Value="#14E2231A"/>
+                            <Setter TargetName="Bd" Property="Background"  Value="#14C23A32"/>
                             <Setter TargetName="ActiveBar" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="ContentSite" Property="Opacity" Value="1"/>
                             <Setter Property="Foreground"                  Value="{DynamicResource AccentBrush}"/>
@@ -972,13 +978,13 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver"   Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0AE2231A"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0AC23A32"/>
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#0AE2231A"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#0AC23A32"/>
                         </Trigger>
                         <Trigger Property="IsSelected"    Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#18E2231A"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#18C23A32"/>
                             <Setter Property="Foreground"                 Value="{DynamicResource AccentBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>

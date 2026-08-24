@@ -375,12 +375,12 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavRoot" Property="Background" Value="#0EE2231A"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#0EC23A32"/>
                                 <Setter TargetName="RedBar"  Property="Opacity"    Value="1"/>
                                 <Setter Property="Foreground" Value="#FFEBEBEB"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="NavRoot" Property="Background" Value="#1EE2231A"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#1EC23A32"/>
                             </Trigger>
                             <!-- Persistent active-screen state: left accent bar stays lit + bg tint + bright label,
                                  independent of hover. Driven by comparing inherited ActiveScreen against this
@@ -392,7 +392,7 @@
                                         <Binding Path="Tag" RelativeSource="{RelativeSource TemplatedParent}"/>
                                     </MultiBinding>
                                 </DataTrigger.Binding>
-                                <Setter TargetName="NavRoot" Property="Background" Value="#16E2231A"/>
+                                <Setter TargetName="NavRoot" Property="Background" Value="#16C23A32"/>
                                 <Setter TargetName="RedBar"  Property="Opacity"    Value="1"/>
                                 <Setter Property="Foreground" Value="#FFFFFFFF"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
@@ -464,16 +464,16 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Root" CornerRadius="2"
-                                BorderBrush="#50E2231A" BorderThickness="1"
+                                BorderBrush="#50C23A32" BorderThickness="1"
                                 Padding="{TemplateBinding Padding}">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF4B3E" Offset="0"/>
-                                    <GradientStop Color="#FFA8160F" Offset="1"/>
+                                    <GradientStop Color="#FFD6453B" Offset="0"/>
+                                    <GradientStop Color="#FF8A2923" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <Border.Effect>
-                                <DropShadowEffect Color="#FFE2231A" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
+                                <DropShadowEffect Color="#FFC23A32" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
                             </Border.Effect>
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </Border>
@@ -519,7 +519,7 @@
                                 <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Root" Property="Background"  Value="#1AE2231A"/>
+                                <Setter TargetName="Root" Property="Background"  Value="#1AC23A32"/>
                                 <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                                 <Setter Property="Foreground"                    Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
@@ -764,13 +764,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToHomeCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="HomePage">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dashboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -785,13 +785,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToPosCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Pos">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="POS / Sales" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -799,7 +799,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="SalesReturns">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Sales Returns" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -814,13 +814,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToStockManagementCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="StockManagement">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -828,7 +828,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartPurchases">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -836,7 +836,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Reorder">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Reorder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -844,7 +844,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="DeadStockResurrection">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dead Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -852,7 +852,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ExpiryAlerts">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Expiry Alerts" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -867,13 +867,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToCompatibilityCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartCompatibility">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Compatibility" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -881,7 +881,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="DoesItFit">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Vehicle Fitment" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -896,13 +896,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToUsedCarPurchasesCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Purchases">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Purchases" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -910,7 +910,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="UsedCarWholesale">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Wholesale" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -918,7 +918,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="StockArrivalTheater">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Stock Arrival" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -926,7 +926,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="RepairPrepBoard">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Repair / Prep" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -941,13 +941,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToAccountingCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Accounting">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Accounting" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -955,7 +955,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ManualJournal">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Manual Journal" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -963,7 +963,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ReportBuilder">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Report Builder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -971,7 +971,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Quotes">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Quotes / Estimates" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -979,7 +979,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="CustomerAging">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Customer Aging" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -987,7 +987,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="SupplierAging">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Supplier Aging" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -995,7 +995,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="BillingSubscription">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Billing &amp; Subscription" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1010,12 +1010,12 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding OpenManagementCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="⬡" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Users &amp; Roles" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1030,13 +1030,13 @@
                             </DockPanel>
                         </Border>
                         <Border Background="#060D0000" CornerRadius="2" Padding="3 4 3 4"
-                                BorderBrush="#FF1C1C1C" BorderThickness="1">
+                                BorderBrush="#FF1E2530" BorderThickness="1">
                             <StackPanel>
                                 <Button Command="{Binding GoToPartPassportCommand}"
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartPassport">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Passport" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1044,7 +1044,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="GrowthLab">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Money Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1052,7 +1052,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Loyalty">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Loyalty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1060,7 +1060,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Warranty">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Warranty" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1068,7 +1068,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Shipments">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Shipments" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1076,7 +1076,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="WhatsAppInbox">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1084,14 +1084,14 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="BusinessAssistant">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◈" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AI Assistant" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Command="{Binding GoToArCommand}"
                                         Style="{StaticResource NavItemStyle}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AR Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1099,7 +1099,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ActivityLog">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Activity Log" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1107,7 +1107,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="AdminBilling">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Admin Billing" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1115,7 +1115,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Needboard">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Needboard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1123,7 +1123,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Watchlist">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Watchlist" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1131,7 +1131,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="SellerReputation">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Seller Reputation" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1139,7 +1139,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="SellerVerification">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Seller Verification" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1147,7 +1147,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="SymptomSearch">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Symptom Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1155,7 +1155,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="MechanicDesk">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mechanic Desk" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1163,7 +1163,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="GarageStock">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Garage Stock" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1171,7 +1171,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartReserve">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Reserve" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1179,7 +1179,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartReel">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Reel" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1187,7 +1187,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="WhatsAppSelling">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="WhatsApp Selling" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1195,7 +1195,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Halfcut">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Halfcut" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1203,7 +1203,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="CarCrush">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Car Crush" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1211,7 +1211,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Escrow">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Escrow" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1219,7 +1219,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="MarketPrice">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Market Price" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1227,7 +1227,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ListingBoost">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Listing Boost" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1235,7 +1235,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Referral">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Referral" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1243,7 +1243,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="VoiceSearch">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Voice Search" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1251,7 +1251,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="MyGarage">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="My Garage" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1259,7 +1259,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PriceGenius">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Genius" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1267,7 +1267,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ConditionScanner">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Condition Scanner" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1275,7 +1275,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="CommunityGuard">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Community Guard" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1283,7 +1283,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="LiveInspection">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Live Inspection" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1291,7 +1291,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="QrTag">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="QR Tag" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1299,7 +1299,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartGenealogy">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Genealogy" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1307,7 +1307,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="DismantlerForecast">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Dismantler Forecast" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1315,7 +1315,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="RegionalDemand">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Regional Demand" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1323,7 +1323,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="MechanicTrust">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Mechanic Trust" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1331,7 +1331,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="NewVsUsed">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="New vs Used" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1339,7 +1339,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Negotiation">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Negotiation" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1347,7 +1347,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="YardTour">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Yard Tour" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1355,7 +1355,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="InstantOffer">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Instant Offer" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1363,7 +1363,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PartInsurance">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Part Insurance" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1371,7 +1371,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="Kareem">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Kareem AI" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1386,7 +1386,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="ArFinder">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="AR Finder" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -1394,7 +1394,7 @@
                                         Style="{StaticResource NavItemStyle}"
                                         Tag="PriceReport">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF6B6B6B" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="◉" FontSize="11" Foreground="#FF5D6773" Margin="0 0 10 0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Price Report" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
@@ -2626,11 +2626,11 @@
                                                     </Border>
                                                     <DataTemplate.Triggers>
                                                         <DataTrigger Binding="{Binding Status}" Value="Complete">
-                                                            <Setter TargetName="StepDot" Property="Background" Value="#FF2BD97E"/>
+                                                            <Setter TargetName="StepDot" Property="Background" Value="#FF2F9461"/>
                                                             <Setter TargetName="StatusText" Property="Foreground" Value="#FF6FE3A8"/>
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Status}" Value="Partial">
-                                                            <Setter TargetName="StepDot" Property="Background" Value="#FFFFB400"/>
+                                                            <Setter TargetName="StepDot" Property="Background" Value="#FFB8893F"/>
                                                             <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFB270"/>
                                                         </DataTrigger>
                                                     </DataTemplate.Triggers>
@@ -3595,7 +3595,7 @@
                                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding SaleModeTitle}"
                                                    FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
-                                        <Border Background="#22E2231A" CornerRadius="2" Padding="6 2" Margin="10 0 0 0">
+                                        <Border Background="#22C23A32" CornerRadius="2" Padding="6 2" Margin="10 0 0 0">
                                             <TextBlock Text="{Binding SaleModeSubtitle}" FontSize="10"
                                                        Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
                                         </Border>
@@ -3877,13 +3877,13 @@
                                                 </Border>
                                                 <DataTemplate.Triggers>
                                                     <DataTrigger Binding="{Binding Status}" Value="Complete">
-                                                        <Setter TargetName="StepDot" Property="Background" Value="#FF2BD97E"/>
-                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#992BD97E"/>
+                                                        <Setter TargetName="StepDot" Property="Background" Value="#FF2F9461"/>
+                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#992F9461"/>
                                                         <Setter TargetName="StatusText" Property="Foreground" Value="#FF6FE3A8"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Status}" Value="Partial">
-                                                        <Setter TargetName="StepDot" Property="Background" Value="#FFFFB400"/>
-                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#99FFB400"/>
+                                                        <Setter TargetName="StepDot" Property="Background" Value="#FFB8893F"/>
+                                                        <Setter TargetName="StatusBadge" Property="BorderBrush" Value="#99B8893F"/>
                                                         <Setter TargetName="StatusText" Property="Foreground" Value="#FFFFB270"/>
                                                     </DataTrigger>
                                                 </DataTemplate.Triggers>
@@ -4063,7 +4063,7 @@
                     Margin="0 0 24 24"
                     Width="430"
                     MaxHeight="260"
-                    Background="#CC131313"
+                    Background="#CC171D25"
                     CornerRadius="2"
                     Padding="12"
                     Panel.ZIndex="10">

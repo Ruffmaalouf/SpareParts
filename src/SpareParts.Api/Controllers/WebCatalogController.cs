@@ -42,6 +42,15 @@ namespace SpareParts.Api.Controllers
         public ActionResult<WebCheckoutResponse> Checkout([FromBody] WebCheckoutRequest request)
             => Ok(_service.Checkout(request, CurrentUserId));
 
+        // Deliberately anonymous, unlike Checkout: this is a read-only price/promo-code preview (no
+        // invoice, no stock movement) so a signed-out shopper can validate a code before signing in
+        // to actually check out. See WebCatalogService.Quote / PriceCart for the tenant guard this
+        // relies on to stay safe for anonymous callers.
+        [HttpPost("checkout/quote")]
+        [AllowAnonymous]
+        public ActionResult<WebCheckoutQuoteResponse> QuoteCheckout([FromBody] WebCheckoutQuoteRequest request)
+            => Ok(_service.Quote(request));
+
         [HttpPost("part-requests")]
         public ActionResult<int> CreatePartRequest([FromBody] CreatePartRequestItemRequest request)
             => Ok(_partRequestsService.Create(request, CurrentUserId));

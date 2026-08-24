@@ -51,6 +51,19 @@ public class AnonymousActionTenantScopingTests
             "ITenantContext.TenantId directly without a guard, but it is never reachable from an anonymous action."),
         new(nameof(WebCatalogController), nameof(WebCatalogController.VisualSearch), "PartRequestsService",
             "Same as above: constructor-injected on the same controller but never called by VisualSearch."),
+        new(nameof(WebCatalogController), nameof(WebCatalogController.QuoteCheckout), "WebCatalogService",
+            "Guards internally: PriceCart (shared by Checkout and Quote) throws ValidationException when " +
+            "!IsSuperAdmin && TenantId <= 0, before any DB call — same guard shape as GetAvailableParts's C1 fix. " +
+            "This is the action that actually calls WebCatalogService.Quote. Deliberately [AllowAnonymous] so a " +
+            "signed-out shopper can validate a promo code before signing in to actually check out; it never " +
+            "creates an invoice or touches stock."),
+        new(nameof(WebCatalogController), nameof(WebCatalogController.QuoteCheckout), "VisualPartSearchService",
+            "Constructor-injected on the same controller as QuoteCheckout but never called by it (QuoteCheckout " +
+            "only calls WebCatalogService.Quote). Acknowledged conservatively for the same reason as the other " +
+            "WebCatalogController actions above; VisualPartSearchService itself is guarded (C1 fix)."),
+        new(nameof(WebCatalogController), nameof(WebCatalogController.QuoteCheckout), "PartRequestsService",
+            "Constructor-injected on the same controller but never called by QuoteCheckout (only CreatePartRequest " +
+            "calls it, and that action requires authentication/is not [AllowAnonymous])."),
         new(nameof(CommunicationsController), nameof(CommunicationsController.RecordInbound), "CommunicationsService",
             "Not tenant-guard-based: authenticated via a constant-time shared webhook secret " +
             "(X-SpareParts-Communication-Secret) checked in the controller before the service is ever called."),

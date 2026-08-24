@@ -164,12 +164,14 @@ public static class SparePartsApiComposition
         var jwtSettings = ResolveJwtSettings(builder.Configuration);
         var accountingOptions = builder.Configuration.GetSection("Accounting").Get<AccountingOptions>() ?? new AccountingOptions();
         var openAiOptions = ResolveOpenAiOptions(builder.Configuration);
+        var publicCatalogOptions = ResolvePublicCatalogOptions(builder.Configuration);
         var communicationOptions = ResolveCommunicationOptions(builder.Configuration);
         var externalAuthSettings = builder.Configuration.GetSection("ExternalAuth").Get<ExternalAuthSettings>() ?? new ExternalAuthSettings();
         var paymentSettings = builder.Configuration.GetSection("Payments").Get<PaymentSettings>() ?? new PaymentSettings();
 
         builder.Services.AddSingleton(accountingOptions);
         builder.Services.AddSingleton(openAiOptions);
+        builder.Services.AddSingleton(publicCatalogOptions);
         builder.Services.AddSingleton(communicationOptions);
         builder.Services.AddSingleton(externalAuthSettings);
         builder.Services.AddSingleton(paymentSettings);
@@ -811,6 +813,17 @@ public static class SparePartsApiComposition
             BaseUrl = baseUrl,
             Model = string.IsNullOrWhiteSpace(section["Model"]) ? "gpt-4o-mini" : section["Model"]!.Trim(),
             TimeoutSeconds = timeoutSeconds
+        };
+    }
+
+    private static PublicCatalogOptions ResolvePublicCatalogOptions(IConfiguration configuration)
+    {
+        var section = configuration.GetSection("PublicCatalog");
+        var tenantId = int.TryParse(section["TenantId"], out var configuredTenantId) ? configuredTenantId : 0;
+
+        return new PublicCatalogOptions
+        {
+            TenantId = tenantId > 0 ? tenantId : 0
         };
     }
 

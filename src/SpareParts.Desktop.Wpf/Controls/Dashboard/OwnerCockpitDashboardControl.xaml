@@ -31,12 +31,12 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding OverallSignal}" Value="Green">
-                    <Setter Property="Background" Value="#1F2BD97E"/>
-                    <Setter Property="BorderBrush" Value="#992BD97E"/>
+                    <Setter Property="Background" Value="#1F2F9461"/>
+                    <Setter Property="BorderBrush" Value="#992F9461"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding OverallSignal}" Value="Yellow">
-                    <Setter Property="Background" Value="#24FFB400"/>
-                    <Setter Property="BorderBrush" Value="#99FFB400"/>
+                    <Setter Property="Background" Value="#24B8893F"/>
+                    <Setter Property="BorderBrush" Value="#99B8893F"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding OverallSignal}" Value="Red">
                     <Setter Property="Background" Value="#24FF4757"/>
@@ -49,17 +49,17 @@
             <Setter Property="Padding" Value="9 5"/>
             <Setter Property="Margin" Value="0 0 6 6"/>
             <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Background" Value="#33FFB400"/>
-            <Setter Property="BorderBrush" Value="#66FFB400"/>
+            <Setter Property="Background" Value="#33B8893F"/>
+            <Setter Property="BorderBrush" Value="#66B8893F"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Green">
-                    <Setter Property="Background" Value="#332BD97E"/>
-                    <Setter Property="BorderBrush" Value="#882BD97E"/>
+                    <Setter Property="Background" Value="#332F9461"/>
+                    <Setter Property="BorderBrush" Value="#882F9461"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Yellow">
-                    <Setter Property="Background" Value="#33FFB400"/>
-                    <Setter Property="BorderBrush" Value="#88FFB400"/>
+                    <Setter Property="Background" Value="#33B8893F"/>
+                    <Setter Property="BorderBrush" Value="#88B8893F"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Red">
                     <Setter Property="Background" Value="#33FF4757"/>

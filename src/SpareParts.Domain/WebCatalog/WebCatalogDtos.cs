@@ -69,6 +69,11 @@ namespace SpareParts.Domain.WebCatalog
         [MaxLength(120)]
         public string? PaymentReference { get; set; }
 
+        /// <summary>Optional promo code (e.g. "WEB10"). Discount is always computed server-side —
+        /// never send a discount amount from the browser.</summary>
+        [MaxLength(40)]
+        public string? PromoCode { get; set; }
+
         [MinLength(1)]
         public List<WebCheckoutItemDto> Items { get; set; } = new();
     }
@@ -77,6 +82,8 @@ namespace SpareParts.Domain.WebCatalog
     {
         public int InvoiceId { get; set; }
         public string InvoiceNumber { get; set; } = string.Empty;
+        public decimal Subtotal { get; set; }
+        public decimal DiscountAmount { get; set; }
         public decimal TotalAmount { get; set; }
         public string PaymentStatus { get; set; } = string.Empty;
         public int WarehouseId { get; set; }

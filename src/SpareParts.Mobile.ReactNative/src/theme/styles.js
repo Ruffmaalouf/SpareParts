@@ -2,8 +2,20 @@ const { StyleSheet } = require("react-native");
 const { defaultThemeKey, themeMap } = require("../core/app-config");
 const { normalizeThemeKey } = require("../core/formatters");
 
+/**
+ * Semantic signal colours. These are theme-independent on purpose — the web
+ * client defines them once on :root and its runtime theme catalog never
+ * overrides them, so mobile matches that contract. Values are the Apex tokens.
+ */
+const signalColors = {
+  success: "#2f9461",
+  amber: "#b8893f",
+  info: "#4d8dff"
+};
+
 function createPalette(themeKey) {
-  return themeMap.get(normalizeThemeKey(themeKey)).colors;
+  // Theme colours win if a theme ever declares a signal colour of its own.
+  return { ...signalColors, ...themeMap.get(normalizeThemeKey(themeKey)).colors };
 }
 
 function createStyles(palette) {
@@ -4674,7 +4686,7 @@ function createStyles(palette) {
     backgroundColor: palette.accent,
     borderRadius: 9999
   },
-  kpiTrendUp:   { color: "#22c55e" },
+  kpiTrendUp:   { color: palette.success },
   kpiTrendDown: { color: "#ff6b6b" },
 
   /* Status / Condition Badges */
@@ -4706,13 +4718,13 @@ function createStyles(palette) {
   badgeGood:       { backgroundColor: "rgba(0,201,167,0.12)"  },
   badgeFair:       { backgroundColor: "rgba(245,158,11,0.14)" },
   badgeForParts:   { backgroundColor: "rgba(255,107,107,0.12)"},
-  badgeTextAvailable: { color: "#22c55e" },
-  badgeTextReserved:  { color: "#f59e0b" },
+  badgeTextAvailable: { color: palette.success },
+  badgeTextReserved:  { color: palette.amber },
   badgeTextSold:      { color: "#7a8faf" },
   badgeTextDamaged:   { color: "#ff6b6b" },
-  badgeTextNew:       { color: "#22c55e" },
+  badgeTextNew:       { color: palette.success },
   badgeTextGood:      { color: palette.accent },
-  badgeTextFair:      { color: "#f59e0b" },
+  badgeTextFair:      { color: palette.amber },
   badgeTextForParts:  { color: "#ff6b6b" },
 
   /* Improved bottom tab bar */
@@ -5632,7 +5644,7 @@ function createStyles(palette) {
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 }
   },
-  heatmapTileGreen:  { borderLeftWidth: 4, borderLeftColor: "#16a34a" },
+  heatmapTileGreen:  { borderLeftWidth: 4, borderLeftColor: palette.success },
   heatmapTileYellow: { borderLeftWidth: 4, borderLeftColor: "#d97706" },
   heatmapTileRed:    { borderLeftWidth: 4, borderLeftColor: "#dc2626" },
 
@@ -5736,7 +5748,7 @@ function createStyles(palette) {
     overflow: "hidden",
     color: "#fff"
   },
-  billingBadgeSuccess: { backgroundColor: "#16a34a" },
+  billingBadgeSuccess: { backgroundColor: palette.success },
   billingBadgeWarning: { backgroundColor: "#d97706" },
   billingBadgeDanger: { backgroundColor: "#dc2626" },
   billingBadgeAccent: { backgroundColor: palette.accent },

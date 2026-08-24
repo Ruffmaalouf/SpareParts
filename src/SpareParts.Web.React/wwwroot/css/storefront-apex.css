@@ -6,27 +6,40 @@
    ========================================================================== */
 
 .apex-store {
-  /* palette — dark default, matching the design's computeTheme() defaults */
-  --apx-bg: #08090b;
-  --apx-ink: #f7f4ed;
-  --apx-muted: #b6b0a5;
-  --apx-soft: #7d7a72;
-  --apx-panel: #111316;
-  --apx-panel2: #191c20;
-  --apx-line: rgba(247, 244, 237, .13);
+  /* palette — Storefront (Hot) tokens, from handoff/storefront-hot.css :root.
+     Kept scoped to .apex-store rather than :root so they cannot leak into the
+     workshop theme, which owns the global :root in wwwroot/styles.css. */
+  --apx-bg: #07070a;
+  --apx-ink: #f6f3ec;
+  --apx-muted: #a8a49b;
+  --apx-soft: #6f6d66;
+  --apx-panel: #0e0f13;
+  --apx-panel2: #15171c;
+  --apx-line: rgba(246, 243, 236, .14);
   /* accent — canonical brand red. Bridged to the theme picker's global --accent custom property
      (see js/core/formatters.js applyWebTheme, which sets --accent on document.documentElement).
      #E2231A is the fallback when no theme override is active — keep in sync with
      wwwroot/js/core/config.js wpfThemes and SpareParts.Mobile.ReactNative/src/core/app-config.js
      wpfThemes "apex" accent. */
-  --apx-accent: var(--accent, #E2231A);
-  --apx-accent2: #ff8a3d;
+  --apx-accent: var(--accent, #ff2e17);
+  /* Hot rule: ONE accent colour. --apx-accent2 was #ff8a3d, a second hue used
+     for emphasis and in accent gradients. Aliased to the single accent so every
+     existing usage collapses to it and accent-to-accent2 gradients render as
+     the solid slabs the design calls for. Emphasis uses outlined type
+     (-webkit-text-stroke) instead. Kept as a name so the ~15 call sites and the
+     theme bridge stay untouched. */
+  --apx-accent2: var(--apx-accent);
   --apx-on-accent: #ffffff;
-  /* glow alpha kept at .45, rgb updated to match the new #E2231A accent (was 255,75,58 for the old #ff4b3a) */
-  --apx-glow: rgba(226, 35, 26, .45);
-  --apx-green: #34e08a;
+  /* glow alpha kept at .45, rgb tracks the #ff2e17 Hot accent */
+  --apx-glow: rgba(255, 46, 23, .45);
+  --apx-green: #00d97e;          /* bench-checked badge */
+  --apx-on-green: #04180e;
   --apx-display: "Oswald", system-ui, sans-serif;
-  --apx-card-min: 262px;
+  --apx-card-min: 272px;
+  /* Hot structural constants — 0 radius everywhere, corners cut with
+     clip-path chamfers; 2px for structure, 1px --apx-line for division. */
+  --apx-chamfer: 12px;
+  --apx-border: 2px;
 
   font-family: "Inter", system-ui, sans-serif;
   font-size: 14px;
@@ -42,11 +55,34 @@
 .apex-store *::before,
 .apex-store *::after { box-sizing: border-box; }
 
+/* Hot design rule: zero border radius everywhere inside the storefront.
+   Shared components pulled in from the workshop (StatusLine et al.) carry the
+   global pill radius via var(--r-full); square them here only, so the
+   workshop keeps its own rounding. */
+.apex-store .status-line { border-radius: 0; }
+
 /* ── keyframes ──────────────────────────────────────────────────────────── */
 @keyframes apxRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes apxMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes apxSweep { 0% { transform: translateX(-130%); } 100% { transform: translateX(260%); } }
 @keyframes apxPulse { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+/* The reference markup calls animation:hotStripes but never defines the
+   keyframe, so its hazard band sits still. Defined here so the band marches
+   as the markup intended; honours prefers-reduced-motion below. */
+@keyframes apxHazard { to { background-position: 28px 0; } }
+
+/* ── hazard band ────────────────────────────────────────────────────────────
+   Recurring Hot motif: diagonal accent stripes on an ink slab. */
+.apex-store .apx-hazard {
+  height: 9px;
+  background-color: var(--apx-ink);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--apx-accent) 0 14px,
+    transparent 14px 28px
+  );
+  animation: apxHazard 1.6s linear infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   .apex-store *, .apex-store *::before, .apex-store *::after {
     animation-duration: .001ms !important;
@@ -63,7 +99,7 @@
   min-height: 42px;
   padding: 0 18px;
   border: 1px solid var(--apx-line);
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: var(--apx-ink);
   cursor: pointer;
@@ -76,13 +112,24 @@
   transition: transform .15s ease, border-color .15s ease, color .15s ease, background .15s ease;
 }
 .apex-store .apx-btn:disabled { opacity: .5; cursor: not-allowed; }
+/* Hot: a solid accent slab with a cut corner — no gradient (that would be a
+   second hue) and no radius. Chamfer replaces the rounded corner. */
 .apex-store .apx-btn-primary {
   border: none;
-  background: linear-gradient(135deg, var(--apx-accent2), var(--apx-accent));
+  background: var(--apx-accent);
   color: var(--apx-on-accent);
-  box-shadow: 0 14px 34px -12px var(--apx-glow);
+  box-shadow: none;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--apx-chamfer)),
+    calc(100% - var(--apx-chamfer)) 100%,
+    0 100%
+  );
+  transition: filter .14s ease;
 }
-.apex-store .apx-btn-primary:not(:disabled):hover { transform: translateY(-2px); }
+/* reference class .lh4 / .h12, folded back into the component */
+.apex-store .apx-btn-primary:not(:disabled):hover { filter: brightness(1.15); }
 .apex-store .apx-btn-outline { background: color-mix(in srgb, var(--apx-ink) 6%, transparent); }
 .apex-store .apx-btn-outline:hover { border-color: var(--apx-accent); }
 .apex-store .apx-btn-ghost:hover { color: var(--apx-ink); border-color: var(--apx-accent2); }
@@ -90,8 +137,9 @@
 .apex-store .apx-btn-block { width: 100%; }
 .apex-store .apx-btn-danger {
   border: none;
-  background: linear-gradient(135deg, #ff6a5a, var(--apx-accent));
-  color: #fff;
+  /* solid accent slab — #ff6a5a here was a second hue */
+  background: var(--apx-accent);
+  color: var(--apx-on-accent);
 }
 
 /* ── kinetic ticker ─────────────────────────────────────────────────────── */
@@ -150,7 +198,7 @@
   flex: none;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--apx-accent2), var(--apx-accent));
+  background: var(--apx-accent);
   clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
   font-family: var(--apx-display);
   font-weight: 700;
@@ -320,7 +368,7 @@
   width: 100%;
   max-width: 380px;
   border: 1px solid rgba(247, 244, 237, .16);
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(10, 11, 13, .62);
   backdrop-filter: blur(14px);
   overflow: hidden;
@@ -335,7 +383,7 @@
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   background: rgba(52, 224, 138, .16);
   color: var(--apx-green);
   font-size: 10px;
@@ -346,7 +394,7 @@
 .apex-store .apx-featured-badge::before {
   content: "";
   width: 6px; height: 6px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--apx-green);
   animation: apxPulse 1.6s ease-in-out infinite;
 }
@@ -416,37 +464,45 @@
   font-weight: 600;
   font-size: 18px;
 }
+/* Hot: one continuous strip. Buttons butt together, divided by hairlines,
+   with no gaps and no outer border. */
 .apex-store .apx-marque-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
+  gap: 0;
   justify-content: flex-end;
 }
 .apex-store .apx-marque {
   position: relative;
-  min-height: 40px;
-  padding: 8px 16px 10px;
-  border: 1px solid var(--apx-line);
-  border-radius: 6px;
+  min-height: 52px;
+  padding: 0 clamp(14px, 2vw, 24px);
+  border: none;
+  border-left: 1px solid var(--apx-line);
+  border-radius: 0;
   background: transparent;
   color: var(--apx-muted);
   cursor: pointer;
   font-family: var(--apx-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
-  letter-spacing: .05em;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  transition: color .15s ease, border-color .15s ease;
+  transition: color .14s ease, background .14s ease;
 }
-.apex-store .apx-marque:hover { color: var(--apx-ink); border-color: var(--apx-accent2); }
+/* reference class .lh1, folded back into the component */
+.apex-store .apx-marque:hover {
+  color: var(--apx-ink);
+  background: rgba(246, 243, 236, .05);
+}
 .apex-store .apx-marque.on { color: var(--apx-ink); }
+/* solid accent underline, full width — no gradient (one accent colour) */
 .apex-store .apx-marque.on::after {
   content: "";
   position: absolute;
-  left: 12px; right: 12px; bottom: 5px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--apx-accent2), var(--apx-accent));
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  border-radius: 0;
+  background: var(--apx-accent);
 }
 
 /* ── section heads (shared) ─────────────────────────────────────────────── */
@@ -454,7 +510,8 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--apx-accent2);
+  /* one accent colour — was --apx-accent2, a second hue the Hot rules forbid */
+  color: var(--apx-accent);
   font-family: var(--apx-display);
   font-weight: 600;
   font-size: 12px;
@@ -470,9 +527,10 @@
   margin: 10px 0 0;
   font-family: var(--apx-display);
   font-weight: 700;
-  font-size: clamp(30px, 4vw, 52px);
-  line-height: .95;
-  letter-spacing: -.01em;
+  /* Hot: oversized condensed display, leading tightened into the 0.82–0.95 band */
+  font-size: clamp(30px, 5.6vw, 74px);
+  line-height: .85;
+  letter-spacing: -.02em;
   text-transform: uppercase;
 }
 
@@ -481,13 +539,32 @@
   padding: clamp(36px, 5vw, 72px) clamp(18px, 5vw, 64px) clamp(48px, 6vw, 88px);
   background: var(--apx-bg);
 }
+/* Hot: number · title · note on one baseline, closed by a 2px ink rule.
+   Sections butt directly against each other, so the rule is the divider. */
 .apex-store .apx-section-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 26px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+  gap: clamp(16px, 3vw, 34px);
+  margin-bottom: clamp(22px, 3vw, 36px);
+  padding-bottom: 18px;
+  border-bottom: var(--apx-border) solid var(--apx-ink);
+}
+/* the oversized outlined /01 /02 /03 section numbers */
+.apex-store .apx-section-num {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(30px, 5vw, 64px);
+  font-weight: 600;
+  line-height: .8;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--apx-accent);
+  user-select: none;
+}
+/* /02 and /03 sit on their own line above the heading rather than in a grid */
+.apex-store .apx-section-num-block {
+  display: block;
+  margin-bottom: 22px;
+  font-size: clamp(26px, 4vw, 52px);
 }
 .apex-store .apx-catalog-note {
   color: var(--apx-muted);
@@ -507,7 +584,7 @@
   min-height: 46px;
   padding: 0 14px;
   border: 1px solid var(--apx-line);
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(247, 244, 237, .05);
   color: var(--apx-ink);
   font-family: "Inter", sans-serif;
@@ -521,26 +598,46 @@
   gap: 14px;
 }
 .apex-store .apx-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--apx-line);
-  border-radius: 8px;
+  /* Hot: 2px structural border, never rounded */
+  border: var(--apx-border) solid var(--apx-line);
+  border-radius: 0;
   background: var(--apx-panel);
   overflow: hidden;
-  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
 }
+/* reference class .lh2, folded back into the component it styles */
 .apex-store .apx-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--apx-accent2);
-  box-shadow: 0 24px 50px -24px var(--apx-glow);
+  transform: translateY(-5px);
+  border-color: var(--apx-ink);
+  background: var(--apx-panel2);
+}
+/* oversized outlined index number — recurring Hot motif. Uses one accent
+   colour rule: outline the type instead of introducing a second hue. */
+.apex-store .apx-card[data-index]::after {
+  content: attr(data-index);
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  z-index: 3;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(246, 243, 236, .18);
+  pointer-events: none;
 }
 .apex-store .apx-card-media {
   position: relative;
-  height: 158px;
+  height: 164px;
   background: var(--apx-panel2);
   display: grid;
   place-items: center;
   overflow: hidden;
+  border-bottom: var(--apx-border) solid var(--apx-line);
 }
 .apex-store .apx-card-media img { width: 100%; height: 100%; object-fit: cover; }
 .apex-store .apx-card-tag {
@@ -555,7 +652,7 @@
   color: var(--apx-muted);
   background: color-mix(in srgb, var(--apx-bg) 60%, transparent);
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--apx-line);
 }
 .apex-store .apx-card-bench {
@@ -572,12 +669,12 @@
   color: var(--apx-green);
   background: rgba(52, 224, 138, .14);
   padding: 4px 9px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 .apex-store .apx-card-bench::before {
   content: "";
   width: 5px; height: 5px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--apx-green);
 }
 .apex-store .apx-card-ph {
@@ -630,7 +727,7 @@
   gap: 6px;
   padding: 40px 24px;
   border: 1px dashed var(--apx-line);
-  border-radius: 8px;
+  border-radius: 0;
   text-align: center;
 }
 .apex-store .apx-empty strong { font-family: var(--apx-display); font-weight: 600; font-size: 20px; text-transform: uppercase; }
@@ -650,7 +747,7 @@
 .apex-store .apx-passport-visual {
   position: relative;
   border: 1px solid var(--apx-line);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   background: #0e0f12;
   box-shadow: 0 40px 90px -40px rgba(0, 0, 0, .7);
@@ -673,7 +770,7 @@
   color: #f7f4ed;
   background: color-mix(in srgb, var(--apx-accent) 88%, transparent);
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 0;
 }
 .apex-store .apx-passport-body p {
   margin: 14px 0 22px;
@@ -685,7 +782,7 @@
 .apex-store .apx-passport-table {
   display: grid;
   border: 1px solid var(--apx-line);
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
 }
 .apex-store .apx-passport-row {
@@ -712,22 +809,27 @@
   padding: clamp(44px, 5vw, 80px) clamp(18px, 5vw, 64px);
   background: var(--apx-bg);
 }
+/* Hot: cells butt directly against each other — no gap. A 2px ink rule caps
+   the band and 1px hairlines divide the cells. */
 .apex-store .apx-trust-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0;
+  border-top: var(--apx-border) solid var(--apx-ink);
 }
 .apex-store .apx-trust-card {
-  border: 1px solid var(--apx-line);
-  border-radius: 10px;
-  background: var(--apx-panel);
-  padding: 26px 24px;
+  border: none;
+  border-right: 1px solid var(--apx-line);
+  border-radius: 0;
+  background: transparent;
+  padding: 26px clamp(18px, 2.5vw, 30px) 30px;
 }
+.apex-store .apx-trust-card:last-child { border-right: none; }
 .apex-store .apx-trust-icon {
   width: 46px; height: 46px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 0;
   background: color-mix(in srgb, var(--apx-accent) 16%, transparent);
   color: var(--apx-accent2);
   margin-bottom: 16px;
@@ -785,7 +887,7 @@
 }
 .apex-store .apx-footer-link:hover { color: var(--apx-ink); }
 .apex-store .apx-footer-pay { display: flex; flex-direction: column; gap: 8px; }
-.apex-store .apx-footer-pay div { border: 1px solid var(--apx-line); border-radius: 6px; padding: 9px 12px; }
+.apex-store .apx-footer-pay div { border: 1px solid var(--apx-line); border-radius: 0; padding: 9px 12px; }
 .apex-store .apx-footer-pay b { display: block; font-size: 13px; }
 .apex-store .apx-footer-pay span { color: var(--apx-muted); font-size: 11px; }
 .apex-store .apx-footer-bottom {
@@ -851,7 +953,7 @@
   display: grid;
   grid-template-columns: 1.05fr .95fr;
   border: 1px solid rgba(247, 244, 237, .16);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   background: rgba(10, 11, 13, .92);
   box-shadow: 0 50px 120px -40px rgba(0, 0, 0, .85);
@@ -901,7 +1003,7 @@
   display: grid;
   place-items: center;
   border: 1px solid rgba(247, 244, 237, .16);
-  border-radius: 6px;
+  border-radius: 0;
   background: transparent;
   color: rgba(247, 244, 237, .7);
   cursor: pointer;
@@ -934,7 +1036,7 @@
 }
 .apex-store .apx-panel {
   border: 1px solid var(--apx-line);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--apx-panel);
   padding: clamp(20px, 3vw, 28px);
 }
@@ -963,7 +1065,7 @@
   min-height: 46px;
   padding: 12px 13px;
   border: 1px solid var(--apx-line);
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(247, 244, 237, .05);
   color: var(--apx-ink);
   font-family: "Inter", sans-serif;
@@ -983,7 +1085,7 @@
   gap: 14px;
   padding: 14px 16px;
   border: 1px solid var(--apx-line);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--apx-panel2);
 }
 .apex-store .apx-cart-row-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -994,7 +1096,7 @@
   align-items: center;
   gap: 0;
   border: 1px solid var(--apx-line);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
 }
 .apex-store .apx-stepper button {
@@ -1034,13 +1136,96 @@
 .apex-store .apx-summary-total strong { font-family: var(--apx-display); font-weight: 700; font-size: 26px; }
 .apex-store .apx-summary-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
 
+/* promo code — sits in the order summary, above the totals */
+.apex-store .apx-promo {
+  margin: 14px 0 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--apx-line);
+  border-radius: 0;
+  background: var(--apx-panel2);
+}
+.apex-store .apx-promo-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--apx-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.apex-store .apx-promo-row { display: flex; gap: 8px; }
+.apex-store .apx-promo-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--apx-line);
+  border-radius: 0;
+  background: rgba(247, 244, 237, .05);
+  color: var(--apx-ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  outline: none;
+}
+.apex-store .apx-promo-row input:focus { border-color: var(--apx-accent2); }
+.apex-store .apx-promo-row .apx-btn { min-height: 42px; padding: 0 16px; flex: none; }
+.apex-store .apx-promo-applied { display: flex; flex-direction: column; gap: 4px; }
+.apex-store .apx-promo-applied-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.apex-store .apx-promo-applied-row strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 14px;
+  letter-spacing: .05em;
+  color: var(--apx-green);
+}
+.apex-store .apx-promo-remove {
+  border: none;
+  background: transparent;
+  color: var(--apx-accent);
+  font-family: var(--apx-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.apex-store .apx-promo-remove:hover { text-decoration: underline; }
+.apex-store .apx-promo-note { color: var(--apx-muted); font-size: 12px; }
+.apex-store .apx-promo .status-line { margin-top: 10px; }
+
+/* discount line — deliberately loud, this is the point of the campaign */
+.apex-store .apx-summary-discounted { margin-top: 2px; }
+.apex-store .apx-summary-subtotal { border-top: none; }
+.apex-store .apx-summary-subtotal span { color: var(--apx-muted); }
+.apex-store .apx-summary-discount {
+  border-top: none;
+  padding: 11px 12px;
+  margin: 4px 0 2px;
+  background: color-mix(in srgb, var(--apx-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--apx-accent) 50%, transparent);
+}
+.apex-store .apx-summary-discount span {
+  color: var(--apx-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.apex-store .apx-summary-discount strong {
+  color: var(--apx-accent);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 16px;
+}
+
 /* payment options */
 .apex-store .apx-pay-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .apex-store .apx-pay-option {
   text-align: left;
   padding: 14px 16px;
   border: 1px solid var(--apx-line);
-  border-radius: 8px;
+  border-radius: 0;
   background: transparent;
   color: var(--apx-ink);
   cursor: pointer;
@@ -1059,7 +1244,7 @@
   gap: 6px;
   padding: 26px 20px;
   border: 1px dashed var(--apx-line);
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(247, 244, 237, .03);
   cursor: pointer;
   text-align: center;
@@ -1077,7 +1262,7 @@
   text-align: left;
   padding: 14px 16px;
   border: 1px solid var(--apx-line);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--apx-panel2);
   color: var(--apx-ink);
   cursor: pointer;
@@ -1098,7 +1283,7 @@
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--apx-accent2), var(--apx-accent));
   color: var(--apx-on-accent);
   font-family: var(--apx-display);
@@ -1132,7 +1317,12 @@
 @media (max-width: 640px) {
   .apex-store .apx-brand-text span { letter-spacing: .18em; }
   .apex-store .apx-header-actions .apx-btn-login span { display: none; }
-  .apex-store .apx-section-head { flex-direction: column; align-items: flex-start; }
+  .apex-store .apx-section-head {
+    grid-template-columns: auto 1fr;
+    align-items: end;
+  }
+  /* the trailing note wraps under the number + title on narrow screens */
+  .apex-store .apx-section-head > :nth-child(3) { grid-column: 1 / -1; }
   .apex-store .apx-catalog-note { text-align: left; }
   .apex-store .apx-marques { grid-template-columns: 1fr; }
   .apex-store .apx-marque-list { justify-content: flex-start; }

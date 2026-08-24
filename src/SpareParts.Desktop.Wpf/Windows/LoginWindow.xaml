@@ -20,14 +20,14 @@
             <!-- Login field style — dark themed rounded inputs -->
             <Style x:Key="LoginFieldStyle" TargetType="TextBox">
                 <Setter Property="Background"               Value="#0E0E0E"/>
-                <Setter Property="Foreground"               Value="#FFF2F1EE"/>
-                <Setter Property="BorderBrush"              Value="#1AE2231A"/>
+                <Setter Property="Foreground"               Value="#FFEEF1F5"/>
+                <Setter Property="BorderBrush"              Value="#1AC23A32"/>
                 <Setter Property="BorderThickness"          Value="1"/>
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="14"/>
                 <Setter Property="FontFamily"               Value="Segoe UI"/>
-                <Setter Property="CaretBrush"               Value="#FFE2231A"/>
-                <Setter Property="SelectionBrush"           Value="#33E2231A"/>
+                <Setter Property="CaretBrush"               Value="#FFC23A32"/>
+                <Setter Property="SelectionBrush"           Value="#33C23A32"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -41,21 +41,21 @@
                                 <ScrollViewer x:Name="PART_ContentHost"
                                               Margin="{TemplateBinding Padding}"
                                               VerticalAlignment="Center"
-                                              Foreground="#FFF2F1EE"/>
+                                              Foreground="#FFEEF1F5"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FFE2231A"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FFC23A32"/>
                                     <Setter TargetName="Bd" Property="Background"  Value="#161616"/>
                                     <Setter TargetName="Bd" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect Color="#FFE2231A" BlurRadius="10"
+                                            <DropShadowEffect Color="#FFC23A32" BlurRadius="10"
                                                               ShadowDepth="0" Opacity="0.25"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#44E2231A"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#44C23A32"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -66,8 +66,8 @@
             <!-- Login password style -->
             <Style x:Key="LoginPasswordStyle" TargetType="PasswordBox">
                 <Setter Property="Background"               Value="#0E0E0E"/>
-                <Setter Property="Foreground"               Value="#FFF2F1EE"/>
-                <Setter Property="BorderBrush"              Value="#1AE2231A"/>
+                <Setter Property="Foreground"               Value="#FFEEF1F5"/>
+                <Setter Property="BorderBrush"              Value="#1AC23A32"/>
                 <Setter Property="BorderThickness"          Value="1"/>
                 <Setter Property="Padding"                  Value="14 0"/>
                 <Setter Property="FontSize"                 Value="18"/>
@@ -89,17 +89,17 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FFE2231A"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#FFC23A32"/>
                                     <Setter TargetName="Bd" Property="Background"  Value="#161616"/>
                                     <Setter TargetName="Bd" Property="Effect">
                                         <Setter.Value>
-                                            <DropShadowEffect Color="#FFE2231A" BlurRadius="10"
+                                            <DropShadowEffect Color="#FFC23A32" BlurRadius="10"
                                                               ShadowDepth="0" Opacity="0.25"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#44E2231A"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush" Value="#44C23A32"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -111,7 +111,7 @@
     </Window.Resources>
 
     <!-- Outer shell with drop shadow -->
-    <Border CornerRadius="3" Background="#FF090909">
+    <Border CornerRadius="3" Background="#FF11161C">
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="60" ShadowDepth="12" Opacity="0.7"/>
         </Border.Effect>
@@ -139,7 +139,7 @@
                              Margin="-140,-140,0,0" Opacity="0.12">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#FFE2231A" Offset="0"/>
+                                <GradientStop Color="#FFC23A32" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
@@ -150,7 +150,7 @@
                              Margin="0,0,-100,-100" Opacity="0.08">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#FF2BD97E" Offset="0"/>
+                                <GradientStop Color="#FF2F9461" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
@@ -161,7 +161,7 @@
                              Margin="0,60,0,0" Opacity="0.06">
                         <Ellipse.Fill>
                             <RadialGradientBrush>
-                                <GradientStop Color="#FFE2231A" Offset="0"/>
+                                <GradientStop Color="#FFC23A32" Offset="0"/>
                                 <GradientStop Color="Transparent" Offset="1"/>
                             </RadialGradientBrush>
                         </Ellipse.Fill>
@@ -174,37 +174,37 @@
                             <Ellipse Width="108" Height="108">
                                 <Ellipse.Stroke>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#FFE2231A" Offset="0"/>
-                                        <GradientStop Color="#FF2BD97E" Offset="1"/>
+                                        <GradientStop Color="#FFC23A32" Offset="0"/>
+                                        <GradientStop Color="#FF2F9461" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Ellipse.Stroke>
                                 <Ellipse.StrokeThickness>1.5</Ellipse.StrokeThickness>
                                 <Ellipse.Effect>
-                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
+                                    <DropShadowEffect Color="#FFC23A32" BlurRadius="18" ShadowDepth="0" Opacity="0.5"/>
                                 </Ellipse.Effect>
                             </Ellipse>
                             <Ellipse Width="94" Height="94">
                                 <Ellipse.Fill>
                                     <RadialGradientBrush>
-                                        <GradientStop Color="#14E2231A" Offset="0"/>
-                                        <GradientStop Color="#08E2231A" Offset="1"/>
+                                        <GradientStop Color="#14C23A32" Offset="0"/>
+                                        <GradientStop Color="#08C23A32" Offset="1"/>
                                     </RadialGradientBrush>
                                 </Ellipse.Fill>
                             </Ellipse>
                             <TextBlock Text="M" FontSize="44" FontWeight="Bold"
-                                       Foreground="#FFE2231A"
+                                       Foreground="#FFC23A32"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        FontFamily="Segoe UI">
                                 <TextBlock.Effect>
-                                    <DropShadowEffect Color="#FFE2231A" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
+                                    <DropShadowEffect Color="#FFC23A32" BlurRadius="12" ShadowDepth="0" Opacity="0.7"/>
                                 </TextBlock.Effect>
                             </TextBlock>
                         </Grid>
 
                         <TextBlock Text="MAALOUF"
                                    FontSize="28" FontWeight="Bold"
-                                   Foreground="#FFF2F1EE" HorizontalAlignment="Center"
+                                   Foreground="#FFEEF1F5" HorizontalAlignment="Center"
                                    FontFamily="Bahnschrift SemiBold"/>
                         <TextBlock Text="AUTO PARTS"
                                    FontSize="12" FontWeight="Light"
@@ -212,8 +212,8 @@
                                    Margin="0 3 0 0" FontFamily="Bahnschrift">
                             <TextBlock.Foreground>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#FFE2231A" Offset="0"/>
-                                    <GradientStop Color="#FF2BD97E" Offset="1"/>
+                                    <GradientStop Color="#FFC23A32" Offset="0"/>
+                                    <GradientStop Color="#FF2F9461" Offset="1"/>
                                 </LinearGradientBrush>
                             </TextBlock.Foreground>
                         </TextBlock>
@@ -223,7 +223,7 @@
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Color="Transparent" Offset="0"/>
-                                    <GradientStop Color="#44E2231A" Offset="0.5"/>
+                                    <GradientStop Color="#44C23A32" Offset="0.5"/>
                                     <GradientStop Color="Transparent" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.Background>
@@ -232,7 +232,7 @@
                         <!-- Platform badges -->
                         <TextBlock Text="CONNECTED PLATFORMS"
                                    FontSize="9" FontWeight="Bold"
-                                   Foreground="#FF9B9B9B"
+                                   Foreground="#FF8B96A3"
                                    HorizontalAlignment="Center"
                                    Margin="0 0 0 12" FontFamily="Segoe UI"/>
 
@@ -241,16 +241,16 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#12E2231A" Offset="0"/>
-                                        <GradientStop Color="#0AA8160F" Offset="1"/>
+                                        <GradientStop Color="#12C23A32" Offset="0"/>
+                                        <GradientStop Color="#0A8A2923" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#1AE2231A"/>
+                                    <SolidColorBrush Color="#1AC23A32"/>
                                 </Border.BorderBrush>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🖥" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
-                                    <TextBlock Text="Desktop" FontSize="10" Foreground="#FFE2231A"
+                                    <TextBlock Text="Desktop" FontSize="10" Foreground="#FFC23A32"
                                                VerticalAlignment="Center" FontFamily="Segoe UI"/>
                                 </StackPanel>
                             </Border>
@@ -258,16 +258,16 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#12A8160F" Offset="0"/>
-                                        <GradientStop Color="#0AA8160F" Offset="1"/>
+                                        <GradientStop Color="#128A2923" Offset="0"/>
+                                        <GradientStop Color="#0A8A2923" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#12E2231A"/>
+                                    <SolidColorBrush Color="#12C23A32"/>
                                 </Border.BorderBrush>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🌐" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
-                                    <TextBlock Text="Web" FontSize="10" Foreground="#FF9B9B9B"
+                                    <TextBlock Text="Web" FontSize="10" Foreground="#FF8B96A3"
                                                VerticalAlignment="Center" FontFamily="Segoe UI"/>
                                 </StackPanel>
                             </Border>
@@ -275,23 +275,23 @@
                                     BorderThickness="1">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#12A8160F" Offset="0"/>
-                                        <GradientStop Color="#0AA8160F" Offset="1"/>
+                                        <GradientStop Color="#128A2923" Offset="0"/>
+                                        <GradientStop Color="#0A8A2923" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#12E2231A"/>
+                                    <SolidColorBrush Color="#12C23A32"/>
                                 </Border.BorderBrush>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="📱" FontSize="12" VerticalAlignment="Center" Margin="0 0 5 0"/>
-                                    <TextBlock Text="Mobile" FontSize="10" Foreground="#FF9B9B9B"
+                                    <TextBlock Text="Mobile" FontSize="10" Foreground="#FF8B96A3"
                                                VerticalAlignment="Center" FontFamily="Segoe UI"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
 
                         <TextBlock Text="v5.0  ·  Apex Design System"
-                                   FontSize="10" Foreground="#FF6B6B6B"
+                                   FontSize="10" Foreground="#FF5D6773"
                                    HorizontalAlignment="Center"
                                    Margin="0 22 0 0" FontFamily="Segoe UI"/>
                     </StackPanel>
@@ -302,7 +302,7 @@
             <Border Grid.Column="1" CornerRadius="0 20 20 0">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#FF131313" Offset="0"/>
+                        <GradientStop Color="#FF171D25" Offset="0"/>
                         <GradientStop Color="#FF0E0E0E" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
@@ -313,7 +313,7 @@
                             HorizontalAlignment="Right" VerticalAlignment="Top"
                             Margin="0 16 16 0" Width="30" Height="30"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#FF6B6B6B" FontSize="13"
+                            Foreground="#FF5D6773" FontSize="13"
                             Cursor="Hand" Click="CloseButton_Click">
                         <Button.Style>
                             <Style TargetType="Button">
@@ -348,11 +348,11 @@
                         <!-- Welcome header -->
                         <TextBlock Text="Welcome back"
                                    FontSize="26" FontWeight="SemiBold"
-                                   Foreground="#FFF2F1EE" Margin="0 0 0 4"
+                                   Foreground="#FFEEF1F5" Margin="0 0 0 4"
                                    FontFamily="Bahnschrift SemiBold"/>
                         <StackPanel Orientation="Horizontal" Margin="0 0 0 36">
-                            <TextBlock Text="Sign in to " FontSize="13" Foreground="#FF9B9B9B" FontFamily="Segoe UI"/>
-                            <TextBlock Text="Maalouf Auto Parts" FontSize="13" Foreground="#FFE2231A" FontFamily="Segoe UI"/>
+                            <TextBlock Text="Sign in to " FontSize="13" Foreground="#FF8B96A3" FontFamily="Segoe UI"/>
+                            <TextBlock Text="Maalouf Auto Parts" FontSize="13" Foreground="#FFC23A32" FontFamily="Segoe UI"/>
                         </StackPanel>
 
                         <!-- Username field -->
@@ -363,14 +363,14 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
                                 <Border Width="16" Height="16" CornerRadius="3"
-                                        Background="#14E2231A" Margin="0 0 7 0">
+                                        Background="#14C23A32" Margin="0 0 7 0">
                                     <TextBlock Text="U" FontSize="8" FontWeight="Bold"
-                                               Foreground="#FFE2231A"
+                                               Foreground="#FFC23A32"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
                                 <TextBlock Text="USERNAME" FontSize="10" FontWeight="Bold"
-                                           Foreground="#FF9B9B9B" FontFamily="Segoe UI"/>
+                                           Foreground="#FF8B96A3" FontFamily="Segoe UI"/>
                             </StackPanel>
                             <TextBox x:Name="UsernameBox" Grid.Row="1"
                                      Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
@@ -386,14 +386,14 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
                                 <Border Width="16" Height="16" CornerRadius="3"
-                                        Background="#14E2231A" Margin="0 0 7 0">
+                                        Background="#14C23A32" Margin="0 0 7 0">
                                     <TextBlock Text="P" FontSize="8" FontWeight="Bold"
-                                               Foreground="#FFE2231A"
+                                               Foreground="#FFC23A32"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
                                 <TextBlock Text="PASSWORD" FontSize="10" FontWeight="Bold"
-                                           Foreground="#FF9B9B9B" FontFamily="Segoe UI"/>
+                                           Foreground="#FF8B96A3" FontFamily="Segoe UI"/>
                             </StackPanel>
                             <PasswordBox x:Name="PasswordBox" Grid.Row="1"
                                          Style="{StaticResource LoginPasswordStyle}"
@@ -430,18 +430,18 @@
                                                 <Border x:Name="Bd" CornerRadius="2">
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                            <GradientStop Color="#FFE2231A" Offset="0"/>
-                                                            <GradientStop Color="#FFA8160F" Offset="1"/>
+                                                            <GradientStop Color="#FFC23A32" Offset="0"/>
+                                                            <GradientStop Color="#FF8A2923" Offset="1"/>
                                                         </LinearGradientBrush>
                                                     </Border.Background>
                                                     <Border.Effect>
-                                                        <DropShadowEffect Color="#FFE2231A" BlurRadius="20"
+                                                        <DropShadowEffect Color="#FFC23A32" BlurRadius="20"
                                                                           ShadowDepth="0" Opacity="0.4"/>
                                                     </Border.Effect>
                                                     <TextBlock x:Name="Txt" Text="SIGN IN  →"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center"
-                                                               Foreground="#FF090909"
+                                                               Foreground="#FF11161C"
                                                                FontSize="13" FontWeight="Bold"
                                                                FontFamily="Segoe UI"/>
                                                 </Border>
@@ -450,8 +450,8 @@
                                                         <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
                                                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                                    <GradientStop Color="#FFFF4B3E" Offset="0"/>
-                                                                    <GradientStop Color="#FFE2231A" Offset="1"/>
+                                                                    <GradientStop Color="#FFD6453B" Offset="0"/>
+                                                                    <GradientStop Color="#FFC23A32" Offset="1"/>
                                                                 </LinearGradientBrush>
                                                             </Setter.Value>
                                                         </Setter>
@@ -459,7 +459,7 @@
                                                     <Trigger Property="IsPressed" Value="True">
                                                         <Setter TargetName="Bd" Property="Background">
                                                             <Setter.Value>
-                                                                <SolidColorBrush Color="#FFA8160F"/>
+                                                                <SolidColorBrush Color="#FF8A2923"/>
                                                             </Setter.Value>
                                                         </Setter>
                                                         <Setter TargetName="Bd" Property="Effect" Value="{x:Null}"/>
@@ -481,7 +481,7 @@
                     <!-- API status bar -->
                     <Border VerticalAlignment="Bottom" Padding="22 12" CornerRadius="0 0 20 0">
                         <Border.BorderBrush>
-                            <SolidColorBrush Color="#0AE2231A"/>
+                            <SolidColorBrush Color="#0AC23A32"/>
                         </Border.BorderBrush>
                         <Border.BorderThickness>0 1 0 0</Border.BorderThickness>
                         <StackPanel>
@@ -490,13 +490,13 @@
                                            Foreground="{Binding StatusBrush}"
                                            VerticalAlignment="Center" Margin="0 0 7 0"/>
                                 <TextBlock Text="{Binding StatusText}"
-                                           FontSize="11" Foreground="#FF6B6B6B"
+                                           FontSize="11" Foreground="#FF5D6773"
                                            VerticalAlignment="Center" FontFamily="Segoe UI"/>
                             </StackPanel>
                             <TextBlock Text="{Binding ServiceStatusText}"
                                        Margin="16 5 0 0"
                                        FontSize="10"
-                                       Foreground="#FF6B6B6B"
+                                       Foreground="#FF5D6773"
                                        TextWrapping="Wrap"
                                        LineHeight="16"
                                        FontFamily="Consolas"/>

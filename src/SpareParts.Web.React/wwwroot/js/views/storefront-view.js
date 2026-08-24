@@ -1,5 +1,5 @@
 import { h, useCallback, useEffect, useMemo, useState } from "../core/react-runtime.js";
-import { initials, money } from "../core/formatters.js";
+import { initials, money, pickFirst } from "../core/formatters.js";
 import { LoginPanel } from "../components/auth.js";
 import { LanguagePicker, ThemePicker } from "../components/layout.js";
 import { StatusLine } from "../components/shared.js";
@@ -80,6 +80,11 @@ function pickFeatured(parts) {
   return parts.find(looksLikeHeadlight) || parts[0] || null;
 }
 
+function promoDiscountLabel(code, quote) {
+  const percent = pickFirst(quote, ["discountPercent", "discountPercentage", "percentOff"]);
+  return percent ? `${code} — ${percent}% off` : `${code} — Promo applied`;
+}
+
 // ── inline icons ──────────────────────────────────────────────────────────
 function svg(props, ...children) {
   return h("svg", {
@@ -140,10 +145,27 @@ function Ticker() {
   );
 }
 
-function PartCard({ part, inCart, addToCart, t }) {
+// Oversized outlined section number (/01 /02 /03) — a recurring Hot motif.
+// Decorative only, so it stays out of the accessibility tree.
+function SectionNum({ n, block }) {
+  return h("span", {
+    className: block ? "apx-section-num apx-section-num-block" : "apx-section-num",
+    "aria-hidden": "true"
+  }, `/${String(n).padStart(2, "0")}`);
+}
+
+// Diagonal accent stripes on an ink slab, above the ticker.
+function HazardBand() {
+  return h("div", { className: "apx-hazard", "aria-hidden": "true" });
+}
+
+function PartCard({ part, index, inCart, addToCart, t }) {
   const imageUrl = firstPartImage(part);
   const showImg = looksLikeHeadlight(part);
-  return h("article", { className: "apx-card" },
+  // data-index drives the oversized outlined number in the card corner
+  // (.apx-card[data-index]::after) — a Hot design motif.
+  const cardIndex = Number.isFinite(index) ? String(index + 1).padStart(2, "0") : null;
+  return h("article", { className: "apx-card", "data-index": cardIndex },
     h("div", { className: "apx-card-media" },
       h("span", { className: "apx-card-tag" }, partTag(part)),
       isBenchChecked(part) && h("span", { className: "apx-card-bench" }, "Bench"),
@@ -194,8 +216,43 @@ function CartRows({ cartRows, updateQuantity, t }) {
   );
 }
 
-function OrderSummary({ cartRows, cartTotal, actions, t }) {
+// Promo code entry — sits in the order summary, above the totals, before the
+// final confirm action. "Apply" asks the server to price the code (never
+// computed client-side); "Remove" drops it and returns to full price.
+function PromoCodeBox({ code, setCode, applied, applying, error, apply, remove, t }) {
+  return h("div", { className: "apx-promo" },
+    h("span", { className: "apx-promo-label" }, t("store.promoCode", "Promo code")),
+    applied
+      ? h("div", { className: "apx-promo-applied" },
+        h("div", { className: "apx-promo-applied-row" },
+          h("strong", null, applied.code),
+          h("button", { className: "apx-promo-remove", type: "button", onClick: remove },
+            t("store.promoRemove", "Remove"))
+        ),
+        h("span", { className: "apx-promo-note" }, t("store.promoAppliedNote", "Code applied — discount shown below."))
+      )
+      : h("div", { className: "apx-promo-row" },
+        h("input", {
+          value: code,
+          onChange: (event) => setCode(event.target.value),
+          onKeyDown: (event) => event.key === "Enter" && apply(),
+          placeholder: t("store.promoPlaceholder", "Enter code, e.g. WEB10"),
+          "aria-label": t("store.promoCode", "Promo code")
+        }),
+        h("button", {
+          className: "apx-btn apx-btn-outline",
+          type: "button",
+          onClick: apply,
+          disabled: applying
+        }, applying ? t("store.promoApplying", "Applying...") : t("store.promoApply", "Apply"))
+      ),
+    error && h(StatusLine, { status: error, tone: "warning" })
+  );
+}
+
+function OrderSummary({ cartRows, cartTotal, actions, promo, t }) {
   const currency = cartRows[0]?.part?.currency || "USD";
+  const applied = promo?.applied;
   return h("aside", { className: "apx-panel apx-summary" },
     h("h2", null, t("store.currentOrder", "Current order")),
     cartRows.length === 0
@@ -208,9 +265,29 @@ function OrderSummary({ cartRows, cartTotal, actions, t }) {
           )
         )
       ),
+    promo && cartRows.length > 0 && h(PromoCodeBox, {
+      code: promo.code,
+      setCode: promo.setCode,
+      applied,
+      applying: promo.applying,
+      error: promo.error,
+      apply: promo.apply,
+      remove: promo.remove,
+      t
+    }),
+    applied && h("div", { className: "apx-summary-discounted" },
+      h("div", { className: "apx-summary-line apx-summary-subtotal" },
+        h("span", null, t("store.subtotal", "Subtotal")),
+        h("strong", null, money(applied.subtotal, currency))
+      ),
+      h("div", { className: "apx-summary-line apx-summary-discount" },
+        h("span", null, applied.label),
+        h("strong", null, `−${money(applied.discountAmount, currency)}`)
+      )
+    ),
     h("div", { className: "apx-summary-total" },
       h("span", null, t("store.total", "Total")),
-      h("strong", null, money(cartTotal, currency))
+      h("strong", null, money(applied ? applied.total : cartTotal, currency))
     ),
     actions && actions.length > 0 && h("div", { className: "apx-summary-actions" },
       actions.map((action, index) =>
@@ -257,6 +334,10 @@ export function CustomerStorefrontView({
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(paymentGatewayOptions[0].value);
   const [paymentReference, setPaymentReference] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState(null);
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
   const [requestPartId, setRequestPartId] = useState("");
   const [requestPartName, setRequestPartName] = useState("");
   const [requestOemNumber, setRequestOemNumber] = useState("");
@@ -377,6 +458,55 @@ export function CustomerStorefrontView({
     }));
   }, []);
 
+  // Asks the server to price a promo code against the current cart. Never
+  // computes the discount locally — only displays what the server returns.
+  // Uses a quote sub-route next to /checkout so applying a code cannot place
+  // a real order; the code itself is only sent to /checkout at final confirm.
+  const applyPromoCode = useCallback(async () => {
+    const code = promoCode.trim();
+    if (!code) {
+      setPromoError(t("store.promoEnterCode", "Enter a promo code first."));
+      return;
+    }
+    if (cart.length === 0) {
+      setPromoError(t("store.addPartsFirst", "Add parts to the cart first."));
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError("");
+    try {
+      const quote = await api.post("/api/web-catalog/checkout/quote", {
+        promoCode: code,
+        items: cart.map((item) => ({ partId: item.partId, quantity: item.quantity }))
+      });
+      const subtotal = pickFirst(quote, ["subtotal", "subTotal", "subtotalAmount"]);
+      const discountAmount = pickFirst(quote, ["discountAmount", "discount"]);
+      const total = pickFirst(quote, ["totalAmount", "total"]);
+      if (discountAmount === "" || total === "") {
+        throw new Error(t("store.promoNotReady", "Promo pricing isn't available yet. Your code will still be checked when you complete checkout."));
+      }
+      setPromoApplied({
+        code,
+        subtotal: subtotal === "" ? cartTotal : Number(subtotal),
+        discountAmount: Number(discountAmount),
+        total: Number(total),
+        label: promoDiscountLabel(code, quote)
+      });
+    } catch (error) {
+      setPromoApplied(null);
+      setPromoError(error.message || t("store.promoInvalid", "That code is invalid or expired."));
+    } finally {
+      setPromoLoading(false);
+    }
+  }, [api, promoCode, cart, cartTotal, t]);
+
+  const removePromoCode = useCallback(() => {
+    setPromoApplied(null);
+    setPromoError("");
+    setPromoCode("");
+  }, []);
+
   const checkout = useCallback(async () => {
     if (!isSignedIn) {
       setStatus(t("store.signInToCheckout", "Sign in to checkout."));
@@ -413,15 +543,20 @@ export function CustomerStorefrontView({
         deliveryInstructions,
         paymentMethod,
         paymentReference,
+        promoCode: promoApplied?.code || promoCode.trim() || undefined,
         items: cart.map((item) => ({ partId: item.partId, quantity: item.quantity }))
       });
+      const orderDiscount = pickFirst(response, ["discountAmount", "discount"]);
       setCart([]);
+      setPromoCode("");
+      setPromoApplied(null);
+      setPromoError("");
       await load();
       setStatus(t("store.orderCreated", "Order {invoice} created for {method}. Total {total}.", {
         invoice: response.invoiceNumber,
         method: paymentMethod,
         total: money(response.totalAmount)
-      }));
+      }) + (orderDiscount ? ` ${t("store.orderDiscountApplied", "Promo discount applied: {amount}.", { amount: money(orderDiscount) })}` : ""));
       setActiveView("shop");
     } catch (error) {
       setStatus(error.message || t("store.checkoutFailed", "Checkout failed."));
@@ -430,7 +565,7 @@ export function CustomerStorefrontView({
     }
   }, [
     api, cart, customerEmail, customerName, customerPhone, deliveryInstructions,
-    isSignedIn, load, paymentMethod, paymentReference, shippingAddressLine1,
+    isSignedIn, load, paymentMethod, paymentReference, promoApplied, promoCode, shippingAddressLine1,
     shippingAddressLine2, shippingCity, shippingCountry, shippingPostalCode, shippingRegion, t
   ]);
 
@@ -612,6 +747,7 @@ export function CustomerStorefrontView({
 
   const renderCatalog = () => h("section", { id: "apx-catalog", className: "apx-catalog" },
     h("div", { className: "apx-section-head" },
+      h(SectionNum, { n: 1 }),
       h("div", null,
         h("span", { className: "apx-section-kicker" }, `${parts.length} parts in view`),
         h("h2", { className: "apx-section-title" }, search.trim() ? `${search.trim()} parts` : "All German parts"),
@@ -632,9 +768,9 @@ export function CustomerStorefrontView({
     ),
     h(StatusLine, { status }),
     h("div", { className: "apx-grid" },
-      parts.map((part) => {
+      parts.map((part, index) => {
         const inCart = cartRows.find((item) => item.partId === part.id)?.quantity || 0;
-        return h(PartCard, { key: part.id, part, inCart, addToCart, t });
+        return h(PartCard, { key: part.id, part, index, inCart, addToCart, t });
       }),
       parts.length === 0 && !isLoading && h("div", { className: "apx-empty" },
         h("strong", null, t("store.noPartsMatch", "No parts matched that search.")),
@@ -649,6 +785,7 @@ export function CustomerStorefrontView({
       h("img", { src: headlightAsset, alt: "Bi-Xenon headlight, bench-checked" })
     ),
     h("div", { className: "apx-passport-body" },
+      h(SectionNum, { n: 2, block: true }),
       h("span", { className: "apx-section-kicker" }, "Verify before you buy"),
       h("h2", { className: "apx-section-title" }, "Every part carries a passport"),
       h("p", null, "No guesswork. Fitment, condition and provenance are documented and bench-checked before a listing goes live."),
@@ -663,6 +800,7 @@ export function CustomerStorefrontView({
   );
 
   const renderTrust = () => h("section", { id: "apx-trust", className: "apx-trust" },
+    h(SectionNum, { n: 3, block: true }),
     h("div", { className: "apx-trust-grid" },
       [
         { icon: "bench", title: "Bench-checked", body: "Used parts are tested on the bench and graded for condition before they ever reach a listing." },
@@ -708,6 +846,15 @@ export function CustomerStorefrontView({
             disabled: cartRows.length === 0
           }
         ],
+        promo: {
+          code: promoCode,
+          setCode: setPromoCode,
+          applied: promoApplied,
+          applying: promoLoading,
+          error: promoError,
+          apply: applyPromoCode,
+          remove: removePromoCode
+        },
         t
       })
     )
@@ -782,6 +929,15 @@ export function CustomerStorefrontView({
       h(OrderSummary, {
         cartRows, cartTotal,
         actions: [{ label: t("store.continueShopping", "Continue shopping"), onClick: goShop }],
+        promo: {
+          code: promoCode,
+          setCode: setPromoCode,
+          applied: promoApplied,
+          applying: promoLoading,
+          error: promoError,
+          apply: applyPromoCode,
+          remove: removePromoCode
+        },
         t
       })
     )
@@ -907,6 +1063,7 @@ export function CustomerStorefrontView({
   const showCartBar = cartItemCount > 0 && activeView !== "cart" && activeView !== "checkout";
 
   return h("main", { className: "apex-store" },
+    h(HazardBand),
     h(Ticker),
     renderHeader(),
     h("div", { className: "apx-content" }, renderActive()),

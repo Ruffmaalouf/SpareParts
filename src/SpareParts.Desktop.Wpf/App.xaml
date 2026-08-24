@@ -5,7 +5,16 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/ApexTheme.xaml"/>
-                <ResourceDictionary Source="/SpareParts.Desktop.Wpf;component/Themes/CockpitTheme.xaml"/>
+                <!-- CockpitTheme.xaml is deliberately NOT merged here.
+                     It re-declared the shared semantic keys (AccentBrush,
+                     AppBackgroundBrush, TextPrimaryBrush, BorderBrush, …) with
+                     its own hardcoded values, and because a later merged
+                     dictionary wins, it silently governed the whole desktop UI
+                     instead of ApexTheme. Its remaining Ck* brushes and styles
+                     are referenced only from inside that file, so nothing else
+                     loses a resource. The Cockpit register stays available for
+                     the dashboard shell by merging it locally where it is
+                     actually wanted — not application-wide. -->
             </ResourceDictionary.MergedDictionaries>
             <Style x:Key="AccountingComboOverlayButtonStyle" TargetType="ToggleButton">
                 <Setter Property="Focusable" Value="False"/>
